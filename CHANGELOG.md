@@ -3,6 +3,59 @@
 ## [Unreleased] — Sprint 2
 
 ### Added
+- **F4.3: OpenElevationProvider + USGSElevationProvider** (Sprint 2)
+  - Implementa `ElevationProvider` ABC (dominio `elevation`) sopra il
+    Provider abstraction Sprint 1. Riutilizza il modulo errori F4.1.
+  - **`OpenElevationProvider`**: worldwide, endpoint
+    `https://api.open-elevation.com/api/v1/lookup`. Cache TTL 10 anni,
+    rate limit 5 rps bucket `open_elevation`. **Batch nativo** via POST
+    JSON `{locations: [...]}` (max 1000 punti). Cache batch per-punto
+    (riusa cache hit individuali → solo i mancanti vengono fetchati).
+  - **`USGSElevationProvider`**: solo US, alta risoluzione (1-3 m NED),
+    endpoint `https://epqs.nationalmap.gov/v1/json`. Cache TTL 10 anni,
+    rate limit 5 rps bucket `usgs_elevation`. No batch nativo →
+    fallback su loop sequenziale. Soglia "no data" `value <= -100000`
+    convertita in `ProviderError` per consentire fallback chain F8.
+  - Bucket `open_elevation` + `usgs_elevation` auto-registrati al
+    primo import del package (idempotente, no modifiche a Sprint 1).
+  - Cache key lat/lon a 5° decimale (~1 m) per cache hit stabile.
+  - Hook `_record_call()` per F6 (lookup + lookup_batch + cache_hit).
+
+### Tests
+- **+37 unit test** `tests/services/providers/elevation/`:
+  - `test_open_elevation.py` (20 test): single lookup parse Roma,
+    cache hit + round 5° decimale, empty results, 429/500/timeout,
+    usage hook, corrupt cache fallback. **Batch**: 3 punti parse, cache
+    per-punto (prepop + fetch parziale), batch empty/too-large,
+    truncated response. Health ok/down/timeout/degraded.
+  - `test_usgs_elevation.py` (17 test): parse DC, cache, outside-US
+    → ProviderError, malformed/non-numeric value, 429/500/timeout,
+    usage hook, corrupt cache, batch via default loop seq, health,
+    location field snap-to-grid.
+- **+6 integration test** `test_elevation_integration.py` (`@pytest.mark.slow`):
+  Open-Elevation Roma/Monte Bianco/batch 3 punti italiani, USGS
+  Washington DC/Denver alta quota, USGS Roma (fuori US) → ProviderError.
+
+### Gate
+| Gate | F4.1 | F4.2 | F4.3 |
+|---|---|---|---|
+| pytest (no-cov, no-slow) | 964 | 1011 | **1048** (+37) |
+| Module coverage | 93% | 92.1% | **90.6%** |
+| mypy --strict | clean | clean | **clean** |
+| Slow integration | 8 | 15 | **21** (+6) |
+
+### Note operative
+- Bucket registration at-import-time pattern: il package
+  `services.providers.elevation/__init__.py` registra `open_elevation`
+  + `usgs_elevation` idempotentemente. Pattern riutilizzabile per F4.4
+  (USGS earthquake ha gia' bucket pre-registrato in Sprint 1).
+- `lookup_batch` con cache per-punto: per N punti dove K sono gia' in
+  cache, fa 1 HTTP call per N-K punti (anziche' N call separate).
+  Importante per workflow "interpolate mesh quota su SRTM".
+
+---
+
+### Added
 - **F4.2: OpenMeteoGeocodingProvider + NominatimProvider** (Sprint 2)
   - Implementa `GeocodingProvider` ABC (dominio `geocoding`) sopra il
     Provider abstraction Sprint 1. Riutilizza il modulo errori F4.1.

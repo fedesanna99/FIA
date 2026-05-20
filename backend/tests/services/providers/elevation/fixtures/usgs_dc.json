@@ -1,0 +1,13 @@
+{
+  "location": {
+    "x": -77.0365,
+    "y": 38.8977,
+    "spatialReference": {
+      "wkid": 4326
+    }
+  },
+  "locationId": 0,
+  "value": "16.42",
+  "rasterId": 25067,
+  "resolution": 3
+}
