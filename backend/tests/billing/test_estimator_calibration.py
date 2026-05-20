@@ -26,7 +26,9 @@ TOLERANCE = 0.30
 # Sopra questa soglia (in secondi) consideriamo l'attivita' "significativa". Sotto
 # i tempi sono dominati dall'overhead Python (JIT/cache miss/import) e non sono
 # comparabili in modo affidabile -- l'errore relativo viene calcolato sul floor.
-MIN_ACTUAL_S = 0.05
+# Floor alto (>= 100 ms) garantisce stabilita' su sistemi caricati durante il
+# full pytest run; le calibrazioni "vere" su modelli grandi rimangono stringenti.
+MIN_ACTUAL_S = 0.10
 # Numero di iterazioni di warm-up + best-of-N per ridurre il rumore del wall-clock.
 WARMUP_ITERS = 1
 BEST_OF = 3

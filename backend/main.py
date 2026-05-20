@@ -11,6 +11,7 @@ from api.routes import (
     postprocess as postprocess_routes, verify_ext as verify_ext_routes,
     billing as billing_routes, usage as usage_routes,
     quotas as quotas_routes, jobs as jobs_routes,
+    validation as validation_routes,
 )
 from api.websocket import router as ws_router
 from storage import seed_examples
@@ -48,6 +49,7 @@ app.include_router(billing_routes.router, prefix="/api/billing", tags=["billing"
 app.include_router(usage_routes.router, prefix="/api/usage", tags=["usage"])
 app.include_router(quotas_routes.router, prefix="/api/quotas", tags=["quotas"])
 app.include_router(jobs_routes.router, prefix="/api/jobs", tags=["jobs"])
+app.include_router(validation_routes.router, prefix="/api/validation", tags=["validation"])
 app.include_router(ws_router, tags=["websocket"])
 
 
