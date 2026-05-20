@@ -10,7 +10,14 @@ kill_timeout    = "10s"
   dockerfile = "Dockerfile"
 
 [env]
-  FEA_DATA_DIR = "/data"
+  FEAPRO_DATA_DIR = "/data"
+  # Fallback chain F8: ogni dominio prova primary -> fallback su
+  # NotImplementedError/5xx/timeout/rate_limit (vedi services/orchestrator.py).
+  # Senza questo, /api/loads/meteo chiama solo open_meteo_forecast che NON
+  # implementa historical_extremes -> 503 AllProvidersFailedError.
+  FEAPRO_METEO_FALLBACK = "open_meteo_archive"
+  FEAPRO_GEOCODING_FALLBACK = "nominatim"
+  FEAPRO_ELEVATION_FALLBACK = "usgs_elevation"
   # PYTHONUNBUFFERED is already set in the Dockerfile
 
 # Persistent JSON storage for models (survives restarts/deploys).

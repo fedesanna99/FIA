@@ -24,7 +24,16 @@ from .schemas import CostEstimate, SolverKind
 
 # Path del log JSONL. Risolto lazy in modo che i test possano monkey-patchare
 # `AUDIT_LOG = Path(tmp_path)/...` prima di chiamare il context manager.
-AUDIT_LOG: Path = Path("audit/jobs.jsonl")
+# In produzione (Fly.io) `FEAPRO_DATA_DIR=/data` redirige a /data/audit/jobs.jsonl
+# per persistenza tra redeploy.
+def _default_audit_log() -> Path:
+    base = os.environ.get("FEAPRO_DATA_DIR")
+    if base:
+        return Path(base) / "audit" / "jobs.jsonl"
+    return Path("audit/jobs.jsonl")
+
+
+AUDIT_LOG: Path = _default_audit_log()
 
 # Lock globale per scritture atomiche concorrenti (multi-thread).
 _write_lock = threading.Lock()

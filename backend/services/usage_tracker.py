@@ -39,7 +39,12 @@ from typing import Any
 logger = logging.getLogger(__name__)
 
 
-USAGE_DB: Path = Path(".cache/usage.sqlite")
+def _default_data_dir() -> Path:
+    """Cartella dove vive il tracker SQLite. Override via `FEAPRO_DATA_DIR=/data`."""
+    return Path(os.environ.get("FEAPRO_DATA_DIR", ".cache"))
+
+
+USAGE_DB: Path = _default_data_dir() / "usage.sqlite"
 
 
 _SCHEMA = """

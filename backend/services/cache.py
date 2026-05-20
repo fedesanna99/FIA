@@ -18,7 +18,13 @@ from pathlib import Path
 from typing import Any
 
 
-CACHE_DB: Path = Path(".cache/services.sqlite")
+def _default_data_dir() -> Path:
+    """Cartella dove vivono le SQLite. Override via env `FEAPRO_DATA_DIR=/data`
+    (Fly.io volume persistente)."""
+    return Path(os.environ.get("FEAPRO_DATA_DIR", ".cache"))
+
+
+CACHE_DB: Path = _default_data_dir() / "services.sqlite"
 
 DEFAULT_TTL: dict[str, int] = {
     "geocoding": 365 * 24 * 3600,          # 1 anno

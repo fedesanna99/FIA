@@ -20,6 +20,7 @@ from api.routes import (
 from api.websocket import router as ws_router
 from storage import seed_examples
 from jobs.worker import get_worker
+from services.providers.registration import register_all
 
 
 app = FastAPI(
@@ -68,6 +69,10 @@ app.include_router(ws_router, tags=["websocket"])
 @app.on_event("startup")
 async def startup_event():
     seed_examples()
+    # Registra gli 8 provider F4 nel registry (Sprint 2 F8 orchestrator dependency).
+    # Senza questo, /api/loads/*, /api/geocoding/*, /api/terrain/* rispondono 503
+    # "no providers registered".
+    register_all()
     # Avvia il job worker (A5)
     worker = get_worker()
     await worker.start()

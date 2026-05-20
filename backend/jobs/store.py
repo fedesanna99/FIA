@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 import threading
 import time
@@ -11,7 +12,12 @@ from typing import Any
 from .models import Job, JobStatus, PRIORITY_ORDER
 
 
-JOBS_DB: Path = Path(".cache/jobs.sqlite")
+def _default_data_dir() -> Path:
+    """Cartella dove vive lo JobStore SQLite. Override via `FEAPRO_DATA_DIR=/data`."""
+    return Path(os.environ.get("FEAPRO_DATA_DIR", ".cache"))
+
+
+JOBS_DB: Path = _default_data_dir() / "jobs.sqlite"
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS jobs (
