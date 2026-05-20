@@ -1,5 +1,56 @@
 # Changelog FEA Pro
 
+## v1.3.0-alpha.3 — Test depth + coverage uplift — 2026-05-20
+
+Polish post-migration: amplia drasticamente la suite di test per dare
+confidenza piena su tutti i nuovi sottosistemi Sprint 1.
+
+### Tests
+- **+15 test** `tests/jobs/test_worker_edge_cases.py`: copertura
+  `jobs/worker.py` 75% → 87%. Esercita `_serialize_result` (None / dict
+  / dataclass / pydantic v1 / v2 / primitive), failure paths
+  (`model_not_found`, `solver_not_dispatched`, quota_exceeded), worker
+  lifecycle (start/stop loop), `build_default_dispatcher`, `get_worker`
+  singleton.
+- **+29 test** `tests/test_deep_e2e_sprint1.py`: deep integration suite
+  in 9 sezioni (API contract, quota lifecycle, priority+retry,
+  concorrenza multi-thread, failure injection, invariant
+  audit↔DB↔usage↔quota, validation report HTML/JSON parity, cost
+  estimator monotonicity con **hypothesis** property-based, full E2E
+  smoke catena estimate→quota→submit→worker→result→audit).
+- **+16 test** `tests/services/test_registry_edge_cases.py`: copertura
+  `services/registry.py` 82% → 97%, `services/base.py` 82% → 94%.
+  Esercita `register` con istanza/classe, `get_by_name`, fallback
+  chain con env CSV malformato, `health_all` con provider exception /
+  already-running loop / empty registry, `clear()`.
+- **+4 test** `frontend/src/hooks/useJobRun.test.tsx`: WS job_done →
+  onSuccess, WS job_failed → onError, polling fallback quando WS muto,
+  filtro job_id (eventi di altri job ignorati).
+
+### Coverage
+| Modulo | Sprint 1 alpha.2 | alpha.3 |
+|---|---|---|
+| `services/base.py` | 82% | **94%** |
+| `services/registry.py` | 82% | **97%** |
+| `jobs/worker.py` | 75% | **87%** |
+| TOTAL backend | 90% | **90%** (preservato) |
+
+### Gate
+| Gate | alpha.2 | alpha.3 |
+|---|---|---|
+| pytest (no-cov) | 856 | **916** (+60) |
+| pytest (cov) | 849+7skip | **909+7skip** (+60) |
+| vitest | 86 | **90** (+4) |
+| tsc / build | OK | OK |
+
+### Coverage env
+- `pytest.ini`: `--cov` ora misura `billing,services,jobs,validation`
+  oltre a `core`.
+- Calibration test auto-skip sotto coverage instrumentation (rumore
+  sui tempi rende non-deterministico il check ±30%).
+
+---
+
 ## v1.3.0-alpha.2 — Sprint 1 polish — 2026-05-20
 
 Completamento della DoD A5 (migrazione effettiva dei 4 endpoint long-running
