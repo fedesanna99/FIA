@@ -25,6 +25,8 @@ import { Card } from "../ui/Card";
 import { Field, NumericInput } from "../ui/Input";
 import { Badge } from "../ui/Badge";
 import { EmptyState } from "../ui/EmptyState";
+import { useCostPreview } from "../../hooks/useCostPreview";
+import { CostPreviewDialog } from "../dialogs/billing/CostPreviewDialog";
 
 export function ArcLengthPanel() {
   const model = useModelStore((s) => s.model);
@@ -82,6 +84,18 @@ export function ArcLengthPanel() {
     onError: (e) => toast("error", `Errore arc-length: ${(e as Error).message}`),
   });
 
+  const preview = useCostPreview();
+  const handleSolve = () => {
+    if (!model) {
+      toast("error", "Nessun modello attivo");
+      return;
+    }
+    preview.previewAndRun(
+      { model_id: model.id, solver: "arclength", params: { n_steps: nSteps } },
+      () => mut.mutate(),
+    );
+  };
+
   const chartData = results
     ? results.lambda_curve.map((lam, i) => ({
         lambda: lam,
@@ -136,11 +150,20 @@ export function ArcLengthPanel() {
           iconLeft={<Play className="h-3.5 w-3.5" />}
           disabled={!model || mut.isPending}
           loading={mut.isPending}
-          onClick={() => mut.mutate()}
+          onClick={handleSolve}
         >
           {mut.isPending ? "In esecuzione…" : "Esegui arc-length"}
         </Button>
       </Card>
+
+      <CostPreviewDialog
+        open={preview.open}
+        estimate={preview.estimate}
+        quota={preview.quota}
+        isLoading={preview.isLoading}
+        onConfirm={preview.confirm}
+        onCancel={preview.cancel}
+      />
 
       {results && (
         <>

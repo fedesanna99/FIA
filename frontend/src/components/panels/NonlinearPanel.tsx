@@ -25,6 +25,8 @@ import { Card } from "../ui/Card";
 import { Field, NumericInput } from "../ui/Input";
 import { Badge } from "../ui/Badge";
 import { EmptyState } from "../ui/EmptyState";
+import { useCostPreview } from "../../hooks/useCostPreview";
+import { CostPreviewDialog } from "../dialogs/billing/CostPreviewDialog";
 
 export function NonlinearPanel() {
   const model = useModelStore((s) => s.model);
@@ -78,6 +80,22 @@ export function NonlinearPanel() {
     onError: (e) => toast("error", `Errore non-lineare: ${(e as Error).message}`),
   });
 
+  const preview = useCostPreview();
+  const handleSolve = () => {
+    if (!model) {
+      toast("error", "Nessun modello attivo");
+      return;
+    }
+    preview.previewAndRun(
+      {
+        model_id: model.id,
+        solver: "nonlinear",
+        params: { n_steps: nSteps, max_iter: maxIter },
+      },
+      () => mut.mutate(),
+    );
+  };
+
   const chartData = results?.steps.map((s) => ({
     lambda: s.load_factor,
     delta: s.max_displacement,
@@ -116,11 +134,20 @@ export function NonlinearPanel() {
           iconLeft={<Play className="h-3.5 w-3.5" />}
           disabled={!model || mut.isPending}
           loading={mut.isPending}
-          onClick={() => mut.mutate()}
+          onClick={handleSolve}
         >
           {mut.isPending ? "In esecuzione…" : "Esegui non-lineare"}
         </Button>
       </Card>
+
+      <CostPreviewDialog
+        open={preview.open}
+        estimate={preview.estimate}
+        quota={preview.quota}
+        isLoading={preview.isLoading}
+        onConfirm={preview.confirm}
+        onCancel={preview.cancel}
+      />
 
       {results && (
         <>

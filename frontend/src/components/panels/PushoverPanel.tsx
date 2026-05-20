@@ -20,6 +20,8 @@ import { Card } from "../ui/Card";
 import { Field, NumericInput } from "../ui/Input";
 import { Badge } from "../ui/Badge";
 import { EmptyState } from "../ui/EmptyState";
+import { useCostPreview } from "../../hooks/useCostPreview";
+import { CostPreviewDialog } from "../dialogs/billing/CostPreviewDialog";
 
 export function PushoverPanel() {
   const model = useModelStore((s) => s.model);
@@ -28,6 +30,8 @@ export function PushoverPanel() {
   const [maxSteps,   setMaxSteps]     = useState(200);
   const [deltaMax,   setDeltaMax]     = useState(1.0);
   const [results,    setResults]      = useState<PushoverResults | null>(null);
+
+  const preview = useCostPreview();
 
   const mut = useMutation({
     mutationFn: () => {
@@ -45,6 +49,25 @@ export function PushoverPanel() {
     },
     onError: (e) => toast("error", `Errore pushover: ${(e as Error).message}`),
   });
+
+  const handleSolve = () => {
+    if (!model) {
+      toast("error", "Nessun modello attivo");
+      return;
+    }
+    preview.previewAndRun(
+      {
+        model_id: model.id,
+        solver: "pushover",
+        params: {
+          lambda_step: lambdaStep,
+          lambda_max:  lambdaMax,
+          max_steps:   maxSteps,
+        },
+      },
+      () => mut.mutate(),
+    );
+  };
 
   const chartData = results?.steps.map((s) => ({
     delta: s.delta_control,
@@ -77,11 +100,20 @@ export function PushoverPanel() {
           iconLeft={<Play className="h-3.5 w-3.5" />}
           disabled={!model || mut.isPending}
           loading={mut.isPending}
-          onClick={() => mut.mutate()}
+          onClick={handleSolve}
         >
           {mut.isPending ? "In esecuzione…" : "Esegui pushover"}
         </Button>
       </Card>
+
+      <CostPreviewDialog
+        open={preview.open}
+        estimate={preview.estimate}
+        quota={preview.quota}
+        isLoading={preview.isLoading}
+        onConfirm={preview.confirm}
+        onCancel={preview.cancel}
+      />
 
       {results && (
         <>

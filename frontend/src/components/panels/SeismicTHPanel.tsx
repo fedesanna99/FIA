@@ -17,6 +17,8 @@ import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Field, NumericInput } from "../ui/Input";
 import { Badge } from "../ui/Badge";
+import { useCostPreview } from "../../hooks/useCostPreview";
+import { CostPreviewDialog } from "../dialogs/billing/CostPreviewDialog";
 
 type Axis = "X" | "Y" | "Z";
 type Source = "off" | "catalog" | "synthetic";
@@ -107,6 +109,24 @@ export function SeismicTHPanel() {
   const update = (ax: Axis, patch: Partial<AxisCfg>) =>
     setAxes((s) => ({ ...s, [ax]: { ...s[ax], ...patch } }));
 
+  const preview = useCostPreview();
+  const handleSolve = () => {
+    if (!model) {
+      toast("error", "Nessun modello attivo");
+      return;
+    }
+    const components: Record<string, unknown> = {};
+    activeAxes.forEach((a) => { components[a] = []; });
+    preview.previewAndRun(
+      {
+        model_id: model.id,
+        solver: "seismic_th",
+        params: { dt, t_end: tEnd, components },
+      },
+      () => mut.mutate(),
+    );
+  };
+
   return (
     <div className="p-3 space-y-3">
       <Card
@@ -143,7 +163,7 @@ export function SeismicTHPanel() {
             iconLeft={<Play className="h-3.5 w-3.5" />}
             disabled={!model || mut.isPending || activeAxes.length === 0}
             loading={mut.isPending}
-            onClick={() => mut.mutate()}
+            onClick={handleSolve}
           >
             {mut.isPending ? "In esecuzione…" : "Esegui TH"}
           </Button>
@@ -152,6 +172,14 @@ export function SeismicTHPanel() {
           )}
         </div>
       </Card>
+      <CostPreviewDialog
+        open={preview.open}
+        estimate={preview.estimate}
+        quota={preview.quota}
+        isLoading={preview.isLoading}
+        onConfirm={preview.confirm}
+        onCancel={preview.cancel}
+      />
     </div>
   );
 }
