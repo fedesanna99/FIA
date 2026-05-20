@@ -3,6 +3,60 @@
 ## [Unreleased] — Sprint 2
 
 ### Added
+- **F4.4: USGSEarthquakeProvider** (Sprint 2)
+  - Implementa `SeismicProvider` ABC (dominio `seismic`) sopra
+    `services.base.Provider`. Catalogo USGS FDSN Earthquake event API.
+  - **`search_nearby(lat, lon, max_radius_km, years_back, min_magnitude, limit)`**
+    → `EarthquakeResult`: eventi entro raggio km dalla location nel
+    periodo richiesto, ordinati per tempo decrescente, magnitudo
+    filtrabile. Output con `Earthquake` strutturati (id, time_iso,
+    lat/lon, depth_km, magnitude, place, event_type, url).
+  - **`historical_max_magnitude(lat, lon, max_radius_km, years_back)`**
+    → float: magnitudo massima storica, comodita' per NTC/EC8 site
+    assessment. Riutilizza la cache di `search_nearby` (stessa chiave
+    se lat/lon/radius/years coincidono).
+  - GeoJSON parsing tollerante: feature senza magnitude/url/time, con
+    coords 2D (no depth) sono gestite senza crash (skip o default).
+  - Cache TTL 7 giorni (`DEFAULT_TTL["seismic"]` Sprint 1 F2).
+  - Rate bucket `usgs_earthquake` 0.5 rps (pre-registrato Sprint 1 F3).
+  - Hook `_record_call()` stub per F6.
+
+### Tests
+- **+23 unit test** `tests/services/providers/seismic/`:
+  - `test_usgs_earthquake.py`: parse Norcia 2016 fixture (Mw 6.5+6.2+...),
+    cache hit + params completi nella key, empty/malformed features
+    skip, 429/500/400/timeout error mapping, usage hook, corrupt cache
+    fallback con payload pydantic-invalid (earthquakes="not-a-list"),
+    invalid args (radius<=0, years_back range, min_mag range, limit
+    range), historical_max_magnitude basic + empty + cache-reuse,
+    health ok/down/timeout/degraded, classvars, feature senza url/time,
+    coords 2D = depth 0.
+- **+4 integration test** `test_seismic_integration.py` (`@pytest.mark.slow`):
+  - Norcia 2016 sequence (M>=5 entro 50km/15y, attesi >=2 eventi)
+  - Tokyo 500km/20y → M_max >= 7.5 (Tohoku 2011 9.0)
+  - Sahara 100km/10y M>=4 → <20 eventi (zona quasi asismica)
+  - Cache hit reale su 2 chiamate identiche
+
+### Gate
+| Gate | F4.1 | F4.2 | F4.3 | F4.4 |
+|---|---|---|---|---|
+| pytest (no-cov, no-slow) | 964 | 1011 | 1048 | **1071** (+23) |
+| Module coverage | 93% | 92.1% | 90.6% | **91.1%** |
+| mypy --strict | clean | clean | clean | **clean** |
+| Slow integration | 8 | 15 | 21 | **25** (+4) |
+
+### Note operative
+- USGS Earthquake unico provider per dominio `seismic` (no fallback
+  chain per ora). Architettura comunque pronta: aggiungere INGV
+  Earthquake Catalog API (Italia, piu' dettagliato per piccoli M<3.5)
+  sara' uno step opzionale futuro.
+- Pattern `historical_*` che riusa cache di `search_*` testato come
+  funzionante: ottimizzazione importante per workflow "assessment +
+  visualizzazione lista eventi" sulla stessa UI page.
+
+---
+
+### Added
 - **F4.3: OpenElevationProvider + USGSElevationProvider** (Sprint 2)
   - Implementa `ElevationProvider` ABC (dominio `elevation`) sopra il
     Provider abstraction Sprint 1. Riutilizza il modulo errori F4.1.
