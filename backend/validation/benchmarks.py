@@ -161,7 +161,8 @@ def _euler_buckling_load() -> float:
 def _euler_analytical() -> float:
     L = 3.0
     E = 210e9
-    I = 603.8e-8  # Iz for ipe_300 (weak axis)
+    # BucklingSolver BEAM2D usa Iy (asse forte) per il buckling in-plane.
+    I = 8356e-8  # Iy for ipe_300 (strong axis)
     return math.pi ** 2 * E * I / (L ** 2)
 
 

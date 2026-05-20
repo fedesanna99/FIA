@@ -1,4 +1,4 @@
-"""Validation report endpoint (Sprint 1 — D2)."""
+"""Validation report endpoint (Sprint 1 — D2). Cache TTL via env."""
 from __future__ import annotations
 
 import html as _html
