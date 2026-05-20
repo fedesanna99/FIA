@@ -32,8 +32,13 @@ _MODAL_BETA = 1.25
 _DYNAMIC_ALPHA = 5.0e-7
 _DYNAMIC_BETA = 1.20
 
-# Pushover / nonlinear / arclength: Newton outer * step * fattorizzazione.
-_NONLINEAR_ALPHA = 1.2e-6
+# Pushover (lambda-incrementale, no Newton): step * fattorizzazione.
+_PUSHOVER_ALPHA = 1.2e-6
+# Nonlinear NR / arclength: Newton outer + inner iterations + line search.
+# Calibrato 2026-05-20 dopo che il test cable_bridge_2d/nonlinear mostrava
+# sottostima 47% (estimate 66ms vs actual 125ms): _NONLINEAR_ALPHA bumped
+# 1.2e-6 -> 3.0e-6 (×2.5).
+_NONLINEAR_ALPHA = 3.0e-6
 _NONLINEAR_BETA = 1.30
 
 # RAM (lineare in n_dof) + storage time-history (lineare in n_steps).
@@ -112,7 +117,7 @@ def _estimate_buckling(n_dof: int) -> CostEstimate:
 
 def _estimate_pushover(n_dof: int, n_steps: int) -> CostEstimate:
     n_steps = max(int(n_steps or 1), 1)
-    cpu = _cpu_min_power(_NONLINEAR_ALPHA, _NONLINEAR_BETA, n_dof, multiplier=n_steps)
+    cpu = _cpu_min_power(_PUSHOVER_ALPHA, _NONLINEAR_BETA, n_dof, multiplier=n_steps)
     expl = f"Pushover: {n_steps} step lambda-incrementali su {n_dof} DOF."
     return _build("pushover", n_dof, cpu, n_steps=n_steps, explanation=expl)
 

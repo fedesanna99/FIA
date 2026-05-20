@@ -1,6 +1,88 @@
 # Changelog FEA Pro
 
-## [Unreleased] — Sprint 2
+## v1.4.0-alpha.1 — Sprint 2 closure: piano B + UI integration — 2026-05-20
+
+Chiusura Sprint 2 con UI integration end-to-end (LocationPickerDialog),
+README facade completo, e 3 fix di errori nascosti emersi durante l'audit.
+
+### Added
+- **`LocationPickerDialog`** (frontend B1+B2+B3+B4 integration):
+  - 3-step UX: search → preview elevation + bbox → wind+snow+seismic
+    loads in tabs, con soil category picker per spettro NTC 2018.
+  - 8 vitest verdi: search/results/select/apply/soil-change/reset/empty.
+  - Wired in `TopBar` (icona MapPin + label "Loads") accanto ad Account.
+- **API client frontend**:
+  - `api/loads/index.ts` — `computeMeteoLoads`, `computeSeismicLoads`
+  - `api/geocoding/index.ts` — `geocodingSearch`, `geocodingReverse`,
+    `geocodingBest`
+  - `api/terrain/index.ts` — `terrainBatch`, `terrainProfile`, `terrainBbox`
+- **README `services/facades/README.md`**: architettura piramidale
+  Sprint 2, esempi numerici Roma/Norcia/Cagliari, workflow REST e_2_e,
+  roadmap upgrade per v1.4+ (tabella NTC 2018 ufficiale, c_e(z)
+  realistico, etc.).
+
+### Fixed
+- **ArcLengthPanel test**: mock `useJobRun.mutate` chiamava `onSuccess`
+  con `steps[]` senza i campi `arc_length` e `control_displacement`,
+  che il componente accedeva via `.toExponential(...)` causando
+  `TypeError: Cannot read properties of undefined`. Aggiunti i 2 campi
+  + `step` ai mock steps (sia `vi.mock` che `mockResolvedValue`).
+- **vitest `ResizeObserver is not defined`**: jsdom non implementa
+  ResizeObserver, ma `recharts` (e altri componenti Sprint 1 che usano
+  `ResponsiveContainer`) lo chiamano al mount. Aggiunto polyfill stub
+  globale in `setupTests.ts`. Risolve l'unhandled error che mascherava
+  il bug ArcLengthPanel.
+- **`cost_estimator` nonlinear sottostima ×2.5**: il test
+  `test_estimate_within_tolerance_of_actual[cable_bridge_2d/nonlinear]`
+  falliva consistentemente (estimate 66ms vs actual 125ms = 47% errore
+  > 30% tolerance). Separati `_PUSHOVER_ALPHA = 1.2e-6` (lambda-incr.)
+  da `_NONLINEAR_ALPHA = 3.0e-6` (Newton-Raphson). Tutti i 7 calibration
+  case passano ora con margine.
+
+### Gate finale Sprint 2
+
+| Gate | baseline alpha.4 | **v1.4.0-alpha.1** | Δ |
+|---|---|---|---|
+| pytest backend (no-cov, no-slow) | 916 | **1308** | +392 |
+| pytest backend (calibration verdi) | n/a | **7/7** | — |
+| Slow integration tests | 0 | 25 | +25 |
+| vitest frontend | 96 | **104** | +8 |
+| vitest unhandled errors | 1 (toExponential) | **0** | -1 |
+| Frontend vite build | OK | **OK** | — |
+| mypy --strict Sprint 2 files | n/a | **clean su 12 file** | — |
+
+### Sprint 2 cumulative
+
+- **9 commit** sul branch `claude/crazy-hodgkin-86772d`
+- **8 provider** concreti (4 domini: meteo, geocoding, elevation, seismic)
+- **4 service facade** (B1+B2+B3+B4) operative
+- **11 nuovi REST endpoint**:
+  ```
+  GET  /api/providers/usage/{summary,timeline,health}
+  GET  /api/geocoding/{search,reverse,best}
+  POST /api/terrain/{batch,profile,bbox}
+  POST /api/loads/meteo
+  POST /api/loads/seismic
+  ```
+- **1 LocationPickerDialog** UI completo (TopBar integration)
+- **Coverage moduli nuovi**: 90-100% uniforme + mypy --strict clean
+
+### Workflow utente end-to-end
+
+```
+TopBar [MapPin] → LocationPickerDialog
+    1. type "Cagliari" → API geocoding search → results list
+    2. click "Cagliari" → API terrain batch + meteo + seismic loads
+    3. switch soil category → re-query spectrum
+    4. click "Applica al modello" → callback onApply(bundle)
+```
+
+`bundle = {location, elevation_m, meteo: MeteoLoadsResult, seismic: SeismicLoadsResult}`
+pronto per essere applicato come `LoadCase` ai modelli FEA Pro.
+
+---
+
+## [Unreleased] — Sprint 2 (storia incrementale 9 commit)
 
 ### Added
 - **B1: GeocodingService + REST `/api/geocoding/*`** (Sprint 2)

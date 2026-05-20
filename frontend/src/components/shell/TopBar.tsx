@@ -15,6 +15,7 @@ import {
   ChevronDown,
   Loader2,
   User,
+  MapPin,
 } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { modelsApi } from "../../api/client";
@@ -24,6 +25,7 @@ import { useModelStore } from "../../store/modelStore";
 import { NewModelDialog } from "../dialogs/NewModelDialog";
 import { EditModelDialog } from "../dialogs/EditModelDialog";
 import { AccountDialog } from "../dialogs/AccountDialog";
+import { LocationPickerDialog } from "../dialogs/LocationPickerDialog";
 import { ExportMenu } from "./ExportMenu";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
@@ -50,6 +52,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   const [newOpen, setNewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [locationOpen, setLocationOpen] = useState(false);
   const qc = useQueryClient();
 
   const dup = useMutation({
@@ -162,6 +165,19 @@ export function TopBar({ models, activeId, onSelect }: Props) {
 
       <div className="flex-1 min-w-0" />
 
+      {/* Location picker (Sprint 2 piano B: B1+B2+B3+B4 facade) */}
+      <Tooltip content="Picker location: vento/neve/sismica da coordinate">
+        <Button
+          size="sm"
+          variant="ghost"
+          iconLeft={<MapPin className="h-3.5 w-3.5" />}
+          onClick={() => setLocationOpen(true)}
+          data-testid="topbar-location"
+        >
+          <span className="hidden md:inline">Loads</span>
+        </Button>
+      </Tooltip>
+
       {/* Account button (usage/tier/admin) */}
       <Tooltip content="Account: usage, tier, admin">
         <Button
@@ -184,6 +200,10 @@ export function TopBar({ models, activeId, onSelect }: Props) {
       <NewModelDialog open={newOpen} onClose={() => setNewOpen(false)} />
       <EditModelDialog open={editOpen} onClose={() => setEditOpen(false)} />
       <AccountDialog open={accountOpen} onClose={() => setAccountOpen(false)} />
+      <LocationPickerDialog
+        open={locationOpen}
+        onClose={() => setLocationOpen(false)}
+      />
     </header>
   );
 }
