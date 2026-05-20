@@ -19,6 +19,8 @@ from core.postprocess.fatigue import (
 import storage
 from api.websocket import broadcast_progress
 from billing import cost_estimator, job_meter
+from billing.middleware import check_quota_for_solve
+from billing.quotas import QuotaExceeded, quota_store
 
 
 DEFAULT_USER_ID = os.environ.get("FEAPRO_DEFAULT_USER_ID", "demo_user")
@@ -112,21 +114,30 @@ async def static_analysis(
 ):
     model = _get_model(model_id)
     estimate = cost_estimator.estimate("linear", model, {})
+    check_quota_for_solve(user_id, estimate)
     solver = StaticSolver(model, include_self_weight=req.include_self_weight, g=req.g)
     cb = _make_progress_cb(model_id)
+    record = None
     with job_meter.measure_job(
         user_id=user_id,
         solver="linear",
         model_id=model_id,
         n_dof=estimate.n_dof,
         estimate=estimate,
-    ):
+    ) as record:
         try:
             results = await _run_solver(solver, cb)
         except Exception as e:
             await broadcast_progress(model_id, 1.0, f"Errore: {e}")
             raise HTTPException(500, str(e))
     storage.save_results(model_id, "static", results)
+    # Consuma quota con i crediti effettivi misurati (fallback su estimate).
+    try:
+        actual = record.actual_credits if record and record.actual_credits is not None else estimate.credits
+        quota_store.consume(user_id, float(actual))
+    except QuotaExceeded:
+        # Il solve e' gia' avvenuto: registriamo comunque ma non bloccchiamo la risposta.
+        pass
     return results
 
 

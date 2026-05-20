@@ -10,6 +10,7 @@ from api.routes import (
     models, analysis, materials, verify, io as io_routes, ai as ai_routes,
     postprocess as postprocess_routes, verify_ext as verify_ext_routes,
     billing as billing_routes, usage as usage_routes,
+    quotas as quotas_routes,
 )
 from api.websocket import router as ws_router
 from storage import seed_examples
@@ -44,6 +45,7 @@ app.include_router(ai_routes.router, prefix="/api/ai", tags=["ai"])
 app.include_router(postprocess_routes.router, prefix="/api/postprocess", tags=["postprocess"])
 app.include_router(billing_routes.router, prefix="/api/billing", tags=["billing"])
 app.include_router(usage_routes.router, prefix="/api/usage", tags=["usage"])
+app.include_router(quotas_routes.router, prefix="/api/quotas", tags=["quotas"])
 app.include_router(ws_router, tags=["websocket"])
 
 
