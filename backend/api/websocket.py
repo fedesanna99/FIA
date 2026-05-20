@@ -11,6 +11,8 @@ router = APIRouter()
 _connections: dict[str, set[WebSocket]] = {}
 # Mappa model_id → client_id → WebSocket per il broadcast collaborativo
 _collab_connections: dict[str, dict[str, WebSocket]] = {}
+# Mappa user_id → set[WebSocket] per stream eventi job (Sprint 1 A5)
+_job_connections: dict[str, set[WebSocket]] = {}
 
 
 @router.websocket("/ws/analysis/{model_id}")
@@ -34,6 +36,33 @@ async def broadcast_progress(model_id: str, percent: float, message: str = ""):
             await ws.send_json(payload)
         except Exception:
             _connections.get(model_id, set()).discard(ws)
+
+
+# ─────────────────── Job events (Sprint 1 — A5) ───────────────────
+
+@router.websocket("/ws/jobs/{user_id}")
+async def jobs_ws(websocket: WebSocket, user_id: str):
+    """Stream eventi job per user_id (job_queued|started|progress|done|failed)."""
+    await websocket.accept()
+    _job_connections.setdefault(user_id, set()).add(websocket)
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        pass
+    finally:
+        _job_connections.get(user_id, set()).discard(websocket)
+
+
+async def broadcast_job_event(user_id: str, event_type: str, payload: dict):
+    """Invia evento {type, ...payload} a tutti i client del user_id."""
+    msg = {"type": event_type, **payload}
+    conns = list(_job_connections.get(user_id, set()))
+    for ws in conns:
+        try:
+            await ws.send_json(msg)
+        except Exception:
+            _job_connections.get(user_id, set()).discard(ws)
 
 
 # ─────────────────── Editing collaborativo ───────────────────

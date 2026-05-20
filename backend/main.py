@@ -10,10 +10,11 @@ from api.routes import (
     models, analysis, materials, verify, io as io_routes, ai as ai_routes,
     postprocess as postprocess_routes, verify_ext as verify_ext_routes,
     billing as billing_routes, usage as usage_routes,
-    quotas as quotas_routes,
+    quotas as quotas_routes, jobs as jobs_routes,
 )
 from api.websocket import router as ws_router
 from storage import seed_examples
+from jobs.worker import get_worker
 
 
 app = FastAPI(
@@ -46,12 +47,22 @@ app.include_router(postprocess_routes.router, prefix="/api/postprocess", tags=["
 app.include_router(billing_routes.router, prefix="/api/billing", tags=["billing"])
 app.include_router(usage_routes.router, prefix="/api/usage", tags=["usage"])
 app.include_router(quotas_routes.router, prefix="/api/quotas", tags=["quotas"])
+app.include_router(jobs_routes.router, prefix="/api/jobs", tags=["jobs"])
 app.include_router(ws_router, tags=["websocket"])
 
 
 @app.on_event("startup")
-def startup_event():
+async def startup_event():
     seed_examples()
+    # Avvia il job worker (A5)
+    worker = get_worker()
+    await worker.start()
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    worker = get_worker()
+    await worker.stop()
 
 
 @app.get("/api")
