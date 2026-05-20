@@ -1,5 +1,20 @@
 # Changelog FEA Pro
 
+## v1.3.0 — Sprint 1 (in development)
+
+### Added (in progress)
+- A1: cost_estimator backend per tutti i solver
+- A2: JobMeter middleware con audit JSONL
+- F1-F3: external services layer (Provider abstraction, SQLite cache, token bucket rate limiter)
+- A3: Quota system mock con cap mensile
+- A5: Persistent JobQueue con priorità e retry
+- A4: CostPreviewDialog frontend pre-solve
+- D1: NAFEMS LE1/LE2/LE10 benchmarks
+- D2: Validation page HTML pubblica /api/validation/report
+- E1: Test vitest per NonlinearPanel, ArcLengthPanel, IsosurfacePanel, LiveMonitorPanel, JobsPanel, CostPreviewDialog
+
+---
+
 ## v1.2.0 — 2026-05-20 (UX polish + progress live)
 
 Continuazione di v1.1 con focus sul **completamento del ciclo utente** per le

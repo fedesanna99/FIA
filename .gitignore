@@ -8,6 +8,15 @@ htmlcov/
 coverage.xml
 backend/data/
 .venv/
+
+# Sprint 1 runtime artifacts (v1.3)
+.cache/
+.quotas/
+audit/
+backend/.cache/
+backend/.quotas/
+backend/audit/
+backend/storage/results/
 venv/
 .env
 
