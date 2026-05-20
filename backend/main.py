@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 from api.routes import (
     models, analysis, materials, verify, io as io_routes, ai as ai_routes,
     postprocess as postprocess_routes, verify_ext as verify_ext_routes,
+    billing as billing_routes,
 )
 from api.websocket import router as ws_router
 from storage import seed_examples
@@ -41,6 +42,7 @@ app.include_router(verify_ext_routes.router, prefix="/api/verify", tags=["verify
 app.include_router(io_routes.router, prefix="/api/io", tags=["io"])
 app.include_router(ai_routes.router, prefix="/api/ai", tags=["ai"])
 app.include_router(postprocess_routes.router, prefix="/api/postprocess", tags=["postprocess"])
+app.include_router(billing_routes.router, prefix="/api/billing", tags=["billing"])
 app.include_router(ws_router, tags=["websocket"])
 
 
