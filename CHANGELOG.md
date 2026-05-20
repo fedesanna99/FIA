@@ -3,6 +3,73 @@
 ## [Unreleased] — Sprint 2
 
 ### Added
+- **B4: MeteoLoadsService + REST `/api/loads/meteo`** (Sprint 2)
+  - Prima service **facade** del piano B (UI-friendly orchestrators).
+  - **Pipeline**: lat/lon → orchestrator F8 → OpenMeteoArchive
+    (`historical_extremes` 80y) + OpenElevation (`lookup`) → formule
+    EN 1991-1-4 (vento) + EN 1991-1-3 (neve) → MeteoLoadsResult
+    pronto per essere applicato al modello.
+  - **Funzioni pure formule** (testabili separatamente, 100% coverage):
+    - `compute_v_b0_from_gust(gust, factor=1.4)` — 3s gust → 10min mean
+    - `compute_q_b(v_b0, ρ=1.25 kg/m³)` — pressione cinetica base
+    - `compute_q_p_z10(q_b, c_e=1.7)` — pressione picco z=10m terr.II
+    - `compute_s_k_from_snowfall(cm, ρ_snow=200 kg/m³)` — carico al suolo
+    - `compute_s_design(s_k, μ_i=0.8, C_e=1.0, C_t=1.0)` — tetto piano
+  - **DTO**: `MeteoLoadsResult(location, wind, snow, years_used, notes)`,
+    `WindLoads`, `SnowLoads`, `MeteoLoadsLocation` (tutti Pydantic v2).
+  - **REST `POST /api/loads/meteo`**: body `{lat, lon, elevation_m?,
+    years=80}`. Validation lat[-90,90], lon[-180,180], years[10,85],
+    elevation_m[-500,9000]. HTTP 503 se nessun provider, 502 se
+    ProviderError non-recoverable, 422 se input invalido.
+  - **Assunzioni v1.3** (documentate in docstring + roadmap upgrade):
+    - terreno II categoria default (EN 1991-1-4 Tab. 4.1)
+    - c_dir=c_season=1, z=10m, ρ_aria=1.25, ρ_neve=200 kg/m³
+    - μ_i=0.8 tetto piano, C_e=C_t=1.0
+    - gust factor 1.4 (Davenport)
+  - **Estensione futura**: integrazione zone NTC 2018 (cf §3.3.2 vento,
+    §3.4.2 neve) con altitude-dependent s_k Alpine/Mediterraneo, c_e(z)
+    realistico per z != 10m, multi-terrain category.
+  - **Esempio numerico** (gust 50y = 35 m/s, snow 50y = 30 cm):
+    - v_b0 ≈ 25 m/s, q_b ≈ 0.39 kN/m², q_p(z=10m) ≈ 0.66 kN/m²
+    - s_k ≈ 0.59 kN/m², s_design ≈ 0.47 kN/m²
+
+### Tests
+- **+41 unit test**:
+  - `tests/services/facades/test_meteo_loads.py` (31): formule pure
+    (gust factor, q_b, q_p, s_k, s_design con default + custom factors),
+    edge cases (zero/negative input clip, invalid factor raises), service
+    end-to-end con mock providers (orchestrator chain), elevation
+    failure → notes (no crash), terrain category != II raises
+    NotImplementedError, zero extremes → zero loads, high gust → high
+    pressure sanity, singleton existence, dict serialization.
+  - `tests/api/test_loads_endpoint.py` (10): POST happy path con/senza
+    elevation explicit, validazione 422 (lat/lon/years/elevation range,
+    missing fields), 503 no providers, 502 provider error, default
+    years=80 captured.
+
+### Gate
+| Gate | F8 | **B4** |
+|---|---|---|
+| pytest backend (no-slow) | 1141 | **1182** (+41) |
+| B4 modules coverage | — | **100% + 100% + 100%** |
+| mypy --strict | clean | clean |
+
+### Note operative
+- **Architettura pyramid completa**: B4 e' la prima facade che usa
+  l'intero stack Sprint 2 (orchestrator F8 → tracker F6 → providers F4
+  → registry/cache/limiter F1/F2/F3 Sprint 1). Pattern replicabile per
+  B1 (geocoding_service), B2 (terrain_service), B3 (seismic_loads).
+- **`/api/loads/meteo` standalone**: il frontend puo' chiamarlo
+  direttamente (es. CostPreviewDialog "calcola wind+snow loads") senza
+  toccare la JobQueue — e' un calcolo veloce, no async wait.
+- **UI integration TODO**: aggiungere dialog `LocationPickerDialog` o
+  field `(lat, lon, elev)` in `MaterialsPanel`/`ModelTopPanel` per
+  permettere all'utente di chiamare `/api/loads/meteo` e applicare i
+  risultati a un load case dedicato (FUTURO, post-Sprint 2 alpha.5).
+
+---
+
+### Added
 - **F8: ServiceOrchestrator + fallback chain** (Sprint 2)
   - **`services/orchestrator.py`**: orchestratore async generico che
     legge la fallback chain dal `ProviderRegistry` (env var
