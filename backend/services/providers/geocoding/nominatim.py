@@ -72,7 +72,7 @@ class NominatimProvider(GeocodingProvider):
             or DEFAULT_USER_AGENT
         )
 
-    # ---- F6 usage hook stub ----------------------------------------------
+    # ---- F6 usage_tracker hook ------------------------------------------
     def _record_call(
         self,
         endpoint: str,
@@ -80,7 +80,16 @@ class NominatimProvider(GeocodingProvider):
         latency_ms: float,
         cached: bool,
     ) -> None:
-        """No-op stub. Sara' sovrascritto da F6 settimana 3."""
+        """Inoltra la chiamata al tracker singleton (F6)."""
+        from ...usage_tracker import tracker
+        tracker.record(
+            domain=self.domain,
+            provider=self.name,
+            endpoint=endpoint,
+            status=status,
+            latency_ms=latency_ms,
+            cached=cached,
+        )
 
     # ---- public API ------------------------------------------------------
     async def search(

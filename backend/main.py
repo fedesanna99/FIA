@@ -12,6 +12,7 @@ from api.routes import (
     billing as billing_routes, usage as usage_routes,
     quotas as quotas_routes, jobs as jobs_routes,
     validation as validation_routes,
+    providers_usage as providers_usage_routes,
 )
 from api.websocket import router as ws_router
 from storage import seed_examples
@@ -50,6 +51,11 @@ app.include_router(usage_routes.router, prefix="/api/usage", tags=["usage"])
 app.include_router(quotas_routes.router, prefix="/api/quotas", tags=["quotas"])
 app.include_router(jobs_routes.router, prefix="/api/jobs", tags=["jobs"])
 app.include_router(validation_routes.router, prefix="/api/validation", tags=["validation"])
+app.include_router(
+    providers_usage_routes.router,
+    prefix="/api/providers/usage",
+    tags=["providers-usage"],
+)
 app.include_router(ws_router, tags=["websocket"])
 
 

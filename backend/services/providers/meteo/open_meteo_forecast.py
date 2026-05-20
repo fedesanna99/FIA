@@ -68,7 +68,7 @@ class OpenMeteoForecastProvider(MeteoProvider):
         # ogni call apre/chiude il proprio client.
         self._client = client
 
-    # ---- F6 usage_tracker hook (stub) ------------------------------------
+    # ---- F6 usage_tracker hook ------------------------------------------
     def _record_call(
         self,
         endpoint: str,
@@ -76,7 +76,16 @@ class OpenMeteoForecastProvider(MeteoProvider):
         latency_ms: float,
         cached: bool,
     ) -> None:
-        """No-op stub. Sara' sovrascritto da F6 settimana 3 di Sprint 2."""
+        """Inoltra la chiamata al tracker singleton (F6)."""
+        from ...usage_tracker import tracker
+        tracker.record(
+            domain=self.domain,
+            provider=self.name,
+            endpoint=endpoint,
+            status=status,
+            latency_ms=latency_ms,
+            cached=cached,
+        )
 
     # ---- public API ------------------------------------------------------
     async def forecast(

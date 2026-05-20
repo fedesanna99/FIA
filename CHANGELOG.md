@@ -3,6 +3,73 @@
 ## [Unreleased] — Sprint 2
 
 ### Added
+- **F6: provider usage_tracker** (Sprint 2)
+  - **`services/usage_tracker.py`**: tracker SQLite per ogni call ai
+    provider F4. Tabella `provider_usage(id, ts, domain, provider,
+    endpoint, status, latency_ms, cached, user_id)` con indici su `ts`,
+    `(domain, provider, ts)`, `user_id`. Mode WAL, thread-safe.
+  - **API tracker**: `record()` fire-and-forget (errori silenziati,
+    observability non rompe path produttivo); `aggregate(domain, provider,
+    endpoint, user_id, since_ts, until_ts)` → `list[ProviderUsageStats]`
+    con cache_hit_ratio + error_ratio + avg/total latency; `timeline()`
+    per bin hour/day/week.
+  - **`set_enabled(bool)`** + env var `FEAPRO_USAGE_TRACKER_DISABLED=1`
+    per controllo lifecycle. Conftest backend disabilita il singleton
+    di default in test (evita pollution `.cache/usage.sqlite`).
+  - **Wiring providers**: i 9 stub `_record_call()` accumulati in F4.1-
+    F4.4 ora chiamano realmente `tracker.record(...)`. Pattern uniforme
+    su 7 provider (open_meteo_forecast/archive, open_meteo_geocoding,
+    nominatim, open_elevation, usgs_elevation, usgs_earthquake).
+  - **REST endpoint** `/api/providers/usage/*`:
+    - `GET /summary?domain&provider&endpoint&user_id&window_days` →
+      aggregato + totals (cache_hit_ratio, error_ratio)
+    - `GET /timeline?granularity={hour,day,week}&...` → bins per chart
+    - `GET /health` → totale record + breakdown per domain
+  - Prefisso `/api/providers/usage/` (non `/api/usage/providers/`) per
+    evitare collisione con `/api/usage/{user_id}/summary` (Sprint 1).
+
+### Tests
+- **+46 unit/integration test**:
+  - `tests/services/test_usage_tracker.py` (24 test): record + aggregate
+    + filtri (domain/provider/endpoint/user_id/time-window), error
+    status counting, disabled tracker no-op, set_enabled toggle, record
+    silently swallows exceptions, timeline (hour/day/week + filtri +
+    invalid granularity), health (empty + populated), clear, to_dict
+    serialization, singleton disabled in tests.
+  - `tests/services/test_provider_tracker_wiring.py` (10 test): verifica
+    che ognuno dei 7 provider F4 chiami effettivamente il tracker via
+    `_record_call`. Test error_status_recorded_correctly (5xx →
+    `n_errors`++) + disabled_tracker_doesnt_record_via_provider.
+  - `tests/api/test_providers_usage_endpoint.py` (11 test): summary
+    no-filter + per domain/provider/endpoint, combined filters,
+    window_days validation 422, timeline by granularity + invalid 422,
+    health endpoint, empty DB zero totals.
+
+### Gate
+| Gate | F4.4 | **F6** |
+|---|---|---|
+| pytest (no-cov, no-slow) | 1071 | **1117** (+46) |
+| F6 modules coverage | — | `usage_tracker.py` 95%, `providers_usage.py` 100% |
+| mypy --strict | clean | clean |
+
+### Note operative
+- **Pattern provider invariato**: ognuno dei 7 provider F4 ha lo stesso
+  `_record_call` body — 3 righe di chiamata `tracker.record(...)`.
+  Refactoring futuro: spostare in metodo base `services.base.Provider`
+  per evitare duplicazione.
+- **Conftest backend** modificato: disabilita il SINGLETON tracker
+  (non setta env var) cosi' nuove istanze `UsageTracker(db_path=tmp)`
+  restano enabled by default per test isolati.
+- **Hook `with_global_tracker` fixture**: pattern per test che vogliono
+  verificare il singleton — temp swap db_path + clear + set_enabled,
+  ripristino in teardown.
+- **F6 sblocca**: dashboard frontend di osservabilita' (futuro), billing
+  per-user piu' accurato, alerting su cache_hit_ratio basso o
+  error_ratio alto (futuro).
+
+---
+
+### Added
 - **F4.4: USGSEarthquakeProvider** (Sprint 2)
   - Implementa `SeismicProvider` ABC (dominio `seismic`) sopra
     `services.base.Provider`. Catalogo USGS FDSN Earthquake event API.

@@ -67,7 +67,16 @@ class USGSElevationProvider(ElevationProvider):
         latency_ms: float,
         cached: bool,
     ) -> None:
-        """No-op stub per F6."""
+        """Inoltra la chiamata al tracker singleton (F6)."""
+        from ...usage_tracker import tracker
+        tracker.record(
+            domain=self.domain,
+            provider=self.name,
+            endpoint=endpoint,
+            status=status,
+            latency_ms=latency_ms,
+            cached=cached,
+        )
 
     # ---- public ----------------------------------------------------------
     async def lookup(self, lat: float, lon: float) -> ElevationPoint:

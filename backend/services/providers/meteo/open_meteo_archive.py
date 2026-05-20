@@ -69,7 +69,7 @@ class OpenMeteoArchiveProvider(MeteoProvider):
         self.rate_limiter = rate_limiter if rate_limiter is not None else default_limiter
         self._client = client
 
-    # ---- F6 usage_tracker hook (stub) ------------------------------------
+    # ---- F6 usage_tracker hook ------------------------------------------
     def _record_call(
         self,
         endpoint: str,
@@ -77,7 +77,16 @@ class OpenMeteoArchiveProvider(MeteoProvider):
         latency_ms: float,
         cached: bool,
     ) -> None:
-        """No-op stub. Sara' sovrascritto da F6 settimana 3 di Sprint 2."""
+        """Inoltra la chiamata al tracker singleton (F6)."""
+        from ...usage_tracker import tracker
+        tracker.record(
+            domain=self.domain,
+            provider=self.name,
+            endpoint=endpoint,
+            status=status,
+            latency_ms=latency_ms,
+            cached=cached,
+        )
 
     # ---- public API ------------------------------------------------------
     async def forecast(
