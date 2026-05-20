@@ -6,6 +6,12 @@ import type { ReactNode } from "react";
 vi.mock("../../../api/jobs", () => ({
   listJobs: vi.fn(),
   cancelJob: vi.fn(),
+  openJobsSocket: vi.fn(() => ({
+    close: vi.fn(),
+    onopen: null,
+    onclose: null,
+    onerror: null,
+  })),
 }));
 
 import { listJobs, cancelJob } from "../../../api/jobs";

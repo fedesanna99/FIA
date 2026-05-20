@@ -57,3 +57,30 @@ export async function cancelJob(jobId: string): Promise<Job> {
   const { data } = await api.delete<Job>(`/api/jobs/${encodeURIComponent(jobId)}`);
   return data;
 }
+
+
+export interface JobEvent {
+  type: "job_started" | "job_progress" | "job_done" | "job_failed" | "job_retry";
+  job_id: string;
+  solver?: string;
+  result_ref?: string;
+  error?: string;
+  progress?: number;
+  message?: string;
+  attempts?: number;
+}
+
+
+/** Apre un WS verso /ws/jobs/{user_id}. Ritorna l'istanza, da chiudere on unmount. */
+export function openJobsSocket(
+  userId: string,
+  onEvent: (ev: JobEvent) => void,
+): WebSocket {
+  const proto = window.location.protocol === "https:" ? "wss" : "ws";
+  const host = window.location.host;
+  const ws = new WebSocket(`${proto}://${host}/ws/jobs/${encodeURIComponent(userId)}`);
+  ws.onmessage = (ev) => {
+    try { onEvent(JSON.parse(ev.data)); } catch { /* ignore */ }
+  };
+  return ws;
+}

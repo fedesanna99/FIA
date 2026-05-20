@@ -2,11 +2,14 @@
  * JobsPanel — lista job dell'utente con filtro per status e cancel inline.
  * Sprint 1 — A5 (queue + worker backend, frontend list).
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Trash2, RefreshCw } from "lucide-react";
+import { Trash2, RefreshCw, Radio } from "lucide-react";
 
-import { cancelJob, listJobs, type Job, type JobStatus } from "../../../api/jobs";
+import {
+  cancelJob, listJobs, openJobsSocket,
+  type Job, type JobEvent, type JobStatus,
+} from "../../../api/jobs";
 import { Button } from "../../ui/Button";
 import { Card } from "../../ui/Card";
 import { Badge } from "../../ui/Badge";
@@ -37,6 +40,8 @@ function badgeVariantFor(status: JobStatus): "info" | "warn" | "success" | "defa
 export function JobsPanel({ userId = DEFAULT_USER_ID }: { userId?: string }) {
   const [statusFilter, setStatusFilter] = useState<JobStatus | "all">("all");
   const [selected, setSelected] = useState<string | null>(null);
+  const [wsConnected, setWsConnected] = useState(false);
+  const [lastEvent, setLastEvent] = useState<JobEvent | null>(null);
   const qc = useQueryClient();
 
   const query = useQuery<Job[]>({
@@ -45,8 +50,21 @@ export function JobsPanel({ userId = DEFAULT_USER_ID }: { userId?: string }) {
       user_id: userId,
       status: statusFilter === "all" ? undefined : statusFilter,
     }),
-    refetchInterval: 3000,
+    // Polling fallback ogni 15s anche con WS connesso (resilienza a reconnect mancati).
+    refetchInterval: 15_000,
   });
+
+  // WS realtime: ogni evento job_* invalida la query.
+  useEffect(() => {
+    const ws = openJobsSocket(userId, (ev) => {
+      setLastEvent(ev);
+      qc.invalidateQueries({ queryKey: ["jobs", userId] });
+    });
+    ws.onopen = () => setWsConnected(true);
+    ws.onclose = () => setWsConnected(false);
+    ws.onerror = () => setWsConnected(false);
+    return () => { try { ws.close(); } catch { /* noop */ } };
+  }, [userId, qc]);
 
   const cancel = useMutation({
     mutationFn: (jobId: string) => cancelJob(jobId),
@@ -78,6 +96,19 @@ export function JobsPanel({ userId = DEFAULT_USER_ID }: { userId?: string }) {
           >
             Refresh
           </Button>
+          <Badge
+            size="sm"
+            variant={wsConnected ? "success" : "default"}
+            data-testid="jobs-ws-status"
+          >
+            <Radio className="h-3 w-3 mr-1 inline" />
+            {wsConnected ? "live" : "offline"}
+          </Badge>
+          {lastEvent && (
+            <span className="text-[10px] text-ink-dim font-mono ml-auto truncate" data-testid="jobs-last-event">
+              {lastEvent.type}: {lastEvent.job_id?.slice(0, 8) ?? "—"}
+            </span>
+          )}
         </div>
 
         {jobs.length === 0 ? (
