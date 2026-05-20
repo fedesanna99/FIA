@@ -210,25 +210,29 @@ def get_benchmarks() -> list[Benchmark]:
         ),
     ]
 
-    # Aggiungi i benchmark NAFEMS LE1/LE10 marcandoli come "ordine di grandezza"
-    # (tolleranza ampia data la mesh strutturata 8x8).
+    # NAFEMS LE1 con mesh denser (16x16) per migliore convergenza.
+    # Tolleranza pubblicata NAFEMS = 5% richiede mesh ~50+; con 16x16 SHELL_Q4
+    # ricadiamo tipicamente entro 50%.
     try:
         from tests.nafems.test_le1_elliptic_membrane import (  # type: ignore
             _build_le1, _sigma_y_at_point_D, SIGMA_TARGET,
         )
 
         def _le1_actual() -> float:
-            m = _build_le1(nx=8, ny=8, et=ElementType.SHELL_Q4)
+            m = _build_le1(nx=24, ny=24, et=ElementType.SHELL_Q4)
             r = StaticSolver(m).solve()
             return abs(_sigma_y_at_point_D(m, r))
 
+        # Tolleranza pubblicata NAFEMS = 5% con mesh "fine" (50+ elem/lato).
+        # Con 24x24 SHELL_Q4 + edge load discretizzato per nodi ci aspettiamo
+        # ~30-50% di errore (limit caratteristico del Q4 su Coons patch ellittica).
         benches.append(Benchmark(
             id="nafems_le1",
             family="NAFEMS",
-            description="LE1 Elliptic membrane sigma_y(D), SHELL_Q4 8x8.",
+            description="LE1 Elliptic membrane sigma_y(D), SHELL_Q4 24x24 (576 elem).",
             target_value=SIGMA_TARGET,
             target_unit="Pa",
-            tolerance_pct=400.0,  # ordine di grandezza con mesh coarse
+            tolerance_pct=100.0,
             actual_value_fn=_le1_actual,
             reference_url="https://www.nafems.org/publications/benchmarks/",
         ))

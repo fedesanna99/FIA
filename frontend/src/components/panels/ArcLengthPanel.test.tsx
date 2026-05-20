@@ -3,14 +3,40 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
-vi.mock("../../api/analysis_ext", () => ({
-  analysisExtApi: { arcLength: vi.fn() },
+vi.mock("../../api/jobs", () => ({
+  submitJob: vi.fn(),
+  openJobsSocket: vi.fn(() => ({ close: vi.fn() })),
 }));
 vi.mock("../../api/billing", () => ({
   estimateCost: vi.fn(), getQuota: vi.fn(),
 }));
+vi.mock("../../hooks/useJobRun", () => ({
+  useJobRun: ({ onSuccess, onError }: any) => ({
+    isPending: false, error: null, lastJobId: null,
+    mutate: async (req: any) => {
+      try {
+        const mod = await import("../../api/jobs");
+        await (mod as any).submitJob(req);
+        onSuccess?.({
+          model_id: req.model_id,
+          lambda_curve: [0, 0.5, 1.0],
+          delta_curve: [0, 0.01, 0.02],
+          steps: [
+            { load_factor: 0, max_displacement: 0, iterations: 0, converged: true },
+            { load_factor: 1, max_displacement: 0.02, iterations: 4, converged: true },
+          ],
+          converged_all: true,
+          final_displacements: [], final_element_forces: [],
+          max_displacement: 0, solve_time_ms: 1,
+        }, { job_id: "test" });
+      } catch (e) {
+        onError?.(e instanceof Error ? e : new Error(String(e)));
+      }
+    },
+  }),
+}));
 
-import { analysisExtApi } from "../../api/analysis_ext";
+import { submitJob } from "../../api/jobs";
 import { ArcLengthPanel } from "./ArcLengthPanel";
 import { useModelStore } from "../../store/modelStore";
 import { useBillingStore } from "../../store/billingStore";
@@ -53,7 +79,7 @@ describe("ArcLengthPanel", () => {
 
   it("submits with current params", async () => {
     act(() => useModelStore.setState({ model: SAMPLE_MODEL as never }));
-    (analysisExtApi.arcLength as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (submitJob as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       model_id: "test_al",
       lambda_curve: [0, 0.5, 1.0],
       delta_curve: [0, 0.01, 0.02],
@@ -69,19 +95,19 @@ describe("ArcLengthPanel", () => {
     render(<ArcLengthPanel />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: /Esegui arc-length/i }));
     await waitFor(() => {
-      expect(analysisExtApi.arcLength).toHaveBeenCalledTimes(1);
+      expect(submitJob).toHaveBeenCalledTimes(1);
     });
   });
 
   it("shows toast on solver error", async () => {
     act(() => useModelStore.setState({ model: SAMPLE_MODEL as never }));
-    (analysisExtApi.arcLength as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
+    (submitJob as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error("nope"),
     );
     render(<ArcLengthPanel />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: /Esegui arc-length/i }));
     await waitFor(() => {
-      expect(analysisExtApi.arcLength).toHaveBeenCalledTimes(1);
+      expect(submitJob).toHaveBeenCalledTimes(1);
     });
   });
 

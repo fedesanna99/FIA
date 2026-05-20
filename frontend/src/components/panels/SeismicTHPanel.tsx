@@ -7,17 +7,17 @@
  *  3. Esegui → DynamicResults (visualizzabile poi nel workspace Risultati).
  */
 import { useState, useMemo } from "react";
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { Play } from "lucide-react";
 import { useModelStore } from "../../store/modelStore";
 import { accelerogramsApi } from "../../api/io";
-import { analysisExtApi } from "../../api/analysis_ext";
 import { toast } from "../../store/toastStore";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { Field, NumericInput } from "../ui/Input";
 import { Badge } from "../ui/Badge";
 import { useCostPreview } from "../../hooks/useCostPreview";
+import { useJobRun } from "../../hooks/useJobRun";
 import { CostPreviewDialog } from "../dialogs/billing/CostPreviewDialog";
 
 type Axis = "X" | "Y" | "Z";
@@ -68,62 +68,68 @@ export function SeismicTHPanel() {
     [axes],
   );
 
-  const mut = useMutation({
-    mutationFn: async () => {
-      if (!model) throw new Error("Nessun modello attivo");
-      if (activeAxes.length === 0) throw new Error("Attiva almeno una componente");
-
-      const components: Record<string, [number, number][]> = {};
-      for (const ax of activeAxes) {
-        const cfg = axes[ax];
-        if (cfg.source === "catalog") {
-          if (!cfg.filename) throw new Error(`Seleziona un accelerogramma per ${ax}`);
-          const data = await accelerogramsApi.get(cfg.filename);
-          components[ax] = data.time_history;
-        } else if (cfg.source === "synthetic") {
-          const data = await accelerogramsApi.synthetic({
-            algorithm: cfg.algorithm ?? "kanai_tajimi",
-            duration: cfg.duration ?? 20,
-            dt: cfg.dt ?? 0.01,
-            pga_target: cfg.pga ?? 3.5,
-            seed: cfg.seed,
-          });
-          components[ax] = data.time_history;
-        }
-      }
-
-      return analysisExtApi.seismicTH(model.id, {
-        components,
-        dt, t_end: tEnd,
-        damping_xi: xi,
-        omega_lo_hz: omegaLo,
-        omega_hi_hz: omegaHi,
-      });
-    },
+  const job = useJobRun<unknown>({
     onSuccess: () => {
       toast("success", "Sismica time-history completata — apri il workspace Risultati");
     },
-    onError: (e) => toast("error", `Errore TH: ${(e as Error).message}`),
+    onError: (e) => toast("error", `Errore TH: ${e.message}`),
   });
 
   const update = (ax: Axis, patch: Partial<AxisCfg>) =>
     setAxes((s) => ({ ...s, [ax]: { ...s[ax], ...patch } }));
 
   const preview = useCostPreview();
+
+  /** Carica accelerogrammi e ritorna i params completi del solve seismic_th. */
+  async function buildSolveParams() {
+    if (!model) throw new Error("Nessun modello attivo");
+    if (activeAxes.length === 0) throw new Error("Attiva almeno una componente");
+    const components: Record<string, [number, number][]> = {};
+    for (const ax of activeAxes) {
+      const cfg = axes[ax];
+      if (cfg.source === "catalog") {
+        if (!cfg.filename) throw new Error(`Seleziona un accelerogramma per ${ax}`);
+        const data = await accelerogramsApi.get(cfg.filename);
+        components[ax] = data.time_history;
+      } else if (cfg.source === "synthetic") {
+        const data = await accelerogramsApi.synthetic({
+          algorithm: cfg.algorithm ?? "kanai_tajimi",
+          duration: cfg.duration ?? 20,
+          dt: cfg.dt ?? 0.01,
+          pga_target: cfg.pga ?? 3.5,
+          seed: cfg.seed,
+        });
+        components[ax] = data.time_history;
+      }
+    }
+    return {
+      components,
+      dt, t_end: tEnd,
+      damping_xi: xi,
+      omega_lo_hz: omegaLo,
+      omega_hi_hz: omegaHi,
+    };
+  }
+
   const handleSolve = () => {
     if (!model) {
       toast("error", "Nessun modello attivo");
       return;
     }
-    const components: Record<string, unknown> = {};
-    activeAxes.forEach((a) => { components[a] = []; });
+    // Per il cost estimate basta un dict di n componenti (il backend conta solo le chiavi).
+    const dummyComponents: Record<string, unknown> = {};
+    activeAxes.forEach((a) => { dummyComponents[a] = []; });
     preview.previewAndRun(
-      {
-        model_id: model.id,
-        solver: "seismic_th",
-        params: { dt, t_end: tEnd, components },
+      { model_id: model.id, solver: "seismic_th",
+        params: { dt, t_end: tEnd, components: dummyComponents } },
+      async () => {
+        try {
+          const params = await buildSolveParams();
+          await job.mutate({ model_id: model.id, solver: "seismic_th", params });
+        } catch (e) {
+          toast("error", `Errore preparazione TH: ${(e as Error).message}`);
+        }
       },
-      () => mut.mutate(),
     );
   };
 
@@ -161,11 +167,11 @@ export function SeismicTHPanel() {
           <Button
             variant="primary" size="sm"
             iconLeft={<Play className="h-3.5 w-3.5" />}
-            disabled={!model || mut.isPending || activeAxes.length === 0}
-            loading={mut.isPending}
+            disabled={!model || job.isPending || activeAxes.length === 0}
+            loading={job.isPending}
             onClick={handleSolve}
           >
-            {mut.isPending ? "In esecuzione…" : "Esegui TH"}
+            {job.isPending ? "In esecuzione…" : "Esegui TH"}
           </Button>
           {activeAxes.length > 0 && (
             <Badge size="sm" variant="info">{activeAxes.length} componente/i attiva/e</Badge>

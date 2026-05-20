@@ -9,11 +9,10 @@
  * Riferimento: NTC 2018 §7.3.4.1, EC8 §4.3.3.4.
  */
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as ReTooltip, ResponsiveContainer } from "recharts";
 import { Play } from "lucide-react";
 import { useModelStore } from "../../store/modelStore";
-import { analysisExtApi, type PushoverResults } from "../../api/analysis_ext";
+import { type PushoverResults } from "../../api/analysis_ext";
 import { toast } from "../../store/toastStore";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
@@ -21,6 +20,7 @@ import { Field, NumericInput } from "../ui/Input";
 import { Badge } from "../ui/Badge";
 import { EmptyState } from "../ui/EmptyState";
 import { useCostPreview } from "../../hooks/useCostPreview";
+import { useJobRun } from "../../hooks/useJobRun";
 import { CostPreviewDialog } from "../dialogs/billing/CostPreviewDialog";
 
 export function PushoverPanel() {
@@ -33,21 +33,12 @@ export function PushoverPanel() {
 
   const preview = useCostPreview();
 
-  const mut = useMutation({
-    mutationFn: () => {
-      if (!model) throw new Error("Nessun modello attivo");
-      return analysisExtApi.pushover(model.id, {
-        lambda_step: lambdaStep,
-        lambda_max:  lambdaMax,
-        max_steps:   maxSteps,
-        delta_max_for_stop: deltaMax,
-      });
-    },
+  const job = useJobRun<PushoverResults>({
     onSuccess: (r) => {
       setResults(r);
       toast("success", `Push-over: ${r.steps.length} step, ${r.hinge_events.length} hinges`);
     },
-    onError: (e) => toast("error", `Errore pushover: ${(e as Error).message}`),
+    onError: (e) => toast("error", `Errore pushover: ${e.message}`),
   });
 
   const handleSolve = () => {
@@ -55,17 +46,15 @@ export function PushoverPanel() {
       toast("error", "Nessun modello attivo");
       return;
     }
+    const params = {
+      lambda_step: lambdaStep,
+      lambda_max:  lambdaMax,
+      max_steps:   maxSteps,
+      delta_max_for_stop: deltaMax,
+    };
     preview.previewAndRun(
-      {
-        model_id: model.id,
-        solver: "pushover",
-        params: {
-          lambda_step: lambdaStep,
-          lambda_max:  lambdaMax,
-          max_steps:   maxSteps,
-        },
-      },
-      () => mut.mutate(),
+      { model_id: model.id, solver: "pushover", params },
+      () => job.mutate({ model_id: model.id, solver: "pushover", params }),
     );
   };
 
@@ -98,11 +87,11 @@ export function PushoverPanel() {
         <Button
           variant="primary" size="sm"
           iconLeft={<Play className="h-3.5 w-3.5" />}
-          disabled={!model || mut.isPending}
-          loading={mut.isPending}
+          disabled={!model || job.isPending}
+          loading={job.isPending}
           onClick={handleSolve}
         >
-          {mut.isPending ? "In esecuzione…" : "Esegui pushover"}
+          {job.isPending ? "In esecuzione…" : "Esegui pushover"}
         </Button>
       </Card>
 
@@ -174,7 +163,7 @@ export function PushoverPanel() {
         </>
       )}
 
-      {!results && !mut.isPending && (
+      {!results && !job.isPending && (
         <EmptyState
           title="Nessun pushover eseguito"
           description="Configura i parametri e premi 'Esegui pushover'. La curva di capacità apparirà qui."

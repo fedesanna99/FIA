@@ -9,7 +9,6 @@
  * Adatto a snap-through, snap-back e post-buckling con softening.
  */
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip as ReTooltip, ResponsiveContainer, ReferenceLine,
@@ -17,7 +16,7 @@ import {
 import { Play, Compass } from "lucide-react";
 import { useModelStore } from "../../store/modelStore";
 import { useResultsStore } from "../../store/resultsStore";
-import { analysisExtApi, type ArcLengthResults } from "../../api/analysis_ext";
+import { type ArcLengthResults } from "../../api/analysis_ext";
 import { toast } from "../../store/toastStore";
 import type { StaticResults } from "../../types/results";
 import { Button } from "../ui/Button";
@@ -26,6 +25,7 @@ import { Field, NumericInput } from "../ui/Input";
 import { Badge } from "../ui/Badge";
 import { EmptyState } from "../ui/EmptyState";
 import { useCostPreview } from "../../hooks/useCostPreview";
+import { useJobRun } from "../../hooks/useJobRun";
 import { CostPreviewDialog } from "../dialogs/billing/CostPreviewDialog";
 
 export function ArcLengthPanel() {
@@ -41,24 +41,9 @@ export function ArcLengthPanel() {
   const [initialLambda, setInitialLambda] = useState(0.05);
   const [results, setResults] = useState<ArcLengthResults | null>(null);
 
-  const mut = useMutation({
-    mutationFn: () => {
-      if (!model) throw new Error("Nessun modello attivo");
-      return analysisExtApi.arcLength(model.id, {
-        n_steps:        nSteps,
-        delta_s:        deltaS > 0 ? deltaS : null,
-        max_iter:       maxIter,
-        tol,
-        control_dof:    controlDof === "" ? null : controlDof,
-        lambda_max:     lambdaMax,
-        delta_max:      deltaMax,
-        initial_lambda: initialLambda,
-      });
-    },
+  const job = useJobRun<ArcLengthResults>({
     onSuccess: (r) => {
       setResults(r);
-      // Persisto la deformata finale come "staticResults" così il viewport
-      // mostra automaticamente la deformata path-final.
       const staticLike: StaticResults = {
         analysis_type: "static",
         model_id: r.model_id,
@@ -81,7 +66,7 @@ export function ArcLengthPanel() {
           : `Arc-length: ${r.steps.filter(s => s.converged).length}/${r.steps.length} step convergenti — deformata nel viewport`,
       );
     },
-    onError: (e) => toast("error", `Errore arc-length: ${(e as Error).message}`),
+    onError: (e) => toast("error", `Errore arc-length: ${e.message}`),
   });
 
   const preview = useCostPreview();
@@ -90,9 +75,19 @@ export function ArcLengthPanel() {
       toast("error", "Nessun modello attivo");
       return;
     }
+    const params = {
+      n_steps:        nSteps,
+      delta_s:        deltaS > 0 ? deltaS : null,
+      max_iter:       maxIter,
+      tol,
+      control_dof:    controlDof === "" ? null : controlDof,
+      lambda_max:     lambdaMax,
+      delta_max:      deltaMax,
+      initial_lambda: initialLambda,
+    };
     preview.previewAndRun(
       { model_id: model.id, solver: "arclength", params: { n_steps: nSteps } },
-      () => mut.mutate(),
+      () => job.mutate({ model_id: model.id, solver: "arclength", params }),
     );
   };
 
@@ -148,11 +143,11 @@ export function ArcLengthPanel() {
         <Button
           variant="primary" size="sm"
           iconLeft={<Play className="h-3.5 w-3.5" />}
-          disabled={!model || mut.isPending}
-          loading={mut.isPending}
+          disabled={!model || job.isPending}
+          loading={job.isPending}
           onClick={handleSolve}
         >
-          {mut.isPending ? "In esecuzione…" : "Esegui arc-length"}
+          {job.isPending ? "In esecuzione…" : "Esegui arc-length"}
         </Button>
       </Card>
 
@@ -241,7 +236,7 @@ export function ArcLengthPanel() {
         </>
       )}
 
-      {!results && !mut.isPending && (
+      {!results && !job.isPending && (
         <EmptyState
           title="Nessun arc-length eseguito"
           description="Configura e premi 'Esegui arc-length'. Path-following adatto a snap-through, snap-back, post-buckling."

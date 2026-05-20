@@ -3,17 +3,36 @@ import { render, screen, fireEvent, waitFor, act } from "@testing-library/react"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
-vi.mock("../../api/analysis_ext", () => ({
-  analysisExtApi: {
-    nonlinear: vi.fn(),
-  },
+vi.mock("../../api/jobs", () => ({
+  submitJob: vi.fn(),
+  openJobsSocket: vi.fn(() => ({ close: vi.fn() })),
 }));
 vi.mock("../../api/billing", () => ({
   estimateCost: vi.fn(),
   getQuota: vi.fn(),
 }));
+vi.mock("../../hooks/useJobRun", () => ({
+  useJobRun: ({ onSuccess, onError }: any) => ({
+    isPending: false,
+    error: null,
+    lastJobId: null,
+    mutate: async (req: any) => {
+      try {
+        const mod = await import("../../api/jobs");
+        await (mod as any).submitJob(req);
+        onSuccess?.({
+          model_id: req.model_id, steps: [], converged: true,
+          final_displacements: [], final_element_forces: [],
+          max_displacement: 0, solve_time_ms: 1,
+        }, { job_id: "test" });
+      } catch (e) {
+        onError?.(e instanceof Error ? e : new Error(String(e)));
+      }
+    },
+  }),
+}));
 
-import { analysisExtApi } from "../../api/analysis_ext";
+import { submitJob } from "../../api/jobs";
 import { estimateCost, getQuota } from "../../api/billing";
 import { NonlinearPanel } from "./NonlinearPanel";
 import { useModelStore } from "../../store/modelStore";
@@ -56,7 +75,7 @@ describe("NonlinearPanel", () => {
 
   it("submits with current params when clicking Esegui", async () => {
     act(() => useModelStore.setState({ model: SAMPLE_MODEL as never }));
-    (analysisExtApi.nonlinear as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+    (submitJob as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
       model_id: "test_nl",
       steps: [], converged: true,
       final_displacements: [], final_element_forces: [],
@@ -66,20 +85,20 @@ describe("NonlinearPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /Esegui non-lineare/i }));
 
     await waitFor(() => {
-      expect(analysisExtApi.nonlinear).toHaveBeenCalledTimes(1);
+      expect(submitJob).toHaveBeenCalledTimes(1);
     });
   });
 
   it("shows toast on solver error", async () => {
     act(() => useModelStore.setState({ model: SAMPLE_MODEL as never }));
-    (analysisExtApi.nonlinear as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
+    (submitJob as unknown as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error("nope"),
     );
     render(<NonlinearPanel />, { wrapper });
     fireEvent.click(screen.getByRole("button", { name: /Esegui non-lineare/i }));
 
     await waitFor(() => {
-      expect(analysisExtApi.nonlinear).toHaveBeenCalledTimes(1);
+      expect(submitJob).toHaveBeenCalledTimes(1);
     });
   });
 

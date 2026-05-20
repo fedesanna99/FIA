@@ -9,7 +9,6 @@
  * Riferimento: Crisfield (1991) Non-Linear FE Analysis, vol. 1.
  */
 import { useState } from "react";
-import { useMutation } from "@tanstack/react-query";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   Tooltip as ReTooltip, ResponsiveContainer,
@@ -17,7 +16,7 @@ import {
 import { Play, GitBranch } from "lucide-react";
 import { useModelStore } from "../../store/modelStore";
 import { useResultsStore } from "../../store/resultsStore";
-import { analysisExtApi, type NonLinearResults } from "../../api/analysis_ext";
+import { type NonLinearResults } from "../../api/analysis_ext";
 import { toast } from "../../store/toastStore";
 import type { StaticResults } from "../../types/results";
 import { Button } from "../ui/Button";
@@ -26,6 +25,7 @@ import { Field, NumericInput } from "../ui/Input";
 import { Badge } from "../ui/Badge";
 import { EmptyState } from "../ui/EmptyState";
 import { useCostPreview } from "../../hooks/useCostPreview";
+import { useJobRun } from "../../hooks/useJobRun";
 import { CostPreviewDialog } from "../dialogs/billing/CostPreviewDialog";
 
 export function NonlinearPanel() {
@@ -37,20 +37,9 @@ export function NonlinearPanel() {
   const [includeKgBeam, setIncludeKgBeam] = useState(true);
   const [results, setResults] = useState<NonLinearResults | null>(null);
 
-  const mut = useMutation({
-    mutationFn: () => {
-      if (!model) throw new Error("Nessun modello attivo");
-      return analysisExtApi.nonlinear(model.id, {
-        n_steps:        nSteps,
-        max_iter:       maxIter,
-        tol,
-        include_kg_beam: includeKgBeam,
-      });
-    },
+  const job = useJobRun<NonLinearResults>({
     onSuccess: (r) => {
       setResults(r);
-      // Persisto la deformata finale come "staticResults" così il viewport
-      // (DeformedShape, InternalForceDiagram, ecc.) la mostra automaticamente.
       const staticLike: StaticResults = {
         analysis_type: "static",
         model_id: r.model_id,
@@ -77,7 +66,7 @@ export function NonlinearPanel() {
           : `Newton-Raphson: ${r.steps.filter(s => s.converged).length}/${r.steps.length} step convergenti — deformata nel viewport`,
       );
     },
-    onError: (e) => toast("error", `Errore non-lineare: ${(e as Error).message}`),
+    onError: (e) => toast("error", `Errore non-lineare: ${e.message}`),
   });
 
   const preview = useCostPreview();
@@ -86,13 +75,15 @@ export function NonlinearPanel() {
       toast("error", "Nessun modello attivo");
       return;
     }
+    const params = {
+      n_steps:        nSteps,
+      max_iter:       maxIter,
+      tol,
+      include_kg_beam: includeKgBeam,
+    };
     preview.previewAndRun(
-      {
-        model_id: model.id,
-        solver: "nonlinear",
-        params: { n_steps: nSteps, max_iter: maxIter },
-      },
-      () => mut.mutate(),
+      { model_id: model.id, solver: "nonlinear", params: { n_steps: nSteps, max_iter: maxIter } },
+      () => job.mutate({ model_id: model.id, solver: "nonlinear", params }),
     );
   };
 
@@ -132,11 +123,11 @@ export function NonlinearPanel() {
         <Button
           variant="primary" size="sm"
           iconLeft={<Play className="h-3.5 w-3.5" />}
-          disabled={!model || mut.isPending}
-          loading={mut.isPending}
+          disabled={!model || job.isPending}
+          loading={job.isPending}
           onClick={handleSolve}
         >
-          {mut.isPending ? "In esecuzione…" : "Esegui non-lineare"}
+          {job.isPending ? "In esecuzione…" : "Esegui non-lineare"}
         </Button>
       </Card>
 
@@ -224,7 +215,7 @@ export function NonlinearPanel() {
         </>
       )}
 
-      {!results && !mut.isPending && (
+      {!results && !job.isPending && (
         <EmptyState
           title="Nessuna analisi non-lineare eseguita"
           description="Configura i parametri e premi 'Esegui non-lineare'. Indicato per modelli con cavi (tension-only), travi snelle o carichi rilevanti rispetto al buckling."
