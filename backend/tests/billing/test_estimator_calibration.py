@@ -7,6 +7,8 @@ Marker: @pytest.mark.calibration (escluso dal CI base; eseguire `pytest -m calib
 """
 from __future__ import annotations
 
+import os
+import sys
 import time
 import pytest
 
@@ -18,7 +20,26 @@ from core.solver.nonlinear_solver import NonLinearStaticSolver
 import storage
 
 
-pytestmark = pytest.mark.calibration
+def _coverage_active() -> bool:
+    """True se pytest sta girando sotto coverage.py (instrumentation altera i tempi)."""
+    if os.environ.get("COVERAGE_RUN"):
+        return True
+    if "coverage" in sys.modules:
+        try:
+            import coverage  # type: ignore
+            return bool(coverage.Coverage.current() is not None)
+        except Exception:
+            return False
+    return False
+
+
+pytestmark = [
+    pytest.mark.calibration,
+    pytest.mark.skipif(
+        _coverage_active(),
+        reason="coverage instrumentation altera i tempi reali; eseguire senza --cov",
+    ),
+]
 
 # Tolleranza relativa per la calibrazione. Il runbook richiede +-30%.
 # Su hardware diverso da quello tarato i coefficienti possono dover essere ri-aggiustati.
