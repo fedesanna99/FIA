@@ -3,6 +3,99 @@
 ## [Unreleased] — Sprint 2
 
 ### Added
+- **B1: GeocodingService + REST `/api/geocoding/*`** (Sprint 2)
+  - Facade sopra orchestrator F8 (chain `open_meteo_geocoding` →
+    `nominatim` fallback automatico).
+  - **API service**: `search(query, count, language)`,
+    `reverse(lat, lon, language)`, `find_best(query, language)` →
+    Location | None (helper convenience).
+  - **Pattern reverse**: Open-Meteo non supporta reverse → solleva
+    `NotImplementedError` → F8 fa skip al provider successivo
+    (Nominatim). Nessuna logica di fallback custom necessaria.
+  - **REST endpoint**:
+    - `GET /api/geocoding/search?q=<query>&count=10&language=en`
+    - `GET /api/geocoding/reverse?lat=...&lon=...&language=en`
+    - `GET /api/geocoding/best?q=<query>` ← top hit only (Location|null)
+  - Validation: query [1, 200] chars, count [1, 100], language [2, 10]
+    chars, lat/lon range. Errori HTTP: 422 input, 503 no providers,
+    502 ProviderError.
+
+- **B2: TerrainService + REST `/api/terrain/*`** (Sprint 2)
+  - Facade sopra orchestrator F8 (chain `open_elevation` →
+    `usgs_elevation` fallback).
+  - **API service**:
+    - `lookup_points(points)` — quota per N punti arbitrari, batch
+      via Open-Elevation POST (max 1000 punti per request)
+    - `profile_along_line(lat1, lon1, lat2, lon2, n_points=50)` —
+      interpolazione lineare lat/lon + lookup batch (chart sezione)
+    - `bbox_statistics(lat_min, lon_min, lat_max, lon_max, n_grid=10)` —
+      griglia n×n nel bbox + stats elevation (n_grid max 32 → 1024 punti)
+  - **Funzioni pure helper** (testabili separatamente):
+    - `compute_terrain_stats(points)` — min/max/mean/range elevation
+    - `interpolate_line(lat1, lon1, lat2, lon2, n)` — interp WGS84 lineare
+    - `generate_bbox_grid(bbox, n_grid)` — griglia row-major
+  - **DTO**: `TerrainProfile(points, stats, source_provider, notes)`,
+    `TerrainStatistics(n_points, elevation_{min,max,mean,range}_m)`.
+  - **REST endpoint**:
+    - `POST /api/terrain/batch` body `{points: [{lat, lon}, ...]}`
+    - `POST /api/terrain/profile` body `{lat1, lon1, lat2, lon2, n_points}`
+    - `POST /api/terrain/bbox` body `{lat_min, lon_min, lat_max, lon_max, n_grid}`
+  - **Use case strutturale**: importare un DXF planare (mesh 2D xy)
+    e riproiettarlo su quote SRTM reali via `terrain.lookup_points()`.
+    Output direttamente applicabile come nodi `z[i]` della mesh 3D.
+
+### Tests
+- **+68 unit/integration test**:
+  - `test_geocoding.py` (15): search + reverse + find_best end-to-end
+    con mock primary+fallback, fallback su NotImplementedError,
+    propagazione ValueError no-skip, no provider unavailable,
+    coordinate range, find_best empty → None, singleton.
+  - `test_terrain.py` (29): helper puri (stats empty/single/multi/
+    negative elevations, interpolate_line n=2/midpoint/invalid,
+    bbox_grid corners/n²/invalid bbox), service E2E (lookup_points
+    happy/empty/too-many/invalid-coords/no-provider/error-propagates,
+    profile_along_line n_points/min2, bbox grid, truncated provider note,
+    singleton).
+  - `test_geocoding_endpoint.py` (16): search/reverse/best happy paths +
+    503/502/422 (lat/lon/count/empty-query), best returns null when
+    empty, ValueError → 422.
+  - `test_terrain_endpoint.py` (12): batch/profile/bbox happy paths +
+    503/422 (empty/too-many/invalid-coords/n_grid/n_points/bbox-invalid)
+    + 502 provider error.
+
+### Gate
+| Gate | B3 | **B1+B2** |
+|---|---|---|
+| pytest backend (no-slow) | 1235 | **1308** (+73) |
+| B1+B2 coverage | — | `geocoding.py` 100%, `terrain.py` 100%, route geocoding 95%, route terrain 93% |
+| mypy --strict | clean | clean |
+
+### Piano B — COMPLETATO ✅
+
+Dopo B1+B2, **tutte e 4 le facade del piano B sono operative**:
+
+| Facade | Endpoint | Pattern |
+|---|---|---|
+| B1 GeocodingService | `/api/geocoding/{search,reverse,best}` | chain F8 geocoding |
+| B2 TerrainService | `/api/terrain/{batch,profile,bbox}` | chain F8 elevation + batch |
+| B3 SeismicLoadsService | `/api/loads/seismic` | chain F8 seismic + NTC 2018 spectrum |
+| B4 MeteoLoadsService | `/api/loads/meteo` | chain F8 meteo + EN 1991 loads |
+
+### Note operative
+- **Workflow utente UI completo** (post-Sprint 2):
+  1. User digita "Cagliari" → `/api/geocoding/best` → `(39.21, 9.11)`
+  2. UI mostra `/api/terrain/bbox` (mappa terreno around)
+  3. Calcola loads: `/api/loads/meteo` + `/api/loads/seismic`
+  4. Applica come nuovi LoadCase al modello FEA
+- **Tutti i facade osservabili** via F6 tracker (provider-level) +
+  log (orchestrator-level fallback events).
+- **5 nuovi REST endpoint Sprint 2** in totale: 3 providers/usage + 2
+  loads (B3+B4) + 3 geocoding (B1) + 3 terrain (B2) = **11 endpoint
+  Sprint 2**.
+
+---
+
+### Added
 - **B3: SeismicLoadsService + REST `/api/loads/seismic`** (Sprint 2)
   - **Pipeline**: lat/lon → orchestrator F8 → USGSEarthquakeProvider
     (`historical_max_magnitude` radius/years) → GMPE Sabetta-Pugliese
