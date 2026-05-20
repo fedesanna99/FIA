@@ -41,6 +41,12 @@ export interface LocationLoadsBundle {
 }
 
 
+/**
+ * Equivalente di `ClimateBundle` in store/climateStore (senza `computed_at`).
+ * Lasciato come export per backward compat con il test esistente.
+ */
+
+
 interface Props {
   open: boolean;
   onClose: () => void;

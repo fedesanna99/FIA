@@ -22,6 +22,7 @@ import { WorkspacePanel } from "./components/shell/WorkspacePanel";
 import { CommandPalette } from "./components/shell/CommandPalette";
 import { HelpSheet } from "./components/shell/HelpSheet";
 import { OnboardingTour } from "./components/shell/OnboardingTour";
+import { ClimateContextBadge } from "./components/shell/ClimateContextBadge";
 import { StatusBar } from "./components/layout/StatusBar";
 import { Toaster } from "./components/layout/Toaster";
 import { Viewport3D } from "./components/viewport/Viewport3D";
@@ -90,6 +91,7 @@ export default function App() {
       <CommandPalette />
       <HelpSheet />
       <OnboardingTour />
+      <ClimateContextBadge />
       <HelpDialog open={openDialog === "help"} onClose={() => setDialog(null)} />
     </div>
   );

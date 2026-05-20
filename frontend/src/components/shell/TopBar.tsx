@@ -26,6 +26,7 @@ import { NewModelDialog } from "../dialogs/NewModelDialog";
 import { EditModelDialog } from "../dialogs/EditModelDialog";
 import { AccountDialog } from "../dialogs/AccountDialog";
 import { LocationPickerDialog } from "../dialogs/LocationPickerDialog";
+import { useClimateStore } from "../../store/climateStore";
 import { ExportMenu } from "./ExportMenu";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
@@ -53,6 +54,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
+  const setClimateBundle = useClimateStore((s) => s.setBundle);
   const qc = useQueryClient();
 
   const dup = useMutation({
@@ -203,6 +205,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
       <LocationPickerDialog
         open={locationOpen}
         onClose={() => setLocationOpen(false)}
+        onApply={(bundle) => setClimateBundle(bundle)}
       />
     </header>
   );
