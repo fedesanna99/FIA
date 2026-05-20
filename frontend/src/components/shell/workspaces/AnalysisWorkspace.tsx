@@ -12,6 +12,7 @@
  */
 import {
   Cpu, Sliders, Activity, TrendingUp, Waves, Repeat, GitBranch, Compass,
+  ListChecks,
 } from "lucide-react";
 import { useWorkspaceStore } from "../../../store/workspaceStore";
 import { AnalysisSettings } from "../../panels/AnalysisSettings";
@@ -21,6 +22,7 @@ import { PushoverPanel } from "../../panels/PushoverPanel";
 import { SeismicTHPanel } from "../../panels/SeismicTHPanel";
 import { FatiguePanel } from "../../panels/FatiguePanel";
 import { LiveMonitorPanel } from "../../panels/LiveMonitorPanel";
+import { JobsPanel } from "../../panels/jobs/JobsPanel";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../ui/Tabs";
 import { WorkspaceHeader } from "../WorkspaceHeader";
 
@@ -64,6 +66,9 @@ export function AnalysisWorkspace() {
             <TabsTrigger value="monitor">
               <Activity className="h-3.5 w-3.5 mr-1" /> Monitor
             </TabsTrigger>
+            <TabsTrigger value="jobs">
+              <ListChecks className="h-3.5 w-3.5 mr-1" /> Jobs
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -93,6 +98,10 @@ export function AnalysisWorkspace() {
 
         <TabsContent value="monitor" className="flex-1 overflow-auto">
           <LiveMonitorPanel />
+        </TabsContent>
+
+        <TabsContent value="jobs" className="flex-1 overflow-auto">
+          <JobsPanel />
         </TabsContent>
       </Tabs>
     </div>
