@@ -50,18 +50,48 @@ def _get_model(model_id: str) -> FEAModel:
     return m
 
 
-async def _run(model_id: str, analysis_type: str, solver):
-    async def progress(p, msg):
-        await broadcast_progress(model_id, p, msg)
-    def sync_cb(p, msg):
-        import asyncio
-        try:
-            loop = asyncio.get_event_loop()
-            loop.create_task(progress(p, msg))
-        except RuntimeError:
-            pass
+def _make_progress_cb(model_id: str):
+    """Costruisce un callback SINCRONO per `solver.solve(progress_cb=…)` che
+    propaga gli eventi via WebSocket /ws/analysis/{model_id}.
+
+    Il solver viene lanciato in un ThreadPoolExecutor (vedi `_run`/`_run_solver`)
+    così il main event loop resta libero di servire le coroutine
+    `broadcast_progress` durante l'esecuzione. Da qui usiamo
+    `run_coroutine_threadsafe` perché il cb viene invocato da un thread
+    diverso da quello del loop.
+    """
+    import asyncio
     try:
-        results = solver.solve(progress_cb=sync_cb)
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    def cb(p: float, msg: str = ""):
+        if loop is None:
+            return
+        try:
+            asyncio.run_coroutine_threadsafe(
+                broadcast_progress(model_id, p, msg), loop
+            )
+        except Exception:
+            pass
+    return cb
+
+
+async def _run_solver(solver, progress_cb):
+    """Esegue `solver.solve(progress_cb)` in un executor, restituendo i risultati.
+    Garantisce che il main loop possa processare gli eventi WebSocket emessi
+    dal cb durante l'analisi (altrimenti restano in coda fino al return).
+    """
+    import asyncio
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, lambda: solver.solve(progress_cb=progress_cb))
+
+
+async def _run(model_id: str, analysis_type: str, solver):
+    cb = _make_progress_cb(model_id)
+    try:
+        results = await _run_solver(solver, cb)
     except Exception as e:
         await broadcast_progress(model_id, 1.0, f"Errore: {e}")
         raise HTTPException(500, str(e))
@@ -203,11 +233,12 @@ class PushoverRequest(BaseModel):
 
 
 @router.post("/pushover/{model_id}")
-def pushover_analysis(model_id: str, req: PushoverRequest = PushoverRequest()):
+async def pushover_analysis(model_id: str, req: PushoverRequest = PushoverRequest()):
     """Analisi pushover a controllo di carico con cerniere plastiche concentrate.
 
     NTC 2018 §7.3.4.1 / EC8 §4.3.3.4. Restituisce curva di capacità (λ, δ)
-    + lista hinge events + collapse_lambda.
+    + lista hinge events + collapse_lambda. Progress live via WebSocket
+    /ws/analysis/{model_id}.
     """
     model = _get_model(model_id)
     solver = PushoverSolver(
@@ -217,9 +248,11 @@ def pushover_analysis(model_id: str, req: PushoverRequest = PushoverRequest()):
         max_steps=req.max_steps,
         delta_max_for_stop=req.delta_max_for_stop,
     )
+    cb = _make_progress_cb(model_id)
     try:
-        results = solver.solve()
+        results = await _run_solver(solver, cb)
     except Exception as e:
+        await broadcast_progress(model_id, 1.0, f"Errore: {e}")
         raise HTTPException(500, str(e))
     payload = asdict(results)
     storage.save_results(model_id, "pushover", payload)
@@ -249,15 +282,17 @@ class SeismicTHRequest(BaseModel):
 
 
 @router.post("/seismic_th/{model_id}")
-def seismic_time_history(model_id: str, req: SeismicTHRequest):
+async def seismic_time_history(model_id: str, req: SeismicTHRequest):
     """Analisi sismica time-history multi-componente (X/Y/Z).
 
     Vedi SeismicTimeHistorySolver (FASE 12). Output = DynamicResults.
+    Progress live via WebSocket /ws/analysis/{model_id}.
     """
     import math
     model = _get_model(model_id)
     if not req.components:
         raise HTTPException(400, "Almeno una componente sismica richiesta (X/Y/Z).")
+    cb = _make_progress_cb(model_id)
     try:
         solver = SeismicTimeHistorySolver(
             model,
@@ -270,10 +305,11 @@ def seismic_time_history(model_id: str, req: SeismicTHRequest):
             save_every=req.save_every,
             store_nodes=req.store_nodes,
         )
-        results = solver.solve()
+        results = await _run_solver(solver, cb)
     except ValueError as e:
         raise HTTPException(400, str(e))
     except Exception as e:
+        await broadcast_progress(model_id, 1.0, f"Errore: {e}")
         raise HTTPException(500, str(e))
     storage.save_results(model_id, "seismic_th", results)
     return results
@@ -297,7 +333,7 @@ class NonLinearRequest(BaseModel):
 
 
 @router.post("/nonlinear/{model_id}")
-def nonlinear_static_analysis(model_id: str, req: NonLinearRequest = NonLinearRequest()):
+async def nonlinear_static_analysis(model_id: str, req: NonLinearRequest = NonLinearRequest()):
     """Statica non-lineare con Newton-Raphson load-controlled (BL-1).
 
     Supporta:
@@ -306,9 +342,11 @@ def nonlinear_static_analysis(model_id: str, req: NonLinearRequest = NonLinearRe
       - Non-linearità geometrica leggera per BEAM2D via K_T = K_e + K_G(N).
 
     Restituisce step di carico, n. iterazioni e residuo, oltre a
-    displacements/forces finali.
+    displacements/forces finali. Progress live via WebSocket
+    /ws/analysis/{model_id}.
     """
     model = _get_model(model_id)
+    cb = _make_progress_cb(model_id)
     try:
         solver = NonLinearStaticSolver(
             model,
@@ -317,10 +355,11 @@ def nonlinear_static_analysis(model_id: str, req: NonLinearRequest = NonLinearRe
             tol=req.tol,
             include_kg_beam=req.include_kg_beam,
         )
-        results = solver.solve()
+        results = await _run_solver(solver, cb)
     except ValueError as e:
         raise HTTPException(400, str(e))
     except Exception as e:
+        await broadcast_progress(model_id, 1.0, f"Errore: {e}")
         raise HTTPException(500, str(e))
     payload = asdict(results)
     storage.save_results(model_id, "nonlinear_static", payload)
@@ -346,14 +385,16 @@ class ArcLengthRequest(BaseModel):
 
 
 @router.post("/arclength/{model_id}")
-def arclength_analysis(model_id: str, req: ArcLengthRequest = ArcLengthRequest()):
+async def arclength_analysis(model_id: str, req: ArcLengthRequest = ArcLengthRequest()):
     """Arc-length cylindrical (Crisfield) per analisi post-buckling (BL-2).
 
     Restituisce la curva λ-δ (carico-spostamento del control dof), gli step
     Newton, e i displacements finali. Utile per tracciare snap-through e
-    snap-back oltre i punti limite.
+    snap-back oltre i punti limite. Progress live via WebSocket
+    /ws/analysis/{model_id}.
     """
     model = _get_model(model_id)
+    cb = _make_progress_cb(model_id)
     try:
         solver = ArcLengthSolver(
             model,
@@ -366,10 +407,11 @@ def arclength_analysis(model_id: str, req: ArcLengthRequest = ArcLengthRequest()
             delta_max=req.delta_max,
             initial_lambda=req.initial_lambda,
         )
-        results = solver.solve()
+        results = await _run_solver(solver, cb)
     except ValueError as e:
         raise HTTPException(400, str(e))
     except Exception as e:
+        await broadcast_progress(model_id, 1.0, f"Errore: {e}")
         raise HTTPException(500, str(e))
     payload = asdict(results)
     storage.save_results(model_id, "arc_length", payload)

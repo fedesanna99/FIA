@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import type { StaticResults, ModalResults, DynamicResults } from "../types/results";
+import type { IsosurfaceResponse } from "../api/postprocess";
 
 interface ResultsState {
   staticResults: StaticResults | null;
@@ -8,6 +9,12 @@ interface ResultsState {
   setStatic: (r: StaticResults | null) => void;
   setModal: (r: ModalResults | null) => void;
   setDynamic: (r: DynamicResults | null) => void;
+
+  /** Ultima estrazione iso-superfici 3D (BL-7) per rendering nel viewport. */
+  isosurfaceData: IsosurfaceResponse | null;
+  setIsosurfaceData: (d: IsosurfaceResponse | null) => void;
+  showIsosurfaces: boolean;
+  toggleIsosurfaces: () => void;
 
   /** Hash compatto del modello al momento dell'ultima analisi (per banner "stale"). */
   modelHashAtAnalysis: string | null;
@@ -54,6 +61,11 @@ export const useResultsStore = create<ResultsState>((set) => ({
   setModal: (r) => set({ modalResults: r }),
   setDynamic: (r) => set({ dynamicResults: r }),
 
+  isosurfaceData: null,
+  setIsosurfaceData: (d) => set({ isosurfaceData: d, showIsosurfaces: !!d }),
+  showIsosurfaces: false,
+  toggleIsosurfaces: () => set((s) => ({ showIsosurfaces: !s.showIsosurfaces })),
+
   modelHashAtAnalysis: null,
   setModelHashAtAnalysis: (h) => set({ modelHashAtAnalysis: h }),
 
@@ -88,5 +100,5 @@ export const useResultsStore = create<ResultsState>((set) => ({
   setDynamicAmpScale: (s) => set({ dynamicAmpScale: s }),
 
   clearAll: () => set({ staticResults: null, modalResults: null, dynamicResults: null,
-                        dynamicTimeIndex: 0 }),
+                        dynamicTimeIndex: 0, isosurfaceData: null, showIsosurfaces: false }),
 }));

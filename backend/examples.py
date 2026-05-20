@@ -256,6 +256,167 @@ def example_tri3_membrane() -> FEAModel:
     )
 
 
+def example_cube_solid_h8() -> FEAModel:
+    """Cubo H8 unitario sotto trazione monoassiale (BL-3/BL-7 demo).
+
+    Geometria: cubo 1×1×1 m, 1 elemento SOLID_H8. Base z=0 incastrata,
+    forze nodali al top z=1 verso +z. Pronto per estrarre iso-superfici
+    di σ_VM dalla statica.
+    """
+    nodes = [
+        Node(id=1, x=0, y=0, z=0), Node(id=2, x=1, y=0, z=0),
+        Node(id=3, x=1, y=1, z=0), Node(id=4, x=0, y=1, z=0),
+        Node(id=5, x=0, y=0, z=1), Node(id=6, x=1, y=0, z=1),
+        Node(id=7, x=1, y=1, z=1), Node(id=8, x=0, y=1, z=1),
+    ]
+    elements = [
+        Element(id=1, type=ElementType.SOLID_H8,
+                nodes=[1, 2, 3, 4, 5, 6, 7, 8],
+                material_id="steel_s355"),
+    ]
+    constraints = [
+        Constraint(id=i + 1, type=ConstraintType.FIXED, node_id=i + 1,
+                   label=f"Incastro base {i + 1}")
+        for i in range(4)
+    ]
+    # Trazione 100 kN per nodo al top (totale 400 kN)
+    loads = [
+        Load(id=i + 1, type=LoadType.NODAL, target_id=5 + i, fz=100_000.0,
+             label=f"Trazione top {5 + i}")
+        for i in range(4)
+    ]
+    return FEAModel(
+        id="ex_cube_solid_h8",
+        name="Cubo solido H8 (trazione)",
+        description="Cubo 1×1×1 m, SOLID_H8, base incastrata, carico assiale 400 kN. "
+                    "Esegui statica e poi Risultati → Iso 3D per visualizzare σ_VM.",
+        is_3d=True,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
+def example_cable_bridge_2d() -> FEAModel:
+    """Ponte strallato 2D semplificato (BL-1 demo — cavi tension-only).
+
+    Geometria: due pyloni (beam2D) di altezza 8 m sostengono un impalcato
+    (beam2D) lungo 12 m via 4 cavi (cable2D). Il modello è perfetto per
+    mostrare la non-linearità geometrica: i cavi entrano/escono di servizio
+    a seconda del carico, modificando la rigidezza globale.
+    """
+    nodes = [
+        # Impalcato (z=0): 7 nodi spaziati
+        Node(id=1, x=0,  y=0, z=0, label="Spalla sx"),
+        Node(id=2, x=2,  y=0, z=0),
+        Node(id=3, x=4,  y=0, z=0, label="Attacco cavo SX2"),
+        Node(id=4, x=6,  y=0, z=0, label="Mezzeria"),
+        Node(id=5, x=8,  y=0, z=0, label="Attacco cavo DX2"),
+        Node(id=6, x=10, y=0, z=0),
+        Node(id=7, x=12, y=0, z=0, label="Spalla dx"),
+        # Pyloni (base e top)
+        Node(id=8,  x=2,  y=0, z=0, label="Base pylon SX"),  # coincide con n2 in y/z
+        Node(id=9,  x=2,  y=8, z=0, label="Top pylon SX"),
+        Node(id=10, x=10, y=0, z=0, label="Base pylon DX"),  # coincide con n6
+        Node(id=11, x=10, y=8, z=0, label="Top pylon DX"),
+    ]
+    elements = [
+        # Impalcato (beam2D, 6 segmenti)
+        Element(id=1, type=ElementType.BEAM2D, nodes=[1, 2], material_id="steel_s355", section_id="ipe_400"),
+        Element(id=2, type=ElementType.BEAM2D, nodes=[2, 3], material_id="steel_s355", section_id="ipe_400"),
+        Element(id=3, type=ElementType.BEAM2D, nodes=[3, 4], material_id="steel_s355", section_id="ipe_400"),
+        Element(id=4, type=ElementType.BEAM2D, nodes=[4, 5], material_id="steel_s355", section_id="ipe_400"),
+        Element(id=5, type=ElementType.BEAM2D, nodes=[5, 6], material_id="steel_s355", section_id="ipe_400"),
+        Element(id=6, type=ElementType.BEAM2D, nodes=[6, 7], material_id="steel_s355", section_id="ipe_400"),
+        # Pyloni (beam2D)
+        Element(id=7, type=ElementType.BEAM2D, nodes=[8,  9],  material_id="steel_s355", section_id="heb_300"),
+        Element(id=8, type=ElementType.BEAM2D, nodes=[10, 11], material_id="steel_s355", section_id="heb_300"),
+        # Cavi (cable2D, pre-tesi a 50 kN)
+        Element(id=9,  type=ElementType.CABLE2D, nodes=[9,  3], material_id="cable_steel_y1860",
+                section_id="cable_d50", pretension=50_000.0),
+        Element(id=10, type=ElementType.CABLE2D, nodes=[9,  4], material_id="cable_steel_y1860",
+                section_id="cable_d50", pretension=50_000.0),
+        Element(id=11, type=ElementType.CABLE2D, nodes=[11, 4], material_id="cable_steel_y1860",
+                section_id="cable_d50", pretension=50_000.0),
+        Element(id=12, type=ElementType.CABLE2D, nodes=[11, 5], material_id="cable_steel_y1860",
+                section_id="cable_d50", pretension=50_000.0),
+    ]
+    constraints = [
+        Constraint(id=1, type=ConstraintType.PINNED, node_id=1,  label="Spalla sx"),
+        Constraint(id=2, type=ConstraintType.PINNED, node_id=7,  label="Spalla dx"),
+        Constraint(id=3, type=ConstraintType.FIXED,  node_id=8,  label="Base pylon SX"),
+        Constraint(id=4, type=ConstraintType.FIXED,  node_id=10, label="Base pylon DX"),
+    ]
+    # Carico distribuito centrale + carico nodale "veicolo" in mezzeria
+    loads = [
+        Load(id=1, type=LoadType.DISTRIBUTED, target_id=3, qy=-15000.0, label="Folla impalcato"),
+        Load(id=2, type=LoadType.DISTRIBUTED, target_id=4, qy=-15000.0, label="Folla impalcato"),
+        Load(id=3, type=LoadType.DISTRIBUTED, target_id=5, qy=-15000.0, label="Folla impalcato"),
+        Load(id=4, type=LoadType.NODAL, target_id=4, fy=-80000.0, label="Veicolo 80 kN"),
+    ]
+    return FEAModel(
+        id="ex_cable_bridge_2d",
+        name="Ponte strallato 2D",
+        description="Impalcato L=12m sospeso da 4 cavi pre-tesi (50 kN), 2 pyloni H=8m. "
+                    "Esegui Analisi → Non-lineare per vedere i cavi attivi/slack.",
+        is_3d=False,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
+def example_laminate_plate() -> FEAModel:
+    """Piastra laminata cross-ply [0/90/0] (BL-4 demo).
+
+    Geometria: piastra 1×1 m, 4×4 elementi SHELL_Q4, sezione `laminate_cross_ply`
+    (3 strati 1 mm: 0°/90°/0°). Bordo y=0 incastrato (mensola), forza al bordo
+    libero verso il basso. Mostra il comportamento ortotropo: la deflessione
+    sotto carico è diversa rispetto allo stesso shell isotropo grazie alla
+    rigidezza differenziata per direzione delle fibre.
+    """
+    n = 4
+    L = 1.0
+    nodes: list[Node] = []
+    for j in range(n + 1):
+        for i in range(n + 1):
+            nodes.append(Node(id=j * (n + 1) + i + 1,
+                              x=L * i / n, y=L * j / n, z=0.0))
+    elements: list[Element] = []
+    eid = 1
+    for j in range(n):
+        for i in range(n):
+            n1 = j * (n + 1) + i + 1
+            n2 = n1 + 1
+            n3 = n2 + (n + 1)
+            n4 = n1 + (n + 1)
+            elements.append(Element(
+                id=eid, type=ElementType.SHELL_Q4,
+                nodes=[n1, n2, n3, n4],
+                material_id="carbon_uni",
+                section_id="laminate_cross_ply",
+            ))
+            eid += 1
+    # Bordo y=0 incastrato
+    constraints = [
+        Constraint(id=i + 1, type=ConstraintType.FIXED, node_id=i + 1,
+                   label=f"Incastro bordo {i + 1}")
+        for i in range(n + 1)
+    ]
+    # Carico nodale al bordo libero y=L verso -z
+    top_row = [(n) * (n + 1) + i + 1 for i in range(n + 1)]
+    loads = [
+        Load(id=k + 1, type=LoadType.NODAL, target_id=nid, fz=-200.0,
+             label="Carico bordo libero")
+        for k, nid in enumerate(top_row)
+    ]
+    return FEAModel(
+        id="ex_laminate_plate",
+        name="Piastra laminata 1×1 m (cross-ply)",
+        description="Piastra 4×4 SHELL_Q4 con sezione laminata 0/90/0 (carbon, 3 mm). "
+                    "Bordo y=0 incastrato, carico bordo libero -200 N. Mostra il "
+                    "comportamento ortotropo di un composito.",
+        is_3d=True,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
 def build_example_models() -> list[FEAModel]:
     return [
         example_simple_beam_2d(),
@@ -264,4 +425,7 @@ def build_example_models() -> list[FEAModel]:
         example_shell_plate(),
         example_tower_3d(),
         example_tri3_membrane(),
+        example_cube_solid_h8(),
+        example_cable_bridge_2d(),
+        example_laminate_plate(),
     ]

@@ -27,8 +27,8 @@ export function Dialog({ open, onClose, title, children, footer, width = 420 }: 
       onClick={onClose}
     >
       <div
-        className="panel rounded shadow-xl"
-        style={{ width }}
+        className="panel rounded shadow-xl w-[calc(100vw-24px)] max-h-[calc(100vh-48px)] flex flex-col"
+        style={{ maxWidth: width }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="px-4 py-2.5 border-b border-border flex items-center justify-between">

@@ -1,5 +1,92 @@
 # Changelog FEA Pro
 
+## v1.2.0 — 2026-05-20 (UX polish + progress live)
+
+Continuazione di v1.1 con focus sul **completamento del ciclo utente** per le
+feature BL-1/BL-7 e sul monitor live.
+
+### Backend
+- Tutti i solver lunghi (pushover, seismic_th, **nonlinear**, **arclength**)
+  ora iniettano `progress_cb` → broadcast su `/ws/analysis/{model_id}`.
+  Gli endpoint REST sono diventati `async` con `_make_progress_cb()` helper
+  thread-safe (cattura il running loop).
+- Tutti i 4 endpoint convertono gli errori in `broadcast_progress(1.0, "Errore: …")`
+  così il client viene notificato anche su exception.
+
+### Frontend
+- **NonlinearPanel** e **ArcLengthPanel** ora persistono il risultato come
+  `staticResults` in `useResultsStore` → la deformata appare **automaticamente**
+  nel viewport (riusando `DeformedShape`, `InternalForceDiagram`).
+- **ElementDialog** esteso con:
+  - 5 nuovi tipi: `cable2d`, `cable3d`, `shell_q4_mitc`, `solid_t4`, `solid_t10`
+  - Campo `pretension` (N₀ in N) visibile solo per cavi, con default vuoto
+    e hint sezioni `cable_d20`/`cable_d50`.
+- **ColorLegend** generalizzato con `format` callback custom + parametro
+  `position` (top-right, top-right-2, bottom-right) → permette legende multiple.
+- **IsosurfaceLegend** nuovo overlay nel viewport che mostra min/max dei livelli
+  iso attualmente visualizzati (notazione scientifica neutra).
+
+### Test
+- Tutti i gate restano verdi: pytest 730/730, vitest 58/58, tsc 0, build OK.
+
+---
+
+## v1.1.0 — 2026-05-20 (Completamento UX feature BL)
+
+Dopo l'audit di integrazione UI-UX, sono state esposte all'utente le feature
+BL-1/BL-2/BL-7 che erano solo backend, e sono stati creati i modelli demo per
+testarle senza dover modellare da zero.
+
+### Nuovi pannelli frontend
+- **NonlinearPanel** (`POST /api/analysis/nonlinear/{id}`) — Newton-Raphson +
+  cavi tension-only (BL-1), con form parametri, curva λ vs max|u|, tabella step
+  con badge convergenza e contatori active/slack cables.
+- **ArcLengthPanel** (`POST /api/analysis/arclength/{id}`) — Crisfield
+  path-following (BL-2), con form ricco (Δs auto/prescritto, control DOF, λ_max,
+  δ_max, λ_init), grafico equilibrium path λ-δ, peak λ in ReferenceLine.
+- **IsosurfacePanel** (`POST /api/postprocess/{id}/isosurfaces`) — marching
+  tetra/cubes (BL-7) con smoothing nodale automatico di σ_VM, riepilogo aree
+  per livello, integrazione con `setIsosurfaceData` per rendering nel viewport.
+- **LiveMonitorPanel** — log streaming via WebSocket `/ws/analysis/{id}` +
+  eventi dello store locale, auto-scroll pausabile, badge running/idle,
+  clear button, max 500 eventi.
+
+### Viewport
+- **CableLine** (BL-1) — cavi disegnati come linee sottili, verdi se
+  pre-tesi, grigie se slack.
+- **TetMesh** (BL-3) — render tetraedri T4/T10 (T10 usa solo i 4 vertici).
+- **IsosurfaceLayer** (BL-7) — mesh triangoli iso 3D con colormap jet,
+  trasparenti (opacity 0.55, depthWrite=false).
+- **shell_q4_mitc** ora condivide il rendering di `shell_q4`.
+
+### Modelli demo seed
+- `ex_cube_solid_h8` — cubo H8 in trazione (BL-3/BL-7).
+- `ex_cable_bridge_2d` — ponte strallato 2D con 4 cavi pre-tesi 50 kN (BL-1).
+- `ex_laminate_plate` — piastra 4×4 SHELL_Q4 con laminato cross-ply 0/90/0 (BL-4).
+
+### Database materiali/sezioni
+- Materiali: `cable_steel_y1860` (trefolo Y1860), `carbon_uni` (fibra carbonio T300).
+- Sezioni: `cable_d20`, `cable_d50` (cavi tension-only), `laminate_cross_ply`
+  (3 strati 1 mm carbon, simmetrico).
+
+### Fix responsive (precedenti all'audit)
+- **TopBar** — pulsanti CRUD solo icona sotto md, select modello fluido su mobile.
+- **StatusBar** — gerarchia visiva graduale `sm/md/lg`, progress bar adattiva.
+- **Dialog (custom)** — `w-[calc(100vw-24px)]` con `maxWidth` cap → mobile-safe.
+- **TabsList** workspace ora scrollabili orizzontalmente.
+
+### Workspace estesi
+- **AnalysisWorkspace** — 7 tab (era 5): + Non-lin., + Arc-len.
+- **ResultsWorkspace** — 7 tab (era 6): + Iso 3D.
+
+### Gate v1.1
+- pytest 730/730 ✅ (coverage 90%)
+- vitest 58/58 ✅
+- tsc 0 errori ✅
+- vite build 9.7s ✅
+
+---
+
 ## v1.0.0 — 2026-05-19
 
 Prima release ufficiale dopo il completamento del piano in 25 fasi.

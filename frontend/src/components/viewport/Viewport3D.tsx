@@ -19,6 +19,8 @@ import { DynamicAnimation } from "./DynamicAnimation";
 import { DynamicTimelineHUD } from "./DynamicTimelineHUD";
 import { StaleResultsBanner } from "./StaleResultsBanner";
 import { PrincipalStressOverlay } from "./PrincipalStressOverlay";
+import { IsosurfaceLayer } from "./IsosurfaceLayer";
+import { IsosurfaceLegend } from "./IsosurfaceLegend";
 import { ClickPlane } from "./ClickPlane";
 import { ToolHUD } from "./ToolHUD";
 
@@ -67,6 +69,7 @@ export function Viewport3D() {
               {staticResults && <InternalForceDiagram component="V" />}
               {staticResults && <InternalForceDiagram component="M" />}
               {staticResults && <PrincipalStressOverlay />}
+              <IsosurfaceLayer />
               {modalResults && <ModeShapeViewer />}
               {dynamicResults && <DynamicAnimation />}
             </>
@@ -107,6 +110,9 @@ export function Viewport3D() {
           title="σ Von Mises"
         />
       )}
+
+      <IsosurfaceLegend />
+
 
       {!model && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">

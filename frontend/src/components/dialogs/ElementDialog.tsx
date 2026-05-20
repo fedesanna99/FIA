@@ -8,13 +8,18 @@ import type { ElementType } from "../../types/model";
 import { TipBubble } from "../ui/TipBubble";
 
 const ELEMENT_OPTIONS: { value: ElementType; label: string; nodeCount: number }[] = [
-  { value: "beam2d", label: "Beam 2D", nodeCount: 2 },
-  { value: "beam3d", label: "Beam 3D", nodeCount: 2 },
-  { value: "truss2d", label: "Truss 2D", nodeCount: 2 },
-  { value: "truss3d", label: "Truss 3D", nodeCount: 2 },
-  { value: "tri3", label: "Tri T3 (plane-stress)", nodeCount: 3 },
-  { value: "shell_q4", label: "Shell Q4", nodeCount: 4 },
-  { value: "solid_h8", label: "Solid H8", nodeCount: 8 },
+  { value: "beam2d",        label: "Beam 2D",                  nodeCount: 2 },
+  { value: "beam3d",        label: "Beam 3D",                  nodeCount: 2 },
+  { value: "truss2d",       label: "Truss 2D",                 nodeCount: 2 },
+  { value: "truss3d",       label: "Truss 3D",                 nodeCount: 2 },
+  { value: "cable2d",       label: "Cable 2D (tension-only)",  nodeCount: 2 },
+  { value: "cable3d",       label: "Cable 3D (tension-only)",  nodeCount: 2 },
+  { value: "tri3",          label: "Tri T3 (plane-stress)",    nodeCount: 3 },
+  { value: "shell_q4",      label: "Shell Q4",                 nodeCount: 4 },
+  { value: "shell_q4_mitc", label: "Shell Q4 MITC4 (anti-locking)", nodeCount: 4 },
+  { value: "solid_h8",      label: "Solid H8",                 nodeCount: 8 },
+  { value: "solid_t4",      label: "Solid Tet4",               nodeCount: 4 },
+  { value: "solid_t10",     label: "Solid Tet10 (quadratic)",  nodeCount: 10 },
 ];
 
 interface Props {
@@ -46,6 +51,9 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
   const [winklerK, setWinklerK] = useState<string>(
     editing?.winkler_k != null ? String(editing.winkler_k) : "",
   );
+  const [pretension, setPretension] = useState<string>(
+    editing?.pretension != null ? String(editing.pretension) : "",
+  );
   const qc = useQueryClient();
 
   useEffect(() => {
@@ -58,6 +66,7 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
       setNodesText(editing.nodes.join(","));
       setReleasesText(editing.releases ? editing.releases.join(",") : "");
       setWinklerK(editing.winkler_k != null ? String(editing.winkler_k) : "");
+      setPretension(editing.pretension != null ? String(editing.pretension) : "");
     } else {
       setId(nextId);
       setType("beam2d");
@@ -66,6 +75,7 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
       setNodesText(Array.from(selectedNodes).join(","));
       setReleasesText("");
       setWinklerK("");
+      setPretension("");
     }
   }, [open, editing, nextId, selectedNodes]);
 
@@ -85,6 +95,8 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
         ? releasesText.split(",").map((s) => Number(s.trim())).filter((n) => Number.isFinite(n))
         : undefined;
       const wk = winklerK.trim() ? Number(winklerK) : undefined;
+      const pt = pretension.trim() ? Number(pretension) : undefined;
+      const isCable = type === "cable2d" || type === "cable3d";
       const payload: any = {
         id, type, nodes: nodeIds,
         material_id: materialId,
@@ -92,6 +104,8 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
         releases,
         // winkler_k è supportato solo su beam2d (vedi FASE 8)
         ...(type === "beam2d" && wk != null && Number.isFinite(wk) ? { winkler_k: wk } : {}),
+        // pretension è supportata solo sui cavi (vedi BL-1)
+        ...(isCable && pt != null && Number.isFinite(pt) ? { pretension: pt } : {}),
       };
       if (editing) return modelsApi.updateElement(model.id, editing.id, payload);
       return modelsApi.addElement(model.id, payload);
@@ -190,6 +204,22 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
               Coefficiente di sottosuolo elastico (modello Hetényi). Lascia vuoto se la
               trave non poggia su suolo. Tipici: argilla molle 1e7, terreno medio 5e7,
               roccia 1e9 N/m².
+            </div>
+          </div>
+        )}
+        {(type === "cable2d" || type === "cable3d") && (
+          <div>
+            <label className="label block mb-1">
+              Pretensione N₀ [N] (opzionale, &gt; 0 = trazione iniziale)
+            </label>
+            <input className="input numeric" placeholder="es. 50000 (= 50 kN)"
+                   value={pretension} onChange={(e) => setPretension(e.target.value)} />
+            <div className="text-[10px] text-ink-dim mt-1">
+              Stato iniziale del cavo per il solver Newton-Raphson (BL-1). Senza
+              pretensione, il cavo è considerato slack a riposo e la rigidezza
+              tangente è quasi nulla finché non si tende. Sezione tipica:
+              <span className="font-mono ml-1">cable_d20</span> o
+              <span className="font-mono ml-1">cable_d50</span>.
             </div>
           </div>
         )}

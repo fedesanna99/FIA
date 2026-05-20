@@ -81,7 +81,30 @@ export function ElementRenderer({ mode, colormap }: Props) {
             />
           );
         }
-        if (el.type === "shell_q4") {
+        // Cavi (BL-1): linee dashed sottili; pretesi in verde, slack in grigio
+        if (el.type === "cable2d" || el.type === "cable3d") {
+          const n1 = byId.get(el.nodes[0]);
+          const n2 = byId.get(el.nodes[1]);
+          if (!n1 || !n2) return null;
+          const pretensioned = (el as any).pretension && (el as any).pretension > 0;
+          const cableColor = selected
+            ? "#ffaa00"
+            : pretensioned ? "#3ec46d" : "#888a92";
+          return (
+            <CableLine
+              key={el.id}
+              p1={[n1.x, n1.y, n1.z]}
+              p2={[n2.x, n2.y, n2.z]}
+              color={cableColor}
+              opacity={opacity}
+              onClick={(ev) => { ev.stopPropagation(); selectElement(el.id, ev.shiftKey); }}
+              onDoubleClick={(ev: any) => { ev.stopPropagation(); openEditElement(el.id); }}
+              onPointerOver={(ev: any) => { ev.stopPropagation(); hoverIn({ id: el.id, type: el.type, nodes: el.nodes }); }}
+              onPointerOut={hoverOut}
+            />
+          );
+        }
+        if (el.type === "shell_q4" || el.type === "shell_q4_mitc") {
           const pts = el.nodes.map((id) => byId.get(id)).filter(Boolean) as { x: number; y: number; z: number }[];
           if (pts.length !== 4) return null;
           return (
@@ -135,8 +158,110 @@ export function ElementRenderer({ mode, colormap }: Props) {
             />
           );
         }
+        // Tet4 / Tet10 (BL-3): tetraedro 4 vertici; per Tet10 prendiamo solo i 4 vertici principali
+        if (el.type === "solid_t4" || el.type === "solid_t10") {
+          const idxs = el.nodes.slice(0, 4);  // T10 ha 10 nodi, usiamo i primi 4 (vertici)
+          const pts = idxs.map((id) => byId.get(id)).filter(Boolean) as { x: number; y: number; z: number }[];
+          if (pts.length !== 4) return null;
+          return (
+            <TetMesh
+              key={el.id}
+              pts={pts.map((p) => [p.x, p.y, p.z]) as [number, number, number][]}
+              color={getColor(el.id, "#3a70b9")}
+              selected={selected}
+              opacity={opacity}
+              wireframe={wireframe}
+              onClick={(ev) => { ev.stopPropagation(); selectElement(el.id, ev.shiftKey); }}
+              onDoubleClick={(ev: any) => { ev.stopPropagation(); openEditElement(el.id); }}
+              onPointerOver={(ev: any) => { ev.stopPropagation(); hoverIn({ id: el.id, type: el.type, nodes: el.nodes }); }}
+              onPointerOut={hoverOut}
+            />
+          );
+        }
         return null;
       })}
+    </group>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Cable line — linea sottile per cavi (BL-1)
+// ────────────────────────────────────────────────────────────────────────────
+function CableLine({
+  p1, p2, color, opacity, onClick, onPointerOver, onPointerOut, onDoubleClick,
+}: {
+  p1: [number, number, number]; p2: [number, number, number];
+  color: string; opacity: number;
+  onClick: (e: any) => void;
+  onPointerOver?: (e: any) => void;
+  onPointerOut?: (e: any) => void;
+  onDoubleClick?: (e: any) => void;
+}) {
+  const geom = useMemo(() => {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(
+      new Float32Array([...p1, ...p2]), 3));
+    return g;
+  }, [p1, p2]);
+  return (
+    <group onClick={onClick} onDoubleClick={onDoubleClick} onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
+      <line>
+        <primitive attach="geometry" object={geom} />
+        <lineBasicMaterial color={color} transparent={opacity < 1} opacity={opacity} linewidth={2} />
+      </line>
+    </group>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Tet mesh — tetraedro a 4 facce triangolari (BL-3)
+// ────────────────────────────────────────────────────────────────────────────
+function TetMesh({
+  pts, color, selected, opacity, wireframe, onClick, onPointerOver, onPointerOut, onDoubleClick,
+}: {
+  pts: [number, number, number][]; color: string; selected: boolean;
+  opacity: number; wireframe: boolean;
+  onClick: (e: any) => void;
+  onPointerOver?: (e: any) => void;
+  onPointerOut?: (e: any) => void;
+  onDoubleClick?: (e: any) => void;
+}) {
+  // 4 facce: (0,1,2), (0,1,3), (0,2,3), (1,2,3)
+  const faces = [[0, 1, 2], [0, 3, 1], [0, 2, 3], [1, 3, 2]];
+  const geom = useMemo(() => {
+    const tris: number[] = [];
+    for (const [a, b, c] of faces) {
+      tris.push(...pts[a], ...pts[b], ...pts[c]);
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(tris), 3));
+    g.computeVertexNormals();
+    return g;
+  }, [pts]);
+  const edgeGeom = useMemo(() => {
+    const pairs = [[0, 1], [0, 2], [0, 3], [1, 2], [1, 3], [2, 3]];
+    const e: number[] = [];
+    for (const [a, b] of pairs) e.push(...pts[a], ...pts[b]);
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(e), 3));
+    return g;
+  }, [pts]);
+  return (
+    <group onClick={onClick} onDoubleClick={onDoubleClick} onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
+      <mesh geometry={geom}>
+        <meshStandardMaterial
+          color={color}
+          transparent={opacity < 1 || wireframe}
+          opacity={wireframe ? 0 : opacity}
+          wireframe={wireframe}
+          metalness={0.2}
+          roughness={0.6}
+          side={THREE.DoubleSide}
+        />
+      </mesh>
+      <lineSegments geometry={edgeGeom}>
+        <lineBasicMaterial color={selected ? "#ffaa00" : "#5a8ab9"} />
+      </lineSegments>
     </group>
   );
 }

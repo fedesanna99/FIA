@@ -132,6 +132,16 @@ MATERIALS_DB: dict[str, Material] = {
         id="glulam_gl28h", name="Legno lamellare GL28h",
         E=12.6e9, nu=0.3, rho=425, alpha_t=5.0e-6, color="#b08560",
     ),
+    # Acciaio armonico per stay cables (EN 10138 / fib bulletin 30)
+    "cable_steel_y1860": Material(
+        id="cable_steel_y1860", name="Trefolo Y1860 (cavo)",
+        E=195e9, nu=0.3, rho=7850, fy=1860e6, color="#d4d4d4",
+    ),
+    # Fibra unidirezionale per laminati compositi (BL-4)
+    "carbon_uni": Material(
+        id="carbon_uni", name="Fibra di carbonio uni (T300)",
+        E=135e9, nu=0.28, rho=1600, color="#1a1a1a",
+    ),
 }
 
 
@@ -225,4 +235,31 @@ SECTIONS_DB: dict[str, Section] = {
                           type="custom", A=0.1, Iy=0, Iz=0, J=0, thickness=0.10),
     "shell_t200": Section(id="shell_t200", name="Shell t=200mm",
                           type="custom", A=0.2, Iy=0, Iz=0, J=0, thickness=0.20),
+    # Cavi per BL-1: solo area assiale, niente inerzia (tension-only)
+    "cable_d20": Section(
+        id="cable_d20", name="Cavo Ø20 mm (tension-only)",
+        type="custom",
+        A=3.14159e-4,  # π·0.01²
+        Iy=0.0, Iz=0.0, J=0.0,
+    ),
+    "cable_d50": Section(
+        id="cable_d50", name="Cavo Ø50 mm (tension-only)",
+        type="custom",
+        A=1.9635e-3,  # π·0.025²
+        Iy=0.0, Iz=0.0, J=0.0,
+    ),
+    # Laminato cross-ply 0/90/0 per BL-4 (3 strati simmetrici, 1 mm ciascuno)
+    "laminate_cross_ply": Section(
+        id="laminate_cross_ply", name="Laminato cross-ply [0/90/0] 3×1 mm",
+        type="custom",
+        A=3e-3, Iy=0.0, Iz=0.0, J=0.0, thickness=3e-3,
+        layers=[
+            CompositeLayerSpec(E1=135e9, thickness=1e-3, theta_deg=0.0,
+                               E2=10e9, nu12=0.28, G12=5e9, rho=1600),
+            CompositeLayerSpec(E1=135e9, thickness=1e-3, theta_deg=90.0,
+                               E2=10e9, nu12=0.28, G12=5e9, rho=1600),
+            CompositeLayerSpec(E1=135e9, thickness=1e-3, theta_deg=0.0,
+                               E2=10e9, nu12=0.28, G12=5e9, rho=1600),
+        ],
+    ),
 }

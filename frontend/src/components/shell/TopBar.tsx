@@ -58,24 +58,24 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   });
 
   return (
-    <header className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-2 px-3">
-      {/* Logo */}
-      <div className="flex items-center gap-2 pr-2 border-r border-border h-7">
+    <header className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 min-w-0 overflow-hidden">
+      {/* Logo — su mobile mostriamo solo l'iniziale per recuperare spazio */}
+      <div className="flex items-center gap-2 pr-2 border-r border-border h-7 flex-shrink-0">
         <div className="w-6 h-6 rounded bg-accent/15 border border-accent/40 flex items-center justify-center">
           <span className="text-accent text-xs font-bold">F</span>
         </div>
-        <span className="font-semibold text-sm text-ink">FEA Pro</span>
-        <span className="text-[10px] font-mono text-ink-dim">v1.0</span>
+        <span className="font-semibold text-sm text-ink hidden sm:inline">FEA Pro</span>
+        <span className="text-[10px] font-mono text-ink-dim hidden md:inline">v1.0</span>
       </div>
 
-      {/* Model picker */}
-      <div className="relative">
+      {/* Model picker — fluido su mobile, fisso su desktop */}
+      <div className="relative min-w-0 flex-1 sm:flex-initial">
         <select
           className={cn(
             "appearance-none h-8 pl-3 pr-8 rounded-md text-sm",
             "bg-bg-elevated border border-border text-ink",
             "hover:bg-bg-hover focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30",
-            "min-w-[220px] cursor-pointer",
+            "w-full sm:min-w-[180px] md:min-w-[220px] cursor-pointer truncate",
           )}
           value={activeId ?? ""}
           onChange={(e) => onSelect(e.target.value)}
@@ -91,11 +91,11 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-muted pointer-events-none" />
       </div>
 
-      {/* Model CRUD */}
-      <div className="flex items-center gap-1 pl-1 border-l border-border ml-1 pl-3">
+      {/* Model CRUD — solo icone <md, icona+label da md in su */}
+      <div className="flex items-center gap-1 pl-2 border-l border-border ml-1 md:pl-3 flex-shrink-0">
         <Tooltip content="Nuovo modello">
           <Button size="sm" variant="secondary" iconLeft={<Plus className="h-3.5 w-3.5" />} onClick={() => setNewOpen(true)}>
-            Nuovo
+            <span className="hidden md:inline">Nuovo</span>
           </Button>
         </Tooltip>
         <Tooltip content="Duplica modello corrente">
@@ -107,7 +107,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
             loading={dup.isPending}
             onClick={() => activeId && dup.mutate(activeId)}
           >
-            Duplica
+            <span className="hidden md:inline">Duplica</span>
           </Button>
         </Tooltip>
         <Tooltip content="Modifica nome / descrizione">
@@ -118,19 +118,19 @@ export function TopBar({ models, activeId, onSelect }: Props) {
             disabled={!activeId}
             onClick={() => setEditOpen(true)}
           >
-            Modifica
+            <span className="hidden md:inline">Modifica</span>
           </Button>
         </Tooltip>
       </div>
 
-      {/* Run analysis */}
-      <div className="flex items-center gap-2 pl-3 border-l border-border ml-1">
+      {/* Run analysis — il select del tipo è nascosto sotto sm */}
+      <div className="flex items-center gap-1.5 sm:gap-2 pl-2 md:pl-3 border-l border-border ml-1 flex-shrink-0">
         <select
           className={cn(
             "h-8 px-2 rounded-md text-xs font-medium",
             "bg-bg-elevated border border-border text-ink",
             "hover:bg-bg-hover focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30",
-            "cursor-pointer",
+            "cursor-pointer hidden sm:block",
           )}
           value={analysisType}
           onChange={(e) => setAnalysisType(e.target.value as AnalysisType)}
@@ -151,16 +151,18 @@ export function TopBar({ models, activeId, onSelect }: Props) {
             iconLeft={!isRunning ? <Play className="h-3.5 w-3.5" /> : undefined}
             onClick={() => model && run()}
           >
-            {isRunning ? "Esecuzione…" : "Esegui"}
+            <span className="hidden sm:inline">{isRunning ? "Esecuzione…" : "Esegui"}</span>
           </Button>
         </Tooltip>
-        {isRunning && <Loader2 className="h-4 w-4 animate-spin text-accent" aria-hidden />}
+        {isRunning && <Loader2 className="h-4 w-4 animate-spin text-accent hidden sm:inline" aria-hidden />}
       </div>
 
-      <div className="flex-1" />
+      <div className="flex-1 min-w-0" />
 
-      {/* Export menu */}
-      <ExportMenu />
+      {/* Export menu — visibile sempre */}
+      <div className="flex-shrink-0">
+        <ExportMenu />
+      </div>
 
       {/* Right side: dialogs portal */}
       <NewModelDialog open={newOpen} onClose={() => setNewOpen(false)} />
