@@ -1,5 +1,88 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.2 — Deploy live su Fly.io — 2026-05-20
+
+Prima volta online: **https://fea-pro.fly.dev/** (Frankfurt EU, $0/mese free tier).
+
+### Deploy infrastructure
+- **Single-image Dockerfile** multi-stage: `node:20-alpine` builda Vite
+  frontend → `python:3.11-slim` runtime serve sia API che SPA da
+  `/app/static/`. Same origin = no CORS, 1 sola URL.
+- **fly.toml**: region `fra` (Frankfurt EU), 1× shared-cpu-1x 1GB RAM,
+  auto-stop dopo idle (cold start ~22s), volume `fea_data` 1GB persistente.
+- **Volume `/data`** mount per persistere tra redeploy: cache F2, usage
+  tracker F6, jobs queue A5, audit JSONL job_meter A2.
+- **WebSocket nativo persistente** (`/ws/jobs/{user_id}`) supportato dal
+  proxy Fly.io senza modifiche.
+
+### Fixed (bug emersi durante il deploy)
+- **`OSError: libGLU.so.1` al boot** — gmsh runtime richiede libgl/glu
+  su Debian. Aggiunti pacchetti apt: `libglu1-mesa`, `libgl1`,
+  `libxrender1`, `libxcursor1`, `libxft2`, `libxinerama1`, `libgomp1`.
+- **`register_all()` non chiamato al boot** — i 8 provider F4 non venivano
+  registrati nel registry singleton, B1-B4 ritornavano 503 "no providers
+  registered". Aggiunto al `@app.on_event("startup")` di `main.py`.
+- **Path SQLite hardcoded** — `.cache/` non persisteva tra redeploy. Ora
+  4 moduli leggono env var `FEAPRO_DATA_DIR` (default `.cache/` per dev):
+  `services/cache.py`, `services/usage_tracker.py`, `jobs/store.py`,
+  `billing/job_meter.py`.
+
+### Added
+- **Env var fallback chain** in `fly.toml`:
+  ```
+  FEAPRO_METEO_FALLBACK = "open_meteo_archive"
+  FEAPRO_GEOCODING_FALLBACK = "nominatim"
+  FEAPRO_ELEVATION_FALLBACK = "usgs_elevation"
+  ```
+  Critico: senza questi, F8 chiama solo `[primary]` della chain. Per
+  `/api/loads/meteo` il primary `open_meteo_forecast` solleva
+  `NotImplementedError` su `historical_extremes`, e con la chain
+  estesa F8 fa skip ad `open_meteo_archive` che lo implementa.
+- **`--proxy-headers --forwarded-allow-ips=*`** in uvicorn CMD per
+  rispettare `X-Forwarded-*` di Fly edge TLS termination.
+
+### Smoke test live (verificati nel browser end-to-end)
+- `GET /api/health` → `{"status":"ok"}` (cold start 22s, calde <100ms)
+- LocationPickerDialog UI:
+  - Search "Cagliari" → 3 risultati live da Open-Meteo (Sardegna,
+    Trentino, Aeroporto)
+  - Click su Cagliari Sardegna (39.23, 9.12) → trigger pipeline B1+B2+B3+B4
+  - Elevation 36m da Open-Elevation
+  - **Wind**: v_b,0=22.33 m/s, q_p(z=10m)=0.530 kN/m² (EN 1991-1-4)
+  - **Snow**: s_k=0.028, s_design=0.022 kN/m² (EN 1991-1-3)
+  - **Seismic**: M_max 4.1 storico USGS, a_g/g=0.0213, spettro plateau
+    S_e/g≈0.053 (NTC 2018 §3.2)
+  - Tutti i valori coerenti con realtà (Cagliari = NTC zona 4 sismica
+    bassa + clima mite + raffica vento moderata).
+
+### Comando deploy
+```bash
+flyctl deploy --remote-only --app fea-pro
+```
+Remote builder Fly.io = no Docker locale richiesto. ~3 min totali.
+
+### Gate finale post-deploy
+| Gate | Valore |
+|---|---|
+| pytest backend (no-slow) | 1308/1308 verdi (path env-var test) |
+| vitest frontend | 104/104 verdi |
+| **Live URL** | **https://fea-pro.fly.dev/** ✅ |
+| Cold start | 22s (auto-stop true) |
+| Costo mensile | $0 (free tier) |
+
+### Cose ancora aperte (post v1.4.0-alpha.2)
+- **`origin/main` 12 commit indietro**: promuovere quando vuoi con
+  `sincronizza test con tutto`.
+- **Cold start 22s** scomodo per demo live. Opzioni: UptimeRobot ping
+  ogni 5 min (gratis) o `min_machines_running = 1` (~720h/mese).
+- **No auth**: `user_id="demo_user"` hardcoded. Va bene per beta
+  privato; per pubblico aggiungere token API.
+- **Quota Open-Meteo**: 10000 req/day free per IP, cache amortizza ma
+  se traffico > ~100 utenti/day si saturano. Upgrade a Standard tier
+  ($29/mese 100k req/day) quando serve.
+
+---
+
 ## v1.4.0-alpha.1 — Sprint 2 closure: piano B + UI integration — 2026-05-20
 
 Chiusura Sprint 2 con UI integration end-to-end (LocationPickerDialog),
