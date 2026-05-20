@@ -1,5 +1,76 @@
 # Changelog FEA Pro
 
+## [Unreleased] — Sprint 2
+
+### Added
+- **F4.1: OpenMeteoForecastProvider + OpenMeteoArchiveProvider** (Sprint 2)
+  - Implementa `MeteoProvider` ABC sopra `Provider` (Sprint 1 F1/F2/F3).
+  - **`OpenMeteoForecastProvider`**: previsioni 16 giorni, endpoint
+    `https://api.open-meteo.com/v1/forecast`. Cache TTL 6h, rate limit
+    10 rps su bucket condiviso `open_meteo`, timeout 10s. Output:
+    `ForecastResult` con lista `HourlyEntry`.
+  - **`OpenMeteoArchiveProvider`**: estremi storici ERA5 dal 1940
+    (≤85 anni), endpoint `https://archive-api.open-meteo.com/v1/archive`.
+    Cache TTL 30 giorni, stesso bucket rate limit, timeout 30s. Output:
+    `WindSnowExtremes` con max assoluto + return period 50 anni stimato
+    via **Gumbel Type I** (method-of-moments, formula EN 1991-1-4 §4.2).
+  - Error mapping: 429 → `ProviderRateLimitError`, 5xx →
+    `ProviderUnavailableError`, timeout → `ProviderTimeoutError`,
+    altri 4xx + parse error → `ProviderError`.
+  - Hook stub `_record_call()` per F6 `usage_tracker` (settimana 3).
+  - Cache key: lat/lon arrotondati a 4 decimali (~10 m, sufficiente
+    per cache hit stabile su input GUI imprecisi).
+  - Licenza Open-Meteo free tier non-commercial, no API key richiesta.
+- **Helper Gumbel** `_gumbel_return_period.py`: funzione pura riusabile,
+  `gumbel_return_period(annual_maxima, T=50)` + helper
+  `annual_maxima_from_daily(dates, values)` per pipeline ERA5 → estremi.
+  Edge cases: campione vuoto/singolo/costante, T≤1 ValueError,
+  quantile clippato a 0 per variabili fisicamente non-negative.
+
+### Tests
+- **+48 unit test** `tests/services/providers/meteo/`:
+  - `test_gumbel_return_period.py` (14 test): dataset noto MoM, monotonicita',
+    edge cases (empty/single/constant/None/clip), `annual_maxima_from_daily`.
+  - `test_open_meteo_forecast.py` (17 test): parse, cache hit/key
+    rounding/corrupt-fallback, 429/500/503/400/timeout error mapping,
+    usage hook, days validation, health_check ok/down/timeout, abstract
+    `health()` wrapper.
+  - `test_open_meteo_archive.py` (17 test): parse, cache, errori,
+    Gumbel 50y, no-snowfall location, invalid years, empty daily safe,
+    `get_archive` raw access, health_check.
+- **+8 integration test** `test_open_meteo_integration.py` (`@pytest.mark.slow`,
+  skippati di default): forecast Cagliari/Roma reali, archive 50y Cagliari/
+  L'Aquila/Roma con sanity range (wind 20-60 m/s Cagliari, snow >10 cm
+  L'Aquila, snow <50 cm Roma), rate limit throttling oltre capacity 20,
+  cache hit reale.
+
+### Fixed
+- `services/base.py:__init_subclass__` annotata con `**kwargs: Any -> None`
+  per consentire `mypy --strict` clean sui nuovi provider (1-line type-only
+  fix, zero impatto runtime).
+
+### Gate
+| Gate | alpha.4 | Sprint 2 F4.1 |
+|---|---|---|
+| pytest (no-cov, no-slow) | 916 | **964** (+48) |
+| F4.1 module coverage | — | **~93%** (target ≥90%) |
+| mypy --strict (F4.1 files) | — | **clean** |
+| vitest | 96 | 96 |
+| tsc / build | OK | OK |
+
+### Note operative
+- **`pytest-httpx` NON aggiunta** alle dipendenze: usiamo
+  `httpx.MockTransport` nativo (zero nuove dep, compat 100% con httpx 0.28).
+- **Provider ABC quirk**: `Provider.__init_subclass__` controlla
+  `__abstractmethods__` ma `ABCMeta` lo popola DOPO. Workaround in
+  `MeteoProvider`: dichiariamo `name = "_abstract"` come placeholder
+  (la classe e' comunque non istanziabile, e nessuno la registra).
+- **No automatic fallback** dentro i provider: il fallback chain F8 vive
+  a livello orchestratore. I provider sollevano l'eccezione semantica
+  giusta e l'orchestratore decide.
+
+---
+
 ## v1.3.0-alpha.4 — UX gap fill: AccountDialog + validation link — 2026-05-20
 
 Chiusura dei 5 gap UI/UX identificati nell'audit post-Sprint 1: gli endpoint

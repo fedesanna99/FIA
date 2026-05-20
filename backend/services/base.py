@@ -12,7 +12,7 @@ E implementare il coroutine `async def health(self) -> bool`.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import ClassVar, Generic, TypeVar
+from typing import Any, ClassVar, Generic, TypeVar
 
 
 T = TypeVar("T")
@@ -24,7 +24,7 @@ class Provider(ABC, Generic[T]):
     domain: ClassVar[str] = ""
     name: ClassVar[str] = ""
 
-    def __init_subclass__(cls, **kwargs):  # noqa: D401
+    def __init_subclass__(cls, **kwargs: Any) -> None:  # noqa: D401
         super().__init_subclass__(**kwargs)
         # Le classi concrete devono dichiarare domain+name; le ABC intermedie no.
         if not getattr(cls, "__abstractmethods__", None):
