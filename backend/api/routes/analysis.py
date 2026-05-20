@@ -1,4 +1,5 @@
 """Endpoint per avvio analisi e recupero risultati."""
+import os
 from dataclasses import asdict
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
@@ -17,6 +18,10 @@ from core.postprocess.fatigue import (
 )
 import storage
 from api.websocket import broadcast_progress
+from billing import cost_estimator, job_meter
+
+
+DEFAULT_USER_ID = os.environ.get("FEAPRO_DEFAULT_USER_ID", "demo_user")
 
 router = APIRouter()
 
@@ -100,10 +105,39 @@ async def _run(model_id: str, analysis_type: str, solver):
 
 
 @router.post("/static/{model_id}", response_model=StaticResults)
-async def static_analysis(model_id: str, req: StaticAnalysisRequest = StaticAnalysisRequest()):
+async def static_analysis(
+    model_id: str,
+    req: StaticAnalysisRequest = StaticAnalysisRequest(),
+    user_id: str = DEFAULT_USER_ID,
+):
     model = _get_model(model_id)
+    estimate = cost_estimator.estimate("linear", model, {})
     solver = StaticSolver(model, include_self_weight=req.include_self_weight, g=req.g)
-    return await _run(model_id, "static", solver)
+    cb = _make_progress_cb(model_id)
+    with job_meter.measure_job(
+        user_id=user_id,
+        solver="linear",
+        model_id=model_id,
+        n_dof=estimate.n_dof,
+        estimate=estimate,
+    ):
+        try:
+            results = await _run_solver(solver, cb)
+        except Exception as e:
+            await broadcast_progress(model_id, 1.0, f"Errore: {e}")
+            raise HTTPException(500, str(e))
+    storage.save_results(model_id, "static", results)
+    return results
+
+
+# Alias retro-compatibilita': il runbook usa /api/analysis/linear/{id}.
+@router.post("/linear/{model_id}", response_model=StaticResults)
+async def linear_analysis(
+    model_id: str,
+    req: StaticAnalysisRequest = StaticAnalysisRequest(),
+    user_id: str = DEFAULT_USER_ID,
+):
+    return await static_analysis(model_id, req, user_id=user_id)
 
 
 @router.post("/modal/{model_id}", response_model=ModalResults)
