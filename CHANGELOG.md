@@ -1,5 +1,65 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.3 — UX continuity: ClimateContextBadge persistente — 2026-05-20
+
+Closure naturale di B1-B4: dopo aver calcolato loads via LocationPickerDialog,
+i valori restano visibili nel viewport (no piu' "dialog → close → loss").
+
+### Added
+- **`store/climateStore.ts`** (zustand + persist localStorage):
+  - `bundle: ClimateBundle | null` con `location + elevation_m + meteo +
+    seismic + computed_at` timestamp.
+  - `setBundle(omit computed_at)` aggiunge automaticamente `Date.now()`.
+  - `clear()` resetta. Persiste in localStorage chiave `climate-store`.
+- **`shell/ClimateContextBadge.tsx`** — pill compatta floating
+  `position: fixed top-14 left-3`:
+  - Sempre visibile quando `bundle != null` (qualsiasi workspace).
+  - Mostra: 📍 nome location · lat/lon · elevazione.
+  - Click sul nome → expanded view con valori chiave EN 1991 + NTC 2018:
+    - v_b,0, q_p(z=10m), s_k, s_design
+    - M_max storico Mw, a_g/g, soil category, S_e plateau
+    - Footer: "calcolato X min fa · da Open-Meteo + USGS + Open-Elevation"
+  - `X` button → clear store (rimuove badge).
+  - `Edit2` button (se `onReopen` callback) → riapre LocationPickerDialog.
+- **`TopBar.tsx`** wire `onApply={setClimateBundle}` al dialog.
+- **`App.tsx`** monta `<ClimateContextBadge />` nel layout principale.
+
+### Tests
+- **+13 unit test**:
+  - `store/climateStore.test.ts` (5): null iniziale, setBundle stora con
+    computed_at, setBundle(null) clear, clear() reset, replacement preserva
+    monotonia timestamp.
+  - `shell/ClimateContextBadge.test.tsx` (8): hide quando bundle null,
+    render con location, click nome toggle expanded, clear button rimuove
+    bundle, edit button calls onReopen, edit nascosto senza callback,
+    gestione bundle parziale (no seismic / no meteo).
+- **117/117 vitest totale** (104 + 13). Helper `renderWithProvider`
+  wrappa in `TooltipProvider` (richiesto da Radix in test isolati).
+
+### Smoke test produzione live (verificati nel browser)
+1. Carico https://fea-pro.fly.dev/ → no badge (localStorage vuoto)
+2. Click TopBar **Loads** → LocationPickerDialog apre
+3. Search "Roma" → 8 risultati live da Open-Meteo
+4. Click "Roma 47.83, 26.60 Romania" (quota 138 m s.l.m.) → calcoli B2+B3+B4 in parallelo:
+   - Vento: v_b,0=19.22 m/s, q_p(10m)=**0.393 kN/m²**
+   - Neve: s_k=0.403, s_design=**0.323 kN/m²** (Romania nevosa)
+   - Sismica: M_max Mw 4.9, a_g/g=**0.0423**, S_e plateau=**0.106**
+5. Click "Applica al modello" → dialog chiude, badge **📍 Roma 47.833,
+   26.600 · 138 m ✕** appare in alto a sinistra
+6. Click sul nome → expanded view con tutti i valori EN 1991+NTC 2018
+7. **F5 refresh** → badge ancora presente (persist OK)
+8. Click X → badge rimosso
+
+### Gate
+| Gate | alpha.2 | **alpha.3** |
+|---|---|---|
+| pytest backend | 1308 | 1308 (no changes) |
+| vitest frontend | 104 | **117** (+13) |
+| Live URL | ✅ | ✅ deployed |
+| Build | OK | OK |
+
+---
+
 ## v1.4.0-alpha.2 — Deploy live su Fly.io — 2026-05-20
 
 Prima volta online: **https://fea-pro.fly.dev/** (Frankfurt EU, $0/mese free tier).
