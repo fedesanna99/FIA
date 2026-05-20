@@ -71,8 +71,16 @@ queue persistente) + scaffolding services layer + completamento gap NAFEMS BL-6.
 | tsc | 0 errori | **0 errori** |
 | vite build | OK | **OK** |
 | Cost estimator +-30% | -- | **green (7/7)** |
-| Validation report green | -- | **green** |
+| Validation report green | -- | **green (5/5)** |
 | BL-6 | aperto | **chiuso** |
+
+### Smoke E2E verificato
+- API: `POST /api/billing/estimate` -> `POST /api/jobs` -> worker async ->
+  `GET /api/jobs/{id}/result` + quota consume + audit JSONL + usage summary.
+- UI: app `:5273` con modello `ex_cable_bridge_2d`, Analisi -> Push-over ->
+  Esegui pushover -> CostPreviewDialog si apre con stima + quota residua
+  "49.83 / 50 (free)" -> Procedi -> solve completato (55 step, 6 cerniere,
+  lambda collapse = 2.750) -> deformata visibile nel viewport.
 
 ---
 
