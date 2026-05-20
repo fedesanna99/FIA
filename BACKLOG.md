@@ -72,12 +72,10 @@ Stato aggiornato: **2026-05-19** (post-audit v1.0.0).
 ## 🟢 Bassa priorità (validation suite + UX)
 
 ### BL-6 · NAFEMS LE1 / LE2 / LE10 con geometria ellittica
-**Stato:** carry-over · **Complessità:** ~1 h ciascuno · **Sblocca:** test suite
-NAFEMS-compliant completa
-
-- Le piastre ellittiche LE1/LE2 richiedono mesh su geometria ellittica
-  (non rettangolare). Serve estensione di `mesh_polygon_delaunay` o di
-  `gmsh_mesher` per accettare bordi curvi (spline/arc).
+**Stato:** ✅ **chiuso v1.3 (D1)** · vedi `backend/tests/nafems/`
+(9 test verdi: LE1 elliptic membrane Q4/Tri3+convergenza, LE2 cantilever
+beam3D+convergenza+reazioni, LE10 thick plate Q4 + h-refinement + linear scaling).
+Mesh generata via `quarter_ellipse_with_hole` (Coons patch transfinita).
 
 ### BL-7 · 3D iso-surfaces (marching tetra / cubes)
 **Stato:** carry-over · **Complessità:** ~2 h · **Sblocca:** visualizzazione
