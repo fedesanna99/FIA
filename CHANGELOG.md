@@ -1,5 +1,51 @@
 # Changelog FEA Pro
 
+## v1.3.0-alpha.4 — UX gap fill: AccountDialog + validation link — 2026-05-20
+
+Chiusura dei 5 gap UI/UX identificati nell'audit post-Sprint 1: gli endpoint
+backend `/api/usage`, `/api/quotas/{tier,reset,bonus}`, `/api/validation/report`
+erano disponibili ma non raggiungibili dall'interfaccia utente.
+
+### Frontend
+- **`api/usage/index.ts`**: client REST per `GET /api/usage/{user_id}/summary`
+  + `POST /api/quotas/{user_id}/{reset,bonus}` (chiude GAP 1, 2, 3).
+- **`components/dialogs/AccountDialog.tsx`**: nuovo dialog con 3 tab
+  - **Usage**: tabella aggregata job by solver / status, finestra temporale
+    selezionabile (7/30/90/365 giorni).
+  - **Tier**: cambio piano `free/starter/pro/enterprise` con preview cap
+    (chiude GAP 4 — `setQuotaTier` ora effettivamente bindato a UI).
+  - **Admin**: reset mese + bonus credits (azioni admin / mock per v1.3).
+  - Footer: link "View system validation report" a `/api/validation/report`
+    (chiude GAP 5).
+- **TopBar**: nuovo bottone "Account" (icona User) tra Run e Export
+  che apre `AccountDialog`.
+
+### Test
+- **+6 test** `AccountDialog.test.tsx`: tabs Usage / Tier / Admin,
+  validation report link, mutation calls (setQuotaTier, resetQuota,
+  addQuotaBonus), window selector.
+
+### Verificato in preview
+- TopBar `[data-testid="topbar-account"]` apre il dialog
+- Usage tab fetcha live `/api/usage/demo_user/summary?window_days=30`
+  e mostra 132 job (linear 129, pushover 2, nonlinear 1) con 0.84 crediti
+- Validation link href `/api/validation/report` (apre in new tab)
+
+### Gate
+| Gate | alpha.3 | alpha.4 |
+|---|---|---|
+| pytest (no-cov) | 916 | **916** |
+| vitest | 90 | **96** (+6) |
+| tsc | 0 | 0 |
+| vite build | OK | OK |
+
+### Backend / orfani pre-Sprint 1
+L'audit non ha rilevato endpoint legacy v1.2 orfani: tutti i path
+`analysis/`, `verify/`, `io/`, `ai/`, `materials/` sono consumati dai
+panel esistenti.
+
+---
+
 ## v1.3.0-alpha.3 — Test depth + coverage uplift — 2026-05-20
 
 Polish post-migration: amplia drasticamente la suite di test per dare

@@ -14,6 +14,7 @@ import {
   Play,
   ChevronDown,
   Loader2,
+  User,
 } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { modelsApi } from "../../api/client";
@@ -22,6 +23,7 @@ import { useRunAnalysis } from "../../hooks/useAnalysis";
 import { useModelStore } from "../../store/modelStore";
 import { NewModelDialog } from "../dialogs/NewModelDialog";
 import { EditModelDialog } from "../dialogs/EditModelDialog";
+import { AccountDialog } from "../dialogs/AccountDialog";
 import { ExportMenu } from "./ExportMenu";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
@@ -47,6 +49,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   const model = useModelStore((s) => s.model);
   const [newOpen, setNewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const qc = useQueryClient();
 
   const dup = useMutation({
@@ -159,6 +162,19 @@ export function TopBar({ models, activeId, onSelect }: Props) {
 
       <div className="flex-1 min-w-0" />
 
+      {/* Account button (usage/tier/admin) */}
+      <Tooltip content="Account: usage, tier, admin">
+        <Button
+          size="sm"
+          variant="ghost"
+          iconLeft={<User className="h-3.5 w-3.5" />}
+          onClick={() => setAccountOpen(true)}
+          data-testid="topbar-account"
+        >
+          <span className="hidden md:inline">Account</span>
+        </Button>
+      </Tooltip>
+
       {/* Export menu — visibile sempre */}
       <div className="flex-shrink-0">
         <ExportMenu />
@@ -167,6 +183,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
       {/* Right side: dialogs portal */}
       <NewModelDialog open={newOpen} onClose={() => setNewOpen(false)} />
       <EditModelDialog open={editOpen} onClose={() => setEditOpen(false)} />
+      <AccountDialog open={accountOpen} onClose={() => setAccountOpen(false)} />
     </header>
   );
 }
