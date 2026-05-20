@@ -3,6 +3,75 @@
 ## [Unreleased] — Sprint 2
 
 ### Added
+- **F8: ServiceOrchestrator + fallback chain** (Sprint 2)
+  - **`services/orchestrator.py`**: orchestratore async generico che
+    legge la fallback chain dal `ProviderRegistry` (env var
+    `FEAPRO_<DOMAIN>_PROVIDER` + `FEAPRO_<DOMAIN>_FALLBACK=csv`) e
+    delega al primo provider che ha successo.
+  - **API**: `orchestrator.call(domain, method, *args, **kwargs)` ←
+    chiamata via `getattr(provider, method)(*args, **kwargs)`,
+    type-generic; `orchestrator.call_by_name(domain, provider_name,
+    method, ...)` bypassa la chain per uso esplicito;
+    `orchestrator.get_chain(domain)` introspezione.
+  - **Eccezioni retryable** (skip al next provider):
+    `ProviderUnavailableError`, `ProviderTimeoutError`,
+    `ProviderRateLimitError`, `NotImplementedError`, provider senza
+    il metodo richiesto (AttributeError gestito internamente).
+  - **Eccezioni non-retryable** (propaga subito): `ValueError`,
+    `ProviderError` con status 4xx (es. 400 bad request), altre.
+  - **`AllProvidersFailedError`** (extends `ProviderUnavailableError`):
+    sollevata quando tutti i provider della chain hanno fallito.
+    Attributo `.attempts: list[(name, exception)]` con la cronologia
+    completa dei tentativi.
+  - **`services/providers/registration.py`**: helper `register_all()`
+    che registra tutti i provider F4 (8 totali su 4 domini) nel
+    registry singleton. Ordine di registrazione fissa la "default
+    chain" (primo = primary):
+      - meteo: open_meteo_forecast > open_meteo_archive
+      - geocoding: open_meteo_geocoding > nominatim
+      - elevation: open_elevation > usgs_elevation
+      - seismic: usgs_earthquake (unico)
+
+### Tests
+- **+24 unit test** `tests/services/test_orchestrator.py`:
+  - Base: primary ok, fallback su unavailable/timeout/rate_limit/
+    NotImplementedError, propaga ValueError, propaga ProviderError 400,
+    AllProvidersFailedError con cronologia completa, provider senza
+    metodo, unknown domain KeyError.
+  - call_by_name: bypass chain, unknown provider KeyError, method
+    missing AttributeError, propaga errori (no skip).
+  - get_chain: chain di default + env var fallback CSV, empty per
+    unknown domain.
+  - register_all: popola 4 domini (8 provider), ritorna registry,
+    funziona col singleton globale.
+  - E2E con tracker: provider reale (MockTransport) + orchestrator +
+    tracker singleton enabled → record presente dopo call.
+  - AllProvidersFailedError: message format, inheritance da
+    ProviderUnavailableError (chain-able), singleton existence.
+
+### Gate
+| Gate | F6 | **F8** |
+|---|---|---|
+| pytest backend (no-slow) | 1117 | **1141** (+24) |
+| F8 modules coverage | — | **100% + 100%** |
+| mypy --strict | clean | clean |
+
+### Note operative
+- **Pattern uso B1-B4**: i futuri service facade (`geocoding_service`,
+  `meteo_loads_service`, ...) chiameranno `orchestrator.call(...)`
+  invece di gestire manualmente la fallback chain.
+- **`call_by_name`**: utile per UI admin "test connection" che
+  voglia testare un provider specifico bypass-and-the chain.
+- **Tracker F6 + Orchestrator F8 integrati**: ogni call sotto
+  l'orchestrator viene tracciata individualmente dal provider; se
+  fallback viene attivato, il tracker registra 2 righe (1 error +
+  1 ok) per la stessa logical operation. La distinzione orchestrator-
+  level "quale provider e' stato scelto alla fine" e' lasciata ai
+  log (logger.info) — non aggiunge righe al tracker.
+
+---
+
+### Added
 - **F6: provider usage_tracker** (Sprint 2)
   - **`services/usage_tracker.py`**: tracker SQLite per ogni call ai
     provider F4. Tabella `provider_usage(id, ts, domain, provider,
