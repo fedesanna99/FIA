@@ -1,0 +1,22 @@
+# keep the image lean
+**/node_modules
+**/dist
+**/.vite
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/.mypy_cache
+**/.ruff_cache
+**/coverage
+**/.venv
+**/venv
+**/.env
+**/.env.*
+**/data/models/*.json
+.git
+.gitignore
+.github
+README.md
+ONBOARDING.md
+DEPLOY.md
+docker-compose.yml

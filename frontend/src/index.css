@@ -1,0 +1,221 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Tokens dark (default) ──────────────────────────────────────────────── */
+/* I valori sono triple "R G B" (no rgb()) per consentire l'opacity modifier
+   di Tailwind: `bg-accent/20` espande in rgb(var(--c-accent) / 0.2). */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --c-bg:          15  17  21;     /* #0F1115 */
+  --c-bg-panel:    23  26  33;     /* #171A21 */
+  --c-bg-elevated: 31  35  44;     /* #1F232C */
+  --c-bg-hover:    34  39  50;     /* #222732 */
+  --c-bg-viewport: 10  12  16;     /* #0A0C10 */
+
+  --c-border:        38  43  54;   /* #262B36 */
+  --c-border-light:  54  61  74;   /* #363D4A */
+  --c-border-strong: 75  85 104;   /* #4B5568 */
+
+  --c-ink:        230 232 238;     /* #E6E8EE */
+  --c-ink-muted:  154 160 171;     /* #9AA0AB */
+  --c-ink-dim:     95 102 117;     /* #5F6675 */
+
+  --c-accent:        61 169 252;   /* #3DA9FC */
+  --c-accent-hover:  91 186 255;   /* #5BBAFF */
+  --c-accent-subtle: 29  58  92;   /* #1D3A5C */
+
+  --c-success:  34 197  94;        /* #22C55E */
+  --c-warn:    245 158  11;        /* #F59E0B */
+  --c-danger:  239  68  68;        /* #EF4444 */
+  --c-info:      6 182 212;        /* #06B6D4 */
+
+  /* alias diretti (per custom CSS che non passano da Tailwind) */
+  --bg:           rgb(var(--c-bg));
+  --bg-panel:     rgb(var(--c-bg-panel));
+  --bg-elevated:  rgb(var(--c-bg-elevated));
+  --border:       rgb(var(--c-border));
+  --ink:          rgb(var(--c-ink));
+  --ink-muted:    rgb(var(--c-ink-muted));
+  --ink-dim:      rgb(var(--c-ink-dim));
+  --accent:       rgb(var(--c-accent));
+  --success:      rgb(var(--c-success));
+  --warn:         rgb(var(--c-warn));
+  --danger:       rgb(var(--c-danger));
+}
+
+/* ── Tokens light ───────────────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --c-bg:          248 250 252;    /* #F8FAFC */
+  --c-bg-panel:    255 255 255;    /* #FFFFFF */
+  --c-bg-elevated: 255 255 255;
+  --c-bg-hover:    241 245 249;    /* #F1F5F9 */
+  --c-bg-viewport: 255 255 255;
+
+  --c-border:        226 232 240;  /* #E2E8F0 */
+  --c-border-light:  203 213 225;  /* #CBD5E1 */
+  --c-border-strong: 148 163 184;  /* #94A3B8 */
+
+  --c-ink:         15  23  42;     /* #0F172A */
+  --c-ink-muted:   71  85 105;     /* #475569 */
+  --c-ink-dim:    148 163 184;     /* #94A3B8 */
+
+  --c-accent:        37  99 235;   /* #2563EB */
+  --c-accent-hover:  29  78 216;   /* #1D4ED8 */
+  --c-accent-subtle: 219 234 254;  /* #DBEAFE */
+
+  --c-success:  22 163  74;        /* #16A34A */
+  --c-warn:    217 119   6;        /* #D97706 */
+  --c-danger:  220  38  38;        /* #DC2626 */
+  --c-info:      8 145 178;        /* #0891B2 */
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--c-bg);
+  color: var(--c-ink);
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  font-size: 13px;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--c-bg);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--c-border-light);
+  border-radius: 5px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--c-border-strong);
+}
+
+/* ── prefers-reduced-motion (a11y M8) ───────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── Focus visibile globale (a11y M8) ───────────────────────────────────── */
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 2px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 1px;
+}
+
+.numeric {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+@layer components {
+  .panel {
+    @apply bg-bg-panel border border-border;
+  }
+  .panel-header {
+    @apply px-3 py-2 border-b border-border text-xs font-semibold uppercase tracking-wider text-ink-muted;
+  }
+  .btn {
+    @apply px-3 py-1.5 text-xs font-medium rounded border border-border hover:bg-bg-hover hover:border-border-light transition;
+  }
+  .btn-primary {
+    @apply bg-accent-primary/15 border-accent-primary/40 text-accent-primary hover:bg-accent-primary/25;
+  }
+  .btn-success {
+    @apply bg-accent-success/15 border-accent-success/40 text-accent-success hover:bg-accent-success/25;
+  }
+  .btn-danger {
+    @apply bg-accent-danger/15 border-accent-danger/40 text-accent-danger hover:bg-accent-danger/25;
+  }
+  .input {
+    @apply bg-bg border border-border rounded px-2 py-1 text-xs numeric focus:border-accent-primary outline-none w-full;
+  }
+  .label {
+    @apply text-xs text-ink-muted uppercase tracking-wide;
+  }
+  .row {
+    @apply flex items-center justify-between px-3 py-1.5 hover:bg-bg-hover cursor-pointer text-xs;
+  }
+}
+
+/* HelpSheet markdown — stile didattico compatto per react-markdown */
+.prose-help {
+  font-size: 12px;
+  line-height: 1.55;
+  color: rgb(var(--ink, 220 220 220) / 1);
+}
+.prose-help h1 { font-size: 16px; font-weight: 700; margin: 0 0 0.6em; color: var(--ink); }
+.prose-help h2 { font-size: 13px; font-weight: 600; margin: 1em 0 0.4em; color: var(--ink); text-transform: uppercase; letter-spacing: 0.04em; }
+.prose-help h3 { font-size: 12px; font-weight: 600; margin: 0.8em 0 0.3em; color: var(--ink); }
+.prose-help p  { margin: 0.4em 0; color: var(--ink-muted, #c8c8c8); }
+.prose-help ul { margin: 0.4em 0; padding-left: 1.2em; list-style: disc; }
+.prose-help ol { margin: 0.4em 0; padding-left: 1.4em; list-style: decimal; }
+.prose-help li { margin: 0.15em 0; color: var(--ink-muted, #c8c8c8); }
+.prose-help code {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 11px;
+  background: var(--bg, #18181b);
+  border: 1px solid var(--border, #2a2a30);
+  border-radius: 3px;
+  padding: 1px 4px;
+  color: var(--ink, #ddd);
+}
+.prose-help pre {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  margin: 0.4em 0;
+  overflow-x: auto;
+  font-size: 11px;
+}
+.prose-help table { width: 100%; margin: 0.6em 0; border-collapse: collapse; font-size: 11px; }
+.prose-help th, .prose-help td {
+  border: 1px solid var(--border);
+  padding: 4px 8px;
+  text-align: left;
+}
+.prose-help th { background: rgba(255,255,255,0.04); font-weight: 600; color: var(--ink); }
+.prose-help blockquote {
+  border-left: 2px solid var(--accent, #3B82F6);
+  padding-left: 10px;
+  margin: 0.6em 0;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+.prose-help a { color: var(--accent, #3B82F6); text-decoration: underline; text-decoration-color: rgba(59,130,246,0.4); }
+.prose-help a:hover { text-decoration-color: var(--accent); }
+.prose-help strong { font-weight: 600; color: var(--ink); }
+.prose-help kbd {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 1px 5px;
+}

@@ -1,0 +1,29 @@
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.hypothesis/
+htmlcov/
+.coverage
+coverage.xml
+backend/data/
+.venv/
+venv/
+.env
+
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+
+# Bundled SPA dropped into backend by the Docker build (Fly Option A)
+backend/static/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+.DS_Store
+*.log

@@ -1,0 +1,56 @@
+# ──────────────────────────────────────────────────────────────────────────────
+# FEA Pro — single-image build for Fly.io (Option A)
+# Stage 1: build the Vite SPA → produces /web/dist
+# Stage 2: Python runtime, copy backend + built SPA, serve both on port 8000
+# ──────────────────────────────────────────────────────────────────────────────
+
+# ── Stage 1: frontend build ───────────────────────────────────────────────────
+FROM node:20-alpine AS web
+
+WORKDIR /web
+
+# install deps first (cached layer)
+COPY frontend/package.json frontend/package-lock.json* ./
+RUN npm install --no-audit --no-fund
+
+# copy sources and build
+COPY frontend/ ./
+# Same-origin in production: VITE_API_URL stays empty so axios uses ""
+ENV VITE_API_URL=""
+RUN npm run build
+
+
+# ── Stage 2: Python backend + bundled SPA ─────────────────────────────────────
+FROM python:3.11-slim AS runtime
+
+ENV PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    FEA_DATA_DIR=/data
+
+WORKDIR /app
+
+# build-essential needed for any scipy/numpy fallback builds; slim it after install
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends build-essential curl \
+ && rm -rf /var/lib/apt/lists/*
+
+COPY backend/requirements.txt .
+RUN pip install -r requirements.txt \
+ && apt-get purge -y --auto-remove build-essential \
+ && rm -rf /var/lib/apt/lists/*
+
+# backend sources
+COPY backend/ ./
+
+# built SPA from stage 1
+COPY --from=web /web/dist ./static
+
+# persistent data dir (volume mount target)
+RUN mkdir -p /data
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD curl -fsS http://localhost:8000/api/health || exit 1
+
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
