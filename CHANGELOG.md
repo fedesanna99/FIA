@@ -3,6 +3,60 @@
 ## [Unreleased] — Sprint 2
 
 ### Added
+- **F4.2: OpenMeteoGeocodingProvider + NominatimProvider** (Sprint 2)
+  - Implementa `GeocodingProvider` ABC (dominio `geocoding`) sopra il
+    Provider abstraction Sprint 1. Riutilizza il modulo errori F4.1.
+  - **`OpenMeteoGeocodingProvider`**: forward search only (no reverse —
+    solleva `NotImplementedError`), endpoint
+    `https://geocoding-api.open-meteo.com/v1/search`. Cache TTL 1 anno
+    (location stabili), rate limit 10 rps bucket condiviso `open_meteo`,
+    no API key.
+  - **`NominatimProvider`**: forward search + reverse geocoding,
+    endpoint `https://nominatim.openstreetmap.org/{search,reverse}`.
+    Cache TTL 1 anno, rate limit **1 rps strict** bucket `nominatim`,
+    User-Agent identificativo obbligatorio (default
+    `FEA-Pro/1.3 (...)`, override via env `FEAPRO_NOMINATIM_USER_AGENT`).
+  - Cache key search case-insensitive (`query.lower()`), include
+    `count` e `language`. Reverse key con lat/lon a 5° decimale (~1 m).
+  - Hook `_record_call()` stub per F6 (forward + reverse + cache_hit).
+
+### Tests
+- **+47 unit test** `tests/services/providers/geocoding/`:
+  - `test_open_meteo_geocoding.py` (19 test): parse Rome multi-result,
+    cache hit + case-insensitive, empty results, 429/500/400/timeout
+    error mapping, usage hook, invalid args, reverse NotImplemented,
+    health ok/down/degraded/timeout, corrupt cache fallback, parse
+    malformed skip, `_safe_int`/`_safe_float_opt` helpers, country_code
+    None safe.
+  - `test_nominatim.py` (28 test): parse Cagliari, cache search +
+    reverse, User-Agent custom + env + default, 429/500/403/timeout,
+    non-list response, invalid args, reverse not-found, routed transport
+    search+reverse insieme, corrupt cache fallback (search + reverse),
+    reverse timeout/usage hook, health unexpected status degraded,
+    parse skip malformed entries, classvars match spec.
+- **+7 integration test** `test_geocoding_integration.py` (`@pytest.mark.slow`):
+  Open-Meteo Cagliari/Tokyo/no-results, Nominatim Cagliari/reverse
+  Cagliari/ocean reverse, rate limit 1 rps su 3 query.
+
+### Gate
+| Gate | F4.1 | F4.2 |
+|---|---|---|
+| pytest (no-cov, no-slow) | 964 | **1011** (+47) |
+| Module coverage | 93% | **92.1%** |
+| mypy --strict | clean | clean |
+| Slow integration | 8 collected | 15 collected (8+7) |
+
+### Note operative
+- Bucket `nominatim` (1 rps) era gia' pre-registrato in F3 — pronto
+  per uso senza modifiche al limiter.
+- Dominio cache `"geocoding"` ha TTL default 1 anno gia' configurato
+  in `services/cache.py:DEFAULT_TTL`.
+- Pattern provider identico a F4.1 (cache hit → rate_limit → fetch →
+  parse → cache set → return; corrupt cache fallback; usage hook).
+
+---
+
+### Added
 - **F4.1: OpenMeteoForecastProvider + OpenMeteoArchiveProvider** (Sprint 2)
   - Implementa `MeteoProvider` ABC sopra `Provider` (Sprint 1 F1/F2/F3).
   - **`OpenMeteoForecastProvider`**: previsioni 16 giorni, endpoint

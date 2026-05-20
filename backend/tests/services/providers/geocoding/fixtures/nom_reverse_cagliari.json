@@ -1,0 +1,19 @@
+{
+  "place_id": 1234,
+  "licence": "Data (c) OSM",
+  "osm_type": "node",
+  "osm_id": 999,
+  "lat": "39.2154",
+  "lon": "9.1166",
+  "display_name": "Piazza Yenne, Cagliari, Sardegna, 09124, Italia",
+  "address": {
+    "road": "Piazza Yenne",
+    "suburb": "Marina",
+    "city": "Cagliari",
+    "county": "Cagliari",
+    "state": "Sardegna",
+    "postcode": "09124",
+    "country": "Italia",
+    "country_code": "it"
+  }
+}

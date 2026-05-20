@@ -1,0 +1,30 @@
+[
+  {
+    "place_id": 281340215,
+    "licence": "Data (c) OpenStreetMap",
+    "osm_type": "relation",
+    "osm_id": 41487,
+    "lat": "39.2154",
+    "lon": "9.1166",
+    "category": "boundary",
+    "type": "administrative",
+    "place_rank": 12,
+    "importance": 0.69,
+    "display_name": "Cagliari, Sardegna, Italia",
+    "name": "Cagliari",
+    "address": {
+      "city": "Cagliari",
+      "county": "Cagliari",
+      "state": "Sardegna",
+      "ISO3166-2-lvl4": "IT-88",
+      "country": "Italia",
+      "country_code": "it"
+    },
+    "boundingbox": [
+      "39.18",
+      "39.30",
+      "9.05",
+      "9.20"
+    ]
+  }
+]

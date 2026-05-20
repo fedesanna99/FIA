@@ -1,0 +1,35 @@
+{
+  "results": [
+    {
+      "id": 3169070,
+      "name": "Rome",
+      "latitude": 41.89193,
+      "longitude": 12.51133,
+      "elevation": 21.0,
+      "feature_code": "PPLC",
+      "country_code": "IT",
+      "admin1_id": 3174976,
+      "timezone": "Europe/Rome",
+      "population": 2318895,
+      "country_id": 3175395,
+      "country": "Italy",
+      "admin1": "Lazio"
+    },
+    {
+      "id": 4521449,
+      "name": "Rome",
+      "latitude": 35.18793,
+      "longitude": 14.94018,
+      "elevation": 14.0,
+      "feature_code": "PPL",
+      "country_code": "US",
+      "admin1_id": 5165418,
+      "timezone": "America/New_York",
+      "population": 41799,
+      "country_id": 6252001,
+      "country": "United States",
+      "admin1": "New York"
+    }
+  ],
+  "generationtime_ms": 0.65
+}
