@@ -30,8 +30,17 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # build-essential needed for any scipy/numpy fallback builds; slim it after install
+# Build deps + runtime libs:
+# - build-essential: compile fallback per numpy/scipy se wheel non disponibile
+# - libglu1-mesa, libgl1, libxrender1, libxcursor1, libxft2, libxinerama1:
+#   gmsh runtime (occt/opencascade dipendenze). Senza libGLU il backend
+#   crasha al boot con "libGLU.so.1: cannot open shared object file".
+# - libgomp1: OpenMP runtime per gmsh/scipy.
 RUN apt-get update \
- && apt-get install -y --no-install-recommends build-essential curl \
+ && apt-get install -y --no-install-recommends \
+        build-essential curl \
+        libglu1-mesa libgl1 libxrender1 libxcursor1 libxft2 libxinerama1 \
+        libgomp1 \
  && rm -rf /var/lib/apt/lists/*
 
 COPY backend/requirements.txt .
