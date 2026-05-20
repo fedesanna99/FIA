@@ -4,10 +4,10 @@ Le facade traducono dati grezzi del provider in **design loads** pronti
 per il dimensionamento strutturale secondo EN 1991/NTC 2018.
 
 Lista facade Sprint 2:
-    MeteoLoadsService    — vento + neve (B4) ✅
+    MeteoLoadsService    — vento + neve (B4)                ✅
+    SeismicLoadsService  — a_g + spectrum EC8/NTC 2018 (B3) ✅
     GeocodingService     — forward/reverse + autocomplete (B1) TODO
     TerrainService       — interpolazione quota mesh (B2)   TODO
-    SeismicLoadsService  — a_g + spectrum EC8 (B3)          TODO
 """
 from .meteo_loads import (
     MeteoLoadsLocation,
@@ -15,6 +15,13 @@ from .meteo_loads import (
     MeteoLoadsService,
     SnowLoads,
     WindLoads,
+)
+from .seismic_loads import (
+    ResponseSpectrumPoint,
+    SeismicLoadsLocation,
+    SeismicLoadsResult,
+    SeismicLoadsService,
+    SeismicSiteParams,
 )
 
 
@@ -24,4 +31,9 @@ __all__ = [
     "MeteoLoadsLocation",
     "WindLoads",
     "SnowLoads",
+    "SeismicLoadsService",
+    "SeismicLoadsResult",
+    "SeismicLoadsLocation",
+    "SeismicSiteParams",
+    "ResponseSpectrumPoint",
 ]

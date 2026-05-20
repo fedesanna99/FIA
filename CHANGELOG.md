@@ -3,6 +3,79 @@
 ## [Unreleased] — Sprint 2
 
 ### Added
+- **B3: SeismicLoadsService + REST `/api/loads/seismic`** (Sprint 2)
+  - **Pipeline**: lat/lon → orchestrator F8 → USGSEarthquakeProvider
+    (`historical_max_magnitude` radius/years) → GMPE Sabetta-Pugliese
+    1996 (taratura Italia) → parametri spettrali NTC 2018 §3.2 →
+    response spectrum elastico orizzontale.
+  - **Funzioni pure formule**:
+    - `estimate_a_g_from_magnitude(M, R_km, ...)` — Sabetta-Pugliese
+      1996: `log10(PGA/g) = -1.845 + 0.363·M - 1.0·log10(√(R²+25))`
+      Validato: M=6→0.10g, M=6.5→0.16g, M=7→0.24g, M=9→1.28g
+    - `compute_eta(damping)` — fattore correzione smorzamento ξ
+    - `compute_site_params(a_g, F_0, T_c*, soil)` — NTC 2018 Tab.
+      3.2.II completa (A/B/C/D/E con S e C_C tabellati)
+    - `compute_response_spectrum(params, n_points, t_max)` — 4 tratti
+      NTC 2018 §3.2.3.2 formule (3.2.4)
+  - **DTO**: `SeismicLoadsResult(location, historical_max_magnitude,
+    site_params, spectrum, notes, gmpe_used)`, `SeismicSiteParams`
+    (a_g/g, F_0, T_c*, T_B, T_C, T_D, S, C_C, η, soil_category),
+    `ResponseSpectrumPoint(T_s, S_e_over_g)`.
+  - **REST `POST /api/loads/seismic`**: body con tutti i parametri
+    NTC 2018 tunable (soil, F_0, T_c*, damping, GMPE R, spettro
+    discretization). Default sensati per Italia. Validation
+    422 fastapi, 503 no providers, 502 ProviderError.
+  - **Baseline minimo**: se nessun terremoto storico nel raggio
+    (M_max = 0), usa M=4.5 baseline NTC 2018 zona 4 + nota di warning.
+  - **Note v1.3**: ogni output include warning che la stima e'
+    preliminare (didattica/pre-progetto); per progetto reale serve la
+    tabella ufficiale NTC 2018 (reticolo 10751 nodi + Classe d'Uso +
+    Vita di Riferimento).
+
+### Tests
+- **+53 unit test**:
+  - `tests/services/facades/test_seismic_loads.py` (42):
+    - GMPE (9): zero M, sanity M=6/6.5/7/R=20km, monotonia con
+      M/R, clip a 1.5g, R=0 safe, override coefficienti.
+    - Eta + site params (10): eta(5%)=1, decreases with damping,
+      clip low; soil A/B/C/D/E con S e C_C correct, invalid soil
+      raises; T_D cresce con a_g, override F_0 / T_c* propaga.
+    - Spectrum (9): n_points correct, T=0 = a_g·S, plateau =
+      a_g·S·η·F_0, decreases dopo T_C, non-negative, invalid
+      n_points/t_max raises, zero a_g → zero everywhere.
+    - Service E2E (14): full result, soil category, M=0 baseline,
+      explicit elevation skips lookup, elevation failure → notes,
+      no provider → ProviderUnavailableError, v1.3 note presente,
+      validation radius/years_back, default orchestrator, singleton,
+      dict serialization, gmpe_used field, custom GMPE R.
+  - `tests/api/test_loads_seismic_endpoint.py` (11): happy path,
+    explicit params override, 422 lat/soil/F_0/damping/radius,
+    503 no provider, 502 provider error, spectrum structure, notes
+    presenti.
+
+### Gate
+| Gate | B4 | **B3** |
+|---|---|---|
+| pytest backend (no-slow) | 1182 | **1235** (+53) |
+| Module coverage (facades+endpoint) | 100% | **97% + 100% + 100%** |
+| mypy --strict | clean | clean |
+
+### Note operative
+- **`/api/loads/seismic` standalone**: come `/loads/meteo`, e' un
+  calcolo veloce (no JobQueue async needed). Frontend chiama direct.
+- **GMPE estensibile**: i coefficienti c1/c2/c3/h_ref sono parametri
+  della funzione `estimate_a_g_from_magnitude` — facile sostituire
+  con altre leggi (Bindi 2014, Akkar 2014, regionali) in upgrade.
+- **Spettro 4-branch standard** EC8/NTC 2018: l'output e' direttamente
+  fruibile dal solver EC8 spectrum (gia' presente in
+  `core/verification/ec8/spectrum.py`).
+- **Soil category default A**: e' la categoria piu' conservativa per
+  S (1.0), ma in Italia il piu' comune e' B-C. L'utente DEVE
+  configurare la soil corretta per il sito specifico.
+
+---
+
+### Added
 - **B4: MeteoLoadsService + REST `/api/loads/meteo`** (Sprint 2)
   - Prima service **facade** del piano B (UI-friendly orchestrators).
   - **Pipeline**: lat/lon → orchestrator F8 → OpenMeteoArchive
