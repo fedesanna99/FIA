@@ -1,17 +1,78 @@
 # Changelog FEA Pro
 
-## v1.3.0 — Sprint 1 (in development)
+## v1.3.0-alpha.1 — Sprint 1 (closed) — 2026-05-20
 
-### Added (in progress)
-- A1: cost_estimator backend per tutti i solver
-- A2: JobMeter middleware con audit JSONL
-- F1-F3: external services layer (Provider abstraction, SQLite cache, token bucket rate limiter)
-- A3: Quota system mock con cap mensile
-- A5: Persistent JobQueue con priorità e retry
-- A4: CostPreviewDialog frontend pre-solve
-- D1: NAFEMS LE1/LE2/LE10 benchmarks
-- D2: Validation page HTML pubblica /api/validation/report
-- E1: Test vitest per NonlinearPanel, ArcLengthPanel, IsosurfacePanel, LiveMonitorPanel, JobsPanel, CostPreviewDialog
+Foundations per la monetizzazione (cost estimator, job metering, quote,
+queue persistente) + scaffolding services layer + completamento gap NAFEMS BL-6.
+
+### Backend
+- **A1 — cost_estimator**: `billing/cost_estimator.py` con dispatcher per 10
+  SolverKind (`linear`, `modal`, `buckling`, `pushover`, `response_spectrum`,
+  `dynamic_th`, `seismic_th`, `nonlinear`, `arclength`, `winkler`). Power-law
+  tarata `cpu_min ~ alpha * n_dof^beta * mult` calibrata entro +-30% sui modelli
+  demo. Endpoint `POST /api/billing/estimate`.
+- **A2 — JobMeter**: context manager `measure_job(...)` con tracking di
+  wall-time / CPU-time / RAM peak (cross-platform via `tracemalloc`). Append
+  JSONL atomico thread-safe in `audit/jobs.jsonl`. Endpoint
+  `GET /api/usage/{user_id}/summary` con aggregazioni per solver/status.
+- **F1 — Provider registry**: `services/base.py` + `services/registry.py`
+  con singleton process-wide, selezione provider via env var
+  `FEAPRO_<DOMAIN>_PROVIDER` + fallback chain
+  `FEAPRO_<DOMAIN>_FALLBACK=csv,list`. Zero provider concreti in Sprint 1
+  (Sprint 2 sblocco).
+- **F2 — SQLite TTL cache**: `services/cache.py` con WAL journal, TTL
+  default per dominio, override via `FEAPRO_CACHE_TTL_<DOMAIN>=<seconds>`,
+  helper `cache_key(...)`.
+- **F3 — Token bucket rate limiter**: `services/rate_limiter.py` con
+  `with_backoff()` per retry esponenziale su 429/5xx. 3 bucket pre-registrati
+  (`nominatim 1 rps`, `usgs_earthquake 0.5 rps`, `open_meteo 10 rps`).
+- **A3 — Quota system**: `billing/quotas.py` con JSON persistence, auto-reset
+  al cambio mese UTC, RLock thread-safe. Middleware `check_quota_for_solve`
+  -> HTTPException 402 strutturata. Endpoint admin `GET|POST /api/quotas`.
+- **A5 — Persistent JobQueue**: `jobs/store.py` (SQLite) + `jobs/worker.py`
+  async + `api/routes/jobs.py` REST + WS `/ws/jobs/{user_id}` per eventi
+  `job_queued|started|progress|done|failed|retry`. Worker avviato/fermato via
+  `@app.on_event("startup"/"shutdown")`. Dispatcher copre tutti gli 8 solver.
+- **D1 — NAFEMS LE1/LE2/LE10**: `tests/nafems/` con 9 test (LE1 Q4/Tri3 +
+  convergenza, LE2 cantilever Beam3D + convergenza + reazioni, LE10 thick
+  plate Q4 + h-refinement + linearita'). Mesh ellittica via Coons patch.
+  BL-6 chiuso.
+- **D2 — Validation page**: `GET /api/validation/report` (HTML
+  auto-contained) + `GET /api/validation/report.json`. Cache TTL configurabile
+  via `FEAPRO_VALIDATION_REPORT_TTL`.
+
+### Frontend
+- **A4 — CostPreviewDialog**: `api/billing/` + `store/billingStore` (con
+  `persist` per skipCostPreview) + `hooks/useCostPreview` + dialog modale
+  con breakdown DOF/ETA/RAM/CPU/credits + banner "quota esaurita".
+  Integrato in PushoverPanel, NonlinearPanel, ArcLengthPanel, SeismicTHPanel.
+- **A5 frontend**: `api/jobs/` client REST + nuovo `JobsPanel` con
+  filtro stato, cancel inline, detail card. Pronto per integrazione UI
+  futura nel workspace Analysis.
+- **E1 — vitest coverage**: 18 nuovi test per NonlinearPanel,
+  ArcLengthPanel, IsosurfacePanel, LiveMonitorPanel, JobsPanel,
+  CostPreviewDialog, useCostPreview.
+
+### Migration notes
+- Nuovi hidden file: `.cache/services.sqlite`, `.cache/jobs.sqlite`,
+  `.quotas/quotas.json`, `audit/jobs.jsonl` -- tutti in `.gitignore`.
+- Nuove env var: `FEAPRO_<DOMAIN>_PROVIDER`, `FEAPRO_<DOMAIN>_FALLBACK`,
+  `FEAPRO_CACHE_TTL_<DOMAIN>`, `FEAPRO_VALIDATION_REPORT_TTL`,
+  `FEAPRO_DEFAULT_USER_ID`.
+- Endpoint legacy (pushover, seismic_th, nonlinear, arclength) restano sync
+  per compatibilita' col frontend esistente; il flow JobQueue e' accessibile
+  via `POST /api/jobs` con lo stesso dispatcher.
+
+### Gate
+| Gate | v1.2 baseline | v1.3 Sprint 1 |
+|---|---|---|
+| pytest backend | 730 | **856** (+126) |
+| vitest frontend | 58 | **86** (+28) |
+| tsc | 0 errori | **0 errori** |
+| vite build | OK | **OK** |
+| Cost estimator +-30% | -- | **green (7/7)** |
+| Validation report green | -- | **green** |
+| BL-6 | aperto | **chiuso** |
 
 ---
 
