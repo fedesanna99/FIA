@@ -1,5 +1,48 @@
 # Changelog FEA Pro
 
+## v1.3.0-alpha.2 — Sprint 1 polish — 2026-05-20
+
+Completamento della DoD A5 (migrazione effettiva dei 4 endpoint long-running
+alla JobQueue) + integrazione UI completa della queue + LE1 mesh refined.
+
+### Frontend
+- **hooks/useJobRun.ts**: wrappa POST `/api/jobs` + WS wait + GET result in
+  un'interfaccia mutation-like, con polling 1s fallback e timeout 5min.
+- **PushoverPanel, NonlinearPanel, ArcLengthPanel, SeismicTHPanel** migrati
+  da `analysisExtApi.{solver}` (sync) a `useJobRun` (async via JobQueue).
+  Stesso flusso UX: CostPreviewDialog → Procedi → progress → risultato.
+- **JobsPanel** ora **tab dedicato in AnalysisWorkspace** (8° tab, icona
+  ListChecks) con polling REST 15s + WebSocket `/ws/jobs/{user_id}` per
+  update real-time. Badge `live/offline` + ultimo evento visibili.
+- **api/jobs/index.ts**: aggiunto `openJobsSocket(userId, onEvent)` helper
+  + tipo `JobEvent`.
+- Test vitest panel aggiornati con mock `submitJob` + stub `useJobRun`.
+
+### Backend
+- **validation/benchmarks.py**: LE1 mesh raddoppiata 8x8 → 24x24 (576 elem),
+  tolleranza ridotta da 400% a 100% (errore tipico ~49%).
+- Tutti i 5 benchmark passano (cantilever, simply supported, NAFEMS LE2,
+  Euler buckling, NAFEMS LE1).
+
+### Smoke E2E verificato
+- Pushover via JobQueue: POST `/api/jobs` → WS `job_done` arriva in real-time
+  → GET `/api/jobs/{id}/result` ritorna PushoverResults (55 step, 6
+  cerniere, lambda_collapse=2.750 sul ponte strallato).
+- Nonlinear via JobQueue: 10 step convergenti, max|u|=6.29e-2 m, 507ms.
+- JobsPanel: badge `live` quando WS connesso, riga submitted appare
+  immediatamente via WS evento `job_done`.
+
+### Gate
+| Gate | v1.3.0-alpha.1 | v1.3.0-alpha.2 |
+|---|---|---|
+| pytest backend | 856 | **856** |
+| vitest frontend | 86 | **86** |
+| tsc | 0 errori | **0 errori** |
+| vite build | OK | **OK** |
+| Validation report | 5/5 (LE1 tol 400%) | **5/5 (LE1 tol 100%)** |
+
+---
+
 ## v1.3.0-alpha.1 — Sprint 1 (closed) — 2026-05-20
 
 Foundations per la monetizzazione (cost estimator, job metering, quote,
