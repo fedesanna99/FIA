@@ -1,5 +1,67 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.25 — Sprint 5 / G10: SolvePanel + CostPreviewCard gradient (FLAGSHIP) — 2026-05-21
+
+**Flagship feature** del brief v1.2.1 Step 7.3-7.4. Il `CostPreviewCard`
+con gradient **blu-viola** sempre visibile sopra i parametri analisi e'
+il segno distintivo del nuovo design pay-per-use.
+
+### Added
+- **`shell/panels/CostPreviewCard.tsx`** — componente UI flagship:
+  - Gradient `linear-gradient(135deg, var(--c-bg-info), var(--c-bg-purple))`
+  - Mostra ETA, RAM picco, CPU·min, N. DoF, **Crediti** con conversione
+    €/100 inline
+  - Mock client-side immediato per UX no-flicker (8 solver supportati)
+  - Real call `estimateCost()` quando model.id disponibile, fallback su
+    mock se API fallisce
+  - Animazione `feapro-pulse` shimmer durante loading
+- **`shell/panels/SolvePanel.tsx`** — macro-panel Solve (sostituisce
+  AnalysisWorkspace quando LeftSlidePanel mostra "analysis"):
+  - 4 tab: **Lineari / Dinamica / Sismica / Non-lin.**
+  - Tab Lineari: 3 AnalysisRow (Statica/Modale/Buckling) con
+    selezione + CostPreviewCard inline + bottone Run primary blu
+    (kbd F5)
+  - Tab Dinamica: CostPreviewCard + wrappa `PushoverPanel` v1.2
+  - Tab Sismica: CostPreviewCard + wrappa `SeismicTHPanel` v1.2
+  - Tab Non-lin.: CostPreviewCard + wrappa `NonlinearPanel` + `ArcLengthPanel`
+  - Tabler icons: IconBolt, IconArrowRight, IconWaveSine, IconArrowsVertical
+- **`components/shell/LeftSlidePanel.tsx`** wiring: quando
+  `openSection === "analysis"` ora rende `<SolvePanel />` invece di
+  `AnalysisWorkspace` legacy.
+
+### Tests
+- **+14 vitest** (297 → 311):
+  - `CostPreviewCard.test.tsx` (5): mock immediato, credits+euro, real
+    estimate API success, fallback su mock se API fail, render per
+    tutti i solver IDs
+  - `SolvePanel.test.tsx` (9): header+close, 4 tabs, default Lineari +
+    3 opzioni, CostPreviewCard inline (FLAGSHIP), aria-pressed dinamico,
+    Run disabled no-model, Run enabled con model, close chiama
+    closeLeftPanel, Dinamica tab mostra CostPreviewCard
+- **311/311 vitest** totale. Build Vite OK 26.23s.
+
+### UX impact (visivo)
+Quando l'utente apre il rail "Solve" ora vede:
+1. Header con `IconBolt` accent blu + titolo "Solve" + status
+2. 4 tab orizzontali sotto header con underline accent su attivo
+3. Lista verticale "Analisi disponibili" (Statica/Modale/Buckling)
+4. **Card gradient blu-viola** "Stima costo pre-run" con tutti i dati
+5. Bottone blu "Esegui statica lineare" con kbd F5
+
+Confronto con il vecchio AnalysisWorkspace:
+- Prima: tab Radix verticali, parametri inline anonimi, no cost preview
+- Ora: layout pixel-aligned al mockup v1.3 con CostPreview flagship
+
+### Gate
+| | alpha.24 | **alpha.25** |
+|---|---|---|
+| Macro-panel brief-aligned | 1 (Make) | **2 (Make + Solve)** |
+| CostPreviewCard gradient | no | **si (sempre visibile in Solve)** |
+| Cost API real wiring | no | **si (con fallback mock)** |
+| vitest frontend | 297 | **311** (+14) |
+
+---
+
 ## v1.4.0-alpha.24 — Sprint 5 / G9: PanelChrome + MakePanel (Geometria/Mesh/Carichi/Vincoli/IO) — 2026-05-21
 
 **Primo macro-panel brief-aligned**. Sostituisce il `ModelWorkspace`

@@ -16,7 +16,7 @@ import { X } from "lucide-react";
 import { useLeftRailStore } from "../../store/leftRailStore";
 import type { Workspace } from "../../store/workspaceStore";
 import { MakePanel } from "../../shell/panels/MakePanel";
-import { AnalysisWorkspace } from "./workspaces/AnalysisWorkspace";
+import { SolvePanel } from "../../shell/panels/SolvePanel";
 import { ResultsWorkspace } from "./workspaces/ResultsWorkspace";
 import { VerifyWorkspace } from "./workspaces/VerifyWorkspace";
 import { IOWorkspace } from "./workspaces/IOWorkspace";
@@ -38,12 +38,13 @@ export function LeftSlidePanel() {
 
   if (!openSection || openSection === "docs") return null;
 
-  // alpha.24: per "model" usiamo il nuovo MakePanel (brief-aligned con
-  // PanelChrome integrato — header + tabs + body in un singolo componente).
-  // Gli altri workspace temporaneamente sono ancora i workspace v1.2
-  // legacy; verranno migrati a SolvePanel/VerifyPanel/etc in alpha.25/.26.
+  // alpha.24/.25: per "model" e "analysis" usiamo i nuovi macro-panel
+  // brief-aligned (PanelChrome + tabs). Verify in alpha.26.
   if (openSection === "model") {
     return <MakePanel />;
+  }
+  if (openSection === "analysis") {
+    return <SolvePanel />;
   }
 
   return (
@@ -74,7 +75,6 @@ export function LeftSlidePanel() {
       </header>
 
       <div className="flex-1 overflow-hidden min-h-0">
-        {openSection === "analysis" && <AnalysisWorkspace />}
         {openSection === "verify"   && <VerifyWorkspace />}
         {openSection === "results"  && <ResultsWorkspace />}
         {openSection === "io"       && <IOWorkspace />}
