@@ -29,13 +29,8 @@ export function ViewportHud() {
       <Chip icon={<Layers className="w-3 h-3" />}>
         {nNodes} nodi · {nElems} elem · {material}
       </Chip>
-      <Chip>
-        <span className="relative flex w-2 h-2">
-          <span className="absolute inline-flex h-2 w-2 rounded-full bg-success opacity-50 animate-ping" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-        </span>
-        Auto-save
-      </Chip>
+      {/* alpha.31 Task 20: "Auto-save" chip rimosso — ridondante con il
+          chip "✓ Salvato HH:MM" in topbar. */}
     </div>
   );
 }
