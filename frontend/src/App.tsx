@@ -37,6 +37,7 @@ import { StatusBar } from "./components/layout/StatusBar";
 import { Toaster } from "./components/layout/Toaster";
 import { Viewport3D } from "./components/viewport/Viewport3D";
 import { DropZone } from "./components/viewport/DropZone";
+import { Dashboard } from "./components/shell/Dashboard";
 import { HelpDialog } from "./components/dialogs/HelpDialog";
 import { useModelList, useLoadModel } from "./hooks/useModel";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
@@ -92,11 +93,10 @@ export default function App() {
     return () => window.removeEventListener("keydown", handler);
   }, [setWorkspace]);
 
-  useEffect(() => {
-    if (!activeId && models && models.length > 0) {
-      setActiveId(models[0].id);
-    }
-  }, [models, activeId]);
+  // alpha.30: rimosso l'auto-select del primo modello al boot. Ora il
+  // default e' la Dashboard mockup-aligned, l'utente sceglie esplicitamente
+  // da Modelli recenti (Dashboard) o dal model picker in topbar. Cosi'
+  // selezionando "— scegli modello —" si torna alla Dashboard.
 
   return (
     <div className="flex flex-col h-screen w-screen bg-bg text-ink overflow-hidden font-sans">
@@ -108,8 +108,19 @@ export default function App() {
             RightSlidePanel/RightRail. */}
         <LeftSlidePanel />
         <main className="flex-1 relative min-w-0 bg-bg-viewport">
-          <Viewport3D />
-          <DropZone onImported={(id) => setActiveId(id)} />
+          {/* alpha.30: Dashboard mockup-aligned quando nessun modello e' attivo.
+              Quando l'utente seleziona/crea un modello, passa al Viewport3D. */}
+          {activeId ? (
+            <>
+              <Viewport3D />
+              <DropZone onImported={(id) => setActiveId(id)} />
+            </>
+          ) : (
+            <>
+              <Dashboard models={models ?? []} onSelect={setActiveId} />
+              <DropZone onImported={(id) => setActiveId(id)} />
+            </>
+          )}
         </main>
         <div className="relative flex flex-shrink-0">
           <RightSlidePanel />

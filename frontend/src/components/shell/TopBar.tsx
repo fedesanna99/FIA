@@ -108,13 +108,16 @@ export function TopBar({ models, activeId, onSelect }: Props) {
     const openAcc = () => setAccountOpen(true);
     const openLoc = () => setLocationOpen(true);
     const openAuthFn = () => setAuthOpen(true);
+    const openNew = () => setNewOpen(true);
     window.addEventListener("feapro:open-account", openAcc);
     window.addEventListener("feapro:open-location", openLoc);
     window.addEventListener("feapro:open-auth", openAuthFn);
+    window.addEventListener("feapro:open-new-model", openNew);
     return () => {
       window.removeEventListener("feapro:open-account", openAcc);
       window.removeEventListener("feapro:open-location", openLoc);
       window.removeEventListener("feapro:open-auth", openAuthFn);
+      window.removeEventListener("feapro:open-new-model", openNew);
     };
   }, []);
 
