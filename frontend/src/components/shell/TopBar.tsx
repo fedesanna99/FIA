@@ -196,37 +196,40 @@ export function TopBar({ models, activeId, onSelect }: Props) {
       {/* Search-bar globale (apre command palette) */}
       <GlobalSearch />
 
-      {/* Undo / Redo — collegati a useModelHistory (singleton) */}
-      <div className="hidden md:flex items-center gap-1 border-l border-border pl-2 ml-1 flex-shrink-0">
-        <Tooltip content="Annulla · Ctrl+Z">
-          <button
-            type="button"
-            onClick={() => {
-              const prev = useModelHistory.getState().undo();
-              if (prev) useModelStore.getState().setModel(prev as FEAModel);
-            }}
-            disabled={!canUndo}
-            className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
-            aria-label="Annulla"
-          >
-            <Undo2 className="w-4 h-4" />
-          </button>
-        </Tooltip>
-        <Tooltip content="Ripeti · Ctrl+Shift+Z">
-          <button
-            type="button"
-            onClick={() => {
-              const next = useModelHistory.getState().redo();
-              if (next) useModelStore.getState().setModel(next as FEAModel);
-            }}
-            disabled={!canRedo}
-            className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
-            aria-label="Ripeti"
-          >
-            <Redo2 className="w-4 h-4" />
-          </button>
-        </Tooltip>
-      </div>
+      {/* Undo / Redo — visibili SOLO se almeno uno e' disponibile (alpha.31
+          Task 17). La storia e' raggiungibile sempre via command palette. */}
+      {(canUndo || canRedo) && (
+        <div className="hidden md:flex items-center gap-1 border-l border-border pl-2 ml-1 flex-shrink-0">
+          <Tooltip content="Annulla · Ctrl+Z">
+            <button
+              type="button"
+              onClick={() => {
+                const prev = useModelHistory.getState().undo();
+                if (prev) useModelStore.getState().setModel(prev as FEAModel);
+              }}
+              disabled={!canUndo}
+              className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Annulla"
+            >
+              <Undo2 className="w-4 h-4" />
+            </button>
+          </Tooltip>
+          <Tooltip content="Ripeti · Ctrl+Shift+Z">
+            <button
+              type="button"
+              onClick={() => {
+                const next = useModelHistory.getState().redo();
+                if (next) useModelStore.getState().setModel(next as FEAModel);
+              }}
+              disabled={!canRedo}
+              className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
+              aria-label="Ripeti"
+            >
+              <Redo2 className="w-4 h-4" />
+            </button>
+          </Tooltip>
+        </div>
+      )}
 
       {/* AI Copilot button (placeholder Sprint 5) */}
       <AICopilotButton />
@@ -235,23 +238,25 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           (sostituisce i bottoni isolati Loads/Account/Login in topbar) */}
       <AvatarMenu />
 
-      {/* Bell notifications — counter su unreadCount (toastStore placeholder) */}
-      <Tooltip content="Notifiche">
-        <button
-          type="button"
-          onClick={() => toast("info", "Centro notifiche in arrivo (sheet).")}
-          className="relative w-8 h-8 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink flex-shrink-0"
-          aria-label="Notifiche"
-          data-testid="topbar-bell"
-        >
-          <Bell className="w-4 h-4" />
-          {unreadCount > 0 && (
+      {/* Bell notifications — visibile SOLO se ci sono notifiche unread
+          (alpha.31 Task 17). Centro notifiche raggiungibile sempre via
+          command palette ("Mostra notifiche"). */}
+      {unreadCount > 0 && (
+        <Tooltip content="Notifiche">
+          <button
+            type="button"
+            onClick={() => toast("info", "Centro notifiche in arrivo (sheet).")}
+            className="relative w-8 h-8 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink flex-shrink-0"
+            aria-label="Notifiche"
+            data-testid="topbar-bell"
+          >
+            <Bell className="w-4 h-4" />
             <span className="absolute top-0.5 right-0.5 bg-coral text-white rounded-full text-[9px] font-semibold px-1 py-0.5 border-2 border-bg-panel min-w-[16px] leading-none text-center">
               {unreadCount}
             </span>
-          )}
-        </button>
-      </Tooltip>
+          </button>
+        </Tooltip>
+      )}
 
       {/* alpha.27: Eye button = empty state (chiude tutti i pannelli) */}
       <Tooltip content={<>Solo viewport (chiudi tutto) <kbd className="kbd ml-1.5">Shift+Space</kbd></>}>
