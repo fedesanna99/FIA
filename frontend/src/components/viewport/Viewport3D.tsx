@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { useModelStore } from "../../store/modelStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useResultsStore } from "../../store/resultsStore";
+import { useThemeStore } from "../../store/themeStore";
 import { modelBounds } from "../../utils/geometry";
 import { NodeRenderer } from "./NodeRenderer";
 import { ElementRenderer } from "./ElementRenderer";
@@ -28,6 +29,7 @@ export function Viewport3D() {
   const model = useModelStore((s) => s.model);
   const { showGrid, viewportMode, projection } = useAnalysisStore();
   const { staticResults, modalResults, dynamicResults, showDeformed, showStressColormap } = useResultsStore();
+  const theme = useThemeStore((s) => s.resolved);
 
   const bounds = useMemo(() => modelBounds(model), [model]);
   const cameraPos: [number, number, number] = useMemo(() => {
@@ -43,14 +45,29 @@ export function Viewport3D() {
     ? { position: cameraPos, zoom: 100, near: -10000, far: 10000 } as any
     : { position: cameraPos, fov: 45, near: 0.01, far: 10000 };
 
+  // alpha.29: viewport theme-aware (light = warm neutral, dark = neutro scuro)
+  // — il `key` include theme cosi' il Canvas remount e il `scene.background`
+  // viene riapplicato (R3F non re-invoca onCreated senza remount).
+  const sceneBg = useMemo(
+    () => (theme === "light" ? "#fafaf8" : "#131316"),
+    [theme],
+  );
+  const gridColors = useMemo(
+    () =>
+      theme === "light"
+        ? { cell: "#e8e6dd", section: "#c8c5b8" }
+        : { cell: "#2a3040", section: "#3a4050" },
+    [theme],
+  );
+
   return (
     <div className="absolute inset-0">
       <Canvas
-        key={projection}
+        key={`${projection}-${theme}`}
         orthographic={projection === "orthographic"}
         camera={cameraConfig}
         gl={{ antialias: true, alpha: false }}
-        onCreated={({ scene }) => { scene.background = new THREE.Color("#1a1f2e"); }}
+        onCreated={({ scene }) => { scene.background = new THREE.Color(sceneBg); }}
       >
         <ambientLight intensity={0.6} />
         <directionalLight position={[10, 20, 10]} intensity={0.7} />
@@ -79,8 +96,8 @@ export function Viewport3D() {
               args={[bounds.size * 4, bounds.size * 4]}
               cellSize={bounds.size / 10}
               sectionSize={bounds.size / 2}
-              cellColor="#2a3040"
-              sectionColor="#3a4050"
+              cellColor={gridColors.cell}
+              sectionColor={gridColors.section}
               fadeDistance={bounds.size * 8}
               fadeStrength={1}
               infiniteGrid={false}
