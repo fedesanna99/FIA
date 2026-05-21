@@ -1,5 +1,99 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.17 — Sprint 4 / Asse G2: RightRail + slide-in panels — 2026-05-21
+
+Introdotto il **rail destro a 4 voci** (Inspect / View / Tools / History)
+con panel slide-in overlay. Mirror del LeftRail esistente ma ankorato a
+destra del WorkspacePanel. Click su un'icona apre un panel laterale 320px
+con animazione `slide-left`; click sulla stessa icona attiva → chiude
+(toggle pattern come da mockup v1.3).
+
+Coesistenza non-breaking: in alpha.17 il rail e' opzionale (panel chiuso
+di default), il WorkspacePanel resta visibile. In alpha.20 il
+WorkspacePanel sara' rimosso e il rail destro diventera' la home delle
+viste/strumenti.
+
+### Added
+- **`store/rightRailStore.ts`** — zustand `persist` storage
+  `"feapro-right-rail"`. Stato: `openSection: "inspect" | "view" |
+  "tools" | "history" | null`. API: `toggle(section)`, `open(section)`,
+  `close()`. Toggle pattern: click sulla stessa sezione attiva la chiude.
+- **`components/shell/RightRail.tsx`** — barra verticale 48px lato
+  destro con icone Lucide (`Eye`, `Layers`, `Wrench`, `History`).
+  Mirror del LeftRail: indicator bar `::before` 2px accent, tooltip
+  side=left, aria-expanded riflesso dal store.
+- **`components/shell/RightSlidePanel.tsx`** — overlay 320px ankorato
+  `right-12` (subito a sinistra del RightRail), `z-30` sopra il
+  WorkspacePanel. Header con titolo + close X. Animazione `slide-left`
+  220ms ease-out (tailwind keyframe gia' esistente).
+- **4 panel content** in `components/shell/panels/`:
+  - **`InspectPanelContent`** — riassunto risultati per analisi
+    (static/modal/dynamic/buckling) con stato "calcolata" / "non
+    ancora". Click su una riga abilitata → switch workspace=results.
+  - **`ViewPanelContent`** — toggle overlay viewport: deformata,
+    colormap stress (von Mises), iso-surfaces 3D, slider scala
+    deformata 1-1000×. Wire diretto a `useResultsStore`.
+  - **`ToolsPanelContent`** — 5 shortcut: cost preview, compare A/B,
+    misurazioni, snapshot, BIM viewer. Quelli implementati saltano
+    al workspace dedicato; gli altri sono marcati "soon".
+  - **`HistoryPanelContent`** — lista snapshot da `useSnapshotStore`,
+    timestamp relativo ("3m fa"), chip "statica/modale" per indicare
+    risultati salvati. Empty state friendly + pulsante elimina per
+    snapshot.
+- **`App.tsx`** — layout aggiornato a `App shell v3`:
+  - Wrapper relative attorno a body row per absolute positioning
+    di SlidePanel
+  - Container `<div className="relative flex flex-shrink-0">` raggruppa
+    `WorkspacePanel + RightSlidePanel + RightRail` (rail in fondo)
+
+### Tests
+- **+13 vitest** (202 → 215):
+  - `rightRailStore.test.ts` (6): null default, toggle open, toggle
+    same closes, toggle different replaces, open() force, close()
+  - `RightRail.test.tsx` (7): renders 4 buttons, opens Inspect,
+    toggle close on same, replace su button diverso, close X button,
+    aria-current=page riflesso, aria-expanded riflesso
+- **215/215 vitest totale**. Build TypeScript + Vite OK (9.81s).
+
+### UX details
+- **Toggle ergonomia**: il pattern toggle e' standard nei rail di
+  Linear / Notion / Figma. Click una volta apre, click sullo stesso
+  chiude. Riduce friction.
+- **Persistence**: il panel rimane aperto tra refresh (utente power
+  user). Si chiude solo esplicitamente.
+- **No autoclose on workspace change**: cambiare workspace (1-5) non
+  chiude il SlidePanel. Cambia solo il contenuto principale.
+- **Tooltip side=left**: ancora a sinistra del rail destro (mockup-
+  consistent).
+
+### Layout aggiornato
+```
+┌──────────────────────────────────────────────────────────┐
+│ TopBar (48 px)                                            │
+├──┬─────────────────────┬─────────────────────┬───────────┤
+│L │                     │ WorkspacePanel      │ RightRail │
+│e │   Viewport 3D       │ (380 px)            │ (48 px)   │
+│f │   (Three.js)        │                     │           │
+│t │                     │ +overlay SlidePanel │ Inspect / │
+│R │                     │  (alpha.17, 320 px) │ View /    │
+│a │                     │  z-30 sopra WS panel│ Tools /   │
+│i │                     │                     │ History   │
+│l │                     │                     │           │
+├──┴─────────────────────┴─────────────────────┴───────────┤
+│ StatusBar (24 px)                                         │
+└──────────────────────────────────────────────────────────┘
+```
+
+### Gate
+| | alpha.16 | **alpha.17** |
+|---|---|---|
+| Rail layout | 1 (left only) | **2** (left + right) |
+| Slide-in panel | no | **si** (toggle + persist) |
+| Panel sections destro | 0 | **4** (Inspect / View / Tools / History) |
+| vitest frontend | 202 | **215** (+13) |
+
+---
+
 ## v1.4.0-alpha.16 — Sprint 4 / Asse G: foundation CSS tokens v1.3 — 2026-05-21
 
 Apertura **Sprint 4 (Asse G del piano v1.3 rev2)**: refactor UI desktop

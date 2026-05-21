@@ -1,23 +1,29 @@
 /**
- * App shell v2 — nuova architettura post-M1.
+ * App shell v3 — Sprint 4 / Asse G (alpha.17).
  *
- *  ┌────────────────────────────────────────────┐
- *  │ TopBar (48 px)                             │
- *  ├──┬─────────────────────┬───────────────────┤
- *  │R │                     │                   │
- *  │A │   Viewport 3D       │ WorkspacePanel    │
- *  │I │   (Three.js)        │ (380 px)          │
- *  │L │                     │                   │
- *  │48│                     │                   │
- *  │px│                     │                   │
- *  │  │                     │                   │
- *  ├──┴─────────────────────┴───────────────────┤
- *  │ StatusBar (24 px)                          │
- *  └────────────────────────────────────────────┘
+ *  ┌──────────────────────────────────────────────────────────────┐
+ *  │ TopBar (48 px)                                                │
+ *  ├──┬─────────────────────┬───────────────────────┬─────────────┤
+ *  │L │                     │ WorkspacePanel        │ RightRail   │
+ *  │e │   Viewport 3D       │ (380 px)              │ (48 px)     │
+ *  │f │   (Three.js)        │                       │             │
+ *  │t │                     │ +overlay SlidePanel   │ Inspect /   │
+ *  │R │                     │  (alpha.17, 320 px,   │ View /      │
+ *  │a │                     │  z-30 sopra WS panel) │ Tools /     │
+ *  │i │                     │                       │ History     │
+ *  │l │                     │                       │             │
+ *  ├──┴─────────────────────┴───────────────────────┴─────────────┤
+ *  │ StatusBar (24 px)                                             │
+ *  └──────────────────────────────────────────────────────────────┘
+ *
+ *  alpha.17: RightRail e SlidePanel introdotti. Coesistono col
+ *  WorkspacePanel; in alpha.20 il WorkspacePanel sparira'.
  */
 import { useEffect, useState } from "react";
 import { TopBar } from "./components/shell/TopBar";
 import { LeftRail } from "./components/shell/LeftRail";
+import { RightRail } from "./components/shell/RightRail";
+import { RightSlidePanel } from "./components/shell/RightSlidePanel";
 import { WorkspacePanel } from "./components/shell/WorkspacePanel";
 import { CommandPalette } from "./components/shell/CommandPalette";
 import { HelpSheet } from "./components/shell/HelpSheet";
@@ -78,13 +84,19 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen w-screen bg-bg text-ink overflow-hidden font-sans">
       <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 relative">
         <LeftRail />
         <main className="flex-1 relative min-w-0 bg-bg-viewport">
           <Viewport3D />
           <DropZone onImported={(id) => setActiveId(id)} />
         </main>
-        <WorkspacePanel />
+        <div className="relative flex flex-shrink-0">
+          {/* WorkspacePanel a sinistra del RightRail (cosi' la SlidePanel
+              overlay puo' apparire fra i due, ankorata al rail destro). */}
+          <WorkspacePanel />
+          <RightSlidePanel />
+          <RightRail />
+        </div>
       </div>
       <StatusBar />
       <Toaster />

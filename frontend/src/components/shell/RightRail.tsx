@@ -1,0 +1,100 @@
+/**
+ * RightRail (alpha.17) — Sprint 4 / Asse G.
+ *
+ * Barra verticale 48px sul lato destro con 4 icone: Inspect / View /
+ * Tools + History (spacer bottom). Mirror del LeftRail. Click su
+ * un'icona apre un SlidePanel ancorato a sinistra del rail (mockup
+ * v1.3 §"6-rail").
+ *
+ * Coesistenza con WorkspacePanel: in alpha.17 il rail e' opzionale
+ * (panel chiuso di default). In alpha.20 il WorkspacePanel sara'
+ * rimosso e il rail destro diventera' la home delle viste/tool.
+ */
+import { Eye, Layers, Wrench, History } from "lucide-react";
+import {
+  useRightRailStore,
+  type RightSection,
+} from "../../store/rightRailStore";
+import { Tooltip } from "../ui/Tooltip";
+import { cn } from "../ui/cn";
+
+
+interface RailItem {
+  key: RightSection;
+  label: string;
+  description: string;
+  icon: typeof Eye;
+}
+
+
+const TOP_ITEMS: RailItem[] = [
+  { key: "inspect", label: "Inspect", description: "Statica · modale · iso 3D · fatica", icon: Eye },
+  { key: "view",    label: "View",    description: "Layer · scala def. · colormap · annotazioni", icon: Layers },
+  { key: "tools",   label: "Tools",   description: "Compare · misure · cost preview · BIM viewer", icon: Wrench },
+];
+
+const BOTTOM_ITEMS: RailItem[] = [
+  { key: "history", label: "History", description: "Snapshot e undo timeline", icon: History },
+];
+
+
+function RailButton({ item }: { item: RailItem }) {
+  const openSection = useRightRailStore((s) => s.openSection);
+  const toggle = useRightRailStore((s) => s.toggle);
+  const Icon = item.icon;
+  const active = openSection === item.key;
+
+  return (
+    <Tooltip
+      side="left"
+      content={
+        <div>
+          <div className="font-semibold">{item.label}</div>
+          <div className="text-ink-muted text-[11px] mt-0.5">{item.description}</div>
+        </div>
+      }
+    >
+      <button
+        type="button"
+        onClick={() => toggle(item.key)}
+        aria-label={item.label}
+        aria-current={active ? "page" : undefined}
+        aria-expanded={active}
+        data-testid={`right-rail-${item.key}`}
+        className={cn(
+          "relative w-9 h-9 rounded-md flex items-center justify-center",
+          "transition-colors duration-fast outline-none",
+          "focus-visible:ring-2 focus-visible:ring-accent/60",
+          active
+            ? "bg-accent-subtle text-accent"
+            : "text-ink-muted hover:bg-bg-hover hover:text-ink",
+        )}
+      >
+        <Icon className="h-4 w-4" strokeWidth={1.8} />
+        {active && (
+          <span
+            className="absolute right-0 top-1.5 bottom-1.5 w-[2px] rounded-l bg-accent"
+            aria-hidden
+          />
+        )}
+      </button>
+    </Tooltip>
+  );
+}
+
+
+export function RightRail() {
+  return (
+    <nav
+      className="w-12 flex-shrink-0 border-l border-border bg-bg-panel flex flex-col py-2 gap-1 items-center"
+      aria-label="Right rail (Inspect, View, Tools)"
+      data-testid="right-rail"
+    >
+      {TOP_ITEMS.map((it) => <RailButton key={it.key} item={it} />)}
+
+      <div className="flex-1" />
+
+      {BOTTOM_ITEMS.map((it) => <RailButton key={it.key} item={it} />)}
+    </nav>
+  );
+}
