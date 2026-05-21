@@ -20,10 +20,6 @@ import {
   Play,
   ChevronDown,
   Loader2,
-  User,
-  MapPin,
-  LogIn,
-  LogOut,
   Eye,
   Check,
   Undo2,
@@ -51,7 +47,7 @@ import { APP_VERSION } from "../../lib/version";
 import { Breadcrumb } from "./topbar/Breadcrumb";
 import { GlobalSearch } from "./topbar/GlobalSearch";
 import { AICopilotButton } from "./topbar/AICopilotButton";
-import { CollabAvatars } from "./topbar/CollabAvatars";
+import { AvatarMenu } from "./topbar/AvatarMenu";
 import { ExportMenu } from "./ExportMenu";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
@@ -93,9 +89,8 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   const [locationOpen, setLocationOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
   const setClimateBundle = useClimateStore((s) => s.setBundle);
-  const authUser = useAuthStore((s) => s.user);
   const authToken = useAuthStore((s) => s.token);
-  const authLogout = useAuthStore((s) => s.logout);
+  const authUser = useAuthStore((s) => s.user);
   const verifyToken = useAuthStore((s) => s.verifyToken);
   const qc = useQueryClient();
 
@@ -282,8 +277,9 @@ export function TopBar({ models, activeId, onSelect }: Props) {
       {/* AI Copilot button (placeholder Sprint 5) */}
       <AICopilotButton />
 
-      {/* Collab avatar (solo se loggato) */}
-      <CollabAvatars />
+      {/* Avatar utente: dropdown con Account / Loads / Tema / Logout
+          (sostituisce i bottoni isolati Loads/Account/Login in topbar) */}
+      <AvatarMenu />
 
       {/* Bell notifications — counter su unreadCount (toastStore placeholder) */}
       <Tooltip content="Notifiche">
@@ -319,64 +315,6 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           <span className="hidden lg:inline">Focus</span>
         </Button>
       </Tooltip>
-
-      {/* Location picker (Sprint 2 piano B: B1+B2+B3+B4 facade) */}
-      <Tooltip content="Picker location: vento/neve/sismica da coordinate">
-        <Button
-          size="sm"
-          variant="ghost"
-          iconLeft={<MapPin className="h-3.5 w-3.5" />}
-          onClick={() => setLocationOpen(true)}
-          data-testid="topbar-location"
-        >
-          <span className="hidden md:inline">Loads</span>
-        </Button>
-      </Tooltip>
-
-      {/* Account button (usage/tier/admin) */}
-      <Tooltip content="Account: usage, tier, admin">
-        <Button
-          size="sm"
-          variant="ghost"
-          iconLeft={<User className="h-3.5 w-3.5" />}
-          onClick={() => setAccountOpen(true)}
-          data-testid="topbar-account"
-        >
-          <span className="hidden md:inline">Account</span>
-        </Button>
-      </Tooltip>
-
-      {/* Auth button: Login se anonimo, Logout (con email) se loggato */}
-      {authUser ? (
-        <Tooltip content={`Logged in: ${authUser.email}. Click per logout.`}>
-          <Button
-            size="sm"
-            variant="ghost"
-            iconLeft={<LogOut className="h-3.5 w-3.5" />}
-            onClick={() => {
-              authLogout();
-              toast("info", "Disconnesso.");
-            }}
-            data-testid="topbar-logout"
-          >
-            <span className="hidden md:inline truncate max-w-[140px]">
-              {authUser.email}
-            </span>
-          </Button>
-        </Tooltip>
-      ) : (
-        <Tooltip content="Accedi o crea un account">
-          <Button
-            size="sm"
-            variant="ghost"
-            iconLeft={<LogIn className="h-3.5 w-3.5" />}
-            onClick={() => setAuthOpen(true)}
-            data-testid="topbar-login"
-          >
-            <span className="hidden md:inline">Accedi</span>
-          </Button>
-        </Tooltip>
-      )}
 
       {/* Export menu — visibile sempre */}
       <div className="flex-shrink-0">
