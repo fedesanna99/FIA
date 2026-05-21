@@ -13,6 +13,10 @@
  *   5. Modelli (recenti, da react-query)
  *   6. Aiuto e documentazione
  *
+ * v1.5 follow-up: le voci dinamiche (goto-node, goto-element) sono generate
+ * runtime da `hooks/useNavigationCommands.ts` leggendo `useModelStore`. Non
+ * vengono concatenate qui — il merge avviene in `CommandPalette.tsx`.
+ *
  * Ogni item ha:
  *  - id univoco
  *  - label (mostrato all'utente)
@@ -61,7 +65,10 @@ export type PaletteActionKind =
   | "apply-material" // payload: { materialId } — applica materiale alla selezione/all
   | "apply-section"  // payload: { sectionId }  — applica sezione alla selezione/all
   | "toggle-view"    // payload: { flag } — toggle overlay viewport (deformed/colormap/...)
-  | "quick-export";  // payload: { format, scope? } — shortcut export rapido
+  | "quick-export"   // payload: { format, scope? } — shortcut export rapido
+  // v1.5 follow-up: navigazione contestuale dinamica
+  | "goto-node"      // payload: { nodeId } — seleziona nodo + apre Inspect
+  | "goto-element";  // payload: { elementId } — seleziona elemento + apre Inspect
 
 
 /** Sezione (gruppo) di appartenenza. */

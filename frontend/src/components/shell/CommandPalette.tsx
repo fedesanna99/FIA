@@ -24,6 +24,8 @@ import { useResultsStore } from "../../store/resultsStore";
 import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
+import { useNavigationCommands } from "../../hooks/useNavigationCommands";
+import { useSelectionStore } from "../../store/selectionStore";
 import { toast } from "../../store/toastStore";
 import {
   exportModelJson, exportResultsJson,
@@ -31,7 +33,7 @@ import {
 } from "../../utils/export";
 import { generateReport, viewportCanvasDataUrl } from "../../utils/reportPdf";
 import {
-  PALETTE_ITEMS, PALETTE_COUNT, SECTION_LABELS, SECTION_ORDER,
+  PALETTE_ITEMS, SECTION_LABELS, SECTION_ORDER,
   type PaletteItem, type PaletteSection,
 } from "../../lib/paletteItems";
 import { cn } from "../ui/cn";
@@ -50,6 +52,9 @@ export function CommandPalette() {
   const authLogout = useAuthStore((s) => s.logout);
   const setOpenSection = useRightRailStore((s) => s.open);
   const run = useRunAnalysis();
+
+  // v1.5 follow-up: voci dinamiche goto-node/element generate dal modello attivo
+  const navItems = useNavigationCommands();
 
   // Ctrl+K / Cmd+K toggle (mantieni shortcut esistenti)
   useEffect(() => {
@@ -221,6 +226,47 @@ export function CommandPalette() {
         }
         break;
       }
+      case "goto-node": {
+        // v1.5 follow-up: focus contestuale su un nodo specifico.
+        // 1) modelStore.selectNode aggiorna il highlight viewport (single-set)
+        // 2) selectionStore.selectNode triggera NodeDetail nel RightPanel inspect
+        // 3) RightRail aperto sulla sezione "inspect"
+        // 4) Workspace switch a "model" se l'utente era altrove (cosi' vede il viewport)
+        const { nodeId } = item.payload as { nodeId: number };
+        const ms = useModelStore.getState();
+        if (!ms.model) break;
+        const exists = ms.model.nodes.some((n) => n.id === nodeId);
+        if (!exists) {
+          toast("error", `Nodo N${nodeId} non trovato nel modello.`);
+          break;
+        }
+        // Selezione singola (no additive): replace il set corrente
+        ms.clearSelection();
+        ms.selectNode(nodeId, false);
+        useSelectionStore.getState().selectNode(nodeId);
+        useRightRailStore.getState().open("inspect");
+        useWorkspaceStore.getState().openRightPanel("inspect");
+        toast("info", `Nodo N${nodeId} selezionato.`, 1500);
+        break;
+      }
+      case "goto-element": {
+        // Stessa logica di goto-node ma su elemento.
+        const { elementId } = item.payload as { elementId: number };
+        const ms = useModelStore.getState();
+        if (!ms.model) break;
+        const exists = ms.model.elements.some((e) => e.id === elementId);
+        if (!exists) {
+          toast("error", `Elemento E${elementId} non trovato nel modello.`);
+          break;
+        }
+        ms.clearSelection();
+        ms.selectElement(elementId, false);
+        useSelectionStore.getState().selectElement(elementId);
+        useRightRailStore.getState().open("inspect");
+        useWorkspaceStore.getState().openRightPanel("inspect");
+        toast("info", `Elemento E${elementId} selezionato.`, 1500);
+        break;
+      }
       case "focus-toggle": {
         // v1.5 Task 33: toggle modalita' focus dalla palette (oltre a Shift+Space e F).
         const ws = useWorkspaceStore.getState();
@@ -259,15 +305,21 @@ export function CommandPalette() {
   }, [workspace]);
 
   // ── Grouping per sezione (escluso favorites che e' costruito sopra) ──────
+  // v1.5 follow-up: alle voci statiche concatenima quelle dinamiche
+  // (goto-node / goto-element) prodotte da useNavigationCommands().
+  const allItems = useMemo<PaletteItem[]>(
+    () => [...PALETTE_ITEMS, ...navItems],
+    [navItems],
+  );
   const grouped = useMemo(() => {
     const out = new Map<PaletteSection, PaletteItem[]>();
-    for (const it of PALETTE_ITEMS) {
+    for (const it of allItems) {
       const arr = out.get(it.section) ?? [];
       arr.push(it);
       out.set(it.section, arr);
     }
     return out;
-  }, []);
+  }, [allItems]);
 
   // ── Render ───────────────────────────────────────────────────────────────
   return (
@@ -282,7 +334,7 @@ export function CommandPalette() {
     >
       <div className="w-[720px] max-w-[calc(100vw-32px)] bg-bg-elevated border border-border rounded-lg shadow-dialog overflow-hidden animate-slide-up">
         <Command.Input
-          placeholder={`Cerca tra ${PALETTE_COUNT.total} comandi…  (workspace, analisi, theme, location, help)`}
+          placeholder={`Cerca tra ${allItems.length} comandi…  (workspace, analisi, theme, location, n42, e17)`}
           className={cn(
             "w-full px-4 py-3 bg-bg-elevated border-b border-border",
             "text-sm text-ink placeholder:text-ink-dim font-display",
