@@ -1,114 +1,104 @@
 /**
- * ToolsPanel (Sprint 5 G11 / alpha.26) — brief v1.2.1 Step 7.5.
+ * ToolsPanel (v1.5 Task 28 — hub navigation refactor).
  *
- * Macro-panel "Tools" rail destro: NESSUN tab, sezioni per Modello /
- * Cloud / Pro / Validation / I/O. Shortcut a vari workflow tool.
+ * Rispetto ad alpha.31 (5 voci affastellate in 2 sezioni Modello/Output),
+ * ora e' un "hub" che mostra 4 card grandi colorate. Click su una card →
+ * drill-in nella sub-view dedicata con breadcrumb "Strumenti › X".
+ *
+ * Sub-views (in `tools/`):
+ *  - MeasureSnapshotView   (Misure + Snapshot uniti)
+ *  - ExportView            (5 opzioni PDF/XLSX/CSV/JSON)
+ *  - ValidationView        (NAFEMS benchmark + EC verify)
+ *  - CostPreviewView       (spiegazione + link a Solve)
+ *
+ * Riferimento visuale: mockup `fea_pro_progressive_disclosure_v1.html`
+ * sezione 03 "Hub invece di toolbar densa".
  */
-import {
-  IconTool, IconRuler, IconCamera, IconFileBarcode,
-  IconCertificate, IconDownload,
-} from "@tabler/icons-react";
+import { useState } from "react";
+import { ArrowLeft, ChevronRight } from "lucide-react";
+import { IconTool } from "@tabler/icons-react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useRightRailStore } from "../../store/rightRailStore";
-import { useUIStore } from "../../store/uiStore";
 import { PanelChrome } from "./PanelChrome";
+import { ToolsHub } from "./tools/ToolsHub";
+import { MeasureSnapshotView } from "./tools/MeasureSnapshotView";
+import { ExportView } from "./tools/ExportView";
+import { ValidationView } from "./tools/ValidationView";
+import { CostPreviewView } from "./tools/CostPreviewView";
 
 
-interface ToolEntry {
-  id: string;
-  label: string;
-  description: string;
-  icon: typeof IconTool;
-  /** Workspace target oppure null se solo placeholder */
-  workspace?: "model" | "analysis" | "results" | "verify" | "io";
-  /** Group heading (2 sezioni post Task 22) */
-  section: "modello" | "output";
-}
+export type ToolsView =
+  | "hub"
+  | "measure-snapshot"
+  | "export"
+  | "validation"
+  | "cost-preview";
 
 
-// alpha.31 Task 22: dal pannello rimosse le 3 voci "soon" (Compare A/B,
-// BIM viewer IFC, Topology opt.) — restavano spazialmente come voci
-// attive ma erano disabled. Le rivedremo quando saranno feature reali.
-// Tools raggruppati in 2 sezioni invece di 5 per ridurre il rumore.
-const TOOLS: ToolEntry[] = [
-  // ── Modello ───────────────────────────────────────────────────────────
-  { id: "measure",   label: "Misurazioni",   description: "Distanze e angoli 3D",     icon: IconRuler,       section: "modello", workspace: "model" },
-  { id: "snapshot",  label: "Snapshot",      description: "Congela stato risultati",  icon: IconCamera,      section: "modello", workspace: "results" },
-  { id: "cost",      label: "Cost preview",  description: "Stima crediti pre-run",    icon: IconFileBarcode, section: "modello", workspace: "analysis" },
-
-  // ── Output ────────────────────────────────────────────────────────────
-  { id: "export",     label: "Export PDF/Excel",   description: "Report multi-sheet",   icon: IconDownload,    section: "output", workspace: "io" },
-  { id: "validation", label: "Validazione NAFEMS", description: "Benchmark HTML",       icon: IconCertificate, section: "output", workspace: "verify" },
-];
-
-
-const SECTION_LABELS: Record<ToolEntry["section"], string> = {
-  modello: "Modello",
-  output:  "Output",
+const SUBVIEW_LABELS: Record<Exclude<ToolsView, "hub">, string> = {
+  "measure-snapshot": "Misure e snapshot",
+  "export":           "Esporta",
+  "validation":       "Validazione",
+  "cost-preview":     "Cost preview",
 };
 
 
 export function ToolsPanel() {
+  const [view, setView] = useState<ToolsView>("hub");
   const closeRight = useWorkspaceStore((s) => s.closeRightPanel);
   const closeRail = useRightRailStore((s) => s.close);
-  const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
-  const setDialog = useUIStore((s) => s.setOpenDialog);
 
-  function handleClose() {
+  const handleClose = () => {
     closeRight();
     closeRail();
-  }
-
-  function handleClick(t: ToolEntry) {
-    if (!t.workspace) return;
-    setWorkspace(t.workspace);
-    handleClose();
-  }
-
-  // Raggruppa per section
-  const grouped = TOOLS.reduce<Record<string, ToolEntry[]>>((acc, t) => {
-    (acc[t.section] = acc[t.section] || []).push(t);
-    return acc;
-  }, {});
+    setView("hub");
+  };
 
   return (
     <PanelChrome
       side="right"
       title="Tools"
       Icon={IconTool}
-      subtitle="Strumenti"
+      subtitle={view === "hub" ? "Strumenti" : SUBVIEW_LABELS[view]}
       onClose={handleClose}
       testId="panel-tools"
     >
-      <div className="p-2 space-y-3">
-        {(Object.keys(grouped) as ToolEntry["section"][]).map((section) => (
-          <section key={section}>
-            <h3 className="text-[10px] uppercase tracking-wider text-ink-muted font-semibold px-2 mb-1.5">
-              {SECTION_LABELS[section]}
-            </h3>
-            <div className="space-y-0.5">
-              {grouped[section].map((t) => {
-                const Icon = t.icon;
-                return (
-                  <button
-                    key={t.id}
-                    type="button"
-                    onClick={() => handleClick(t)}
-                    data-testid={`tools-${t.id}`}
-                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-sm text-left transition-colors hover:bg-bg-hover cursor-pointer text-ink"
-                  >
-                    <Icon size={14} className="text-accent" />
-                    <div className="min-w-0 flex-1">
-                      <div className="text-xs font-medium truncate">{t.label}</div>
-                      <div className="text-[11px] text-ink-muted truncate">{t.description}</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
-        ))}
-      </div>
+      {view === "hub" ? (
+        <ToolsHub onSelect={setView} />
+      ) : (
+        <div className="flex flex-col h-full">
+          <ToolsBreadcrumb view={view} onBack={() => setView("hub")} />
+          <div className="flex-1 min-h-0 overflow-hidden">
+            {view === "measure-snapshot" && <MeasureSnapshotView />}
+            {view === "export" && <ExportView />}
+            {view === "validation" && <ValidationView />}
+            {view === "cost-preview" && <CostPreviewView />}
+          </div>
+        </div>
+      )}
     </PanelChrome>
+  );
+}
+
+
+function ToolsBreadcrumb({
+  view, onBack,
+}: {
+  view: Exclude<ToolsView, "hub">;
+  onBack: () => void;
+}) {
+  return (
+    <div className="px-3.5 py-2.5 border-b border-border flex items-center gap-1.5 text-[11px] flex-shrink-0">
+      <button
+        type="button"
+        onClick={onBack}
+        data-testid="tools-breadcrumb-back"
+        className="text-ink-muted hover:text-ink flex items-center gap-1 transition-colors"
+      >
+        <ArrowLeft className="w-3 h-3" /> Strumenti
+      </button>
+      <ChevronRight className="w-2.5 h-2.5 text-ink-dim" />
+      <span className="font-semibold text-ink">{SUBVIEW_LABELS[view]}</span>
+    </div>
   );
 }
