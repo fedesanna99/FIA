@@ -1,23 +1,43 @@
 /**
- * CollabAvatars (alpha.18) — Sprint 4 / Asse G3.
+ * CollabAvatars (alpha.30) — refactor mockup v1.3.
  *
- * Avatar stack di utenti collaboratori sovrapposti (mockup v1.3). In
- * alpha.18 mostra solo l'utente autenticato (se loggato) + placeholder
- * "+N" se ci sono altri. La logica multi-user real-time arrivera' con
- * il backend collab (Sprint 5 v1.5 piano Asse F).
+ * Stack di avatar circolari sovrapposti per utenti in collab. Ogni avatar
+ * ha gradient determinato dall'hash dell'id (palette mockup), border 2px
+ * bg-panel per separazione visiva quando si sovrappongono, e tooltip con
+ * nome + attivita'. Stato anonimo (nessun utente loggato) → null.
  *
- * Stato visivo:
- *  - 1 avatar circolare (iniziali email) accent-subtle bg
- *  - badge "live" dot verde con pulse animation
- *  - tooltip mostra email completa
+ * In alpha.30 mostriamo solo l'utente autenticato (1 avatar): la logica
+ * multi-user real-time arriverà col backend collab (Sprint 5 v1.5 Asse F).
+ * Quando ci saranno N>1 collaboratori, gli avatar si sovrappongono in
+ * stack con -space-x-1.5 (mockup pattern).
  */
 import { useAuthStore } from "../../../store/authStore";
 import { Tooltip } from "../../ui/Tooltip";
 
+interface Collaborator {
+  id: string;
+  name: string;
+  initials: string;
+  activity: string;
+}
+
+const GRADIENT_PALETTE = [
+  "linear-gradient(135deg, #d85a30, #993c1d)",
+  "linear-gradient(135deg, #1da97a, #138855)",
+  "linear-gradient(135deg, #534ab7, #7f77dd)",
+  "linear-gradient(135deg, #e49c38, #854f0b)",
+];
+
+function gradientFor(user: Collaborator): string {
+  let hash = 0;
+  for (let i = 0; i < user.id.length; i++) {
+    hash = ((hash << 5) - hash) + user.id.charCodeAt(i);
+  }
+  return GRADIENT_PALETTE[Math.abs(hash) % GRADIENT_PALETTE.length];
+}
 
 function initials(email: string): string {
   const local = email.split("@")[0] || email;
-  // "fedesanna99" → "FE", "mario.rossi" → "MR"
   const parts = local.split(/[._-]/);
   if (parts.length >= 2) {
     return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -25,37 +45,53 @@ function initials(email: string): string {
   return local.slice(0, 2).toUpperCase();
 }
 
-
 export function CollabAvatars() {
   const user = useAuthStore((s) => s.user);
 
-  // Non mostriamo nulla se anonimo: TopBar avra' gia' il pulsante "Accedi".
+  // Stato anonimo: nessuna pillola (la topbar mostrera' "Accedi").
   if (!user) return null;
 
+  // Per ora un solo collaboratore (l'utente loggato). Lo schema e' pronto
+  // per N>1 quando il backend collab esporra' la lista active users.
+  const collaborators: Collaborator[] = [
+    {
+      id: user.id ?? user.email,
+      name: user.email,
+      initials: initials(user.email),
+      activity: "Tu · sessione live",
+    },
+  ];
+
   return (
-    <Tooltip
-      content={
-        <div>
-          <div className="font-semibold">{user.email}</div>
-          <div className="text-ink-muted text-[11px] mt-0.5">
-            Tu · sessione live
-          </div>
-        </div>
-      }
+    <div
+      className="flex items-center -space-x-1.5 flex-shrink-0"
+      data-testid="topbar-collab"
     >
-      <div
-        className="relative flex items-center"
-        data-testid="topbar-collab"
-      >
-        <div className="w-6 h-6 rounded-full bg-accent-subtle border border-accent/40 flex items-center justify-center text-[10px] font-semibold text-accent">
-          {initials(user.email)}
-        </div>
-        {/* Live indicator dot (pulse animation dal mockup) */}
-        <span
-          className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-success border border-bg-panel feapro-pulse"
-          aria-label="online"
-        />
-      </div>
-    </Tooltip>
+      {collaborators.map((u, i) => (
+        <Tooltip
+          key={u.id}
+          content={
+            <div>
+              <div className="font-semibold">{u.name}</div>
+              <div className="text-ink-muted text-[11px] mt-0.5">{u.activity}</div>
+            </div>
+          }
+        >
+          <div
+            className="relative w-6 h-6 rounded-full text-white text-[10px] font-semibold flex items-center justify-center border-2 border-bg-panel"
+            style={{ background: gradientFor(u), zIndex: 10 - i }}
+          >
+            {u.initials}
+            {/* Live indicator dot solo sul primo avatar (utente corrente) */}
+            {i === 0 && (
+              <span
+                className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full bg-success border border-bg-panel feapro-pulse"
+                aria-label="online"
+              />
+            )}
+          </div>
+        </Tooltip>
+      ))}
+    </div>
   );
 }
