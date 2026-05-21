@@ -21,9 +21,9 @@ import { useWorkspaceStore, type Workspace } from "../../store/workspaceStore";
 import { Button } from "../ui/Button";
 import { cn } from "../ui/cn";
 
-// v3: bump per re-mostrare onboarding dopo refactor UI 6-rail (Sprint 4
-// alpha.20). Aggiornato welcome step con i nuovi label Make/Solve/Verify.
-const STORAGE_KEY = "feapro-onboarding-seen-v3";
+// v4: bump per Sprint 5 alpha.28 — completo del brief v1.2.1.
+// 9 step (welcome + Make/Solve/Verify + Inspect/View/Tools + Palette + Focus).
+const STORAGE_KEY = "feapro-onboarding-seen-v4";
 
 interface Step {
   id: string;
@@ -186,6 +186,61 @@ const STEPS: Step[] = [
           <li>Labels traceability: <code className="text-[10px]">"Wind EN1991-1-4 [Roma, +X]"</code></li>
         </ul>
         <p className="text-[11px] pt-1">Sorgente dati: Open-Meteo (ERA5 80y), USGS Earthquake, Open-Elevation. Tutto via fallback chain F8 con cache 1y SQLite.</p>
+      </div>
+    ),
+  },
+  // Sprint 5 alpha.28: 3 nuovi step brief-aligned
+  {
+    id: "right-rail",
+    icon: <Eye className="h-8 w-8 text-accent" />,
+    title: "7 · Rail destro — Inspect / View / Tools",
+    description: "Esplora risultati, layer 3D e strumenti pro.",
+    body: (
+      <div className="space-y-2 text-xs text-ink-muted">
+        <p>Sul lato destro hai 3 macro-panel sempre raggiungibili:</p>
+        <ul className="space-y-1 list-none pl-0">
+          <li className="flex items-start gap-2"><Eye className="h-3.5 w-3.5 mt-0.5 text-accent flex-shrink-0" /> <span><strong className="text-ink">Inspect</strong> · risultati: 5 tab Statica / Modale / Dinamica / Iso 3D / Fatica</span></li>
+          <li className="flex items-start gap-2"><Layers className="h-3.5 w-3.5 mt-0.5 text-accent flex-shrink-0" /> <span><strong className="text-ink">View</strong> · layer 3D: toggle deformata, colormap σ_VM, iso-superfici, slider scala</span></li>
+          <li className="flex items-start gap-2"><Wrench className="h-3.5 w-3.5 mt-0.5 text-accent flex-shrink-0" /> <span><strong className="text-ink">Tools</strong> · strumenti pro: misurazioni, snapshot, BIM viewer, NAFEMS report</span></li>
+        </ul>
+        <p className="text-[11px] pt-1">Toggle pattern come Linear / Figma: click su icona attiva chiude il pannello.</p>
+      </div>
+    ),
+  },
+  {
+    id: "palette",
+    icon: <Command className="h-8 w-8 text-accent" />,
+    title: "8 · Command palette globale — Cmd+K",
+    description: "Cerca tutto in 2 keystroke: comandi, pannelli, impostazioni.",
+    body: (
+      <div className="space-y-2 text-xs text-ink-muted">
+        <p>Premi <kbd className="bg-bg px-1 rounded border border-border">Ctrl K</kbd> (o <kbd className="bg-bg px-1 rounded border border-border">Cmd K</kbd>) per aprire la palette globale fuzzy-search:</p>
+        <ul className="list-disc pl-4 space-y-0.5">
+          <li><strong className="text-ink">Suggeriti</strong> contestuali (top 3 in base al workspace attivo)</li>
+          <li><strong className="text-ink">Comandi</strong> azioni globali (run, save, export, new model)</li>
+          <li><strong className="text-ink">Pannelli</strong> apri qualsiasi pannello + tab</li>
+          <li><strong className="text-ink">Impostazioni</strong> theme, lingua, account, cost preview mode</li>
+          <li><strong className="text-ink">Climate Loads</strong> preset Italia + concetti EN/NTC</li>
+          <li><strong className="text-ink">Aiuto</strong> documentazione, shortcut, OpenAPI</li>
+        </ul>
+        <p className="text-[11px] pt-1">Match fuzzy multilingue: digita "run" o "esegui", "theme" o "tema" — funziona uguale.</p>
+      </div>
+    ),
+  },
+  {
+    id: "focus-mode",
+    icon: <Sparkles className="h-8 w-8 text-accent" />,
+    title: "9 · Focus mode — viewport pieno",
+    description: "Quando vuoi solo il modello 3D, chiudi tutto in un click.",
+    body: (
+      <div className="space-y-2 text-xs text-ink-muted">
+        <p>Per il momento "solo viewport" hai due modi:</p>
+        <ul className="list-disc pl-4 space-y-0.5">
+          <li>Click sull'icona <kbd className="bg-bg px-1 rounded border border-border">👁 Focus</kbd> in TopBar</li>
+          <li>Shortcut <kbd className="bg-bg px-1 rounded border border-border">Shift Space</kbd> da qualunque punto dell'app</li>
+        </ul>
+        <p>Chiude entrambi i rail e il pannello centrale, lasciando solo il viewport 3D massimizzato. Premi 1/2/3 o clicca un rail per ri-aprire un panel.</p>
+        <p className="text-[11px] pt-1 mt-2">Buon lavoro! 🎉 Per rivedere questo tour: <kbd className="bg-bg px-1 rounded border border-border">?</kbd> in StatusBar.</p>
       </div>
     ),
   },

@@ -60,14 +60,24 @@ export default function App() {
     return useThemeStore.getState().init();
   }, []);
 
-  // Numeri 1-3 (main workspace) e 4-5 (legacy) ora aprono anche il
-  // LeftSlidePanel (toggle pattern). Update alpha.22.
+  // Numeri 1-5 + Shift+Space (alpha.27 empty state) + (alpha.22 toggle).
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
       if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable) return;
+
+      // alpha.27: Shift+Space → enter empty state (chiude tutti i pannelli)
+      if (e.shiftKey && e.code === "Space" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        useLeftRailStore.getState().close();
+        useWorkspaceStore.getState().enterEmptyState();
+        // Anche il right rail
+        import("./store/rightRailStore").then((m) => m.useRightRailStore.getState().close());
+        return;
+      }
+
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
-      // alpha.20 ha mappato Make/Solve/Verify su 1-3; results/io restano 4-5
+      // alpha.20: Make/Solve/Verify su 1-3; results/io restano 4-5
       const map: Record<string, "model" | "analysis" | "results" | "verify" | "io"> = {
         "1": "model", "2": "analysis", "3": "verify", "4": "results", "5": "io",
       };

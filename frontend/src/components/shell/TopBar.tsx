@@ -24,6 +24,7 @@ import {
   MapPin,
   LogIn,
   LogOut,
+  Eye,
 } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { modelsApi } from "../../api/client";
@@ -37,6 +38,9 @@ import { LocationPickerDialog } from "../dialogs/LocationPickerDialog";
 import { AuthDialog } from "../dialogs/AuthDialog";
 import { useClimateStore } from "../../store/climateStore";
 import { useAuthStore } from "../../store/authStore";
+import { useLeftRailStore } from "../../store/leftRailStore";
+import { useRightRailStore } from "../../store/rightRailStore";
+import { useWorkspaceStore } from "../../store/workspaceStore";
 import { toast } from "../../store/toastStore";
 import { APP_VERSION } from "../../lib/version";
 import { Breadcrumb } from "./topbar/Breadcrumb";
@@ -223,6 +227,23 @@ export function TopBar({ models, activeId, onSelect }: Props) {
 
       {/* Collab avatar (solo se loggato) */}
       <CollabAvatars />
+
+      {/* alpha.27: Eye button = empty state (chiude tutti i pannelli) */}
+      <Tooltip content={<>Solo viewport (chiudi tutto) <kbd className="kbd ml-1.5">Shift+Space</kbd></>}>
+        <Button
+          size="sm"
+          variant="ghost"
+          iconLeft={<Eye className="h-3.5 w-3.5" />}
+          onClick={() => {
+            useLeftRailStore.getState().close();
+            useRightRailStore.getState().close();
+            useWorkspaceStore.getState().enterEmptyState();
+          }}
+          data-testid="topbar-empty-state"
+        >
+          <span className="hidden lg:inline">Focus</span>
+        </Button>
+      </Tooltip>
 
       {/* Location picker (Sprint 2 piano B: B1+B2+B3+B4 facade) */}
       <Tooltip content="Picker location: vento/neve/sismica da coordinate">

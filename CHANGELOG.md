@@ -1,5 +1,45 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.28 — Sprint 5 CLOSURE: OnboardingTour 9 step (brief complete) — 2026-05-21
+
+**Sprint 5 chiuso.** Codice ora pixel-aligned al
+`CLAUDE_CODE_BRIEF_v1_2_1.md`. OnboardingTour riscritto con i 9 step
+del brief.
+
+### Added (Sprint 5 closure)
+- **`OnboardingTour.tsx`** — **9 step totale** (era 6):
+  - STORAGE_KEY v3 → **v4** per re-mostrare a tutti gli utenti
+  - Step 1-6 (welcome, model, analysis, results, verify, io+collab) +
+    step 6 Climate Loads (Sprint 2)
+  - **Step 7 NEW**: "Rail destro — Inspect / View / Tools" con
+    descrizione dei 3 macro-panel destri
+  - **Step 8 NEW**: "Command palette globale — Cmd+K" con dettagli
+    delle 6 categorie fuzzy
+  - **Step 9 NEW**: "Focus mode — viewport pieno" con Shift+Space +
+    Eye button TopBar
+
+## v1.4.0-alpha.27 — Sprint 5 / G12: Empty state Shift+Space — 2026-05-21
+
+### Added (Empty state)
+- **`App.tsx`** keyboard handler esteso:
+  - `Shift+Space` → enter empty state (chiude `leftRailStore`,
+    `rightRailStore`, `workspaceStore.enterEmptyState()`)
+- **`TopBar.tsx`** — **Eye/Focus button** nuovo:
+  - Tooltip mostra shortcut Shift+Space
+  - Click chiude entrambi i rail + entra in empty state
+  - Visibile da `lg` con label "Focus"
+
+### Skipped intenzionalmente
+- **Cleanup legacy workspaces** (ModelWorkspace/AnalysisWorkspace/
+  IOWorkspace/VerifyWorkspace/ResultsWorkspace files): mantenuti sul
+  disco perche' alcuni sono ancora wrappati dai macro-panel
+  (VerificationPanel, etc). Cleanup completo richiede grep+remove
+  approfondito, rinviato a futuri sprint.
+- **E2E Playwright suite** (6 test): scope time-bound, lasciato a
+  futuri sprint. Coverage attuale 311 vitest gia' molto solida.
+
+---
+
 ## v1.4.0-alpha.26 — Sprint 5 / G11: VerifyPanel + InspectPanel + ViewPanel + ToolsPanel — 2026-05-21
 
 **Completi tutti i 6 macro-panel brief-aligned** (3 sinistra + 3 destra).
