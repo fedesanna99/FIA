@@ -1,5 +1,67 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.24 — Sprint 5 / G9: PanelChrome + MakePanel (Geometria/Mesh/Carichi/Vincoli/IO) — 2026-05-21
+
+**Primo macro-panel brief-aligned**. Sostituisce il `ModelWorkspace`
+v1.2 quando il LeftSlidePanel mostra `model`. Layout pixel-aligned al
+mockup v1.3: header con icona Tabler `IconShape3` + tabs orizzontali
++ body scrollabile.
+
+### Added
+- **`shell/panels/PanelChrome.tsx`** — componente base unificato per i
+  6 macro-panel (Make/Solve/Verify a sinistra, Inspect/View/Tools a
+  destra):
+  - Header con icona Tabler + titolo + sottotitolo + close X (right)
+  - Tabs orizzontali opzionali con underline accent
+  - Body scrollabile
+  - Animazione `slide-right` 220ms
+  - Width responsive: 300/340/380px su md/lg/xl
+- **`shell/panels/MakePanel.tsx`** — workflow Modeling con 5 tabs:
+  - **Geometria**: ModelTree (wrappa componente v1.2) + Counts grid
+    (Nodi/Elem/Carichi/Vincoli)
+  - **Mesh**: shortcut button "Apri wizard mesh" → uiStore dialog "mesh"
+  - **Carichi**: shortcut "Aggiungi carico" → dialog "load", kbd L
+  - **Vincoli**: shortcut "Aggiungi vincolo" → dialog "constraint", kbd C
+  - **I/O**: redirect a workspace `io` legacy
+  - Disable automatica delle azioni se nessun modello caricato
+  - Conta entita' dinamicamente
+- **`components/shell/LeftSlidePanel.tsx`** wiring:
+  - Quando `openSection === "model"` ora renderizza `<MakePanel />`
+    invece del legacy `ModelWorkspace` con il vecchio chrome esterno.
+  - Per gli altri workspace (analysis/verify/results/io) usa ancora i
+    workspace legacy — verranno migrati a SolvePanel/VerifyPanel/etc
+    in alpha.25/.26.
+
+### Tests
+- **+9 vitest** in `MakePanel.test.tsx` (288 → 297):
+  - Header renders con title 'Make' + close button
+  - 5 tabs renderizzati (Geometria/Mesh/Carichi/Vincoli/I/O)
+  - Default tab "geometria" mostra empty state senza modello
+  - Click Mesh tab switcha currentLeftTab + mostra wizard button
+  - Click Carichi tab mostra Add load (disabled se no model)
+  - Add load enabled quando modello esiste
+  - Click Add load apre dialog 'load' via uiStore
+  - Close button chiama closeLeftPanel
+  - aria-selected dinamico su tab attiva
+- **297/297 vitest** totale. Build Vite OK 26.68s.
+
+### Tech notes
+- Usa `clsx` per conditional className (gia' presente in package.json
+  da Sprint 3)
+- Icone da `@tabler/icons-react` (alpha.23 install)
+- Niente prop drilling: tutto via zustand stores (workspaceStore,
+  modelStore, uiStore)
+
+### Gate
+| | alpha.23 | **alpha.24** |
+|---|---|---|
+| Macro-panel brief-aligned | 0 | **1 (MakePanel)** |
+| PanelChrome base component | no | **si** |
+| Tabler Icons usage | none | **MakePanel + PanelChrome** |
+| vitest frontend | 288 | **297** (+9) |
+
+---
+
 ## v1.4.0-alpha.23 — Sprint 5 / G8: Tabler + Fuse + workspaceStore brief schema — 2026-05-21
 
 Apertura **Sprint 5** dopo che l'utente ha condiviso il
