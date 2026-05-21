@@ -18,6 +18,7 @@ import clsx from "clsx";
 import {
   IconBolt, IconArrowRight, IconWaveSine, IconArrowsVertical,
 } from "@tabler/icons-react";
+import { Button } from "../../components/ui/Button";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useModelStore } from "../../store/modelStore";
@@ -109,21 +110,21 @@ export function SolvePanel() {
           <CostPreviewCard analysisId={selectedLinear} />
 
           <Section title="Esegui">
-            <button
-              type="button"
+            <Button
+              variant="run"
+              size="md"
               onClick={() => handleRun(selectedLinear)}
               disabled={!model || isRunning}
+              loading={isRunning}
               data-testid="solve-run-linear"
-              className={clsx(
-                "w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded text-xs font-semibold",
-                "bg-accent text-white hover:bg-accent-hover transition-colors",
-                "disabled:opacity-40 disabled:cursor-not-allowed",
-              )}
+              className="w-full"
             >
               <IconBolt size={14} />
-              {isRunning ? "In esecuzione…" : `Esegui ${LINEAR_OPTIONS.find((o) => o.id === selectedLinear)?.label.toLowerCase() ?? ""}`}
-              <kbd className="kbd ml-1 bg-white/20 border-white/30 text-white text-[10px]">F5</kbd>
-            </button>
+              <span className="flex-1">
+                {isRunning ? "In esecuzione…" : `Esegui ${LINEAR_OPTIONS.find((o) => o.id === selectedLinear)?.label.toLowerCase() ?? ""}`}
+              </span>
+              <kbd className="bg-black/15 border-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">F5</kbd>
+            </Button>
           </Section>
         </div>
       )}

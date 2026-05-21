@@ -26,6 +26,7 @@ import { useAnalysisStore } from "../../store/analysisStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
 import { useModelStore } from "../../store/modelStore";
 import { useModelHistory } from "../../store/historyStore";
+import { useWorkspaceStore } from "../../store/workspaceStore";
 import { NewModelDialog } from "../dialogs/NewModelDialog";
 import { EditModelDialog } from "../dialogs/EditModelDialog";
 import { AccountDialog } from "../dialogs/AccountDialog";
@@ -73,6 +74,9 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   // (che auto-decade con ttlMs). Verra' sostituito da un notificationsStore
   // dedicato quando arriverà la persistenza side-bar.
   const unreadCount = useToastStore((s) => s.toasts.length);
+  // alpha.31 Task 19: Run topbar visibile solo se il SolvePanel non e' aperto.
+  // Quando SolvePanel e' aperto, l'utente usa il Run dentro il pannello (anch'esso verde).
+  const isSolveOpen = useWorkspaceStore((s) => s.currentLeftPanel === "solve");
   const [newOpen, setNewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -170,21 +174,25 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         </div>
       )}
 
-      {/* Run analysis — tipo analisi scelto nel SolvePanel, qui solo il bottone */}
-      <div className="flex items-center gap-1.5 sm:gap-2 pl-2 md:pl-3 border-l border-border ml-1 flex-shrink-0">
-        <Tooltip content={`Esegui ${ANALYSIS_LABELS[analysisType as AnalysisType]?.toLowerCase() ?? "analisi"} (F5)`}>
-          <Button
-            variant="run"
-            size="md"
-            disabled={!model || isRunning}
-            loading={isRunning}
-            iconLeft={!isRunning ? <Play className="h-3.5 w-3.5" /> : undefined}
-            onClick={() => model && run()}
-          >
-            <span className="hidden sm:inline">{isRunning ? "Esecuzione…" : "Esegui"}</span>
-          </Button>
-        </Tooltip>
-      </div>
+      {/* Run analysis — nascosto quando il SolvePanel e' aperto (in quel
+          caso si usa il bottone "Esegui {analysis}" interno al pannello,
+          anch'esso verde). alpha.31 Task 19. */}
+      {!isSolveOpen && (
+        <div className="flex items-center gap-1.5 sm:gap-2 pl-2 md:pl-3 border-l border-border ml-1 flex-shrink-0">
+          <Tooltip content={`Esegui ${ANALYSIS_LABELS[analysisType as AnalysisType]?.toLowerCase() ?? "analisi"} (F5)`}>
+            <Button
+              variant="run"
+              size="md"
+              disabled={!model || isRunning}
+              loading={isRunning}
+              iconLeft={!isRunning ? <Play className="h-3.5 w-3.5" /> : undefined}
+              onClick={() => model && run()}
+            >
+              <span className="hidden sm:inline">{isRunning ? "Esecuzione…" : "Esegui"}</span>
+            </Button>
+          </Tooltip>
+        </div>
+      )}
 
       <div className="flex-1 min-w-0" />
 
