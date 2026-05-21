@@ -1,5 +1,69 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.19 — Sprint 4 / Asse G4: StatusBar arricchita — 2026-05-21
+
+StatusBar a destra ora include **WS dot live**, **credits badge** dal
+billing backend, **version corretta** dalla constant condivisa. La
+parte sinistra (entita', equilibrio, max, modal f₁) resta intatta.
+
+### Added
+- **`components/layout/statusbar/WSStatus.tsx`** — indicator dot live:
+  - Pinga `/api/health` ogni 30s (no WebSocket overhead, sufficiente
+    per healthcheck UI)
+  - Stati: `ok` (verde + pulse), `slow` (ambra, latency > 500ms),
+    `offline` (rosso, fetch fallito)
+  - Tooltip mostra latency + ultimo check
+  - Mobile: solo dot; desktop ≥ lg: dot + label "Online/Slow/Offline"
+- **`components/layout/statusbar/CreditsBadge.tsx`** — badge crediti:
+  - React-query a `/api/billing/quota` con staleTime 30s + refetch 60s
+  - Mostra `used/cap` (es. "5/50") con coin icon
+  - 3 toni colore: normale (>0% <80%), warn (≥80%), danger (≥100%)
+  - Include `bonus_credits` nel totale cap
+  - Click → callback (apre AccountDialog)
+  - Auto-switch user_id: JWT.sub se loggato, "demo_user" altrimenti
+  - Nascosto su errore 401 (utente anonimo senza billing data)
+- **`StatusBar.tsx`** refactor:
+  - Aggiunti WSStatus + CreditsBadge in posizione destra (mockup-aligned)
+  - Click su CreditsBadge → apre AccountDialog inline (state locale,
+    no apertura via uiStore)
+  - Version da `APP_VERSION` constant (era hardcoded `"v0.1.0"`)
+  - Mantenute tutte le info esistenti: status, N/E/DoF, Max u/σ,
+    equilibrio, solver time, f₁ modale, progress bar in-line analisi
+- **`lib/version.ts`** — bumped `APP_TAG` da `alpha.18` a `alpha.19`.
+
+### Tests
+- **+8 vitest** in `StatusBarParts.test.tsx` (226 → 234):
+  - CreditsBadge (6): null while loading, null su 401, render used/cap,
+    include bonus, onClick callback, usa JWT user.id se loggato
+  - WSStatus (2): render dot indicator, aria-label per accessibility
+- Mock di `fetch` globale + `getQuota` per evitare richieste reali in
+  test (jsdom non implementa fetch nativo).
+
+### Build & gate
+- **Build TypeScript + Vite OK**: `✓ built in 10.27s`.
+- **234/234 vitest** (226 + 8). Zero regressioni in StatusBar legacy.
+
+### UX impact
+- **Crediti visibili sempre**: l'utente sa quanto ha consumato senza
+  dover aprire AccountDialog. Quando ≥80% del cap, il badge diventa
+  ambra: warning early.
+- **Backend liveness signal**: dot live verde rassicura sul fatto che
+  il backend e' raggiungibile. Diventa rosso se Fly stoppa la VM (cold
+  start in arrivo). Latency tooltip esposto per debugging.
+- **Version coerente**: "FEA Pro v1.4" finalmente esposto in statusbar
+  (era v0.1.0 hard-coded). Aggiornato con APP_VERSION = "v1.4".
+
+### Gate
+| | alpha.18 | **alpha.19** |
+|---|---|---|
+| StatusBar sub-component | 0 (inline tutto) | **2** (WSStatus + CreditsBadge) |
+| Credits visibility | solo AccountDialog | **inline statusbar** |
+| Backend liveness UI | n/a | **dot live + latency** |
+| Version display | hardcoded "v0.1.0" | **APP_VERSION = "v1.4"** |
+| vitest frontend | 226 | **234** (+8) |
+
+---
+
 ## v1.4.0-alpha.18 — Sprint 4 / Asse G3: TopBar arricchita — 2026-05-21
 
 TopBar riallineata al mockup v1.3: **breadcrumb contestuale**,
