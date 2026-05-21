@@ -15,7 +15,6 @@ import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Play,
-  Eye,
   Check,
   Undo2,
   Redo2,
@@ -34,16 +33,12 @@ import { LocationPickerDialog } from "../dialogs/LocationPickerDialog";
 import { AuthDialog } from "../dialogs/AuthDialog";
 import { useClimateStore } from "../../store/climateStore";
 import { useAuthStore } from "../../store/authStore";
-import { useLeftRailStore } from "../../store/leftRailStore";
-import { useRightRailStore } from "../../store/rightRailStore";
-import { useWorkspaceStore } from "../../store/workspaceStore";
 import { toast, useToastStore } from "../../store/toastStore";
 import { APP_VERSION } from "../../lib/version";
 import { ModelMenu } from "./topbar/ModelMenu";
 import { GlobalSearch } from "./topbar/GlobalSearch";
 import { AICopilotButton } from "./topbar/AICopilotButton";
 import { AvatarMenu } from "./topbar/AvatarMenu";
-import { ExportMenu } from "./ExportMenu";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
 import { cn } from "../ui/cn";
@@ -63,7 +58,7 @@ const ANALYSIS_LABELS: Record<AnalysisType, string> = {
 };
 
 export function TopBar({ models, activeId, onSelect }: Props) {
-  const { analysisType, setAnalysisType, isRunning } = useAnalysisStore();
+  const { analysisType, isRunning } = useAnalysisStore();
   const run = useRunAnalysis();
   const model = useModelStore((s) => s.model);
   const lastSavedAt = useModelStore((s) => s.lastSavedAt);
@@ -258,27 +253,8 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         </Tooltip>
       )}
 
-      {/* alpha.27: Eye button = empty state (chiude tutti i pannelli) */}
-      <Tooltip content={<>Solo viewport (chiudi tutto) <kbd className="kbd ml-1.5">Shift+Space</kbd></>}>
-        <Button
-          size="sm"
-          variant="ghost"
-          iconLeft={<Eye className="h-3.5 w-3.5" />}
-          onClick={() => {
-            useLeftRailStore.getState().close();
-            useRightRailStore.getState().close();
-            useWorkspaceStore.getState().enterEmptyState();
-          }}
-          data-testid="topbar-empty-state"
-        >
-          <span className="hidden lg:inline">Focus</span>
-        </Button>
-      </Tooltip>
-
-      {/* Export menu — visibile sempre */}
-      <div className="flex-shrink-0">
-        <ExportMenu />
-      </div>
+      {/* Focus + Export ora nel dropdown AvatarMenu (alpha.31 Task 18).
+          Focus resta sempre accessibile via Shift+Space e command palette. */}
 
       {/* Right side: dialogs portal */}
       <NewModelDialog open={newOpen} onClose={() => setNewOpen(false)} />
