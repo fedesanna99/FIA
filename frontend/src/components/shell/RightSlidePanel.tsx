@@ -1,27 +1,20 @@
 /**
- * RightSlidePanel (alpha.17) — overlay ancorato al RightRail.
+ * RightSlidePanel (alpha.17 → refactor alpha.26 G11).
  *
- * Si sovrappone visivamente al WorkspacePanel (zIndex 30) con animazione
- * slide-from-right. Larghezza 320px (mockup: 276px ma con padding+border
- * va leggermente piu' largo per leggibilita').
+ * Container overlay ankorato a sinistra del RightRail. Sostituisce
+ * i vecchi *PanelContent (alpha.17) con i 3 nuovi macro-panel
+ * brief-aligned (InspectPanel/ViewPanel/ToolsPanel) wrappati in
+ * PanelChrome.
  *
- * I 4 panel hanno stesso layout: header (titolo + close X) + body
- * scrollabile. Il contenuto viene scelto via `openSection` dal store.
+ * History panel mantiene il vecchio HistoryPanelContent (non e' nel
+ * brief — preserved per UX snapshot management).
  */
 import { X } from "lucide-react";
 import { useRightRailStore } from "../../store/rightRailStore";
-import { InspectPanelContent } from "./panels/InspectPanelContent";
-import { ViewPanelContent } from "./panels/ViewPanelContent";
-import { ToolsPanelContent } from "./panels/ToolsPanelContent";
 import { HistoryPanelContent } from "./panels/HistoryPanelContent";
-
-
-const TITLES = {
-  inspect: "Inspect — Risultati",
-  view:    "View — Layer & Display",
-  tools:   "Tools — Strumenti",
-  history: "History — Snapshot",
-} as const;
+import { InspectPanel } from "../../shell/panels/InspectPanel";
+import { ViewPanel } from "../../shell/panels/ViewPanel";
+import { ToolsPanel } from "../../shell/panels/ToolsPanel";
 
 
 export function RightSlidePanel() {
@@ -30,6 +23,24 @@ export function RightSlidePanel() {
 
   if (!openSection) return null;
 
+  // alpha.26: 3 panel brief-aligned (Inspect/View/Tools) ora sono
+  // componenti completi con PanelChrome integrato. Renderizzati come
+  // overlay assoluto (mantenuto absolute positioning compat alpha.17).
+  if (openSection === "inspect" || openSection === "view" || openSection === "tools") {
+    return (
+      <aside
+        className="absolute top-0 bottom-0 right-12 z-30 animate-slide-left"
+        role="complementary"
+        data-testid={`right-panel-${openSection}`}
+      >
+        {openSection === "inspect" && <InspectPanel />}
+        {openSection === "view"    && <ViewPanel />}
+        {openSection === "tools"   && <ToolsPanel />}
+      </aside>
+    );
+  }
+
+  // History: panel legacy (non nel brief, ma preserved per UX snapshot)
   return (
     <aside
       className={[
@@ -39,12 +50,12 @@ export function RightSlidePanel() {
         "flex flex-col",
       ].join(" ")}
       role="complementary"
-      aria-label={TITLES[openSection]}
-      data-testid={`right-panel-${openSection}`}
+      aria-label="History — Snapshot"
+      data-testid="right-panel-history"
     >
       <header className="h-9 flex items-center justify-between px-3 border-b border-border flex-shrink-0">
         <h2 className="text-xs font-semibold uppercase tracking-wider text-ink">
-          {TITLES[openSection]}
+          History — Snapshot
         </h2>
         <button
           type="button"
@@ -56,12 +67,8 @@ export function RightSlidePanel() {
           <X className="h-3.5 w-3.5" />
         </button>
       </header>
-
       <div className="flex-1 overflow-auto p-3 text-xs">
-        {openSection === "inspect" && <InspectPanelContent />}
-        {openSection === "view"    && <ViewPanelContent />}
-        {openSection === "tools"   && <ToolsPanelContent />}
-        {openSection === "history" && <HistoryPanelContent />}
+        <HistoryPanelContent />
       </div>
     </aside>
   );

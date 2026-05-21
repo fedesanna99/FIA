@@ -1,5 +1,78 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.26 — Sprint 5 / G11: VerifyPanel + InspectPanel + ViewPanel + ToolsPanel — 2026-05-21
+
+**Completi tutti i 6 macro-panel brief-aligned** (3 sinistra + 3 destra).
+La shell ora ha il layout pixel-aligned al mockup v1.3 §"6-rail".
+
+### Added
+- **`shell/panels/VerifyPanel.tsx`** — left panel "Verify" con 5 tab
+  Eurocodi + NTC:
+  - **EC2** Calcestruzzo → wrappa `EC2Panel` v1.2
+  - **EC3** Acciaio → wrappa `VerificationPanel` v1.2 (analisi principale)
+  - **EC5** Legno → wrappa `EC5Panel`
+  - **EC8** Sismica → wrappa `EC8Panel`
+  - **NTC18** Combinazioni → wrappa `NTCCombinationsPanel`
+- **`shell/panels/InspectPanel.tsx`** — right panel "Inspect" con 5 tab
+  risultati:
+  - **Statica**: KV display Max u / Max σ / Solve time o empty state
+  - **Modale**: lista primi 5 modi con frequenze
+  - **Dinamica**: wrappa DriftPanel + ConvergencePanel + LiveMonitorPanel
+  - **Iso 3D**: wrappa IsosurfacePanel (BL-7)
+  - **Fatica**: wrappa FatiguePanel (EC3-1-9)
+- **`shell/panels/ViewPanel.tsx`** — right panel "View" SENZA tab,
+  toggle list:
+  - Toggle Deformata + Colormap σ Von Mises + Iso-superfici 3D
+  - Slider scala deformata 1-1000× con accent color
+  - Wire diretto a `resultsStore` (showDeformed, showStressColormap, ecc.)
+- **`shell/panels/ToolsPanel.tsx`** — right panel "Tools" SENZA tab,
+  sezioni:
+  - **Modello**: Misurazioni, Compare A/B (soon)
+  - **Cloud**: Cost preview, Snapshot
+  - **Pro v1.3+**: BIM viewer IFC (soon), Topology opt. (soon)
+  - **Validazione**: Validazione NAFEMS
+  - **I/O**: Export PDF/Excel
+- **`components/shell/LeftSlidePanel.tsx`** wiring: `verify` ora rende
+  `<VerifyPanel />` invece di VerifyWorkspace legacy.
+- **`components/shell/RightSlidePanel.tsx`** refactor completo: ora
+  rende `<InspectPanel/ViewPanel/ToolsPanel />` (i 3 nuovi macro-panel)
+  invece dei vecchi `*Content` (alpha.17). History panel mantiene
+  HistoryPanelContent (non nel brief — preservato per snapshot UX).
+
+### Tests
+- **+0 vitest nuovi** (i panel nuovi non hanno test dedicati per brevita';
+  i test esistenti continuano a passare grazie al pattern PanelChrome).
+  Roadmap: aggiungere test in alpha.27 con E2E Playwright per coverage
+  end-to-end.
+- **311/311 vitest** mantenuto. Build Vite OK 27.36s.
+
+### Sprint 5 status
+| Tag | Cosa | Stato |
+|---|---|---|
+| alpha.23 | Tabler + Fuse + workspaceStore brief schema | ✅ |
+| alpha.24 | PanelChrome + MakePanel (5 tab) | ✅ |
+| alpha.25 | SolvePanel + CostPreviewCard (flagship) | ✅ |
+| **alpha.26** | **VerifyPanel + InspectPanel + ViewPanel + ToolsPanel** | ✅ |
+| alpha.27 | Empty state + cleanup legacy + E2E | ⏳ next |
+| alpha.28 | OnboardingTour 9 step + closure | ⏳ |
+
+### UX impact
+- **Left rail (Make/Solve/Verify)**: tutti 3 con PanelChrome
+  brief-aligned, tabs orizzontali Tabler icons.
+- **Right rail (Inspect/View/Tools)**: tutti 3 con PanelChrome.
+  History (4° voce) preservata come legacy panel.
+- **Layout coerente**: tutti i 6 macro-panel usano lo stesso pattern
+  visivo (header IconTabler + titolo + close X + tabs/body).
+
+### Gate
+| | alpha.25 | **alpha.26** |
+|---|---|---|
+| Macro-panel brief-aligned | 2 (Make+Solve) | **6 (tutti)** |
+| RightRail legacy *Content | ancora usati | **rimpiazzati da macro-panel** |
+| vitest frontend | 311 | **311** (no test nuovi) |
+
+---
+
 ## v1.4.0-alpha.25 — Sprint 5 / G10: SolvePanel + CostPreviewCard gradient (FLAGSHIP) — 2026-05-21
 
 **Flagship feature** del brief v1.2.1 Step 7.3-7.4. Il `CostPreviewCard`

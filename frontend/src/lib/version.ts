@@ -8,4 +8,4 @@
 export const APP_VERSION = "v1.4";
 
 /** Tag completo dell'ultima alpha rilasciata (per UI debug/Account). */
-export const APP_TAG = "v1.4.0-alpha.25";
+export const APP_TAG = "v1.4.0-alpha.26";

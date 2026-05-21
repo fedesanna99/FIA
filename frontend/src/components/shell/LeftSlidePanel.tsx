@@ -17,8 +17,8 @@ import { useLeftRailStore } from "../../store/leftRailStore";
 import type { Workspace } from "../../store/workspaceStore";
 import { MakePanel } from "../../shell/panels/MakePanel";
 import { SolvePanel } from "../../shell/panels/SolvePanel";
+import { VerifyPanel } from "../../shell/panels/VerifyPanel";
 import { ResultsWorkspace } from "./workspaces/ResultsWorkspace";
-import { VerifyWorkspace } from "./workspaces/VerifyWorkspace";
 import { IOWorkspace } from "./workspaces/IOWorkspace";
 
 
@@ -38,13 +38,15 @@ export function LeftSlidePanel() {
 
   if (!openSection || openSection === "docs") return null;
 
-  // alpha.24/.25: per "model" e "analysis" usiamo i nuovi macro-panel
-  // brief-aligned (PanelChrome + tabs). Verify in alpha.26.
+  // alpha.24/.25/.26: 3 macro-panel brief-aligned per Make/Solve/Verify.
   if (openSection === "model") {
     return <MakePanel />;
   }
   if (openSection === "analysis") {
     return <SolvePanel />;
+  }
+  if (openSection === "verify") {
+    return <VerifyPanel />;
   }
 
   return (
@@ -75,7 +77,6 @@ export function LeftSlidePanel() {
       </header>
 
       <div className="flex-1 overflow-hidden min-h-0">
-        {openSection === "verify"   && <VerifyWorkspace />}
         {openSection === "results"  && <ResultsWorkspace />}
         {openSection === "io"       && <IOWorkspace />}
       </div>
