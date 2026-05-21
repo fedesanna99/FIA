@@ -26,6 +26,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
 import { useNavigationCommands } from "../../hooks/useNavigationCommands";
 import { useSelectionStore } from "../../store/selectionStore";
+import { useWizardStore, type WizardKind } from "../../store/wizardStore";
 import { toast } from "../../store/toastStore";
 import {
   exportModelJson, exportResultsJson,
@@ -128,6 +129,20 @@ export function CommandPalette() {
       case "logout":
         authLogout();
         break;
+      case "open-wizard": {
+        // v1.5 Task 34 follow-up: hub generico via wizardStore.
+        // Il dispatcher in App.tsx instrada al meccanismo concreto
+        // (uiStore.setOpenDialog / custom event / toast soon) e poi
+        // resetta lo stato. Per la voce sismica-th l'evento viene
+        // intercettato da SeismicTHPanel.tsx.
+        const { wizard, ...rest } = (item.payload ?? {}) as {
+          wizard?: WizardKind;
+          [k: string]: unknown;
+        };
+        if (!wizard) break;
+        useWizardStore.getState().open(wizard, rest);
+        break;
+      }
       case "open-import-wizard": {
         // v1.5 Task 29: apre ImportWizard via custom event globale (gestito
         // in App.tsx). Payload opzionale { source: "dxf"|"ifc"|"json" }.

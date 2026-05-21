@@ -61,6 +61,7 @@ export type PaletteActionKind =
   | "logout"         // auth logout
   | "focus-toggle"   // v1.5 Task 33: toggle modalita' focus (Shift+Space / F)
   | "open-import-wizard" // v1.5 Task 29: apre ImportWizard 4-step (payload?: { source })
+  | "open-wizard"    // v1.5 Task 34 follow-up: hub generico via wizardStore (payload: { wizard, ... })
   // v1.5 Task 34: nuovi actionKind per voci catalogo
   | "apply-material" // payload: { materialId } — applica materiale alla selezione/all
   | "apply-section"  // payload: { sectionId }  — applica sezione alla selezione/all
@@ -250,13 +251,16 @@ const SECTIONS: PaletteItem[] = [
 
 
 // ── 8) WIZARDS — Quick openers per i wizard (v1.5 Task 34) ─────────────────
-// Le voci open-wizard-import-* sono gia' in COMMANDS (Task 29). Qui i 4
-// wizard ancora "soon" — solo mesh wizard e' funzionante (gia' in COMMANDS).
+// v1.5 Task 34 follow-up: hub unico via "open-wizard" + wizardStore.
+// `sismica-th` ora e' funzionale (Task 31 ha creato il wizard reale).
+// Gli altri restano "soon" finche' non c'e' un'implementazione vera.
 const WIZARDS_EXTRA: PaletteItem[] = [
-  { id: "wiz-sismica-th", label: "Apri wizard sismica time-history", aliases: ["sismica", "th", "wizard"], section: "commands", group: "Wizard", icon: Activity, actionKind: "togglePalette", soon: true, needsModel: true },
-  { id: "wiz-pushover",   label: "Apri wizard pushover",              aliases: ["pushover", "wizard"], section: "commands", group: "Wizard", icon: Activity, actionKind: "togglePalette", soon: true, needsModel: true },
-  { id: "wiz-nonlinear",  label: "Apri wizard nonlinear arc-length",  aliases: ["nonlinear", "arc length"], section: "commands", group: "Wizard", icon: Activity, actionKind: "togglePalette", soon: true, needsModel: true },
-  { id: "wiz-report",     label: "Apri wizard report PDF",            aliases: ["report", "pdf", "wizard"], section: "commands", group: "Wizard", icon: FileText, actionKind: "togglePalette", soon: true, needsModel: true },
+  { id: "wiz-new-model",  label: "Apri wizard nuovo modello",         aliases: ["nuovo", "new", "model", "wizard"], section: "commands", group: "Wizard", icon: Plus,     actionKind: "open-wizard", payload: { wizard: "new-model" } },
+  { id: "wiz-mesh",       label: "Apri wizard mesh",                  aliases: ["mesh", "wizard", "discretizzazione"], section: "commands", group: "Wizard", icon: Layers,   actionKind: "open-wizard", payload: { wizard: "mesh" }, needsModel: true },
+  { id: "wiz-sismica-th", label: "Apri wizard sismica time-history",  aliases: ["sismica", "th", "wizard", "newmark"], section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "sismica-th" }, needsModel: true },
+  { id: "wiz-pushover",   label: "Apri wizard pushover",              aliases: ["pushover", "wizard"],                 section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "pushover" },   soon: true, needsModel: true },
+  { id: "wiz-nonlinear",  label: "Apri wizard nonlinear arc-length",  aliases: ["nonlinear", "arc length", "riks"],    section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "nonlinear" },  soon: true, needsModel: true },
+  { id: "wiz-report",     label: "Apri wizard report PDF",            aliases: ["report", "pdf", "wizard"],            section: "commands", group: "Wizard", icon: FileText, actionKind: "open-wizard", payload: { wizard: "report" },     soon: true, needsModel: true },
 ];
 
 

@@ -46,6 +46,7 @@ import { LoadDialog } from "./components/dialogs/LoadDialog";
 import { ConstraintDialog } from "./components/dialogs/ConstraintDialog";
 import { MeshWizardDialog } from "./components/dialogs/MeshWizardDialog";
 import { ImportWizard } from "./components/dialogs/wizards/ImportWizard";
+import { SismicaTHWizard } from "./components/dialogs/wizards/SismicaTHWizard";
 import { MobileTabbar } from "./components/shell/MobileTabbar";
 import { MobilePanel } from "./components/shell/MobilePanel";
 import { MobileMoreMenu } from "./components/shell/MobileMoreMenu";
@@ -61,6 +62,7 @@ import { useUIStore } from "./store/uiStore";
 import { useWorkspaceStore } from "./store/workspaceStore";
 import { useLeftRailStore } from "./store/leftRailStore";
 import { useThemeStore } from "./store/themeStore";
+import { useWizardStore } from "./store/wizardStore";
 
 /**
  * Helper riusabile: entra in focus mode chiudendo tutti i pannelli + toast hint.
@@ -90,6 +92,9 @@ export default function App() {
     "dxf" | "ifc" | "json" | "template" | undefined
   >(undefined);
   useLoadModel(activeId);
+  // v1.5 Task 34 follow-up: leggo wizardStore.active per renderizzare il
+  // SismicaTHWizard singleton al root.
+  const wizardActive = useWizardStore((s) => s.active);
   const setDialog = useUIStore((s) => s.setOpenDialog);
   const openDialog = useUIStore((s) => s.openDialog);
   const editNodeId = useUIStore((s) => s.editNodeId);
@@ -160,6 +165,57 @@ export default function App() {
       window.removeEventListener("feapro:model-imported", onImported);
     };
   }, []);
+
+  // v1.5 Task 34 follow-up: dispatcher wizardStore.
+  // Quando la palette / shortcut chiama wizardStore.open(kind, payload),
+  // questo effect instrada verso il meccanismo concreto di ogni wizard.
+  //
+  // Per "sismica-th" il wizard e' renderato direttamente sotto leggendo
+  // wizardStore.active: niente side-effect, niente close() — sara' l'onClose
+  // del wizard a chiamare wizardStore.close().
+  //
+  // Per gli altri kind con meccanismo proprio (dialog modale uiStore,
+  // ImportWizard custom event) il dispatcher fa il side-effect e chiude
+  // subito lo store (trigger one-shot).
+  useEffect(() => {
+    const unsub = useWizardStore.subscribe((state, prev) => {
+      if (state.active === prev.active) return;
+      if (state.active === null) return;
+      const kind = state.active;
+      const payload = state.payload;
+      let oneShot = true;
+      switch (kind) {
+        case "new-model":
+          setDialog("new");
+          break;
+        case "mesh":
+          setDialog("mesh");
+          break;
+        case "import": {
+          const src = (payload as { source?: string }).source;
+          window.dispatchEvent(
+            new CustomEvent("feapro:open-import-wizard", {
+              detail: src ? { source: src } : undefined,
+            }),
+          );
+          break;
+        }
+        case "sismica-th":
+          // Wizard mounted at root reads wizardStore.active — niente close.
+          oneShot = false;
+          break;
+        case "pushover":
+        case "nonlinear":
+        case "report":
+          void import("./store/toastStore").then(({ toast }) =>
+            toast("info", `Wizard ${kind} in arrivo nel prossimo update.`),
+          );
+          break;
+      }
+      if (oneShot) useWizardStore.getState().close();
+    });
+    return unsub;
+  }, [setDialog]);
 
   // Numeri 1-5 + Shift+Space (alpha.27 empty state) + (alpha.22 toggle).
   // v1.5 Task 33: gerarchia di priorita' chiara, F dedicato a focus mode + ESC exit.
@@ -381,6 +437,14 @@ export default function App() {
         open={importWizardOpen}
         onClose={() => setImportWizardOpen(false)}
         initialSource={importWizardSource}
+      />
+      {/* v1.5 Task 34 follow-up: SismicaTHWizard governato dal wizardStore
+          (singleton al root, no piu' mount duplicato in SeismicTHPanel).
+          Aperto da: bottone "Configura analisi" nel panel sismica, voce
+          palette "Apri wizard sismica time-history". */}
+      <SismicaTHWizard
+        open={wizardActive === "sismica-th"}
+        onClose={() => useWizardStore.getState().close()}
       />
     </div>
   );
