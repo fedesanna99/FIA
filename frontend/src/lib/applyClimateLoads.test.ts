@@ -188,4 +188,201 @@ describe("applyClimateLoadsToModel", () => {
     expect(r.n_nodes_loaded).toBe(5);
     expect(r.n_nodes_skipped).toBe(0);
   });
+
+  // ============================================================
+  // Modalita' per-node (v1.4.0-alpha.6)
+  // ============================================================
+
+  it("per-node: trave 6m con 6 sub-beam, interni 1m, estremi 0.5m", () => {
+    const m: FEAModel = {
+      id: "t", name: "t", units: "SI", is_3d: false,
+      nodes: [
+        { id: 1, x: 0, y: 0, z: 0 },
+        { id: 2, x: 1, y: 0, z: 0 },
+        { id: 3, x: 2, y: 0, z: 0 },
+        { id: 4, x: 3, y: 0, z: 0 },
+        { id: 5, x: 4, y: 0, z: 0 },
+        { id: 6, x: 5, y: 0, z: 0 },
+        { id: 7, x: 6, y: 0, z: 0 },
+      ],
+      elements: [
+        { id: 1, type: "beam2d", nodes: [1, 2], material_id: "m" },
+        { id: 2, type: "beam2d", nodes: [2, 3], material_id: "m" },
+        { id: 3, type: "beam2d", nodes: [3, 4], material_id: "m" },
+        { id: 4, type: "beam2d", nodes: [4, 5], material_id: "m" },
+        { id: 5, type: "beam2d", nodes: [5, 6], material_id: "m" },
+        { id: 6, type: "beam2d", nodes: [6, 7], material_id: "m" },
+      ],
+      loads: [],
+      constraints: [
+        { id: 1, type: "pinned", node_id: 1 },
+        { id: 2, type: "roller_x", node_id: 7 },
+      ],
+    };
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      tributaryMode: "per-node",
+      includeWind: false,
+    });
+    expect(r.n_nodes_loaded).toBe(5);
+    expect(r.n_nodes_skipped).toBe(2);
+    expect(r.loads).toHaveLength(5);
+    // Tutti i nodi caricati interni -> tributary uguale 1.0 -> snow = 0.022
+    expect(r.snow_force_min_kN).toBeCloseTo(0.022, 4);
+    expect(r.snow_force_max_kN).toBeCloseTo(0.022, 4);
+    expect(r.snow_force_kN).toBeCloseTo(0.022, 4);
+    const snowLoad = r.loads.find((l) => l.target_id === 2);
+    expect(snowLoad?.fz).toBeCloseTo(-0.022, 4);
+  });
+
+  it("per-node: estremi liberi -> magnitudo diversa tra estremi e interni", () => {
+    const m: FEAModel = {
+      id: "t", name: "t", units: "SI", is_3d: false,
+      nodes: [
+        { id: 1, x: 0, y: 0, z: 0 },
+        { id: 2, x: 1, y: 0, z: 0 },
+        { id: 3, x: 2, y: 0, z: 0 },
+      ],
+      elements: [
+        { id: 1, type: "beam2d", nodes: [1, 2], material_id: "m" },
+        { id: 2, type: "beam2d", nodes: [2, 3], material_id: "m" },
+      ],
+      loads: [], constraints: [],
+    };
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      tributaryMode: "per-node",
+      includeWind: false,
+    });
+    expect(r.snow_force_min_kN).toBeCloseTo(0.011, 4);
+    expect(r.snow_force_max_kN).toBeCloseTo(0.022, 4);
+    const load1 = r.loads.find((l) => l.target_id === 1);
+    const load2 = r.loads.find((l) => l.target_id === 2);
+    expect(load1?.fz).toBeCloseTo(-0.011, 4);
+    expect(load2?.fz).toBeCloseTo(-0.022, 4);
+  });
+
+  it("per-node: nodo isolato viene skippato", () => {
+    const m: FEAModel = {
+      id: "t", name: "t", units: "SI", is_3d: false,
+      nodes: [
+        { id: 1, x: 0, y: 0, z: 0 },
+        { id: 2, x: 1, y: 0, z: 0 },
+        { id: 3, x: 99, y: 99, z: 99 },
+      ],
+      elements: [
+        { id: 1, type: "beam2d", nodes: [1, 2], material_id: "m" },
+      ],
+      loads: [], constraints: [],
+    };
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      tributaryMode: "per-node",
+    });
+    expect(r.n_nodes_loaded).toBe(2);
+    expect(r.n_nodes_skipped).toBe(1);
+  });
+
+  it("per-node senza elementi -> tutti skip", () => {
+    const m: FEAModel = {
+      id: "t", name: "t", units: "SI", is_3d: false,
+      nodes: [
+        { id: 1, x: 0, y: 0, z: 0 },
+        { id: 2, x: 1, y: 0, z: 0 },
+      ],
+      elements: [], loads: [], constraints: [],
+    };
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      tributaryMode: "per-node",
+    });
+    expect(r.loads).toEqual([]);
+    expect(r.n_nodes_loaded).toBe(0);
+    expect(r.n_nodes_skipped).toBe(2);
+  });
+
+  it("per-node con facade_width 2x raddoppia magnitudini beam", () => {
+    const m: FEAModel = {
+      id: "t", name: "t", units: "SI", is_3d: false,
+      nodes: [
+        { id: 1, x: 0, y: 0, z: 0 },
+        { id: 2, x: 2, y: 0, z: 0 },
+      ],
+      elements: [{ id: 1, type: "beam2d", nodes: [1, 2], material_id: "m" }],
+      loads: [], constraints: [],
+    };
+    const r1 = applyClimateLoadsToModel(m, sampleBundle, {
+      tributaryMode: "per-node", facadeWidthM: 1.0, includeWind: false,
+    });
+    const r2 = applyClimateLoadsToModel(m, sampleBundle, {
+      tributaryMode: "per-node", facadeWidthM: 2.0, includeWind: false,
+    });
+    expect(r1.snow_force_kN).toBeCloseTo(0.022, 4);
+    expect(r2.snow_force_kN).toBeCloseTo(0.044, 4);
+  });
+
+  it("per-node shell Q4 2x2: corner < edge < center magnitudo", () => {
+    const m: FEAModel = {
+      id: "t", name: "t", units: "SI", is_3d: false,
+      nodes: [
+        { id: 1, x: 0, y: 0, z: 0 },
+        { id: 2, x: 1, y: 0, z: 0 },
+        { id: 3, x: 2, y: 0, z: 0 },
+        { id: 4, x: 0, y: 1, z: 0 },
+        { id: 5, x: 1, y: 1, z: 0 },
+        { id: 6, x: 2, y: 1, z: 0 },
+        { id: 7, x: 0, y: 2, z: 0 },
+        { id: 8, x: 1, y: 2, z: 0 },
+        { id: 9, x: 2, y: 2, z: 0 },
+      ],
+      elements: [
+        { id: 1, type: "shell_q4", nodes: [1, 2, 5, 4], material_id: "m" },
+        { id: 2, type: "shell_q4", nodes: [2, 3, 6, 5], material_id: "m" },
+        { id: 3, type: "shell_q4", nodes: [4, 5, 8, 7], material_id: "m" },
+        { id: 4, type: "shell_q4", nodes: [5, 6, 9, 8], material_id: "m" },
+      ],
+      loads: [], constraints: [],
+    };
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      tributaryMode: "per-node",
+      includeWind: false,
+    });
+    // Corner 0.25 → 0.0055, Edge 0.5 → 0.011, Center 1.0 → 0.022
+    expect(r.snow_force_min_kN).toBeCloseTo(0.0055, 4);
+    expect(r.snow_force_max_kN).toBeCloseTo(0.022, 4);
+    const corner = r.loads.find((l) => l.target_id === 1);
+    const edge = r.loads.find((l) => l.target_id === 2);
+    const center = r.loads.find((l) => l.target_id === 5);
+    expect(corner?.fz).toBeCloseTo(-0.0055, 4);
+    expect(edge?.fz).toBeCloseTo(-0.011, 4);
+    expect(center?.fz).toBeCloseTo(-0.022, 4);
+  });
+
+  it("conservation: sum totale per-node = q × area_totale_modello", () => {
+    // Q4 2m × 2m, area=4
+    const m: FEAModel = {
+      id: "t", name: "t", units: "SI", is_3d: false,
+      nodes: [
+        { id: 1, x: 0, y: 0, z: 0 },
+        { id: 2, x: 2, y: 0, z: 0 },
+        { id: 3, x: 2, y: 2, z: 0 },
+        { id: 4, x: 0, y: 2, z: 0 },
+      ],
+      elements: [{ id: 1, type: "shell_q4", nodes: [1, 2, 3, 4], material_id: "m" }],
+      loads: [], constraints: [],
+    };
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      tributaryMode: "per-node", includeWind: false,
+    });
+    // Sum |fz| = s_design × A_totale = 0.022 × 4.0 = 0.088
+    const totalAbs = r.loads.reduce((s, l) => s + Math.abs(l.fz ?? 0), 0);
+    expect(totalAbs).toBeCloseTo(0.088, 4);
+  });
+
+  it("uniform mode NON popola min/max", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      tributaryMode: "uniform",
+    });
+    expect(r.wind_force_min_kN).toBeUndefined();
+    expect(r.wind_force_max_kN).toBeUndefined();
+    expect(r.snow_force_min_kN).toBeUndefined();
+    expect(r.snow_force_max_kN).toBeUndefined();
+  });
 });

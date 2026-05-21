@@ -19,6 +19,7 @@ import {
   applyClimateLoadsToModel,
   DEFAULT_APPLY_OPTIONS,
   type WindDirection,
+  type TributaryMode,
 } from "../../lib/applyClimateLoads";
 import { computeTributaryAreas } from "../../lib/tributaryAreas";
 
@@ -39,8 +40,14 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
   const [windDirection, setWindDirection] = useState<WindDirection>(
     DEFAULT_APPLY_OPTIONS.windDirection,
   );
+  const [tributaryMode, setTributaryMode] = useState<TributaryMode>(
+    DEFAULT_APPLY_OPTIONS.tributaryMode,
+  );
   const [tributaryArea, setTributaryArea] = useState(
     DEFAULT_APPLY_OPTIONS.tributaryArea,
+  );
+  const [facadeWidthM, setFacadeWidthM] = useState(
+    DEFAULT_APPLY_OPTIONS.facadeWidthM,
   );
   const [skipConstrained, setSkipConstrained] = useState(
     DEFAULT_APPLY_OPTIONS.skipConstrained,
@@ -50,9 +57,14 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
   const preview = useMemo(() => {
     if (!bundle || !model) return null;
     return applyClimateLoadsToModel(model, bundle, {
-      includeWind, includeSnow, windDirection, tributaryArea, skipConstrained,
+      includeWind, includeSnow, windDirection,
+      tributaryMode, tributaryArea, facadeWidthM,
+      skipConstrained,
     });
-  }, [bundle, model, includeWind, includeSnow, windDirection, tributaryArea, skipConstrained]);
+  }, [
+    bundle, model, includeWind, includeSnow, windDirection,
+    tributaryMode, tributaryArea, facadeWidthM, skipConstrained,
+  ]);
 
   const apply = useMutation({
     mutationFn: async () => {
@@ -158,49 +170,102 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
           </label>
         </div>
 
-        {/* Tributary area */}
-        <div className="space-y-1">
-          <div className="flex items-center justify-between">
-            <label className="text-xs text-ink-dim">
-              Area di influenza per nodo [m²]
+        {/* Tributary mode selector */}
+        <div className="space-y-2">
+          <label className="text-xs text-ink-dim">Modalita' area di influenza</label>
+          <div className="flex items-center gap-3 text-xs">
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="radio"
+                name="tributary-mode"
+                value="uniform"
+                checked={tributaryMode === "uniform"}
+                onChange={() => setTributaryMode("uniform")}
+                data-testid="apply-mode-uniform"
+              />
+              <span>📐 Uniforme</span>
             </label>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => {
-                const r = computeTributaryAreas(model);
-                if (r.stats.n_nodes_with_tributary === 0) {
-                  toast(
-                    "error",
-                    "Topologia priva di beam/shell: impossibile derivare aree. Usa valore manuale.",
-                  );
-                  return;
-                }
-                setTributaryArea(Math.round(r.stats.area_mean_m2 * 1000) / 1000);
-                toast(
-                  "info",
-                  `Auto-calc: media ${r.stats.area_mean_m2.toFixed(3)} m² ` +
-                  `(range ${r.stats.area_min_m2.toFixed(3)}–${r.stats.area_max_m2.toFixed(3)})`,
-                );
-              }}
-              data-testid="apply-auto-tributary"
-            >
-              🤖 Auto da topologia
-            </Button>
+            <label className="flex items-center gap-1.5 cursor-pointer">
+              <input
+                type="radio"
+                name="tributary-mode"
+                value="per-node"
+                checked={tributaryMode === "per-node"}
+                onChange={() => setTributaryMode("per-node")}
+                data-testid="apply-mode-per-node"
+              />
+              <span>🧮 Per-nodo da topologia</span>
+            </label>
           </div>
-          <input
-            type="number"
-            min={0.01}
-            max={1000}
-            step={0.1}
-            value={tributaryArea}
-            onChange={(e) => setTributaryArea(Number(e.target.value) || 1.0)}
-            className="w-32 bg-bg-elevated border border-border rounded px-2 py-1 text-sm font-mono"
-            data-testid="apply-tributary-area"
-          />
-          <div className="text-[10px] text-ink-dim">
-            magnitudo = q · area. Es. wind = q_p × {tributaryArea.toFixed(2)} = <strong>{((bundle.meteo?.wind.q_p_z10_kN_m2 ?? 0) * tributaryArea).toFixed(3)} kN</strong>/nodo
-          </div>
+
+          {tributaryMode === "uniform" && (
+            <div className="space-y-1 pl-4 border-l-2 border-border">
+              <div className="flex items-center justify-between">
+                <label className="text-xs text-ink-dim">
+                  Area uniforme per nodo [m²]
+                </label>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => {
+                    const r = computeTributaryAreas(model);
+                    if (r.stats.n_nodes_with_tributary === 0) {
+                      toast(
+                        "error",
+                        "Topologia priva di beam/shell: impossibile derivare aree.",
+                      );
+                      return;
+                    }
+                    setTributaryArea(Math.round(r.stats.area_mean_m2 * 1000) / 1000);
+                    toast(
+                      "info",
+                      `Auto-calc: media ${r.stats.area_mean_m2.toFixed(3)} m² ` +
+                      `(range ${r.stats.area_min_m2.toFixed(3)}–${r.stats.area_max_m2.toFixed(3)})`,
+                    );
+                  }}
+                  data-testid="apply-auto-tributary"
+                >
+                  🤖 Auto media
+                </Button>
+              </div>
+              <input
+                type="number"
+                min={0.01}
+                max={1000}
+                step={0.1}
+                value={tributaryArea}
+                onChange={(e) => setTributaryArea(Number(e.target.value) || 1.0)}
+                className="w-32 bg-bg-elevated border border-border rounded px-2 py-1 text-sm font-mono"
+                data-testid="apply-tributary-area"
+              />
+              <div className="text-[10px] text-ink-dim">
+                wind = q_p × {tributaryArea.toFixed(2)} = <strong>{((bundle.meteo?.wind.q_p_z10_kN_m2 ?? 0) * tributaryArea).toFixed(3)} kN</strong>/nodo (uniforme)
+              </div>
+            </div>
+          )}
+
+          {tributaryMode === "per-node" && (
+            <div className="space-y-1 pl-4 border-l-2 border-accent/40">
+              <label className="text-xs text-ink-dim">
+                Larghezza facciata per beam 1D [m]
+              </label>
+              <input
+                type="number"
+                min={0.1}
+                max={100}
+                step={0.1}
+                value={facadeWidthM}
+                onChange={(e) => setFacadeWidthM(Number(e.target.value) || 1.0)}
+                className="w-32 bg-bg-elevated border border-border rounded px-2 py-1 text-sm font-mono"
+                data-testid="apply-facade-width"
+              />
+              <div className="text-[10px] text-ink-dim">
+                ogni nodo riceve q × tributary[i] specifico dalla topologia
+                (beam: ½ lunghezze adiacenti × {facadeWidthM.toFixed(1)} m;
+                shell: ¼ aree Q4 / ⅓ aree Tri3)
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Skip constrained */}
@@ -222,18 +287,42 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
           >
             <div className="font-semibold text-accent">Anteprima</div>
             <div>
-              Carichi da aggiungere: <strong>{preview.loads.length}</strong> ({preview.n_nodes_loaded} nodi × {(preview.loads.length / Math.max(preview.n_nodes_loaded, 1)).toFixed(0)} per nodo)
+              Carichi da aggiungere: <strong>{preview.loads.length}</strong> ({preview.n_nodes_loaded} nodi)
             </div>
             {preview.n_nodes_skipped > 0 && (
               <div className="text-ink-dim">
-                {preview.n_nodes_skipped} nodi vincolati saltati
+                {preview.n_nodes_skipped} nodi saltati ({tributaryMode === "per-node" ? "vincolati o isolati" : "vincolati"})
               </div>
             )}
             {preview.wind_force_kN > 0 && (
-              <div>Wind force/nodo: <strong>{preview.wind_force_kN.toFixed(3)} kN</strong></div>
+              <div>
+                Wind force/nodo:{" "}
+                {preview.wind_force_min_kN !== undefined && preview.wind_force_max_kN !== undefined
+                  ? (
+                    <>
+                      <strong>{preview.wind_force_min_kN.toFixed(3)}–{preview.wind_force_max_kN.toFixed(3)} kN</strong>
+                      <span className="text-ink-dim"> (media {preview.wind_force_kN.toFixed(3)})</span>
+                    </>
+                  ) : (
+                    <strong>{preview.wind_force_kN.toFixed(3)} kN</strong>
+                  )
+                }
+              </div>
             )}
             {preview.snow_force_kN > 0 && (
-              <div>Snow force/nodo: <strong>{preview.snow_force_kN.toFixed(3)} kN</strong></div>
+              <div>
+                Snow force/nodo:{" "}
+                {preview.snow_force_min_kN !== undefined && preview.snow_force_max_kN !== undefined
+                  ? (
+                    <>
+                      <strong>{preview.snow_force_min_kN.toFixed(3)}–{preview.snow_force_max_kN.toFixed(3)} kN</strong>
+                      <span className="text-ink-dim"> (media {preview.snow_force_kN.toFixed(3)})</span>
+                    </>
+                  ) : (
+                    <strong>{preview.snow_force_kN.toFixed(3)} kN</strong>
+                  )
+                }
+              </div>
             )}
           </div>
         )}
@@ -256,8 +345,9 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
         </div>
 
         <div className="text-[10px] text-ink-dim italic pt-1">
-          NB v1.4 alpha: tributary area uniforme = stima preliminare. Per
-          progetto reale definire area per nodo basata sulla facciata reale.
+          {tributaryMode === "per-node"
+            ? "NB v1.4 alpha: facade_width uniforme per beam 1D. Per accuratezza totale serve definire h(z) per ogni nodo verticale."
+            : "NB v1.4 alpha: tributary area uniforme = stima preliminare. Usa modalita' per-nodo per accuracy scientifica."}
         </div>
       </div>
     </Dialog>

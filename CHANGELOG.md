@@ -1,5 +1,87 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.6 — Per-node magnitude: ogni nodo riceve q × tributary[i] — 2026-05-20
+
+Closure scientifico finale: invece di applicare una magnitudo costante,
+ogni nodo riceve la sua specifica forza derivata dalla tributary area
+locale. Per una mesh suddivisa, i nodi interni ricevono ~2× la forza
+dei nodi estremi — esatto come dovrebbe essere per una distribuzione
+di pressione su area.
+
+### Added
+- **`applyClimateLoads.ts`** estesa:
+  - Nuovo `ApplyClimateOptions.tributaryMode: "uniform" | "per-node"`
+  - Nuovo `facadeWidthM` (usato solo in per-node, default 1.0 m)
+  - In modalita' `per-node`: chiama `computeTributaryAreas(model, facadeWidthM)`
+    e applica magnitudo specifica `q × tributary[i]` per ogni nodo
+  - Nodi isolati (tributary=0) in per-node sono **skippati**
+    automaticamente (oltre ai vincolati)
+  - `ApplyClimateResult` ora include `wind_force_min/max_kN` e
+    `snow_force_min/max_kN` (solo in per-node)
+- **`ApplyClimateLoadsDialog`** updated:
+  - Radio button "📐 Uniforme" / "🧮 Per-nodo da topologia"
+  - In uniforme: il classico input number + bottone "🤖 Auto media"
+  - In per-nodo: input `facade_width` per beam 1D
+  - Preview live: in per-nodo mostra "min–max kN (media X)" invece di
+    valore unico — l'utente vede subito la distribuzione spaziale
+  - Nota footer aggiornata in base alla modalita'
+
+### Conservation verified
+Test "sum totale per-node = q × area_totale_modello":
+- Shell Q4 2m × 2m, area=4 m², s_design=0.022 kN/m²
+- Sum |fz| = 0.088 kN (= 4 nodi × 0.022 = 0.088 ✓ esatto)
+
+### Confronto numerico
+
+Modello: trave 6m × 3 sub-beam (4 nodi), estremi liberi, s_design=0.022 kN/m²
+
+| Nodo | Tributary [m²] | Magnitudo `per-node` [kN] | Magnitudo `uniform` (media 1.0) [kN] |
+|---|---|---|---|
+| 1 (estremo) | 1.0 (half=1) | 0.022 | 0.022 |
+| 2 (interno) | 2.0 | **0.044** | 0.022 |
+| 3 (interno) | 2.0 | **0.044** | 0.022 |
+| 4 (estremo) | 1.0 | 0.022 | 0.022 |
+| **Sum** | **6.0** | **0.132** ✓ = 0.022 × 6.0 | 0.088 (sbagliato!) |
+
+**Conservazione totale**: solo per-node garantisce `Σ F = q × A_totale`.
+
+### Tests
+- **+8 vitest** per modalita' per-node:
+  - trave 6m vincolata estremi (interni 1m tributary)
+  - trave libera (estremi 0.5m vs interni 1m, magnitudo diversa)
+  - nodo isolato (no element adiacente) → skippato
+  - modello senza beam/shell → tutti skip
+  - facade_width 2× raddoppia magnitudini beam
+  - shell Q4 2×2: corner < edge < center magnitudo
+  - **conservation**: sum |fz| = s × A_total esatto
+  - uniform mode NON popola min/max
+- **154/154 vitest totale** (146 + 8).
+
+### Gate
+| Gate | alpha.5 | **alpha.6** |
+|---|---|---|
+| pytest backend | 1308 | 1308 |
+| vitest frontend | 146 | **154** (+8) |
+| Live URL | ✅ | ✅ |
+| Closure scientifico | parziale (media uniforme) | **completo (per-node q×t[i])** |
+
+### Scientific significance
+
+Per la prima volta in FEA Pro, l'engineer può applicare carichi
+climatici con **distribuzione spaziale corretta**:
+- Apri il modello (mesh suddivisa N volte)
+- Clicca badge → expanded → "Applica come carichi"
+- Seleziona "🧮 Per-nodo da topologia"
+- Click "Aggiungi N carichi"
+- I carichi sono **proporzionali alla tributary area locale**
+- Sum totale = q × area_totale (conservazione esatta)
+
+Questo è il modello matematicamente corretto per pressione costante su
+una superficie discretizzata. Modalita' uniforme rimane disponibile
+per stima rapida / sanity check.
+
+---
+
 ## v1.4.0-alpha.5 — Tributary area auto-derived dalla topologia — 2026-05-20
 
 L'engineer non deve più indovinare il "1.0 m² uniforme" — FEA Pro lo
