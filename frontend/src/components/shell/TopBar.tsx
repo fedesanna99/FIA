@@ -25,6 +25,7 @@ import {
   LogIn,
   LogOut,
   Eye,
+  Check,
 } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { modelsApi } from "../../api/client";
@@ -70,6 +71,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   const { analysisType, setAnalysisType, isRunning } = useAnalysisStore();
   const run = useRunAnalysis();
   const model = useModelStore((s) => s.model);
+  const lastSavedAt = useModelStore((s) => s.lastSavedAt);
   const [newOpen, setNewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -127,6 +129,14 @@ export function TopBar({ models, activeId, onSelect }: Props) {
 
       {/* Breadcrumb: modello attivo › workspace (>= lg) */}
       <Breadcrumb />
+
+      {/* Save status chip — visibile quando il modello e' stato salvato */}
+      {lastSavedAt && (
+        <div className="hidden md:flex items-center gap-1 text-[11px] bg-bg-success border border-success/30 text-success px-2 py-0.5 rounded-sm flex-shrink-0">
+          <Check className="w-3 h-3" />
+          Salvato {lastSavedAt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
+        </div>
+      )}
 
       {/* Model picker — fluido su mobile, fisso su desktop */}
       <div className="relative min-w-0 flex-1 sm:flex-initial">

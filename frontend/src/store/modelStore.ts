@@ -17,6 +17,15 @@ interface ModelState {
   hover: HoverTarget;
   setHover: (h: HoverTarget) => void;
 
+  /**
+   * Timestamp dell'ultima sincronizzazione del modello con il backend.
+   * Aggiornato automaticamente in `setModel` e in tutte le mutations
+   * (add/update/remove di nodi/elementi/loads/constraints): l'UI TopBar
+   * mostra "✓ Salvato HH:MM" basandosi su questo.
+   */
+  lastSavedAt: Date | null;
+  setLastSavedAt: (d: Date | null) => void;
+
   addNode: (n: Node) => void;
   updateNode: (id: number, n: Partial<Node>) => void;
   removeNode: (id: number) => void;
@@ -35,7 +44,15 @@ interface ModelState {
 
 export const useModelStore = create<ModelState>((set, get) => ({
   model: null,
-  setModel: (m) => set({ model: m, selectedNodeIds: new Set(), selectedElementIds: new Set() }),
+  setModel: (m) => set({
+    model: m,
+    selectedNodeIds: new Set(),
+    selectedElementIds: new Set(),
+    lastSavedAt: m ? new Date() : null,
+  }),
+
+  lastSavedAt: null,
+  setLastSavedAt: (d) => set({ lastSavedAt: d }),
 
   selectedNodeIds: new Set(),
   selectedElementIds: new Set(),
@@ -59,11 +76,12 @@ export const useModelStore = create<ModelState>((set, get) => ({
 
   addNode: (n) => {
     const m = get().model; if (!m) return;
-    set({ model: { ...m, nodes: [...m.nodes, n] } });
+    set({ lastSavedAt: new Date(), model: { ...m, nodes: [...m.nodes, n] } });
   },
   updateNode: (id, patch) => {
     const m = get().model; if (!m) return;
     set({
+      lastSavedAt: new Date(),
       model: {
         ...m,
         nodes: m.nodes.map((nd) => (nd.id === id ? { ...nd, ...patch } : nd)),
@@ -73,6 +91,7 @@ export const useModelStore = create<ModelState>((set, get) => ({
   removeNode: (id) => {
     const m = get().model; if (!m) return;
     set({
+      lastSavedAt: new Date(),
       model: {
         ...m,
         nodes: m.nodes.filter((nd) => nd.id !== id),
@@ -83,34 +102,34 @@ export const useModelStore = create<ModelState>((set, get) => ({
   },
   addElement: (e) => {
     const m = get().model; if (!m) return;
-    set({ model: { ...m, elements: [...m.elements, e] } });
+    set({ lastSavedAt: new Date(), model: { ...m, elements: [...m.elements, e] } });
   },
   removeElement: (id) => {
     const m = get().model; if (!m) return;
-    set({ model: { ...m, elements: m.elements.filter((e) => e.id !== id) } });
+    set({ lastSavedAt: new Date(), model: { ...m, elements: m.elements.filter((e) => e.id !== id) } });
   },
   addLoad: (l) => {
     const m = get().model; if (!m) return;
-    set({ model: { ...m, loads: [...m.loads, l] } });
+    set({ lastSavedAt: new Date(), model: { ...m, loads: [...m.loads, l] } });
   },
   updateLoad: (id, l) => {
     const m = get().model; if (!m) return;
-    set({ model: { ...m, loads: m.loads.map((x) => x.id === id ? l : x) } });
+    set({ lastSavedAt: new Date(), model: { ...m, loads: m.loads.map((x) => x.id === id ? l : x) } });
   },
   removeLoad: (id) => {
     const m = get().model; if (!m) return;
-    set({ model: { ...m, loads: m.loads.filter((l) => l.id !== id) } });
+    set({ lastSavedAt: new Date(), model: { ...m, loads: m.loads.filter((l) => l.id !== id) } });
   },
   addConstraint: (c) => {
     const m = get().model; if (!m) return;
-    set({ model: { ...m, constraints: [...m.constraints, c] } });
+    set({ lastSavedAt: new Date(), model: { ...m, constraints: [...m.constraints, c] } });
   },
   updateConstraint: (id, c) => {
     const m = get().model; if (!m) return;
-    set({ model: { ...m, constraints: m.constraints.map((x) => x.id === id ? c : x) } });
+    set({ lastSavedAt: new Date(), model: { ...m, constraints: m.constraints.map((x) => x.id === id ? c : x) } });
   },
   removeConstraint: (id) => {
     const m = get().model; if (!m) return;
-    set({ model: { ...m, constraints: m.constraints.filter((c) => c.id !== id) } });
+    set({ lastSavedAt: new Date(), model: { ...m, constraints: m.constraints.filter((c) => c.id !== id) } });
   },
 }));
