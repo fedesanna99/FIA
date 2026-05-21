@@ -4,6 +4,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 
 import { LeftRail } from "./LeftRail";
 import { useWorkspaceStore } from "../../store/workspaceStore";
+import { useLeftRailStore } from "../../store/leftRailStore";
 
 
 beforeEach(() => {
@@ -13,6 +14,8 @@ beforeEach(() => {
     helpOpen: false,
     paletteOpen: false,
   });
+  // alpha.22: LeftRail e' ora toggle slide-in. Reset slide state.
+  useLeftRailStore.setState({ openSection: null });
   window.localStorage.clear();
 });
 
@@ -38,30 +41,50 @@ describe("LeftRail (alpha.20: Make/Solve/Verify + Results/IO legacy)", () => {
     expect(screen.getByTestId("left-rail-io")).toBeInTheDocument();
   });
 
-  it("click on Solve switches workspace to analysis", () => {
+  it("click on Solve opens slide panel + sets workspace=analysis", () => {
     renderRail();
     fireEvent.click(screen.getByTestId("left-rail-analysis"));
     expect(useWorkspaceStore.getState().workspace).toBe("analysis");
+    expect(useLeftRailStore.getState().openSection).toBe("analysis");
   });
 
-  it("click on Verify switches workspace to verify", () => {
+  it("click on Verify opens slide panel + sets workspace=verify", () => {
     renderRail();
     fireEvent.click(screen.getByTestId("left-rail-verify"));
     expect(useWorkspaceStore.getState().workspace).toBe("verify");
+    expect(useLeftRailStore.getState().openSection).toBe("verify");
   });
 
-  it("click on Make (model) switches workspace to model", () => {
+  it("click on Make opens slide panel + sets workspace=model", () => {
     useWorkspaceStore.setState({ workspace: "analysis" } as any);
     renderRail();
     fireEvent.click(screen.getByTestId("left-rail-model"));
     expect(useWorkspaceStore.getState().workspace).toBe("model");
+    expect(useLeftRailStore.getState().openSection).toBe("model");
   });
 
-  it("active button has aria-current=page", () => {
-    useWorkspaceStore.setState({ workspace: "analysis" } as any);
+  it("toggle: clicking same active button closes slide panel", () => {
+    useLeftRailStore.setState({ openSection: "model" });
+    renderRail();
+    fireEvent.click(screen.getByTestId("left-rail-model"));
+    // workspace sempre sincronizzato
+    expect(useWorkspaceStore.getState().workspace).toBe("model");
+    // ma il panel ora chiuso
+    expect(useLeftRailStore.getState().openSection).toBeNull();
+  });
+
+  it("active button has aria-current=page when slide is open", () => {
+    useLeftRailStore.setState({ openSection: "analysis" });
     renderRail();
     expect(screen.getByTestId("left-rail-analysis")).toHaveAttribute("aria-current", "page");
     expect(screen.getByTestId("left-rail-model")).not.toHaveAttribute("aria-current", "page");
+  });
+
+  it("aria-expanded reflects open state (toggle pattern)", () => {
+    renderRail();
+    expect(screen.getByTestId("left-rail-model")).toHaveAttribute("aria-expanded", "false");
+    fireEvent.click(screen.getByTestId("left-rail-model"));
+    expect(screen.getByTestId("left-rail-model")).toHaveAttribute("aria-expanded", "true");
   });
 
   it("secondary items use ink-faint color (deprecated visual cue)", () => {

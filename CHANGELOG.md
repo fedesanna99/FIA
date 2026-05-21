@@ -1,5 +1,101 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.22 — Sprint 4 / Asse G7: Refactor viewport-first (LeftRail slide-in) — 2026-05-21
+
+**Salto visivo drammatico** richiesto dall'utente dopo verifica deploy
+alpha.21. Il problema: vedendo l'app live, sembrava ancora la stessa
+perche' il `WorkspacePanel` 380px fisso a destra dominava il layout.
+Il mockup v1.3 invece e' **viewport-first**: il viewport 3D occupa
+il centro, i panel sono slide-in toggle dal rail.
+
+### Changed (BREAKING per layout, non per dati)
+- **Layout shell v4 — viewport-first**:
+  - **RIMOSSO** `WorkspacePanel` 380px fisso a destra.
+  - **AGGIUNTO** `LeftSlidePanel` 360-440px slide-in ankorato a sinistra
+    (subito dopo il LeftRail).
+  - LeftRail diventa **toggle slide-in** (mirror del RightRail alpha.17):
+    click su Make/Solve/Verify apre il LeftSlidePanel con il relativo
+    workspace content; click sulla stessa voce attiva → chiude.
+  - **Viewport 3D ora full-width** tra LeftSlidePanel e RightRail
+    (rimosso il `aside` 380px destro).
+- **Default theme cambiato `system` → `light`**:
+  - alpha.16-.21 avevano default "system" che, per utenti con OS dark
+    mode (Windows default), sembrava identico alla versione pre-Sprint 4.
+  - alpha.22 forza "light" cosi' la palette warm-neutral (`#F7F7F5` page
+    + accent blu `#185FA5`) e' immediatamente visibile.
+  - L'utente puo' sempre passare a system/dark via `ThemeToggle` nel
+    LeftRail bottom.
+
+### Added
+- **`store/leftRailStore.ts`** — mirror del `rightRailStore`:
+  - State: `openSection: Workspace | null` (default `"model"`)
+  - API: `toggle(section)`, `open(section)`, `close()`
+  - Persistenza zustand `feapro-left-rail` per ricordare il panel aperto
+    tra refresh
+- **`components/shell/LeftSlidePanel.tsx`** — overlay slide-in 360-440px:
+  - Header con titolo workspace + close X
+  - Body scrollabile con ModelWorkspace/AnalysisWorkspace/VerifyWorkspace
+    (e legacy results/io quando l'utente apre via shortcut 4/5)
+  - Animazione `slide-right` 220ms (apertura)
+  - NON modal: viewport rimane interattivo (no backdrop)
+
+### Removed
+- **`components/shell/WorkspacePanel.tsx`** non e' piu' usato in `App.tsx`
+  ma il file rimane sul disco (NON cancellato per evitare di rompere
+  eventuali import esterni a `App.tsx`). Sara' rimosso definitivamente
+  in alpha.23 se non emergono regressioni.
+
+### Tests
+- **+8 vitest** (256 → 264):
+  - `leftRailStore.test.ts` (6): toggle, open, close, replace pattern
+  - LeftRail.test.tsx aggiornato (3 nuovi test): toggle pattern, slide
+    state, aria-expanded; sostituiti 4 test workspace-switch precedenti
+  - themeStore.test.ts: default cambiato da `system` → `light`, ordine
+    cycle aggiornato `light → system → dark → light`
+- **264/264 vitest** totale. Build Vite OK 10.50s.
+
+### UX impact (atteso vs precedente)
+| Aspetto | Pre-alpha.22 | **alpha.22** |
+|---|---|---|
+| Layout default | Viewport stretto + WorkspacePanel 380px | **Viewport gigante** + slide-in opzionali |
+| Aspetto cromatico | Dark (system) | **Light warm** `#F7F7F5` |
+| Workspace pattern | Sempre visibili (tab-style) | **Toggle slide-in** (Linear/Figma-like) |
+| Spazio viewport (1920px screen) | ~1450px | **~1800px** (+25%) |
+| Discovery panel | Implicito (tabs) | **Esplicito** (icon-bar slide-in) |
+
+### Trade-off
+- **Pro**: viewport-first allineato al mockup v1.3, layout moderno
+  (Linear/Figma vibe), focus visivo sul modello 3D.
+- **Contro**: utenti abituati a "tutto sempre visibile" devono fare
+  un click in piu' per vedere mesh wizard / analysis settings.
+- **Mitigation**: default `openSection: "model"` → al primo accesso il
+  panel Make e' gia' aperto, esperienza simile al precedente.
+
+### Sprint 4 totale (alpha.16 → .22)
+| Tag | Cosa | vitest |
+|---|---|---|
+| alpha.16 | CSS tokens v1.3 + dual theme | 202 |
+| alpha.17 | RightRail + slide-in (Inspect/View/Tools/History) | 215 |
+| alpha.18 | TopBar arricchita | 226 |
+| alpha.19 | StatusBar arricchita | 234 |
+| alpha.20 | 6-rail labels (Make/Solve/Verify) | 243 |
+| alpha.21 | Command palette espansa registry | 256 |
+| **alpha.22** | **Viewport-first refactor** | **264** |
+
+**Net delta Sprint 4 totale**: +70 vitest, +14 componenti shell, palette
+10 → 42 voci, font Inter, palette warm-neutral, dual theme,
+**layout viewport-first**.
+
+### Gate
+| | alpha.21 | **alpha.22** |
+|---|---|---|
+| Layout pattern | WorkspacePanel fisso | **Slide-in toggle** |
+| Viewport area | ~70% schermata | **~85% schermata** |
+| Theme default | system (OS-dipendente) | **light warm-neutral** |
+| vitest frontend | 256 | **264** (+8) |
+
+---
+
 ## v1.4.0-alpha.21 — Sprint 4 / Asse G6: Command palette espansa (registry) — 2026-05-21
 
 Sprint 4 **CLOSURE**. La command palette `Ctrl+K` ora pesca da una

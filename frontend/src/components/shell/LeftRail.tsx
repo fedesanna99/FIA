@@ -1,18 +1,15 @@
 /**
- * LeftRail — barra verticale 48 px (alpha.20 Sprint 4 G5).
+ * LeftRail — barra verticale 48 px (alpha.22 Sprint 4 G7).
  *
- * Refactor mockup-aligned: 3 voci principali **Make / Solve / Verify**
- * (corrispondono a workspace `model` / `analysis` / `verify`) + 2 voci
- * secondarie in basso (Results / I/O) per backward compat con utenti
- * che hanno bookmark sui vecchi workspace.
+ * Toggle slide-in pattern (mockup v1.3 viewport-first):
+ *  - Click su Make/Solve/Verify → apre LeftSlidePanel con il workspace
+ *  - Click sulla STESSA voce attiva → chiude il panel (toggle)
+ *  - Click su voce diversa → sostituisce contenuto del panel
  *
- * I "results" e "io" sono ora accessibili principalmente via RightRail
- * (Inspect / Tools). Le voci LeftRail bottom servono solo come deep-link.
- *
- * UX:
- *  - Hover → tooltip side=right
- *  - Active → bg-accent-subtle + barra verticale 2px accent
- *  - Keyboard: 1-3 main, 4-5 secondary (compat con shortcut storici)
+ * Comportamento equivalente al RightRail (alpha.17): persistente
+ * tramite `leftRailStore`. Il vecchio `WorkspacePanel` 380px fisso e'
+ * stato rimosso in alpha.22 — il viewport e' ora full-width tra i
+ * due rail.
  */
 import {
   Hammer,
@@ -24,6 +21,7 @@ import {
   Search,
 } from "lucide-react";
 import { useWorkspaceStore, type Workspace } from "../../store/workspaceStore";
+import { useLeftRailStore } from "../../store/leftRailStore";
 import { Tooltip } from "../ui/Tooltip";
 import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "../ui/cn";
@@ -49,10 +47,21 @@ const ITEMS: RailItem[] = [
 ];
 
 function RailButton({ item }: { item: RailItem }) {
-  const workspace = useWorkspaceStore((s) => s.workspace);
+  // alpha.22: il rail e' ora TOGGLE slide-in. workspace store rimane
+  // sincronizzato con la sezione attiva (per breadcrumb + palette + tab),
+  // ma e' il leftRailStore.openSection a guidare la visibilita' del panel.
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
+  const openSection = useLeftRailStore((s) => s.openSection);
+  const toggle = useLeftRailStore((s) => s.toggle);
   const Icon = item.icon;
-  const active = workspace === item.key;
+  const active = openSection === item.key;
+
+  function handleClick() {
+    // Sincronizza sempre il workspace store (per components che lo leggono)
+    setWorkspace(item.key);
+    // Toggle slide-in panel
+    toggle(item.key);
+  }
 
   return (
     <Tooltip
@@ -73,9 +82,10 @@ function RailButton({ item }: { item: RailItem }) {
     >
       <button
         type="button"
-        onClick={() => setWorkspace(item.key)}
+        onClick={handleClick}
         aria-label={item.label}
         aria-current={active ? "page" : undefined}
+        aria-expanded={active}
         data-testid={`left-rail-${item.key}`}
         className={cn(
           "relative w-9 h-9 rounded-md flex items-center justify-center",

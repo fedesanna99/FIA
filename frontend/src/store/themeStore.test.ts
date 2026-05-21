@@ -42,15 +42,16 @@ beforeEach(() => {
   window.localStorage.clear();
   document.documentElement.removeAttribute("data-theme");
   document.documentElement.style.colorScheme = "";
-  // Reset store state (zustand persist re-hydrate al primo accesso)
-  useThemeStore.setState({ mode: "system", resolved: "dark" });
+  // Reset store state (zustand persist re-hydrate al primo accesso).
+  // alpha.22: default state e' { mode: "light", resolved: "light" }.
+  useThemeStore.setState({ mode: "light", resolved: "light" });
 });
 
 
 describe("themeStore", () => {
-  it("default mode is 'system' (changed in alpha.16)", () => {
+  it("default mode is 'light' (alpha.22: warm-neutral palette esposta)", () => {
     const s = useThemeStore.getState();
-    expect(s.mode).toBe("system");
+    expect(s.mode).toBe("light");
   });
 
   it("setMode('dark') applies data-theme=dark on <html>", () => {
@@ -78,16 +79,16 @@ describe("themeStore", () => {
     expect(useThemeStore.getState().resolved).toBe("light");
   });
 
-  it("cycle: dark → light → system → dark", () => {
+  it("cycle: light → system → dark → light → ...", () => {
     mockMatchMedia(false);
     const s = useThemeStore.getState();
-    s.setMode("dark");
-    s.cycle();
-    expect(useThemeStore.getState().mode).toBe("light");
+    s.setMode("light");
     s.cycle();
     expect(useThemeStore.getState().mode).toBe("system");
     s.cycle();
     expect(useThemeStore.getState().mode).toBe("dark");
+    s.cycle();
+    expect(useThemeStore.getState().mode).toBe("light");
   });
 
   it("init() registers MQ listener and returns cleanup", () => {

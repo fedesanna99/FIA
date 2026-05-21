@@ -1,30 +1,34 @@
 /**
- * App shell v3 — Sprint 4 / Asse G (alpha.17).
+ * App shell v4 — Sprint 4 / Asse G7 (alpha.22) viewport-first.
  *
- *  ┌──────────────────────────────────────────────────────────────┐
- *  │ TopBar (48 px)                                                │
- *  ├──┬─────────────────────┬───────────────────────┬─────────────┤
- *  │L │                     │ WorkspacePanel        │ RightRail   │
- *  │e │   Viewport 3D       │ (380 px)              │ (48 px)     │
- *  │f │   (Three.js)        │                       │             │
- *  │t │                     │ +overlay SlidePanel   │ Inspect /   │
- *  │R │                     │  (alpha.17, 320 px,   │ View /      │
- *  │a │                     │  z-30 sopra WS panel) │ Tools /     │
- *  │i │                     │                       │ History     │
- *  │l │                     │                       │             │
- *  ├──┴─────────────────────┴───────────────────────┴─────────────┤
- *  │ StatusBar (24 px)                                             │
- *  └──────────────────────────────────────────────────────────────┘
+ *  ┌────────────────────────────────────────────────────────────────┐
+ *  │ TopBar (48 px)                                                  │
+ *  ├──┬──────────────┬─────────────────────────────────┬────────────┤
+ *  │L │              │                                 │ RightRail  │
+ *  │e │ LeftSlide-   │       Viewport 3D               │ (48 px)    │
+ *  │f │ Panel        │       (Three.js — full-width)   │ + slide-in │
+ *  │t │ 360-440px    │                                 │ panel 320px│
+ *  │R │ (slide-in)   │   (centro dell'esperienza)      │ overlay    │
+ *  │a │              │                                 │            │
+ *  │i │              │                                 │            │
+ *  │l │              │                                 │            │
+ *  ├──┴──────────────┴─────────────────────────────────┴────────────┤
+ *  │ StatusBar (24 px)                                               │
+ *  └────────────────────────────────────────────────────────────────┘
  *
- *  alpha.17: RightRail e SlidePanel introdotti. Coesistono col
- *  WorkspacePanel; in alpha.20 il WorkspacePanel sparira'.
+ *  alpha.22 (viewport-first):
+ *   - WorkspacePanel 380px fisso RIMOSSO.
+ *   - LeftRail diventa toggle slide-in (mirror del RightRail).
+ *   - Make/Solve/Verify aprono il LeftSlidePanel.
+ *   - Viewport 3D occupa lo spazio principale tra i due rail.
+ *   - Default theme = "light" per esposizione palette warm-neutral.
  */
 import { useEffect, useState } from "react";
 import { TopBar } from "./components/shell/TopBar";
 import { LeftRail } from "./components/shell/LeftRail";
+import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
 import { RightRail } from "./components/shell/RightRail";
 import { RightSlidePanel } from "./components/shell/RightSlidePanel";
-import { WorkspacePanel } from "./components/shell/WorkspacePanel";
 import { CommandPalette } from "./components/shell/CommandPalette";
 import { HelpSheet } from "./components/shell/HelpSheet";
 import { OnboardingTour } from "./components/shell/OnboardingTour";
@@ -38,6 +42,7 @@ import { useModelList, useLoadModel } from "./hooks/useModel";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useUIStore } from "./store/uiStore";
 import { useWorkspaceStore } from "./store/workspaceStore";
+import { useLeftRailStore } from "./store/leftRailStore";
 import { useThemeStore } from "./store/themeStore";
 
 export default function App() {
@@ -55,20 +60,22 @@ export default function App() {
     return useThemeStore.getState().init();
   }, []);
 
-  // Numeri 1-5 → switch workspace (mappa il rail)
+  // Numeri 1-3 (main workspace) e 4-5 (legacy) ora aprono anche il
+  // LeftSlidePanel (toggle pattern). Update alpha.22.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      // skip se l'utente sta scrivendo
       const t = e.target as HTMLElement;
       if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable) return;
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      // alpha.20 ha mappato Make/Solve/Verify su 1-3; results/io restano 4-5
       const map: Record<string, "model" | "analysis" | "results" | "verify" | "io"> = {
-        "1": "model", "2": "analysis", "3": "results", "4": "verify", "5": "io",
+        "1": "model", "2": "analysis", "3": "verify", "4": "results", "5": "io",
       };
       const ws = map[e.key];
       if (ws) {
         e.preventDefault();
         setWorkspace(ws);
+        useLeftRailStore.getState().open(ws);
       }
     };
     window.addEventListener("keydown", handler);
@@ -86,14 +93,15 @@ export default function App() {
       <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
       <div className="flex flex-1 min-h-0 relative">
         <LeftRail />
+        {/* LeftSlidePanel ankorato a sinistra (toggle via leftRailStore).
+            Quando chiuso, viewport occupa tutto lo spazio fino al
+            RightSlidePanel/RightRail. */}
+        <LeftSlidePanel />
         <main className="flex-1 relative min-w-0 bg-bg-viewport">
           <Viewport3D />
           <DropZone onImported={(id) => setActiveId(id)} />
         </main>
         <div className="relative flex flex-shrink-0">
-          {/* WorkspacePanel a sinistra del RightRail (cosi' la SlidePanel
-              overlay puo' apparire fra i due, ankorata al rail destro). */}
-          <WorkspacePanel />
           <RightSlidePanel />
           <RightRail />
         </div>

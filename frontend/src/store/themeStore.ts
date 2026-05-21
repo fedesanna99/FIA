@@ -38,11 +38,13 @@ function apply(resolved: ResolvedTheme) {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      // Default "system": rispetta la preferenza OS dell'utente. Cambiato
-      // da "dark" hard-coded in alpha.16 per allinearsi al mockup v1.3 che
-      // ha entrambe le palette equivalenti per qualita'.
-      mode: "system",
-      resolved: systemPref(),
+      // alpha.22: default "light" per esporre la palette warm-neutral del
+      // mockup v1.3 (`#F7F7F5` page + accent blu `#185FA5`). Cambiato da
+      // "system" (alpha.16) che era ambiguo: utenti su Windows dark mode
+      // vedevano la stessa palette scura della versione precedente.
+      // L'utente puo' sempre tornare a "system" o "dark" via ThemeToggle.
+      mode: "light",
+      resolved: "light",
 
       setMode: (m) => {
         const r = m === "system" ? systemPref() : m;
