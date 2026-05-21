@@ -1,12 +1,17 @@
-"""Endpoint REST per i job (Sprint 1 — A5)."""
+"""Endpoint REST per i job (Sprint 1 — A5, alpha.15 user_id auth-aware)."""
 from __future__ import annotations
 
-import os
-from typing import Any
+from typing import Any, Optional
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from auth import (
+    DEFAULT_USER_ID,
+    User,
+    get_current_user_optional,
+    resolve_user_id,
+)
 from billing import cost_estimator
 from billing.middleware import check_quota_for_solve
 from billing.schemas import SolverKind
@@ -18,28 +23,31 @@ import storage
 router = APIRouter()
 
 
-DEFAULT_USER_ID = os.environ.get("FEAPRO_DEFAULT_USER_ID", "demo_user")
-
-
 class JobSubmitRequest(BaseModel):
     model_id: str
     solver: SolverKind
     params: dict = Field(default_factory=dict)
     priority: JobPriority = "standard"
-    user_id: str = DEFAULT_USER_ID
+    # alpha.15: opzionale. Se presente JWT, viene IGNORATO a favore di
+    # current_user.id. Mantenuto per backward compat (CLI/legacy clients).
+    user_id: Optional[str] = None
     max_retries: int = 1
 
 
 @router.post("", response_model=Job, status_code=201)
-def submit_job(req: JobSubmitRequest) -> Job:
+def submit_job(
+    req: JobSubmitRequest,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+) -> Job:
+    user_id = resolve_user_id(current_user, req.user_id)
     model = storage.get_model(req.model_id)
     if model is None:
         raise HTTPException(404, f"Modello '{req.model_id}' non trovato")
     estimate = cost_estimator.estimate(req.solver, model, req.params or {})
     # quota check pre-enqueue (blocca subito se cap esaurito)
-    check_quota_for_solve(req.user_id, estimate)
+    check_quota_for_solve(user_id, estimate)
     job = Job(
-        user_id=req.user_id,
+        user_id=user_id,
         solver=req.solver,
         model_id=req.model_id,
         params=req.params or {},
@@ -60,11 +68,13 @@ def get_job(job_id: str) -> Job:
 
 @router.get("", response_model=list[Job])
 def list_jobs(
-    user_id: str = DEFAULT_USER_ID,
+    user_id: Optional[str] = None,
     status: JobStatus | None = None,
     limit: int = 100,
+    current_user: Optional[User] = Depends(get_current_user_optional),
 ) -> list[Job]:
-    return job_store.list(user_id=user_id, status=status, limit=limit)
+    effective_uid = resolve_user_id(current_user, user_id)
+    return job_store.list(user_id=effective_uid, status=status, limit=limit)
 
 
 @router.delete("/{job_id}", response_model=Job)

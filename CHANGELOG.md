@@ -1,5 +1,94 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.15 — user_id propagation (JWT → job ownership) — 2026-05-21
+
+Chiusura della trilogia auth (.13 backend → .14 frontend → .15 wiring).
+Ora gli endpoint `/api/jobs` rispettano il JWT bearer: ogni utente
+loggato vede SOLO i propri job, ogni submit eredita `user_id =
+JWT.sub`. Backward-compat: anonimi e CLI legacy continuano come
+"demo_user".
+
+### Added
+- **`backend/auth/user_resolver.py`** — funzione pura
+  `resolve_user_id(current_user, explicit_user_id)` che implementa
+  la priority chain:
+  1. JWT user (Bearer valido) → `current_user.id`
+  2. Explicit `user_id` (query/body) → quello (con strip)
+  3. Fallback → `DEFAULT_USER_ID` (env `FEAPRO_DEFAULT_USER_ID`,
+     default "demo_user")
+  - Esportata via `auth.resolve_user_id` + `auth.DEFAULT_USER_ID`
+- **`api/routes/jobs.py`** — endpoint POST `/api/jobs` + GET
+  `/api/jobs`:
+  - Aggiunto `current_user: Optional[User] = Depends(
+    get_current_user_optional)` (no 401 se mancante)
+  - `user_id = resolve_user_id(current_user, req.user_id)` applicato
+    a quota check + Job.user_id + list filter
+  - `JobSubmitRequest.user_id` ora `Optional[str] = None` (era
+    required con default `DEFAULT_USER_ID`)
+
+### Tests
+- **+8 pytest** in `tests/auth/test_user_resolver.py`:
+  - 5 unit: JWT prevale su explicit, no JWT usa explicit, no JWT no
+    explicit → DEFAULT, empty/whitespace → DEFAULT, strip whitespace
+  - 3 integration TestClient: `GET /api/jobs` no header (default),
+    con JWT (sub dal token), con query `?user_id=manual`
+- **1400/1402 pytest backend** (1392 + 8). 2 fail pre-esistenti
+  (calibration timing drift, USGS network) NON correlati.
+
+### Semantica
+| Scenario | user_id usato |
+|---|---|
+| Frontend loggato (alpha.14 + JWT) | `JWT.sub` (UUID utente reale) |
+| CLI/test che passa `user_id=X` | `"X"` (explicit) |
+| Browser anonimo | `"demo_user"` (env fallback) |
+
+### Migration impact
+- **Zero breaking changes** per UI esistente: il frontend e' gia'
+  in grado di funzionare sia anonimo che loggato (interceptor
+  alpha.14). I job creati da `demo_user` rimangono visibili a
+  utenti anonimi; quelli creati post-login vengono "spostati" sul
+  JWT.sub (storicamente, i job di un utente precedentemente
+  anonimo NON migrano — sono accessibili solo loggandosi come
+  `demo_user` se la quota lo permette, ma in pratica saranno
+  cleanup-ati).
+- **Altri endpoint non ancora migrati**: `analysis.py` continua a
+  usare il vecchio `DEFAULT_USER_ID` constant. Migrazione
+  incrementale: alpha.16+ se serve auth piu' stringente.
+
+### Esempio runtime
+```bash
+# Anonimo: job creato come demo_user
+curl -X POST /api/jobs -d '{"model_id":"...", "solver":"static"}'
+# → Job.user_id = "demo_user"
+
+# Loggato: JWT prevale anche se body contiene user_id
+curl -X POST /api/jobs \
+  -H 'Authorization: Bearer eyJ...' \
+  -d '{"model_id":"...", "solver":"static", "user_id":"ignored"}'
+# → Job.user_id = "<JWT.sub UUID>"
+```
+
+### Gate
+| | alpha.14 | **alpha.15** |
+|---|---|---|
+| Endpoint /api/jobs auth-aware | no | **si** |
+| user_id da JWT | no | **si (su jobs)** |
+| pytest backend | 1392 | **1400** (+8) |
+| Backward compat anonimi | n/a | **100%** |
+
+### Sprint 3 closure
+Sprint 3 (alpha.10-.15) chiuso. Roadmap originale completata:
+- ✅ alpha.10 wind 4-direction NTC §3.3.3
+- ✅ alpha.11 onboarding tour Climate Loads
+- ✅ alpha.12 cold-start mitigation interno
+- ✅ alpha.13 JWT auth backend
+- ✅ alpha.14 frontend auth UI
+- ✅ alpha.15 user_id propagation
+- 🚫 alpha.16-.20 Stripe billing (richiede account utente)
+- 🚫 custom domain (richiede dominio utente)
+
+---
+
 ## v1.4.0-alpha.14 — Frontend auth UI (Login/Register + interceptor) — 2026-05-21
 
 UI di accesso completa: AuthDialog combo Login/Register + zustand
