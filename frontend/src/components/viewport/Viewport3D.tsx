@@ -24,6 +24,7 @@ import { IsosurfaceLayer } from "./IsosurfaceLayer";
 import { IsosurfaceLegend } from "./IsosurfaceLegend";
 import { ClickPlane } from "./ClickPlane";
 import { ToolHUD } from "./ToolHUD";
+import { ViewportHud } from "./ViewportHud";
 
 export function Viewport3D() {
   const model = useModelStore((s) => s.model);
@@ -139,6 +140,7 @@ export function Viewport3D() {
         </div>
       )}
 
+      <ViewportHud />
       <DynamicTimelineHUD />
       <StaleResultsBanner />
       <ToolHUD />
