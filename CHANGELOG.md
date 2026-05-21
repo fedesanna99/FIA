@@ -1,5 +1,105 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.21 — Sprint 4 / Asse G6: Command palette espansa (registry) — 2026-05-21
+
+Sprint 4 **CLOSURE**. La command palette `Ctrl+K` ora pesca da una
+**registry centralizzata** (`lib/paletteItems.ts`) con 6 sezioni
+mockup-aligned: Suggeriti contestuali, Comandi, Pannelli, Climate
+Loads, Impostazioni, Aiuto. Total iniziale: **42 voci** con fuzzy
+match su label + alias + descrizione. Aliases multilingual
+(italiano + inglese + slang ingegneristico).
+
+### Added
+- **`lib/paletteItems.ts`** — registry strutturata:
+  - 4 sezioni statiche: panels (9), commands (11), settings (7),
+    loads (9), help (5) → **41 items + 1 placeholder soon = 42**
+  - Una 6° sezione "favorites" (Suggeriti) **dinamica**: top 3 in
+    base al workspace attivo (es. su Solve → run-static/modal/dynamic)
+  - Ogni item ha: `id`, `label`, `description?`, `aliases?[]`,
+    `section`, `group?`, `icon?`, `shortcut?`, `actionKind`, `payload?`,
+    `needsModel?`, `soon?`
+  - `actionKind` enum tipizzato: workspace, right-panel, dialog, theme,
+    run-analysis, external-link, openHelp, openAccount, openLocation,
+    openAuth, openExport, logout, togglePalette
+  - `SECTION_LABELS` + `SECTION_ORDER` per heading e priorita' rendering
+- **`CommandPalette.tsx`** refactor da hard-coded → registry-driven:
+  - Larghezza espansa 640 → 720px (piu' spazio per descrizioni)
+  - Placeholder dinamico mostra il count "Cerca tra 42 comandi…"
+  - Heading per sezione include il count (`⚡ Comandi · 11`)
+  - Suggeriti contestuali al TOP: top 3 per workspace attivo
+  - Row layout multilinea: label + group · description + shortcut
+  - Custom event dispatch per dialog "esterni" (account/location/auth)
+    → evita prop drilling
+  - Disabled state per `needsModel` (auto-grey se no model)
+- **`TopBar.tsx`** — listener custom event `feapro:open-{account|
+  location|auth}` per ricevere i comandi dalla palette senza
+  passare callbacks attraverso 5 livelli di componenti.
+
+### Tests
+- **+13 vitest** in `paletteItems.test.ts` (256 totale):
+  - 40+ items minimum sanity
+  - Unique IDs (no duplicati)
+  - Schema validation: ogni item ha label/section/actionKind
+  - Sections coperte (panels/commands/settings/loads/help)
+  - Workspace items coprono tutti i 5 workspaces
+  - Right-panel items coprono Inspect/View/Tools/History
+  - Theme items coprono dark/light/system
+  - Run-analysis items coprono static/modal/dynamic
+  - PALETTE_COUNT struct match con grouped counts
+
+### Build & gate
+- **Build TypeScript + Vite OK**: `✓ built in 9.86s`. No regressioni.
+- **256/256 vitest** (243 + 13).
+
+### Estensione futura (verso 180+)
+La registry e' progettata per crescere. Per arrivare alle 180+ voci
+del mockup, aggiungere:
+- **Materiali EN** (14): S235/275/355/420/460/690, C25/30 - C50/60,
+  EN AW-6082, legno C24
+- **Sezioni** (50+): IPE/HE/UPN/L profilati, tubi, scatolari
+- **Modelli recenti** (5-10 via react-query)
+- **Help articoli** (50+): articoli su LTB, instabilita', NTC §3.3.3
+  etc., one entry per concetto teorico
+
+Tutti questi sono solo dati: estendere `PALETTE_ITEMS` array senza
+toccare il rendering. Stima ~2-3h work per aggiungerli quando il
+backend espone `/api/materials`, `/api/sections` con i nomi.
+
+### UX impact
+- **Suggeriti contestuali**: l'utente apre Ctrl+K su Solve workspace
+  → vede subito "Esegui statica / modale / dinamica" come prime opzioni
+- **Fuzzy multilingue**: "modello" + "model" + "geometry" + "geometria"
+  matchano la stessa voce
+- **Shortcut visibili**: ogni item con shortcut (F5, N, E, L, C, 1-5)
+  mostra la kbd a destra per discovery
+- **No prop drilling**: l'aggiunta di nuove azioni che aprono dialog
+  TopBar richiede solo un nuovo item nella registry + un listener
+  custom event in TopBar useEffect
+
+### Sprint 4 closure summary
+| Tag | Asse | Cosa | vitest |
+|---|---|---|---|
+| **alpha.16** | G1 | Foundation CSS tokens v1.3 + dual theme system | 202 |
+| **alpha.17** | G2 | RightRail + slide-in panel system (Inspect/View/Tools/History) | 215 |
+| **alpha.18** | G3 | TopBar arricchita (breadcrumb + search + AI + collab) | 226 |
+| **alpha.19** | G4 | StatusBar arricchita (WS dot + credits + version) | 234 |
+| **alpha.20** | G5 | 6-rail layout (Make/Solve/Verify + 2 legacy) | 243 |
+| **alpha.21** | G6 | Command palette espansa registry-driven | 256 |
+
+**Net delta Sprint 4**: +62 vitest (194 → 256), +13 nuovi
+componenti shell, +5 store/lib, palette da 10 → 42 voci.
+
+### Gate
+| | alpha.20 | **alpha.21** |
+|---|---|---|
+| Palette voci | 10 hard-coded | **42** registry-driven |
+| Palette sezioni | 4 ad-hoc | **6** mockup-aligned + heading count |
+| Suggeriti contestuali | no | **si** (top 3 per workspace) |
+| Fuzzy alias | no | **si** (label + aliases + description) |
+| vitest frontend | 243 | **256** (+13) |
+
+---
+
 ## v1.4.0-alpha.20 — Sprint 4 / Asse G5: 6-rail layout (Make/Solve/Verify + Inspect/View/Tools) — 2026-05-21
 
 LeftRail riallineato al mockup v1.3: i 3 workflow strutturali

@@ -86,6 +86,22 @@ export function TopBar({ models, activeId, onSelect }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // alpha.21: listener custom events dalla Command Palette per aprire i dialog
+  // gestiti dal TopBar (account/location/auth). Evita prop drilling.
+  useEffect(() => {
+    const openAcc = () => setAccountOpen(true);
+    const openLoc = () => setLocationOpen(true);
+    const openAuthFn = () => setAuthOpen(true);
+    window.addEventListener("feapro:open-account", openAcc);
+    window.addEventListener("feapro:open-location", openLoc);
+    window.addEventListener("feapro:open-auth", openAuthFn);
+    return () => {
+      window.removeEventListener("feapro:open-account", openAcc);
+      window.removeEventListener("feapro:open-location", openLoc);
+      window.removeEventListener("feapro:open-auth", openAuthFn);
+    };
+  }, []);
+
   const dup = useMutation({
     mutationFn: (id: string) => modelsApi.duplicate(id),
     onSuccess: (m) => {

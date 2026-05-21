@@ -1,47 +1,49 @@
 /**
- * Command Palette (Ctrl+K / Cmd+K) — ricerca rapida fuzzy.
+ * Command Palette (alpha.21 — Sprint 4 G6).
  *
- * Tipo VSCode. Una lista di azioni globali della app: switch workspace,
- * apertura dialog, esecuzione analisi, export. La lista è centralizzata qui.
+ * Refactor da hard-coded lista a **registry-driven** (`lib/paletteItems.ts`).
+ * 6 sezioni mockup-aligned con icon, alias fuzzy, shortcut, descrizione.
+ * Quando un utente digita una parola chiave, `cmdk` la matcha contro
+ * label + aliases (concatenati nel value).
  *
  * UX:
- *  - Ctrl+K toggle (gestito anche in useKeyboardShortcuts)
+ *  - Ctrl+K / Cmd+K toggle (gestito anche in useKeyboardShortcuts)
  *  - Esc chiude
  *  - Frecce e Enter navigano/eseguono
+ *  - "Suggeriti" sezione contestuale (top 3 in base a workspace)
  */
 import { Command } from "cmdk";
-import { useEffect } from "react";
-import {
-  Boxes, Cpu, BarChart3, ShieldCheck, ArrowRightLeft, HelpCircle,
-  Plus, Play, FileDown, FileUp, Layers, MousePointerClick,
-} from "lucide-react";
-import { useWorkspaceStore, type Workspace } from "../../store/workspaceStore";
+import { useEffect, useMemo } from "react";
+import { useWorkspaceStore } from "../../store/workspaceStore";
+import { useRightRailStore } from "../../store/rightRailStore";
 import { useUIStore } from "../../store/uiStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useModelStore } from "../../store/modelStore";
+import { useThemeStore } from "../../store/themeStore";
+import { useAuthStore } from "../../store/authStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
+import {
+  PALETTE_ITEMS, PALETTE_COUNT, SECTION_LABELS, SECTION_ORDER,
+  type PaletteItem, type PaletteSection,
+} from "../../lib/paletteItems";
 import { cn } from "../ui/cn";
 
-type AnalysisType = "static" | "modal" | "dynamic";
-
-const WORKSPACE_ITEMS: { ws: Workspace; label: string; icon: typeof Boxes; shortcut: string }[] = [
-  { ws: "model",    label: "Vai a · Modello",    icon: Boxes,           shortcut: "1" },
-  { ws: "analysis", label: "Vai a · Analisi",    icon: Cpu,             shortcut: "2" },
-  { ws: "results",  label: "Vai a · Risultati",  icon: BarChart3,       shortcut: "3" },
-  { ws: "verify",   label: "Vai a · Verifiche",  icon: ShieldCheck,     shortcut: "4" },
-  { ws: "io",       label: "Vai a · I/O",        icon: ArrowRightLeft,  shortcut: "5" },
-];
 
 export function CommandPalette() {
   const open = useWorkspaceStore((s) => s.paletteOpen);
   const setOpen = useWorkspaceStore((s) => s.setPalette);
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
+  const workspace = useWorkspaceStore((s) => s.workspace);
+  const setHelp = useWorkspaceStore((s) => s.setHelp);
   const setDialog = useUIStore((s) => s.setOpenDialog);
   const setAnalysisType = useAnalysisStore((s) => s.setAnalysisType);
   const model = useModelStore((s) => s.model);
+  const setTheme = useThemeStore((s) => s.setMode);
+  const authLogout = useAuthStore((s) => s.logout);
+  const setOpenSection = useRightRailStore((s) => s.open);
   const run = useRunAnalysis();
 
-  // Toggle via Ctrl+K / Cmd+K (mantieni anche shortcut esistenti)
+  // Ctrl+K / Cmd+K toggle (mantieni shortcut esistenti)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "k") {
@@ -53,18 +55,89 @@ export function CommandPalette() {
     return () => window.removeEventListener("keydown", handler);
   }, [open, setOpen]);
 
-  function go(action: () => void) {
-    action();
+  // ── Dispatcher azioni ────────────────────────────────────────────────────
+  function execute(item: PaletteItem): void {
+    if (item.needsModel && !model) return;
+    if (item.soon) return;
+
+    switch (item.actionKind) {
+      case "workspace":
+        setWorkspace(item.payload as Parameters<typeof setWorkspace>[0]);
+        break;
+      case "right-panel":
+        setOpenSection(item.payload as Parameters<typeof setOpenSection>[0]);
+        break;
+      case "dialog":
+        setDialog(item.payload as Parameters<typeof setDialog>[0]);
+        break;
+      case "theme":
+        setTheme(item.payload as Parameters<typeof setTheme>[0]);
+        break;
+      case "run-analysis":
+        if (!model) return;
+        setAnalysisType(item.payload as Parameters<typeof setAnalysisType>[0]);
+        setWorkspace("results");
+        run();
+        break;
+      case "external-link":
+        window.open((item.payload as { url: string }).url, "_blank", "noopener");
+        break;
+      case "openHelp":
+        setHelp(true);
+        break;
+      case "openAccount":
+        // Apre AccountDialog via custom event — il componente AccountDialog
+        // listener vivra' in TopBar (handler centralizzato). Per ora usiamo
+        // un evento window broadcast: piu' semplice del threading prop chain.
+        window.dispatchEvent(new CustomEvent("feapro:open-account"));
+        break;
+      case "openLocation":
+        window.dispatchEvent(new CustomEvent("feapro:open-location"));
+        break;
+      case "openAuth":
+        window.dispatchEvent(new CustomEvent("feapro:open-auth"));
+        break;
+      case "openExport":
+        setWorkspace("io");
+        break;
+      case "logout":
+        authLogout();
+        break;
+      case "togglePalette":
+      default:
+        break;
+    }
     setOpen(false);
   }
 
-  function runAnalysis(t: AnalysisType) {
-    if (!model) return;
-    setAnalysisType(t);
-    setWorkspace("results");
-    run();
-  }
+  // ── Suggeriti contestuali (top 3 in base al workspace) ───────────────────
+  const favorites = useMemo<PaletteItem[]>(() => {
+    const map: Partial<Record<typeof workspace, string[]>> = {
+      model:    ["open-mesh-wizard", "add-node", "add-load"],
+      analysis: ["run-static", "run-modal", "run-dynamic"],
+      results:  ["rp-inspect", "rp-view", "open-export"],
+      verify:   ["ws-results", "rp-inspect", "help-validation"],
+      io:       ["open-export", "open-location", "concept-wind"],
+      docs:     ["help-overview", "help-shortcuts", "help-api-docs"],
+    };
+    const ids = map[workspace] ?? [];
+    return ids
+      .map((id) => PALETTE_ITEMS.find((it) => it.id === id))
+      .filter(Boolean) as PaletteItem[];
+  }, [workspace]);
 
+  // ── Grouping per sezione (escluso favorites che e' costruito sopra) ──────
+  const grouped = useMemo(() => {
+    const out = new Map<PaletteSection, PaletteItem[]>();
+    for (const it of PALETTE_ITEMS) {
+      const arr = out.get(it.section) ?? [];
+      arr.push(it);
+      out.set(it.section, arr);
+    }
+    return out;
+  }, []);
+
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <Command.Dialog
       open={open}
@@ -72,107 +145,96 @@ export function CommandPalette() {
       label="Comandi"
       className={cn(
         "fixed inset-0 z-40 flex items-start justify-center pt-[10vh]",
-        // overlay
         "before:content-[''] before:fixed before:inset-0 before:bg-black/60 before:backdrop-blur-sm before:-z-10",
       )}
     >
-      <div className="w-[640px] max-w-[calc(100vw-32px)] bg-bg-elevated border border-border rounded-lg shadow-dialog overflow-hidden animate-slide-up">
+      <div className="w-[720px] max-w-[calc(100vw-32px)] bg-bg-elevated border border-border rounded-lg shadow-dialog overflow-hidden animate-slide-up">
         <Command.Input
-          placeholder="Cerca comandi… (workspace, analisi, dialog)"
+          placeholder={`Cerca tra ${PALETTE_COUNT.total} comandi…  (workspace, analisi, theme, location, help)`}
           className={cn(
             "w-full px-4 py-3 bg-bg-elevated border-b border-border",
-            "text-sm text-ink placeholder:text-ink-dim",
+            "text-sm text-ink placeholder:text-ink-dim font-display",
             "focus:outline-none",
           )}
+          data-testid="palette-input"
         />
         <Command.List className="max-h-[60vh] overflow-y-auto p-2">
           <Command.Empty className="px-4 py-6 text-center text-xs text-ink-muted">
-            Nessun comando trovato.
+            Nessun comando trovato. Prova "model", "run", "theme", "help"…
           </Command.Empty>
 
-          <Command.Group heading="Workspace" className="text-xs text-ink-muted px-2 pt-2 pb-1 font-medium [&_[cmdk-group-heading]]:py-1">
-            {WORKSPACE_ITEMS.map(({ ws, label, icon: Icon, shortcut }) => (
-              <Command.Item
-                key={ws}
-                onSelect={() => go(() => setWorkspace(ws))}
-                className="px-3 py-2 rounded text-sm flex items-center gap-2 cursor-pointer text-ink data-[selected=true]:bg-bg-hover"
+          {/* Suggeriti contestuali */}
+          {favorites.length > 0 && (
+            <Command.Group
+              heading={SECTION_LABELS.favorites}
+              className="text-xs text-ink-muted px-2 pt-2 pb-1 font-medium [&_[cmdk-group-heading]]:py-1"
+            >
+              {favorites.map((item) => <Row key={`fav-${item.id}`} item={item} onSelect={() => execute(item)} disabled={item.needsModel && !model} />)}
+            </Command.Group>
+          )}
+
+          {/* Sezioni in ordine */}
+          {SECTION_ORDER.filter((s) => s !== "favorites").map((section) => {
+            const items = grouped.get(section) ?? [];
+            if (items.length === 0) return null;
+            return (
+              <Command.Group
+                key={section}
+                heading={`${SECTION_LABELS[section]} · ${items.length}`}
+                className="text-xs text-ink-muted px-2 pt-3 pb-1 font-medium"
               >
-                <Icon className="h-4 w-4 text-ink-muted" />
-                <span className="flex-1">{label}</span>
-                <kbd className="text-[10px] bg-bg px-1.5 py-0.5 rounded border border-border text-ink-muted">{shortcut}</kbd>
-              </Command.Item>
-            ))}
-          </Command.Group>
-
-          <Command.Group heading="Azioni" className="text-xs text-ink-muted px-2 pt-3 pb-1 font-medium">
-            <Command.Item
-              onSelect={() => go(() => setDialog("new"))}
-              className="px-3 py-2 rounded text-sm flex items-center gap-2 cursor-pointer text-ink data-[selected=true]:bg-bg-hover"
-            >
-              <Plus className="h-4 w-4 text-ink-muted" />
-              <span className="flex-1">Nuovo modello…</span>
-            </Command.Item>
-            <Command.Item
-              onSelect={() => go(() => setDialog("mesh"))}
-              disabled={!model}
-              className="px-3 py-2 rounded text-sm flex items-center gap-2 cursor-pointer text-ink data-[disabled=true]:opacity-40 data-[selected=true]:bg-bg-hover"
-            >
-              <Layers className="h-4 w-4 text-ink-muted" />
-              <span className="flex-1">Wizard mesh…</span>
-            </Command.Item>
-            <Command.Item
-              onSelect={() => go(() => setDialog("node"))}
-              disabled={!model}
-              className="px-3 py-2 rounded text-sm flex items-center gap-2 cursor-pointer text-ink data-[disabled=true]:opacity-40 data-[selected=true]:bg-bg-hover"
-            >
-              <MousePointerClick className="h-4 w-4 text-ink-muted" />
-              <span className="flex-1">Aggiungi nodo…</span>
-            </Command.Item>
-          </Command.Group>
-
-          <Command.Group heading="Analisi" className="text-xs text-ink-muted px-2 pt-3 pb-1 font-medium">
-            {(["static", "modal", "dynamic"] as AnalysisType[]).map((t) => (
-              <Command.Item
-                key={t}
-                onSelect={() => go(() => runAnalysis(t))}
-                disabled={!model}
-                className="px-3 py-2 rounded text-sm flex items-center gap-2 cursor-pointer text-ink data-[disabled=true]:opacity-40 data-[selected=true]:bg-bg-hover"
-              >
-                <Play className="h-4 w-4 text-ink-muted" />
-                <span className="flex-1">Esegui · {labels[t]}</span>
-              </Command.Item>
-            ))}
-          </Command.Group>
-
-          <Command.Group heading="I/O (in arrivo M6)" className="text-xs text-ink-muted px-2 pt-3 pb-1 font-medium">
-            <Command.Item disabled className="px-3 py-2 rounded text-sm flex items-center gap-2 text-ink-dim opacity-50">
-              <FileDown className="h-4 w-4" />
-              <span className="flex-1">Esporta PDF (server)…</span>
-            </Command.Item>
-            <Command.Item disabled className="px-3 py-2 rounded text-sm flex items-center gap-2 text-ink-dim opacity-50">
-              <FileUp className="h-4 w-4" />
-              <span className="flex-1">Importa DXF…</span>
-            </Command.Item>
-            <Command.Item disabled className="px-3 py-2 rounded text-sm flex items-center gap-2 text-ink-dim opacity-50">
-              <HelpCircle className="h-4 w-4" />
-              <span className="flex-1">Chiedi a Copilot…</span>
-            </Command.Item>
-          </Command.Group>
+                {items.map((item) => <Row key={item.id} item={item} onSelect={() => execute(item)} disabled={item.needsModel && !model} />)}
+              </Command.Group>
+            );
+          })}
         </Command.List>
 
         <div className="px-3 py-2 border-t border-border bg-bg-panel/50 flex items-center gap-3 text-[11px] text-ink-dim">
-          <span><kbd className="bg-bg px-1 py-0.5 rounded border border-border">↑↓</kbd> naviga</span>
-          <span><kbd className="bg-bg px-1 py-0.5 rounded border border-border">↵</kbd> esegui</span>
-          <span><kbd className="bg-bg px-1 py-0.5 rounded border border-border">Esc</kbd> chiudi</span>
-          <span className="ml-auto"><kbd className="bg-bg px-1 py-0.5 rounded border border-border">Ctrl K</kbd> toggle</span>
+          <span><kbd className="kbd">↑↓</kbd> naviga</span>
+          <span><kbd className="kbd">↵</kbd> esegui</span>
+          <span><kbd className="kbd">Esc</kbd> chiudi</span>
+          <span className="ml-auto"><kbd className="kbd">Ctrl K</kbd> toggle</span>
         </div>
       </div>
     </Command.Dialog>
   );
 }
 
-const labels: Record<AnalysisType, string> = {
-  static: "Statica",
-  modal: "Modale",
-  dynamic: "Dinamica",
-};
+
+/** Single palette row — separato per leggibilita'. */
+function Row({
+  item, onSelect, disabled,
+}: {
+  item: PaletteItem;
+  onSelect: () => void;
+  disabled?: boolean;
+}) {
+  const Icon = item.icon;
+  // Aliases concatenati nel `value` per cmdk fuzzy match
+  const matchValue = [item.label, item.description, ...(item.aliases ?? [])].filter(Boolean).join(" ");
+
+  return (
+    <Command.Item
+      value={matchValue}
+      onSelect={() => !disabled && !item.soon && onSelect()}
+      disabled={disabled || item.soon}
+      data-testid={`palette-item-${item.id}`}
+      className="px-3 py-2 rounded text-sm flex items-center gap-2 cursor-pointer text-ink data-[selected=true]:bg-bg-hover data-[disabled=true]:opacity-40 data-[disabled=true]:cursor-not-allowed"
+    >
+      {Icon && <Icon className="h-4 w-4 text-ink-muted flex-shrink-0" strokeWidth={1.8} />}
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-1.5">
+          <span className="truncate">{item.label}</span>
+          {item.soon && <span className="chip chip-purple text-[9px]">soon</span>}
+          {item.group && <span className="text-[10px] text-ink-dim ml-1">· {item.group}</span>}
+        </div>
+        {item.description && (
+          <div className="text-[11px] text-ink-muted truncate">{item.description}</div>
+        )}
+      </div>
+      {item.shortcut && (
+        <kbd className="kbd flex-shrink-0">{item.shortcut}</kbd>
+      )}
+    </Command.Item>
+  );
+}
