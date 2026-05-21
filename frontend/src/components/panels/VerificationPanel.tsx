@@ -102,36 +102,45 @@ export function VerificationPanel() {
               Nessun elemento beam in acciaio con profilo a doppio T.
             </div>
           ) : (
-            <table className="w-full text-left">
-              <thead className="bg-surface-2 text-ink-dim border-b border-border">
-                <tr>
-                  <th className="px-2 py-1">ID</th>
-                  <th className="px-2 py-1">Sezione</th>
-                  <th className="px-2 py-1">Cl.</th>
-                  <th className="px-2 py-1 text-right">M_Ed</th>
-                  <th className="px-2 py-1 text-right">U.R.</th>
-                  <th className="px-2 py-1">Governing</th>
-                </tr>
-              </thead>
-              <tbody>
+            <div className="px-2 py-2">
+              <div className="text-[10px] uppercase tracking-wider text-ink-dim font-semibold mb-2 px-1">
+                Profili acciaio · § 6.3
+              </div>
+              <div className="space-y-0.5">
                 {data.results.map((v) => (
-                  <tr
+                  <button
+                    type="button"
                     key={v.element_id}
                     onClick={() => { selectElement(v.element_id, false); setDetails(v); }}
-                    className="border-b border-border/50 hover:bg-surface-2 cursor-pointer"
+                    className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-bg-hover text-left text-[12px] transition-colors"
                   >
-                    <td className="px-2 py-1 numeric">{v.element_id}</td>
-                    <td className="px-2 py-1">{v.section_id}</td>
-                    <td className="px-2 py-1 numeric">{v.section_class ?? "—"}</td>
-                    <td className="px-2 py-1 numeric text-right">{fmtM(v.M_Ed)}</td>
-                    <td className={`px-2 py-1 numeric text-right font-semibold ${urColor(v.UR_max)}`}>
-                      {isFinite(v.UR_max) ? v.UR_max.toFixed(3) : "∞"}
-                    </td>
-                    <td className="px-2 py-1 text-ink-dim">{v.governing}</td>
-                  </tr>
+                    <span className="numeric text-ink-muted w-8 flex-shrink-0">#{v.element_id}</span>
+                    <span className="flex-1 truncate">
+                      {v.section_id}
+                      <span className="text-ink-dim ml-1.5">· {v.governing}</span>
+                    </span>
+                    <UCBadge value={v.UR_max} />
+                  </button>
                 ))}
-              </tbody>
-            </table>
+              </div>
+
+              {/* Summary stati limite — aggregato max UR per gruppo */}
+              <div className="text-[10px] uppercase tracking-wider text-ink-dim font-semibold mt-4 mb-2 px-1">
+                Stati limite
+              </div>
+              <SummaryRow
+                label="Resistenza § 6.2"
+                value={Math.max(...data.results.map((r) => r.UR_resistance ?? 0))}
+              />
+              <SummaryRow
+                label="Instabilità § 6.3.1"
+                value={Math.max(...data.results.map((r) => r.UR_buckling ?? 0))}
+              />
+              <SummaryRow
+                label="LTB § 6.3.2"
+                value={Math.max(...data.results.map((r) => r.UR_LTB ?? 0))}
+              />
+            </div>
           )}
         </>
       )}
@@ -141,6 +150,44 @@ export function VerificationPanel() {
           v={details}
           onClose={() => setDetails(null)}
         />
+      )}
+    </div>
+  );
+}
+
+
+function UCBadge({ value }: { value: number }) {
+  if (!isFinite(value)) {
+    return (
+      <span className="text-[10px] font-semibold font-mono px-2 py-0.5 rounded-full bg-bg-coral text-coral">
+        UC ∞
+      </span>
+    );
+  }
+  const tone = value <= 0.7 ? "ok" : value <= 1.0 ? "warn" : "danger";
+  const colors: Record<typeof tone, string> = {
+    ok:     "bg-bg-success text-success",
+    warn:   "bg-bg-warn text-warn",
+    danger: "bg-bg-coral text-coral",
+  };
+  return (
+    <span className={`text-[10px] font-semibold font-mono px-2 py-0.5 rounded-full flex-shrink-0 ${colors[tone]}`}>
+      UC {value.toFixed(2)}
+    </span>
+  );
+}
+
+
+function SummaryRow({ label, value }: { label: string; value: number }) {
+  // Se il max e' 0 (nessun elemento ha il check), mostra trattino.
+  const empty = value <= 0 || !isFinite(value);
+  return (
+    <div className="flex items-center gap-2.5 px-2.5 py-1 text-[12px]">
+      <span className="flex-1 text-ink-muted">{label}</span>
+      {empty ? (
+        <span className="text-[10px] text-ink-dim font-mono">—</span>
+      ) : (
+        <UCBadge value={value} />
       )}
     </div>
   );
