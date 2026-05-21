@@ -1,5 +1,98 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.23 — Sprint 5 / G8: Tabler + Fuse + workspaceStore brief schema — 2026-05-21
+
+Apertura **Sprint 5** dopo che l'utente ha condiviso il
+`CLAUDE_CODE_BRIEF_v1_2_1.md` (84KB, 13 step dettagliati). Lo Sprint 4
+aveva fatto le fondamenta ma con scelte di libreria diverse dal brief.
+Sprint 5 allinea il codice **esattamente** alle convenzioni del brief
+mantenendo backward compat al 100%.
+
+### Added — Deps (Step 2 del brief)
+- **`@tabler/icons-react@^3.44.0`** — icon set richiesto dal mockup
+  (sostituira' Lucide nei nuovi macro-panel; Lucide rimane in TopBar/
+  Rail per evitare regressioni visive intermedie).
+- **`fuse.js@^7.3.0`** — fuzzy search per CommandRegistry. Pesi: name
+  2.0, keywords 1.5, path 0.5, id 0.3. Threshold 0.4.
+- **`clsx@^2.1.1`** — gia' presente da Sprint 3.
+- **`vaul`** SKIP intenzionale (richiesto solo per mobile Asse H, non
+  ancora in scope).
+
+### Added — Architettura shell brief (Step 4-5)
+- **`shell/types.ts`** — tipi single-source-of-truth:
+  - `LeftPanelId = "make"|"solve"|"verify"|null`
+  - `RightPanelId = "inspect"|"view"|"tools"|null`
+  - `ShellState` + `ShellActions` (12 actions: openLeft/Right,
+    closeLeft/Right, setLeftTab/setRightTab, toggleAi/Settings,
+    enterEmptyState, exitEmptyState)
+  - Mapping bidirezionale `LEGACY_TO_LEFT` / `LEFT_TO_LEGACY` per il
+    bridge col vecchio `workspace` enum.
+- **`shell/palette/types.ts`** — `CommandEntry`, `CommandCategory`,
+  `RegistryFilter`, `RegistryResult`. 9 categorie (suggested,
+  action, navigation, tool, setting, model, library, ai, help).
+- **`shell/palette/CommandRegistry.ts`** — singleton class **esattamente
+  come da brief**:
+  - `register(entry)` / `registerAll([])` con cleanup function
+  - `unregister(id)` / `clear()`
+  - `search(filter)` con Fuse fuzzy + categories filter + maxResults
+  - `execute(id)` con `enabled()` guard
+  - `subscribe(listener)` → ri-renderer
+  - Cache Fuse instance, rebuild solo on mutations (`fuseDirty` flag)
+- **`shell/palette/useCommandRegistry.ts`** — hook React:
+  - `useCommandSearch(filter)` subscribe + result
+  - `useCommandExecutor()` handler stable
+
+### Changed — workspaceStore (Step 5 del brief)
+- **`store/workspaceStore.ts`** esteso con nuovi campi:
+  - `currentLeftPanel: LeftPanelId` (default "make", bridged da `workspace="model"`)
+  - `currentRightPanel: RightPanelId`, `currentLeftTab`, `currentRightTab`
+  - `isAiPanelOpen`, `isSettingsOpen`, `isEmptyState`
+- **Bridge bidirezionale**: `setWorkspace("model")` →
+  `currentLeftPanel="make"`. `openLeftPanel("make")` → `workspace="model"`.
+  Garantisce backward compat al 100%.
+- Vecchi campi (`workspace`, `activeTab`, `helpOpen`, `paletteOpen`) +
+  vecchie actions (`setWorkspace`, `setTab`, `togglePalette`, ecc.)
+  mantenute intatte. Cleanup completo in alpha.27.
+
+### Tests
+- **+24 vitest** (264 → 288):
+  - `shell/palette/CommandRegistry.test.ts` (10): register/retrieve,
+    duplicate-overwrite, fuzzy multilingue, group by category, execute,
+    enabled() guard, registerAll cleanup, unregister, filter by
+    category, subscribe notify on mutation
+  - `store/workspaceStore.test.ts` (14): new schema (open/close left,
+    right indipendent, enterEmptyState reset, exit on panel open,
+    toggleAi flip) + legacy bridge (setWorkspace bridges to currentLeftPanel,
+    openLeftPanel bridges back, setTab/activeTab unchanged, palette
+    toggles unchanged)
+- **Build TypeScript + Vite OK**: `✓ built in 19.09s`.
+
+### Backward compat
+**Zero breaking changes**. Tutto il codice esistente continua a usare
+`workspace`/`activeTab`/`setWorkspace` come prima. I nuovi macro-panel
+(alpha.24-.26) useranno `currentLeftPanel`/`openLeftPanel` etc.
+
+### Roadmap Sprint 5
+| Tag | Cosa |
+|---|---|
+| **alpha.23** (questo) | Deps + Registry + workspaceStore schema |
+| alpha.24 | PanelChrome + MakePanel (Geometria/Mesh/Carichi/Vincoli/IO) |
+| alpha.25 | SolvePanel + CostPreviewCard gradient inline (**flagship**) |
+| alpha.26 | VerifyPanel + InspectPanel + ViewPanel + ToolsPanel |
+| alpha.27 | Empty state Shift+Space + cleanup legacy + E2E Playwright |
+| alpha.28 | OnboardingTour 9 step + Sprint 5 closure |
+
+### Gate
+| | alpha.22 | **alpha.23** |
+|---|---|---|
+| Icon set per panel | Lucide unico | **Lucide + Tabler** (coesistono) |
+| Fuzzy search engine | cmdk integrato | **Fuse.js** (brief-aligned) |
+| Shell types | inline in workspaceStore | **`shell/types.ts`** dedicato |
+| CommandRegistry pattern | array statico | **singleton class** + register/execute API |
+| vitest frontend | 264 | **288** (+24) |
+
+---
+
 ## v1.4.0-alpha.22 — Sprint 4 / Asse G7: Refactor viewport-first (LeftRail slide-in) — 2026-05-21
 
 **Salto visivo drammatico** richiesto dall'utente dopo verifica deploy
