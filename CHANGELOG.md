@@ -1,5 +1,76 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.12 — Cold-start mitigation interno (self-ping) — 2026-05-21
+
+Fly.io `auto_stop_machines = true` ferma la VM dopo ~5 min di idle.
+Il prossimo utente paga cold-start ~10-22s (boot Python + Uvicorn +
+register_all gmsh + caricamento staticfiles). alpha.12 risolve con
+self-ping interno via public URL: la VM ping il PROPRIO endpoint
+`/api/health` ogni 4 min → la proxy Fly vede una connessione in
+ingresso → idle timer reset → la VM rimane warm.
+
+### Added
+- **`backend/services/self_ping.py`** modulo asyncio.Task:
+  - `start_self_ping()` → opt-in via 3 env var
+    (FEAPRO_SELF_PING_ENABLED, _URL, _INTERVAL_S)
+  - `_ping_once(client, url)` → ritorna (success, status, latency_ms, error)
+    Considera 5xx come failure (warming needs server alive)
+    Considera 4xx come success (proxy ha visto la connessione = OK warming)
+  - `get_stats()` → snapshot `(started_at, n_pings, n_success, n_failures,
+    consecutive_failures, last_status, last_latency_ms, last_error)`
+  - 3 fail consecutivi → log ERROR (visibile in `flyctl logs`)
+  - Interval clampato [60, 600]s per evitare overflow input
+- **`main.py`** wire startup/shutdown + endpoint observability:
+  - `startup_event()` chiama `start_self_ping()` dopo register_all
+  - `shutdown_event()` chiama `stop_self_ping()` per graceful drain
+  - `GET /api/health/self-ping` → restituisce `get_stats()` (debug)
+- **`fly.toml`** 3 env var production:
+  - `FEAPRO_SELF_PING_ENABLED = "true"`
+  - `FEAPRO_SELF_PING_URL = "https://fea-pro.fly.dev/api/health"`
+  - `FEAPRO_SELF_PING_INTERVAL_S = "240"` (4 min < Fly 5min idle)
+
+### Tests
+- **+13 pytest** in `tests/services/test_self_ping.py`:
+  - start disabled by default (no env var)
+  - start enabled+URL crea task; idempotent
+  - `_ping_once`: 200 OK, 404, 500, timeout (mock httpx transport)
+  - get_stats schema (9 chiavi)
+  - interval clampato per input fuori range
+  - invalid interval string → fallback 240
+  - stop noop quando non avviato
+  - consecutive_failures tracking
+- **1344 pytest backend** (1331 + 13). 2 fail pre-esistenti
+  (calibration drift, USGS integration) NON correlati.
+
+### Trade-off & alternative
+
+**Pro self-ping interno** (scelto):
+- $0 costo aggiuntivo (1 req/4min trascurabile)
+- Nessuna dipendenza da servizi esterni (UptimeRobot, cron-job.org)
+- Nessun account utente richiesto
+
+**Contro**:
+- Se la VM e' down (deploy/crash/manual stop), non si auto-riavvia.
+  Solo una request esterna la riporta su.
+- 4xx considerati "success" per il warming, ma 5xx genuine errors
+  vengono loggati come fail.
+
+**Alternativa skipped: `min_machines_running = 1`** in fly.toml:
+- Pro: solution canonica Fly, sempre 1 VM warm
+- Contro: 1 dei 3 VM gratuiti riservato sempre, no scaling down a 0.
+  Self-ping permette di sperimentare con auto_stop_machines = true
+  mantenendo cold-start mitigato.
+
+### Gate
+| | alpha.11 | **alpha.12** |
+|---|---|---|
+| Cold-start mean | ~22s | **~0s warm** (steady-state) |
+| pytest backend | 1331 | **1344** (+13) |
+| Fly auto_stop | enabled | enabled (ma self-ping) |
+| Costo extra | 0 | **0** (free-tier) |
+
+---
+
 ## v1.4.0-alpha.11 — Onboarding tour update Climate Loads — 2026-05-21
 
 Il tour onboarding mostrato al primo accesso (e re-shown ora a tutti gli

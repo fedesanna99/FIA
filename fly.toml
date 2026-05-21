@@ -18,6 +18,13 @@ kill_timeout    = "10s"
   FEAPRO_METEO_FALLBACK = "open_meteo_archive"
   FEAPRO_GEOCODING_FALLBACK = "nominatim"
   FEAPRO_ELEVATION_FALLBACK = "usgs_elevation"
+  # Cold-start mitigation (alpha.12): self-ping via public URL ogni 4min
+  # per resettare l'idle timer Fly.io e tenere la VM warm. La ping va al
+  # public URL e passa per il proxy -> Fly vede una connessione -> no
+  # auto-stop. Costo ~0 (1 req/4min e' trascurabile sul free tier).
+  FEAPRO_SELF_PING_ENABLED = "true"
+  FEAPRO_SELF_PING_URL = "https://fea-pro.fly.dev/api/health"
+  FEAPRO_SELF_PING_INTERVAL_S = "240"
   # PYTHONUNBUFFERED is already set in the Dockerfile
 
 # Persistent JSON storage for models (survives restarts/deploys).

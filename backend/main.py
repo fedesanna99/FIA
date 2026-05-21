@@ -21,6 +21,7 @@ from api.websocket import router as ws_router
 from storage import seed_examples
 from jobs.worker import get_worker
 from services.providers.registration import register_all
+from services.self_ping import start_self_ping, stop_self_ping, get_stats as get_self_ping_stats
 
 
 app = FastAPI(
@@ -76,12 +77,16 @@ async def startup_event():
     # Avvia il job worker (A5)
     worker = get_worker()
     await worker.start()
+    # Cold-start mitigation (alpha.12): self-ping via public URL ogni 4min
+    # per evitare che Fly.io fermi la VM dopo 5min di idle. Opt-in via env.
+    start_self_ping()
 
 
 @app.on_event("shutdown")
 async def shutdown_event():
     worker = get_worker()
     await worker.stop()
+    await stop_self_ping()
 
 
 @app.get("/api")
@@ -125,6 +130,14 @@ def api_root():
 @app.get("/api/health")
 def health():
     return {"status": "ok", "version": app.version}
+
+
+@app.get("/api/health/self-ping")
+def health_self_ping():
+    """Stats self-ping cold-start mitigation (alpha.12). Utile per debug
+    su Fly.io: verifica che il loop stia pingando con successo e che la
+    VM rimanga warm tra deploy."""
+    return get_self_ping_stats()
 
 
 # ── SPA serving (production / Fly.io single-image build) ─────────────────────
