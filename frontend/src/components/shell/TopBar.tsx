@@ -28,6 +28,7 @@ import {
   Check,
   Undo2,
   Redo2,
+  Bell,
 } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { modelsApi } from "../../api/client";
@@ -45,7 +46,7 @@ import { useAuthStore } from "../../store/authStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
 import { useRightRailStore } from "../../store/rightRailStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
-import { toast } from "../../store/toastStore";
+import { toast, useToastStore } from "../../store/toastStore";
 import { APP_VERSION } from "../../lib/version";
 import { Breadcrumb } from "./topbar/Breadcrumb";
 import { GlobalSearch } from "./topbar/GlobalSearch";
@@ -81,6 +82,11 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   // veri (l'API e' pronta lato store).
   const canUndo = useModelHistory((s) => s.past.length > 0);
   const canRedo = useModelHistory((s) => s.future.length > 0);
+  // alpha.30: placeholder per il bell counter. toastStore non ha ancora
+  // il concetto di read/unread: per ora usiamo la length dei toast attivi
+  // (che auto-decade con ttlMs). Verra' sostituito da un notificationsStore
+  // dedicato quando arriverà la persistenza side-bar.
+  const unreadCount = useToastStore((s) => s.toasts.length);
   const [newOpen, setNewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -278,6 +284,24 @@ export function TopBar({ models, activeId, onSelect }: Props) {
 
       {/* Collab avatar (solo se loggato) */}
       <CollabAvatars />
+
+      {/* Bell notifications — counter su unreadCount (toastStore placeholder) */}
+      <Tooltip content="Notifiche">
+        <button
+          type="button"
+          onClick={() => toast("info", "Centro notifiche in arrivo (sheet).")}
+          className="relative w-8 h-8 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink flex-shrink-0"
+          aria-label="Notifiche"
+          data-testid="topbar-bell"
+        >
+          <Bell className="w-4 h-4" />
+          {unreadCount > 0 && (
+            <span className="absolute top-0.5 right-0.5 bg-coral text-white rounded-full text-[9px] font-semibold px-1 py-0.5 border-2 border-bg-panel min-w-[16px] leading-none text-center">
+              {unreadCount}
+            </span>
+          )}
+        </button>
+      </Tooltip>
 
       {/* alpha.27: Eye button = empty state (chiude tutti i pannelli) */}
       <Tooltip content={<>Solo viewport (chiudi tutto) <kbd className="kbd ml-1.5">Shift+Space</kbd></>}>
