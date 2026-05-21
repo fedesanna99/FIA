@@ -46,8 +46,17 @@ import { LoadDialog } from "./components/dialogs/LoadDialog";
 import { ConstraintDialog } from "./components/dialogs/ConstraintDialog";
 import { MeshWizardDialog } from "./components/dialogs/MeshWizardDialog";
 import { ImportWizard } from "./components/dialogs/wizards/ImportWizard";
+import { MobileTabbar } from "./components/shell/MobileTabbar";
+import { MobilePanel } from "./components/shell/MobilePanel";
+import { MobileMoreMenu } from "./components/shell/MobileMoreMenu";
+import { MakePanel } from "./shell/panels/MakePanel";
+import { SolvePanel } from "./shell/panels/SolvePanel";
+import { VerifyPanel } from "./shell/panels/VerifyPanel";
+import { InspectPanel } from "./shell/panels/InspectPanel";
+import { ToolsPanel } from "./shell/panels/ToolsPanel";
 import { useModelList, useLoadModel } from "./hooks/useModel";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
+import { useIsMobile } from "./hooks/useIsMobile";
 import { useUIStore } from "./store/uiStore";
 import { useWorkspaceStore } from "./store/workspaceStore";
 import { useLeftRailStore } from "./store/leftRailStore";
@@ -93,6 +102,12 @@ export default function App() {
   // X in alto a destra per uscire.
   const isFocusMode = useWorkspaceStore((s) => s.isEmptyState);
   const exitFocus = useWorkspaceStore((s) => s.exitEmptyState);
+  // v1.5 Task 30: mobile responsive split (< 768).
+  const isMobile = useIsMobile();
+  const currentMobileTab = useWorkspaceStore((s) => s.currentMobileTab);
+  const setMobileTab = useWorkspaceStore((s) => s.setMobileTab);
+  // v1.5 Task 30: stato per il "more" sub-target su mobile (verify/tools)
+  const [mobileMoreSub, setMobileMoreSub] = useState<"verify" | "tools" | null>(null);
 
   useKeyboardShortcuts((kind) => setDialog(kind));
 
@@ -100,6 +115,27 @@ export default function App() {
   useEffect(() => {
     return useThemeStore.getState().init();
   }, []);
+
+  // v1.5 Task 30: listener per drill-in di MobileMoreMenu (verify/tools)
+  useEffect(() => {
+    const openVerify = () => setMobileMoreSub("verify");
+    const openTools = () => setMobileMoreSub("tools");
+    window.addEventListener("feapro:mobile-open-verify", openVerify);
+    window.addEventListener("feapro:mobile-open-tools", openTools);
+    return () => {
+      window.removeEventListener("feapro:mobile-open-verify", openVerify);
+      window.removeEventListener("feapro:mobile-open-tools", openTools);
+    };
+  }, []);
+
+  // v1.5 Task 30: quando l'utente passa da mobile a desktop (resize), ripulisce
+  // lo stato mobile-only per evitare ghost panel.
+  useEffect(() => {
+    if (!isMobile) {
+      if (currentMobileTab !== null) setMobileTab(null);
+      if (mobileMoreSub !== null) setMobileMoreSub(null);
+    }
+  }, [isMobile, currentMobileTab, mobileMoreSub, setMobileTab]);
 
   // v1.5 Task 29: listener globali per ImportWizard (apertura + post-import).
   useEffect(() => {
@@ -222,16 +258,36 @@ export default function App() {
     }
   }, [activeId]);
 
+  // v1.5 Task 30: i rails laterali sono nascosti su mobile (< 768).
+  const showRails = !isFocusMode && !isMobile;
+
+  // Mappatura mobile tab → titolo + componente
+  const mobilePanelInfo: Record<
+    "make" | "solve" | "results" | "more",
+    { title: string; content: React.ReactNode }
+  > = {
+    make:    { title: "Make",      content: <MakePanel /> },
+    solve:   { title: "Solve",     content: <SolvePanel /> },
+    results: { title: "Risultati", content: <InspectPanel /> },
+    more: {
+      title: mobileMoreSub === "verify" ? "Verifiche" : mobileMoreSub === "tools" ? "Strumenti" : "Altro",
+      content:
+        mobileMoreSub === "verify" ? <VerifyPanel /> :
+        mobileMoreSub === "tools" ? <ToolsPanel /> :
+        <MobileMoreMenu />,
+    },
+  };
+
   return (
     <div className="flex flex-col h-screen w-screen bg-bg text-ink overflow-hidden font-sans">
       {!isFocusMode && (
         <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
       )}
       <div className="flex flex-1 min-h-0 relative">
-        {!isFocusMode && <LeftRail />}
+        {showRails && <LeftRail />}
         {/* LeftSlidePanel ankorato a sinistra (toggle via leftRailStore).
             In focus mode il rail e' nascosto + il panel e' chiuso. */}
-        {!isFocusMode && <LeftSlidePanel />}
+        {showRails && <LeftSlidePanel />}
         <main className="flex-1 relative min-w-0 bg-bg-viewport">
           {/* alpha.30: Dashboard mockup-aligned quando nessun modello e' attivo.
               Quando l'utente seleziona/crea un modello, passa al Viewport3D. */}
@@ -259,15 +315,32 @@ export default function App() {
               <X className="w-4 h-4" />
             </button>
           )}
+          {/* v1.5 Task 30: pannello mobile full-screen sopra il viewport */}
+          {isMobile && !isFocusMode && currentMobileTab && currentMobileTab !== "model" && (
+            <MobilePanel
+              title={mobilePanelInfo[currentMobileTab].title}
+              onBack={() => {
+                if (currentMobileTab === "more" && mobileMoreSub) {
+                  setMobileMoreSub(null);
+                } else {
+                  setMobileTab(null);
+                  setMobileMoreSub(null);
+                }
+              }}
+            >
+              {mobilePanelInfo[currentMobileTab].content}
+            </MobilePanel>
+          )}
         </main>
-        {!isFocusMode && (
+        {showRails && (
           <div className="relative flex flex-shrink-0">
             <RightSlidePanel />
             <RightRail />
           </div>
         )}
       </div>
-      {!isFocusMode && <StatusBar />}
+      {isMobile && !isFocusMode && <MobileTabbar />}
+      {!isMobile && !isFocusMode && <StatusBar />}
       <Toaster />
       <CommandPalette />
       <HelpSheet />

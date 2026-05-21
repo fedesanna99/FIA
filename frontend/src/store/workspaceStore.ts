@@ -29,6 +29,10 @@ export type Workspace =
 export type WorkspaceTab = string;
 
 
+/** Tab della bottom tabbar su mobile (v1.5 Task 30). */
+export type MobileTab = "model" | "make" | "solve" | "results" | "more";
+
+
 // ── Stato completo: legacy + shell brief ───────────────────────────────────
 interface WorkspaceState extends ShellState, ShellActions {
   // Legacy (backward compat)
@@ -43,6 +47,10 @@ interface WorkspaceState extends ShellState, ShellActions {
   setHelp: (open: boolean) => void;
   togglePalette: () => void;
   setPalette: (open: boolean) => void;
+
+  // v1.5 Task 30 — mobile bottom tabbar
+  currentMobileTab: MobileTab | null;
+  setMobileTab: (tab: MobileTab | null) => void;
 }
 
 
@@ -89,6 +97,10 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       setHelp: (open) => set({ helpOpen: open }),
       togglePalette: () => set({ paletteOpen: !get().paletteOpen }),
       setPalette: (open) => set({ paletteOpen: open }),
+
+      // v1.5 Task 30 — mobile tabbar state (non persistito).
+      currentMobileTab: null,
+      setMobileTab: (tab) => set({ currentMobileTab: tab }),
 
       // ─── Shell actions (brief schema) ───────────────────────────────────
       openLeftPanel: (id, tab) => {
