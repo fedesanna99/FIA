@@ -40,6 +40,11 @@ import { Viewport3D } from "./components/viewport/Viewport3D";
 import { DropZone } from "./components/viewport/DropZone";
 import { Dashboard } from "./components/shell/Dashboard";
 import { HelpDialog } from "./components/dialogs/HelpDialog";
+import { NodeDialog } from "./components/dialogs/NodeDialog";
+import { ElementDialog } from "./components/dialogs/ElementDialog";
+import { LoadDialog } from "./components/dialogs/LoadDialog";
+import { ConstraintDialog } from "./components/dialogs/ConstraintDialog";
+import { MeshWizardDialog } from "./components/dialogs/MeshWizardDialog";
 import { useModelList, useLoadModel } from "./hooks/useModel";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useUIStore } from "./store/uiStore";
@@ -53,6 +58,10 @@ export default function App() {
   useLoadModel(activeId);
   const setDialog = useUIStore((s) => s.setOpenDialog);
   const openDialog = useUIStore((s) => s.openDialog);
+  const editNodeId = useUIStore((s) => s.editNodeId);
+  const editElementId = useUIStore((s) => s.editElementId);
+  const editLoadId = useUIStore((s) => s.editLoadId);
+  const editConstraintId = useUIStore((s) => s.editConstraintId);
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
   // alpha.31 Task 23: focus mode (= empty state) nasconde TopBar +
   // StatusBar + LeftRail + RightRail. Resta solo viewport + un piccolo
@@ -109,6 +118,14 @@ export default function App() {
           );
           return;
         }
+      }
+
+      // Ctrl+N / Cmd+N → apre il dialog Nuovo modello (TopBar gia' ha il listener).
+      // alpha.31 hotfix: il kbd "Ctrl+N" era promesso nel ModelMenu ma mai cablato.
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "n") {
+        e.preventDefault();
+        window.dispatchEvent(new Event("feapro:open-new-model"));
+        return;
       }
 
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
@@ -198,6 +215,34 @@ export default function App() {
       <OnboardingTour />
       <ClimateContextBadge />
       <HelpDialog open={openDialog === "help"} onClose={() => setDialog(null)} />
+      {/* Dialog globali entity-CRUD (alpha.31 hotfix): prima erano in EditorBar
+          dentro WorkspacePanel/Sidebar — rimossi dal viewport-first refactor.
+          Senza questi mount, le shortcut N/E/L/C/M e i bottoni "Aggiungi …"
+          dentro MakePanel scrivevano in uiStore.openDialog ma nulla rispondeva. */}
+      <NodeDialog
+        open={openDialog === "node"}
+        onClose={() => setDialog(null)}
+        editNodeId={editNodeId}
+      />
+      <ElementDialog
+        open={openDialog === "element"}
+        onClose={() => setDialog(null)}
+        editElementId={editElementId}
+      />
+      <LoadDialog
+        open={openDialog === "load"}
+        onClose={() => setDialog(null)}
+        editLoadId={editLoadId}
+      />
+      <ConstraintDialog
+        open={openDialog === "constraint"}
+        onClose={() => setDialog(null)}
+        editConstraintId={editConstraintId}
+      />
+      <MeshWizardDialog
+        open={openDialog === "mesh"}
+        onClose={() => setDialog(null)}
+      />
     </div>
   );
 }

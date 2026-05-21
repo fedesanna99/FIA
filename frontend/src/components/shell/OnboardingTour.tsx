@@ -18,6 +18,7 @@ import {
   Hammer, Eye, Layers, Wrench,
 } from "lucide-react";
 import { useWorkspaceStore, type Workspace } from "../../store/workspaceStore";
+import { useLeftRailStore } from "../../store/leftRailStore";
 import { Button } from "../ui/Button";
 import { cn } from "../ui/cn";
 
@@ -262,10 +263,16 @@ export function OnboardingTour() {
     }
   }, []);
 
-  // Cambia workspace quando lo step lo richiede (preview live)
+  // Cambia workspace quando lo step lo richiede (preview live).
+  // alpha.31 hotfix: oltre allo store legacy serve anche aprire il LeftSlidePanel,
+  // altrimenti il preview "live" del tour non mostra nulla.
   useEffect(() => {
     if (open && STEPS[step]?.workspace) {
-      setWorkspace(STEPS[step].workspace!);
+      const ws = STEPS[step].workspace!;
+      setWorkspace(ws);
+      if (ws !== "docs") {
+        useLeftRailStore.getState().open(ws);
+      }
     }
   }, [open, step, setWorkspace]);
 

@@ -156,8 +156,11 @@ export function MakePanel() {
               icon={IconArrowsLeftRight}
               label="Apri menu Export…"
               onClick={() => {
-                // Apre il workspace I/O legacy che ha tutti i panel
+                // alpha.31 hotfix: setWorkspace("io") aggiornava solo lo store
+                // legacy, ma LeftSlidePanel monta in base a leftRailStore.openSection.
+                // Apriamo entrambi cosi' il pannello I/O viene effettivamente mostrato.
                 useWorkspaceStore.getState().setWorkspace("io");
+                useLeftRailStore.getState().open("io");
               }}
               testId="make-open-io"
             />

@@ -265,7 +265,14 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           Focus resta sempre accessibile via Shift+Space e command palette. */}
 
       {/* Right side: dialogs portal */}
-      <NewModelDialog open={newOpen} onClose={() => setNewOpen(false)} />
+      <NewModelDialog
+        open={newOpen}
+        onClose={() => setNewOpen(false)}
+        onCreated={(id) => {
+          onSelect(id);
+          toast("success", "Nuovo modello creato.");
+        }}
+      />
       <EditModelDialog open={editOpen} onClose={() => setEditOpen(false)} />
       <AccountDialog open={accountOpen} onClose={() => setAccountOpen(false)} />
       <LocationPickerDialog

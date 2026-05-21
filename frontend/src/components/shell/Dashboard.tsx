@@ -13,12 +13,16 @@
  * dei job attivi. Quando arriveranno store dedicati basta sostituire le
  * sorgenti.
  */
-import { useQuery } from "@tanstack/react-query";
+import { useRef } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, FileUp, Layers, FlaskConical, type LucideIcon } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { getQuota } from "../../api/billing";
+import { modelsApi } from "../../api/client";
 import { useAuthStore } from "../../store/authStore";
 import { useAnalysisStore } from "../../store/analysisStore";
+import { useModelStore } from "../../store/modelStore";
+import { toast } from "../../store/toastStore";
 
 interface Props {
   models: FEAModel[];
@@ -29,6 +33,9 @@ export function Dashboard({ models, onSelect }: Props) {
   const isRunning = useAnalysisStore((s) => s.isRunning);
   const authUser = useAuthStore((s) => s.user);
   const userId = authUser?.id ?? "demo_user";
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const setModel = useModelStore((s) => s.setModel);
+  const qc = useQueryClient();
 
   const { data: quota } = useQuery({
     queryKey: ["billing-quota", userId],
@@ -36,6 +43,53 @@ export function Dashboard({ models, onSelect }: Props) {
     staleTime: 30_000,
     retry: 1,
   });
+
+  // alpha.31 hotfix: il bottone "Importa file" prima dispatchava
+  // feapro:open-new-model (fuorviante). Ora cabla un vero <input type="file">
+  // + modelsApi.importJson (riusa stessa logica del DropZone globale).
+  const importMut = useMutation({
+    mutationFn: (payload: FEAModel) => modelsApi.importJson(payload),
+    onSuccess: (m) => {
+      qc.invalidateQueries({ queryKey: ["models"] });
+      setModel(m);
+      onSelect(m.id);
+      toast(
+        "success",
+        `Modello "${m.name}" importato (${m.nodes.length} nodi, ${m.elements.length} elementi)`,
+      );
+    },
+    onError: (e: unknown) =>
+      toast("error", `Errore import: ${(e as Error)?.message ?? e}`),
+  });
+
+  const handleImportClick = () => fileInputRef.current?.click();
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // reset cosi' si puo' importare lo stesso file due volte
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text) as FEAModel;
+      if (!data.nodes || !data.elements) {
+        toast("error", "JSON non riconosciuto: mancano nodes/elements.");
+        return;
+      }
+      importMut.mutate(data);
+    } catch (err) {
+      toast("error", `Errore lettura file: ${(err as Error)?.message ?? err}`);
+    }
+  };
+
+  const handleExamples = () => {
+    if (models.length > 0) {
+      onSelect(models[0].id);
+    } else {
+      toast(
+        "info",
+        "Nessun modello disponibile. Crea un nuovo modello o importa un JSON.",
+      );
+    }
+  };
 
   const totalCap = (quota?.cap_credits ?? 100) + (quota?.bonus_credits ?? 0);
   const used = quota?.used_credits ?? 0;
@@ -75,16 +129,26 @@ export function Dashboard({ models, onSelect }: Props) {
         <ActionBtn
           icon={FileUp}
           label="Importa file"
-          sub="DXF · IFC · CSV"
-          onClick={() => window.dispatchEvent(new Event("feapro:open-new-model"))}
+          sub="JSON modello"
+          onClick={handleImportClick}
+          testId="dashboard-action-import"
         />
         <ActionBtn
           icon={FlaskConical}
           label="Esempi"
           sub="Modelli demo"
-          onClick={() => models.length > 0 && onSelect(models[0].id)}
+          onClick={handleExamples}
         />
       </div>
+      {/* file picker nascosto per Importa file (alpha.31 hotfix) */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json,application/json"
+        className="hidden"
+        onChange={handleFileChange}
+        data-testid="dashboard-file-input"
+      />
 
       {/* Jobs + Modelli */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-7 max-w-5xl mx-auto">

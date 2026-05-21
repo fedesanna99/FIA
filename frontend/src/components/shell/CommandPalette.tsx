@@ -16,6 +16,7 @@ import { Command } from "cmdk";
 import { useEffect, useMemo } from "react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useRightRailStore } from "../../store/rightRailStore";
+import { useLeftRailStore } from "../../store/leftRailStore";
 import { useUIStore } from "../../store/uiStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useModelStore } from "../../store/modelStore";
@@ -61,9 +62,17 @@ export function CommandPalette() {
     if (item.soon) return;
 
     switch (item.actionKind) {
-      case "workspace":
-        setWorkspace(item.payload as Parameters<typeof setWorkspace>[0]);
+      case "workspace": {
+        // alpha.31 hotfix: oltre allo store legacy serve aprire il LeftSlidePanel
+        // (model/analysis/verify/io) via leftRailStore, altrimenti l'utente non
+        // vede mai il pannello laterale (mappa setWorkspace -> visibilita').
+        const target = item.payload as Parameters<typeof setWorkspace>[0];
+        setWorkspace(target);
+        if (target !== "docs") {
+          useLeftRailStore.getState().open(target);
+        }
         break;
+      }
       case "right-panel":
         setOpenSection(item.payload as Parameters<typeof setOpenSection>[0]);
         break;
@@ -98,7 +107,11 @@ export function CommandPalette() {
         window.dispatchEvent(new CustomEvent("feapro:open-auth"));
         break;
       case "openExport":
+        // alpha.31 hotfix: setWorkspace("io") da solo non monta nulla — il
+        // LeftSlidePanel legge da leftRailStore.openSection. Apriamo
+        // esplicitamente la sezione "io" cosi' compare il pannello I/O.
         setWorkspace("io");
+        useLeftRailStore.getState().open("io");
         break;
       case "logout":
         authLogout();
