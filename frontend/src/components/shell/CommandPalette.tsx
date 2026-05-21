@@ -116,6 +116,17 @@ export function CommandPalette() {
       case "logout":
         authLogout();
         break;
+      case "open-import-wizard": {
+        // v1.5 Task 29: apre ImportWizard via custom event globale (gestito
+        // in App.tsx). Payload opzionale { source: "dxf"|"ifc"|"json" }.
+        const payload = (item.payload ?? {}) as { source?: string };
+        window.dispatchEvent(
+          new CustomEvent("feapro:open-import-wizard", {
+            detail: payload.source ? { source: payload.source } : undefined,
+          }),
+        );
+        break;
+      }
       case "focus-toggle": {
         // v1.5 Task 33: toggle modalita' focus dalla palette (oltre a Shift+Space e F).
         const ws = useWorkspaceStore.getState();

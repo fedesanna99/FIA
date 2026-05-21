@@ -55,7 +55,8 @@ export type PaletteActionKind =
   | "openAuth"       // open AuthDialog
   | "openExport"     // open ExportMenu (workspace io)
   | "logout"         // auth logout
-  | "focus-toggle";  // v1.5 Task 33: toggle modalita' focus (Shift+Space / F)
+  | "focus-toggle"   // v1.5 Task 33: toggle modalita' focus (Shift+Space / F)
+  | "open-import-wizard"; // v1.5 Task 29: apre ImportWizard 4-step (payload?: { source })
 
 
 /** Sezione (gruppo) di appartenenza. */
@@ -127,6 +128,12 @@ const COMMANDS: PaletteItem[] = [
   // Vista / Focus mode (v1.5 Task 33)
   { id: "focus-enter", label: "Modalità focus (solo modello)", description: "Nascondi tutto tranne il viewport", aliases: ["focus", "fullscreen", "concentra", "nascondi", "schermo intero"], section: "commands", group: "Vista", icon: Maximize, shortcut: "F", actionKind: "focus-toggle" },
   { id: "focus-exit",  label: "Esci da modalità focus", aliases: ["esci focus", "ripristina shell", "torna", "esc"], section: "commands", group: "Vista", icon: Minimize, shortcut: "Esc", actionKind: "focus-toggle" },
+
+  // Import wizard (v1.5 Task 29) — 4 voci con source pre-selezionata
+  { id: "open-wizard-import",     label: "Apri wizard import",        aliases: ["import", "wizard", "carica"], section: "commands", group: "Wizard", icon: FileUp, actionKind: "open-import-wizard" },
+  { id: "open-wizard-import-dxf", label: "Importa file DXF (wizard)", aliases: ["dxf", "import dxf", "cad"], section: "commands", group: "Wizard", icon: FileUp, actionKind: "open-import-wizard", payload: { source: "dxf" } },
+  { id: "open-wizard-import-ifc", label: "Importa file IFC (wizard)", aliases: ["ifc", "import ifc", "bim"], section: "commands", group: "Wizard", icon: FileUp, actionKind: "open-import-wizard", payload: { source: "ifc" } },
+  { id: "open-wizard-import-json",label: "Importa JSON nativo (wizard)", aliases: ["json", "import json", "feapro"], section: "commands", group: "Wizard", icon: FileUp, actionKind: "open-import-wizard", payload: { source: "json" } },
 ];
 
 

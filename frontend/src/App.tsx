@@ -45,6 +45,7 @@ import { ElementDialog } from "./components/dialogs/ElementDialog";
 import { LoadDialog } from "./components/dialogs/LoadDialog";
 import { ConstraintDialog } from "./components/dialogs/ConstraintDialog";
 import { MeshWizardDialog } from "./components/dialogs/MeshWizardDialog";
+import { ImportWizard } from "./components/dialogs/wizards/ImportWizard";
 import { useModelList, useLoadModel } from "./hooks/useModel";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useUIStore } from "./store/uiStore";
@@ -73,6 +74,12 @@ function enterFocusMode() {
 export default function App() {
   const { data: models } = useModelList();
   const [activeId, setActiveId] = useState<string | null>(null);
+  // v1.5 Task 29: stato wizard import (listener su 2 eventi globali
+  // dispatchati da Dashboard/palette per aprire il wizard 4-step).
+  const [importWizardOpen, setImportWizardOpen] = useState(false);
+  const [importWizardSource, setImportWizardSource] = useState<
+    "dxf" | "ifc" | "json" | "template" | undefined
+  >(undefined);
   useLoadModel(activeId);
   const setDialog = useUIStore((s) => s.setOpenDialog);
   const openDialog = useUIStore((s) => s.openDialog);
@@ -92,6 +99,30 @@ export default function App() {
   // Inizializza tema (dark/light/system) — applica data-theme e listener system
   useEffect(() => {
     return useThemeStore.getState().init();
+  }, []);
+
+  // v1.5 Task 29: listener globali per ImportWizard (apertura + post-import).
+  useEffect(() => {
+    const openImport = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { source?: string } | undefined;
+      const src = detail?.source;
+      if (src === "dxf" || src === "ifc" || src === "json" || src === "template") {
+        setImportWizardSource(src);
+      } else {
+        setImportWizardSource(undefined);
+      }
+      setImportWizardOpen(true);
+    };
+    const onImported = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { id?: string } | undefined;
+      if (detail?.id) setActiveId(detail.id);
+    };
+    window.addEventListener("feapro:open-import-wizard", openImport);
+    window.addEventListener("feapro:model-imported", onImported);
+    return () => {
+      window.removeEventListener("feapro:open-import-wizard", openImport);
+      window.removeEventListener("feapro:model-imported", onImported);
+    };
   }, []);
 
   // Numeri 1-5 + Shift+Space (alpha.27 empty state) + (alpha.22 toggle).
@@ -270,6 +301,13 @@ export default function App() {
       <MeshWizardDialog
         open={openDialog === "mesh"}
         onClose={() => setDialog(null)}
+      />
+      {/* v1.5 Task 29: ImportWizard 4-step (Fonte → File → Anteprima → Conferma).
+          Aperto da Dashboard "Importa file" + voci palette + custom event. */}
+      <ImportWizard
+        open={importWizardOpen}
+        onClose={() => setImportWizardOpen(false)}
+        initialSource={importWizardSource}
       />
     </div>
   );
