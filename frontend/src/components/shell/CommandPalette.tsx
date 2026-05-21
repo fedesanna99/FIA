@@ -20,9 +20,16 @@ import { useLeftRailStore } from "../../store/leftRailStore";
 import { useUIStore } from "../../store/uiStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useModelStore } from "../../store/modelStore";
+import { useResultsStore } from "../../store/resultsStore";
 import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
+import { toast } from "../../store/toastStore";
+import {
+  exportModelJson, exportResultsJson,
+  exportDisplacementsCSV, exportModesCSV,
+} from "../../utils/export";
+import { generateReport, viewportCanvasDataUrl } from "../../utils/reportPdf";
 import {
   PALETTE_ITEMS, PALETTE_COUNT, SECTION_LABELS, SECTION_ORDER,
   type PaletteItem, type PaletteSection,
@@ -125,6 +132,93 @@ export function CommandPalette() {
             detail: payload.source ? { source: payload.source } : undefined,
           }),
         );
+        break;
+      }
+      case "apply-material": {
+        // v1.5 Task 34: applica materiale alla selezione del modelStore.
+        // Se nulla e' selezionato, ricorda all'utente di selezionare prima.
+        const sel = useModelStore.getState().selectedElementIds;
+        const matId = (item.payload as { materialId: string }).materialId;
+        if (sel.size === 0) {
+          toast("info", `Seleziona elementi prima di applicare ${matId}.`);
+        } else {
+          // TODO v1.5+: chiama materialsApi.applyToElements(modelId, Array.from(sel), matId).
+          toast("success", `Materiale ${matId} marcato per ${sel.size} elementi (mutation API in arrivo).`);
+        }
+        break;
+      }
+      case "apply-section": {
+        const sel = useModelStore.getState().selectedElementIds;
+        const secId = (item.payload as { sectionId: string }).sectionId;
+        if (sel.size === 0) {
+          toast("info", `Seleziona elementi prima di applicare ${secId}.`);
+        } else {
+          toast("success", `Sezione ${secId} marcata per ${sel.size} elementi (mutation API in arrivo).`);
+        }
+        break;
+      }
+      case "toggle-view": {
+        // v1.5 Task 34: toggle overlay viewport via analysisStore. Per i flag
+        // non ancora esistenti (showDeformed/showColormap/showIso/wireframe)
+        // mostro un toast informativo.
+        const flag = (item.payload as { flag: string }).flag;
+        const a = useAnalysisStore.getState();
+        switch (flag) {
+          case "showGrid":         a.toggleGrid(); break;
+          case "showLoads":        a.toggleLoads(); break;
+          case "showConstraints":  a.toggleConstraints(); break;
+          case "showNodeLabels":   a.toggleNodeLabels(); break;
+          case "showDiagrams":     a.toggleDiagrams(); break;
+          case "showPrincipal":    a.togglePrincipals(); break;
+          default:
+            toast("info", `Toggle "${flag}" — in arrivo nel prossimo update.`);
+        }
+        break;
+      }
+      case "quick-export": {
+        // v1.5 Task 34: shortcut export rapido. Riusa utils/export.ts.
+        const m = useModelStore.getState().model;
+        if (!m) { toast("error", "Nessun modello caricato."); break; }
+        const r = useResultsStore.getState();
+        const payload = item.payload as { format: string; scope?: string };
+        try {
+          switch (payload.format) {
+            case "pdf": {
+              const viewportPng = viewportCanvasDataUrl();
+              void generateReport({
+                model: m,
+                staticResults: r.staticResults,
+                modalResults: r.modalResults,
+                viewportPng,
+              });
+              break;
+            }
+            case "xlsx":
+              if (r.staticResults) exportDisplacementsCSV(m, r.staticResults);
+              if (r.modalResults) exportModesCSV(m, r.modalResults);
+              toast("success", "Export Excel: scaricati CSV piatti.");
+              break;
+            case "csv-nodes":
+              if (!r.staticResults) { toast("error", "Servono risultati statica."); break; }
+              exportDisplacementsCSV(m, r.staticResults);
+              break;
+            case "csv-modes":
+              if (!r.modalResults) { toast("error", "Servono risultati modale."); break; }
+              exportModesCSV(m, r.modalResults);
+              break;
+            case "json":
+              exportModelJson(m);
+              if (r.staticResults) exportResultsJson(m.name, r.staticResults);
+              break;
+            case "dxf":
+              toast("info", "Export DXF: usa il pannello Tools → Esporta.");
+              break;
+            default:
+              toast("info", `Format "${payload.format}" non riconosciuto.`);
+          }
+        } catch (e) {
+          toast("error", `Errore export: ${(e as Error).message}`);
+        }
         break;
       }
       case "focus-toggle": {
