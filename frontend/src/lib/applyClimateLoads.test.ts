@@ -518,4 +518,89 @@ describe("applyClimateLoadsToModel", () => {
     // 3 nodi × (2 wind + 1 snow) + 1 seismic = 10
     expect(r.loads).toHaveLength(10);
   });
+
+  // ============================================================
+  // Wind 4-direction envelope NTC §3.3.3 (v1.4.0-alpha.10)
+  // ============================================================
+
+  it("4-direction: genera 4 wind loads per nodo (+X, -X, +Y, -Y)", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      windEnvelope4Direction: true,
+      includeSnow: false,
+    });
+    // 3 nodi × 4 wind = 12 totale
+    expect(r.loads).toHaveLength(12);
+    const node2Loads = r.loads.filter((l) => l.target_id === 2);
+    expect(node2Loads).toHaveLength(4);
+    // 1 fx>0, 1 fx<0, 1 fy>0, 1 fy<0
+    expect(node2Loads.filter((l) => (l.fx ?? 0) > 0)).toHaveLength(1);
+    expect(node2Loads.filter((l) => (l.fx ?? 0) < 0)).toHaveLength(1);
+    expect(node2Loads.filter((l) => (l.fy ?? 0) > 0)).toHaveLength(1);
+    expect(node2Loads.filter((l) => (l.fy ?? 0) < 0)).toHaveLength(1);
+  });
+
+  it("4-direction: tutti gli envelope hanno stessa magnitudo |q×A|", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      windEnvelope4Direction: true,
+      includeSnow: false,
+      tributaryArea: 2.0,
+    });
+    // magnitudo = q_p × 2 = 0.530 × 2 = 1.060 kN
+    const expected = sampleBundle.meteo!.wind.q_p_z10_kN_m2 * 2.0;
+    const node2Loads = r.loads.filter((l) => l.target_id === 2);
+    for (const l of node2Loads) {
+      const m_kN = Math.abs(l.fx ?? l.fy ?? 0);
+      expect(m_kN).toBeCloseTo(expected, 4);
+    }
+  });
+
+  it("4-direction: labels contengono +X, -X, +Y, -Y", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      windEnvelope4Direction: true,
+      includeSnow: false,
+    });
+    const labels = r.loads.map((l) => l.label ?? "");
+    expect(labels.filter((l) => l.includes("+X")).length).toBeGreaterThan(0);
+    expect(labels.filter((l) => l.includes("-X")).length).toBeGreaterThan(0);
+    expect(labels.filter((l) => l.includes("+Y")).length).toBeGreaterThan(0);
+    expect(labels.filter((l) => l.includes("-Y")).length).toBeGreaterThan(0);
+    expect(labels.every((l) => l.includes("Envelope"))).toBe(true);
+  });
+
+  it("4-direction sovrascrive windEnvelope (precedenza)", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      windEnvelope: true,         // legacy: 2 loads
+      windEnvelope4Direction: true, // new: 4 loads (precedenza)
+      includeSnow: false,
+    });
+    // Solo 4-direction prevale: 3 nodi × 4 = 12
+    expect(r.loads).toHaveLength(12);
+  });
+
+  it("4-direction + snow + seismic: 12 wind + 3 snow + 1 seismic = 16", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundleWithSeismic, {
+      windEnvelope4Direction: true,
+      includeSeismic: true,
+    });
+    expect(r.loads).toHaveLength(16);
+  });
+
+  it("4-direction conservation: somma loads simmetrica (= 0)", () => {
+    // Per ogni nodo, +X e -X si cancellano, +Y e -Y si cancellano.
+    // Quindi la somma vettoriale totale = 0 (no spostamento risultante).
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      windEnvelope4Direction: true,
+      includeSnow: false,
+    });
+    const sumFx = r.loads.reduce((s, l) => s + (l.fx ?? 0), 0);
+    const sumFy = r.loads.reduce((s, l) => s + (l.fy ?? 0), 0);
+    expect(sumFx).toBeCloseTo(0, 8);
+    expect(sumFy).toBeCloseTo(0, 8);
+  });
 });

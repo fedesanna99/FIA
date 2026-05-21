@@ -14,13 +14,15 @@
 import { useState, useEffect } from "react";
 import {
   Boxes, Cpu, BarChart3, ShieldCheck, ArrowRightLeft,
-  ChevronLeft, ChevronRight, X, Sparkles, Command,
+  ChevronLeft, ChevronRight, X, Sparkles, Command, MapPin,
 } from "lucide-react";
 import { useWorkspaceStore, type Workspace } from "../../store/workspaceStore";
 import { Button } from "../ui/Button";
 import { cn } from "../ui/cn";
 
-const STORAGE_KEY = "feapro-onboarding-seen-v1";
+// v2: bump per re-mostrare onboarding agli utenti esistenti dopo aggiunta
+// step Climate Loads (v1.4 alpha.3-.10).
+const STORAGE_KEY = "feapro-onboarding-seen-v2";
 
 interface Step {
   id: string;
@@ -147,6 +149,31 @@ const STEPS: Step[] = [
           <Command className="h-3.5 w-3.5" />
           <span>Premi <kbd className="bg-bg px-1 rounded border border-border">Ctrl+K</kbd> per la palette comandi globale.</span>
         </div>
+      </div>
+    ),
+  },
+  {
+    id: "climate-loads",
+    icon: <MapPin className="h-8 w-8 text-accent" />,
+    title: "🆕 6 · Climate Loads — vento, neve, sismica da location",
+    description: "Calcola loads EN 1991 + NTC 2018 da coordinate reali.",
+    body: (
+      <div className="space-y-2 text-xs text-ink-muted">
+        <p>Click <kbd className="bg-bg px-1 rounded border border-border">📍 Loads</kbd> in TopBar per:</p>
+        <ul className="list-disc pl-4 space-y-0.5">
+          <li><strong className="text-ink">5 preset rapidi</strong> Italia (Roma, Milano, L'Aquila, Cagliari, Cortina) — 1 click, no API call</li>
+          <li><strong className="text-ink">Search live</strong> qualsiasi città mondo via Open-Meteo</li>
+          <li>Calcolo automatico <strong className="text-ink">q_p</strong> (vento), <strong className="text-ink">s_design</strong> (neve), <strong className="text-ink">a_g/g</strong> (sismica)</li>
+          <li>Badge floating top-left sempre visibile, persiste tra refresh</li>
+        </ul>
+        <p>Click sul badge → <strong className="text-ink">🔧 Applica come carichi al modello</strong>:</p>
+        <ul className="list-disc pl-4 space-y-0.5">
+          <li>Tributary area <strong className="text-ink">per-nodo da topologia</strong> (Σ F = q × A_totale esatto)</li>
+          <li>Inviluppo vento <strong className="text-ink">4 direzioni</strong> ±X, ±Y (NTC §3.3.3 completo)</li>
+          <li>Sismica come <strong className="text-ink">ground_accel</strong> model-level</li>
+          <li>Labels traceability: <code className="text-[10px]">"Wind EN1991-1-4 [Roma, +X]"</code></li>
+        </ul>
+        <p className="text-[11px] pt-1">Sorgente dati: Open-Meteo (ERA5 80y), USGS Earthquake, Open-Elevation. Tutto via fallback chain F8 con cache 1y SQLite.</p>
       </div>
     ),
   },

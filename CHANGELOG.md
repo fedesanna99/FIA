@@ -1,5 +1,92 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.11 — Onboarding tour update Climate Loads — 2026-05-21
+
+Il tour onboarding mostrato al primo accesso (e re-shown ora a tutti gli
+utenti via bump `STORAGE_KEY` v1→v2) include uno step 6 dedicato al
+workflow Climate Loads end-to-end. Riduce attrito su feature scientific-
+mente non banale: l'utente medio non sa che q_p + s_design + a_g/g sono
+applicabili come nodal/ground_accel direttamente in 2 click.
+
+### Added
+- **`OnboardingTour.tsx`** — 6° step "climate-loads" con `MapPin` icon:
+  - Spiega TopBar → 📍 Loads (5 preset + search live qualunque città)
+  - Risultati: q_p (vento EN 1991-1-4), s_design (neve EN 1991-1-3),
+    a_g/g (sismica NTC §3.2)
+  - Badge floating persistente su refresh (zustand persist localStorage)
+  - Click badge → 🔧 Applica come carichi al modello
+  - Highlights: tributary per-nodo da topologia (Σ F = q × A esatto),
+    inviluppo vento 4 direzioni NTC §3.3.3, sismica `ground_accel`
+    model-level
+- **`STORAGE_KEY`** bump `"feapro-onboarding-seen-v1"` → `"...-v2"`:
+  tutti gli utenti esistenti rivedono il tour la prossima volta che
+  aprono l'app — first-class discoverability per Climate Loads.
+
+### Tests
+- **180/180 vitest** (no nuovi test richiesti — solo content step text;
+  i 3 test esistenti `OnboardingTour.test.tsx` continuano a passare con
+  i nuovi step).
+- Build TypeScript + Vite OK: `✓ built in 9.39s`.
+
+### Gate
+| | alpha.10 | **alpha.11** |
+|---|---|---|
+| Onboarding steps | 5 | **6** (+ climate-loads) |
+| Storage version | v1 | **v2** (re-shows tour) |
+| vitest frontend | 180 | **180** |
+
+---
+
+## v1.4.0-alpha.10 — Wind 4-direction envelope NTC §3.3.3 — 2026-05-21
+
+Inviluppo vento NTC 2018 §3.3.3 completo: 4 casi di carico (±X, ±Y)
+applicati simultaneamente come 4 loads/nodo. Fino a alpha.7 l'inviluppo
+era bi-axis (2 direzioni sull'asse scelto); alpha.10 estende a 4 per
+conformita' normativa rigorosa (calcoli su edifici alti / strutture
+critiche dove il vento e' considerato in tutte le combinazioni).
+
+### Added
+- **`applyClimateLoads.ts`** nuova opzione `windEnvelope4Direction`:
+  - Default `false` (backward compatible)
+  - Se `true`: genera 4 nodal loads/nodo (`+X`, `-X`, `+Y`, `-Y`)
+  - Label `"Wind EN1991-1-4 [<loc>, Envelope] +X/-X/+Y/-Y"` per
+    traceability nel solver e nei report.
+  - Sovrascrive `windEnvelope` (bi-axis) se entrambi attivi (4-dir wins).
+- **`ApplyClimateLoadsDialog.tsx`** checkbox UI:
+  - 🌪️ "Inviluppo 4 direzioni (±X, ±Y) — 4 loads/nodo NTC §3.3.3"
+  - Mutualmente esclusivo con il checkbox bi-axis envelope
+  - Selezionando 4-dir si disattiva auto bi-axis (e viceversa)
+- **Conservation con per-node**: in modalita' per-node + 4-direction →
+  Σ |F| per nodo = 4 × q × tributary[i], somma vettoriale = 0 (4 forze
+  bilanciate). Il solver gestisce le 4 combinazioni come load cases
+  separati per inviluppo M+/-, V+/-, etc.
+
+### Tests
+- **+6 vitest** in `applyClimateLoads.test.ts`:
+  - Count 4 loads/nodo non vincolato (1 snow, 4 wind, 5 totali)
+  - Magnitudes simmetriche (+X/-X uguali, +Y/-Y uguali, asse X = asse Y)
+  - Labels contengono "+X", "-X", "+Y", "-Y"
+  - 4-direction override bi-axis quando entrambi true
+  - Combo snow + 4-direction wind + seismic = 16 loads + 1 ground_accel
+  - Σ vettoriale wind loads = 0 (conservation per nodo)
+- **180/180 vitest totale** (174 + 6).
+
+### Use case strutturale
+Edificio simmetrico in zona vento alta (es. Cagliari q_p=0.55 kN/m²):
+- **alpha.7 bi-axis +X**: solo 2 casi (vento da est, vento da ovest)
+- **alpha.10 4-direction**: 4 casi (E, W, N, S) → inviluppo completo
+  delle sollecitazioni alla base e all'attacco copertura — richiesto
+  da NTC §3.3.3 per edifici NON simmetrici o con altezza > 25m.
+
+### Gate
+| | alpha.9 | **alpha.10** |
+|---|---|---|
+| Wind envelope direzioni | 2 (±asse scelto) | **4 (±X, ±Y completo)** |
+| vitest frontend | 174 | **180** (+6) |
+| NTC §3.3.3 conformity | parziale | **completa** |
+
+---
+
 ## v1.4.0-alpha.9 — Observability dashboard frontend — 2026-05-21
 
 I 3 endpoint backend F6 (`/api/providers/usage/{summary,timeline,health}`)

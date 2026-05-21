@@ -42,6 +42,9 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
     DEFAULT_APPLY_OPTIONS.windDirection,
   );
   const [windEnvelope, setWindEnvelope] = useState(DEFAULT_APPLY_OPTIONS.windEnvelope);
+  const [windEnvelope4Direction, setWindEnvelope4Direction] = useState(
+    DEFAULT_APPLY_OPTIONS.windEnvelope4Direction,
+  );
   const [tributaryMode, setTributaryMode] = useState<TributaryMode>(
     DEFAULT_APPLY_OPTIONS.tributaryMode,
   );
@@ -60,13 +63,13 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
     if (!bundle || !model) return null;
     return applyClimateLoadsToModel(model, bundle, {
       includeWind, includeSnow, includeSeismic,
-      windDirection, windEnvelope,
+      windDirection, windEnvelope, windEnvelope4Direction,
       tributaryMode, tributaryArea, facadeWidthM,
       skipConstrained,
     });
   }, [
     bundle, model, includeWind, includeSnow, includeSeismic,
-    windDirection, windEnvelope,
+    windDirection, windEnvelope, windEnvelope4Direction,
     tributaryMode, tributaryArea, facadeWidthM, skipConstrained,
   ]);
 
@@ -163,12 +166,28 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
               <label className="flex items-center gap-1.5 cursor-pointer">
                 <input
                   type="checkbox"
-                  checked={windEnvelope}
-                  onChange={(e) => setWindEnvelope(e.target.checked)}
+                  checked={windEnvelope && !windEnvelope4Direction}
+                  onChange={(e) => {
+                    setWindEnvelope(e.target.checked);
+                    if (e.target.checked) setWindEnvelope4Direction(false);
+                  }}
                   data-testid="apply-wind-envelope"
                 />
                 <span>Inviluppo bidirezionale (±{windDirection.replace(/[+-]/, "")})</span>
-                <span className="text-ink-dim">— 2 loads/nodo NTC §3.3.3</span>
+                <span className="text-ink-dim">— 2 loads/nodo</span>
+              </label>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={windEnvelope4Direction}
+                  onChange={(e) => {
+                    setWindEnvelope4Direction(e.target.checked);
+                    if (e.target.checked) setWindEnvelope(false);
+                  }}
+                  data-testid="apply-wind-envelope-4d"
+                />
+                <span className="text-accent">🌪️ Inviluppo 4 direzioni (±X, ±Y)</span>
+                <span className="text-ink-dim">— 4 loads/nodo NTC §3.3.3 completo</span>
               </label>
             </div>
           )}

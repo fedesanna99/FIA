@@ -31,10 +31,13 @@ export interface ApplyClimateOptions {
    * in direzione X. Utile per solver dinamico/sismico equivalente. */
   includeSeismic: boolean;
   windDirection: WindDirection;
-  /** Se true: applica wind in entrambe le direzioni opposte (es. +X e -X)
-   * generando 2 Load per nodo, ciascuno labellato come Envelope. Utile
-   * per inviluppo NTC §3.3.3 (4 casi vento). */
+  /** Se true: applica wind in entrambe le direzioni opposte dell'asse
+   * scelto (es. +X e -X) → 2 loads/nodo. Inviluppo bi-axis. */
   windEnvelope: boolean;
+  /** Se true: applica wind su 4 direzioni complete (+X, -X, +Y, -Y) →
+   * 4 loads/nodo. Inviluppo NTC §3.3.3 completo (4 casi vento).
+   * Sovrascrive `windEnvelope` se attivo. */
+  windEnvelope4Direction: boolean;
   /** Modalita' calcolo area di influenza. "uniform" usa `tributaryArea`
    * costante per ogni nodo; "per-node" deriva da topologia (chiama
    * computeTributaryAreas) e applica magnitudo specifica per nodo. */
@@ -54,6 +57,7 @@ export const DEFAULT_APPLY_OPTIONS: ApplyClimateOptions = {
   includeSeismic: false,
   windDirection: "+X",
   windEnvelope: false,
+  windEnvelope4Direction: false,
   tributaryMode: "uniform",
   tributaryArea: 1.0,
   facadeWidthM: 1.0,
@@ -159,30 +163,47 @@ export function applyClimateLoadsToModel(
     }
 
     if (opts.includeWind && nodeWindForce > 0) {
-      const labelBase = opts.windEnvelope
-        ? `Wind EN1991-1-4 [${locLabel}, Envelope]`
-        : `Wind EN1991-1-4 [${locLabel}, ${opts.windDirection}]`;
-      if (opts.windEnvelope) {
-        // Genera 2 loads: +axis e -axis (inviluppo NTC §3.3.3 cases)
+      const labelBaseEnvelope = `Wind EN1991-1-4 [${locLabel}, Envelope]`;
+      if (opts.windEnvelope4Direction) {
+        // Inviluppo NTC §3.3.3 completo: 4 casi vento (±X, ±Y)
+        loads.push({
+          type: "nodal", target_id: node.id, fx: +nodeWindForce,
+          label: `${labelBaseEnvelope} +X`,
+        });
+        loads.push({
+          type: "nodal", target_id: node.id, fx: -nodeWindForce,
+          label: `${labelBaseEnvelope} -X`,
+        });
+        loads.push({
+          type: "nodal", target_id: node.id, fy: +nodeWindForce,
+          label: `${labelBaseEnvelope} +Y`,
+        });
+        loads.push({
+          type: "nodal", target_id: node.id, fy: -nodeWindForce,
+          label: `${labelBaseEnvelope} -Y`,
+        });
+      } else if (opts.windEnvelope) {
+        // Inviluppo bi-axis: 2 loads (asse scelto, ±)
         loads.push({
           type: "nodal",
           target_id: node.id,
           ...(windAxis === "X" ? { fx: +nodeWindForce } : { fy: +nodeWindForce }),
-          label: `${labelBase} +${windAxis}`,
+          label: `${labelBaseEnvelope} +${windAxis}`,
         });
         loads.push({
           type: "nodal",
           target_id: node.id,
           ...(windAxis === "X" ? { fx: -nodeWindForce } : { fy: -nodeWindForce }),
-          label: `${labelBase} -${windAxis}`,
+          label: `${labelBaseEnvelope} -${windAxis}`,
         });
       } else {
+        // Single direction (default)
         const force = windSign * nodeWindForce;
         loads.push({
           type: "nodal",
           target_id: node.id,
           ...(windAxis === "X" ? { fx: force } : { fy: force }),
-          label: labelBase,
+          label: `Wind EN1991-1-4 [${locLabel}, ${opts.windDirection}]`,
         });
       }
       windForces.push(nodeWindForce);
