@@ -52,6 +52,24 @@ import { useWorkspaceStore } from "./store/workspaceStore";
 import { useLeftRailStore } from "./store/leftRailStore";
 import { useThemeStore } from "./store/themeStore";
 
+/**
+ * Helper riusabile: entra in focus mode chiudendo tutti i pannelli + toast hint.
+ * v1.5 Task 33: estratto dal handler keyboard per essere chiamato anche dal
+ * case "focus-toggle" della CommandPalette (vedi CommandPalette.tsx).
+ */
+function enterFocusMode() {
+  const ws = useWorkspaceStore.getState();
+  useLeftRailStore.getState().close();
+  ws.enterEmptyState();
+  void import("./store/rightRailStore").then((m) =>
+    m.useRightRailStore.getState().close(),
+  );
+  void import("./store/toastStore").then(({ toast }) => {
+    toast("info", "Modalità focus — premi F o Esc per tornare", 3000);
+  });
+}
+
+
 export default function App() {
   const { data: models } = useModelList();
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -77,31 +95,42 @@ export default function App() {
   }, []);
 
   // Numeri 1-5 + Shift+Space (alpha.27 empty state) + (alpha.22 toggle).
+  // v1.5 Task 33: gerarchia di priorita' chiara, F dedicato a focus mode + ESC exit.
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement;
       if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable) return;
 
-      // alpha.27: Shift+Space → toggle focus mode. alpha.31 Task 23:
-      // se gia' in focus mode, esce. Altrimenti entra chiudendo tutto.
-      if (e.shiftKey && e.code === "Space" && !e.ctrlKey && !e.metaKey && !e.altKey) {
-        e.preventDefault();
-        const ws = useWorkspaceStore.getState();
-        if (ws.isEmptyState) {
-          ws.exitEmptyState();
-        } else {
-          useLeftRailStore.getState().close();
-          ws.enterEmptyState();
-          void import("./store/rightRailStore").then((m) =>
-            m.useRightRailStore.getState().close(),
-          );
+      // === PRIORITA' 1: in focus mode, ESC e F escono ==========================
+      if (useWorkspaceStore.getState().isEmptyState) {
+        const isF = e.key.toLowerCase() === "f" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey;
+        const isEsc = e.key === "Escape";
+        if (isF || isEsc) {
+          e.preventDefault();
+          useWorkspaceStore.getState().exitEmptyState();
+          return;
         }
+        // In focus mode blocca tutti gli altri shortcut tranne Cmd/Ctrl+K (palette).
+        if (!(e.key.toLowerCase() === "k" && (e.ctrlKey || e.metaKey))) return;
+      }
+
+      // === PRIORITA' 2: tasto F singolo → entra in focus mode =================
+      if (e.key.toLowerCase() === "f" && !e.ctrlKey && !e.metaKey && !e.altKey && !e.shiftKey) {
+        e.preventDefault();
+        enterFocusMode();
         return;
       }
 
-      // alpha.31 Task 26: Escape chiude tutti i pannelli (left+right rail
-      // e workspace flags). Solo se non c'e' un dialog aperto (per non
-      // interferire con la chiusura del modal stesso).
+      // === PRIORITA' 3: Shift+Space toggle focus mode (esistente) =============
+      if (e.shiftKey && e.code === "Space" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        e.preventDefault();
+        const ws = useWorkspaceStore.getState();
+        if (ws.isEmptyState) ws.exitEmptyState();
+        else enterFocusMode();
+        return;
+      }
+
+      // === PRIORITA' 4: Escape chiude pannelli (esistente) ====================
       if (e.key === "Escape" && !useUIStore.getState().openDialog) {
         const ws = useWorkspaceStore.getState();
         const hasOpen =
@@ -120,16 +149,15 @@ export default function App() {
         }
       }
 
-      // Ctrl+N / Cmd+N → apre il dialog Nuovo modello (TopBar gia' ha il listener).
-      // alpha.31 hotfix: il kbd "Ctrl+N" era promesso nel ModelMenu ma mai cablato.
+      // === PRIORITA' 5: Ctrl+N / Cmd+N → apre il dialog Nuovo modello =========
       if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "n") {
         e.preventDefault();
         window.dispatchEvent(new Event("feapro:open-new-model"));
         return;
       }
 
+      // === PRIORITA' 6: numeri 1-5 → navigazione workspace ====================
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
-      // alpha.20: Make/Solve/Verify su 1-3; results/io restano 4-5
       const map: Record<string, "model" | "analysis" | "results" | "verify" | "io"> = {
         "1": "model", "2": "analysis", "3": "verify", "4": "results", "5": "io",
       };

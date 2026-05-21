@@ -32,6 +32,7 @@ import {
   Camera, FileBarChart, Trash2, RotateCcw, Settings,
   Activity, Globe, Mountain, Wind, Snowflake, Waves,
   Coins, Bell, Keyboard, Palette,
+  Maximize, Minimize,
 } from "lucide-react";
 
 import type { Workspace } from "../store/workspaceStore";
@@ -53,7 +54,8 @@ export type PaletteActionKind =
   | "openLocation"   // open LocationPickerDialog
   | "openAuth"       // open AuthDialog
   | "openExport"     // open ExportMenu (workspace io)
-  | "logout";        // auth logout
+  | "logout"         // auth logout
+  | "focus-toggle";  // v1.5 Task 33: toggle modalita' focus (Shift+Space / F)
 
 
 /** Sezione (gruppo) di appartenenza. */
@@ -121,6 +123,10 @@ const COMMANDS: PaletteItem[] = [
   // Climate Loads (Sprint 2)
   { id: "open-location",    label: "Apri Location picker (vento/neve/sismica)", aliases: ["loads", "climate", "coord"], section: "commands", group: "Climate Loads", icon: MapPin, actionKind: "openLocation", needsModel: false },
   { id: "open-export",      label: "Apri menu export (DXF · IFC · XLSX · PDF)", aliases: ["esporta"], section: "commands", group: "I/O", icon: FileDown, actionKind: "openExport" },
+
+  // Vista / Focus mode (v1.5 Task 33)
+  { id: "focus-enter", label: "Modalità focus (solo modello)", description: "Nascondi tutto tranne il viewport", aliases: ["focus", "fullscreen", "concentra", "nascondi", "schermo intero"], section: "commands", group: "Vista", icon: Maximize, shortcut: "F", actionKind: "focus-toggle" },
+  { id: "focus-exit",  label: "Esci da modalità focus", aliases: ["esci focus", "ripristina shell", "torna", "esc"], section: "commands", group: "Vista", icon: Minimize, shortcut: "Esc", actionKind: "focus-toggle" },
 ];
 
 

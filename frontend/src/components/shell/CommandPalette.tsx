@@ -116,6 +116,20 @@ export function CommandPalette() {
       case "logout":
         authLogout();
         break;
+      case "focus-toggle": {
+        // v1.5 Task 33: toggle modalita' focus dalla palette (oltre a Shift+Space e F).
+        const ws = useWorkspaceStore.getState();
+        if (ws.isEmptyState) {
+          ws.exitEmptyState();
+        } else {
+          useLeftRailStore.getState().close();
+          ws.enterEmptyState();
+          void import("../../store/rightRailStore").then((m) =>
+            m.useRightRailStore.getState().close(),
+          );
+        }
+        break;
+      }
       case "togglePalette":
       default:
         break;
