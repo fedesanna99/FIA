@@ -90,6 +90,27 @@ export default function App() {
         return;
       }
 
+      // alpha.31 Task 26: Escape chiude tutti i pannelli (left+right rail
+      // e workspace flags). Solo se non c'e' un dialog aperto (per non
+      // interferire con la chiusura del modal stesso).
+      if (e.key === "Escape" && !useUIStore.getState().openDialog) {
+        const ws = useWorkspaceStore.getState();
+        const hasOpen =
+          ws.currentLeftPanel !== null ||
+          ws.currentRightPanel !== null ||
+          useLeftRailStore.getState().openSection !== null;
+        if (hasOpen) {
+          e.preventDefault();
+          ws.closeLeftPanel();
+          ws.closeRightPanel();
+          useLeftRailStore.getState().close();
+          void import("./store/rightRailStore").then((m) =>
+            m.useRightRailStore.getState().close(),
+          );
+          return;
+        }
+      }
+
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
       // alpha.20: Make/Solve/Verify su 1-3; results/io restano 4-5
       const map: Record<string, "model" | "analysis" | "results" | "verify" | "io"> = {
