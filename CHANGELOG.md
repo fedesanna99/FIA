@@ -1,5 +1,73 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.18 — Sprint 4 / Asse G3: TopBar arricchita — 2026-05-21
+
+TopBar riallineata al mockup v1.3: **breadcrumb contestuale**,
+**search-bar globale** (apre command palette), **AI Copilot button**
+(placeholder Sprint 5), **collab avatar** con dot live. Versione
+finalmente coerente (`v1.0` hardcoded → `v1.4` da constant condivisa).
+
+### Added
+- **`lib/version.ts`** — single-source-of-truth per `APP_VERSION` (mostrata
+  in TopBar) e `APP_TAG` (riservata a Account dialog debug). Aggiornare
+  ad ogni release.
+- **`components/shell/topbar/Breadcrumb.tsx`** — visibile ≥ lg:
+  `[folder] Nome modello › Workspace attivo`. Cliccabile sul workspace
+  per ri-attivare la sezione. Truncate max 160px modello, preserva
+  l'overflow.
+- **`components/shell/topbar/GlobalSearch.tsx`** — pulsante stylizzato come
+  input search "Cerca…" con `kbd Ctrl K` a destra. Click → apre command
+  palette (`useWorkspaceStore.togglePalette`). Versione mobile icon-only
+  (md:hidden).
+- **`components/shell/topbar/AICopilotButton.tsx`** — pulsante Sparkles
+  accent purple (mockup v1.3). Tooltip mostra chip "soon". Click → toast
+  info "AI Copilot disponibile da v1.5 (Sprint 5)". Stile distinto
+  (purple) per evidenziare la feature AI.
+- **`components/shell/topbar/CollabAvatars.tsx`** — avatar circolare 6x6
+  con iniziali email (es. "mario.rossi" → "MR") + dot live verde
+  pulsante (animazione `feapro-pulse`). Nascosto se anonimo. In
+  Sprint 5 evolvera' in stack di avatar overlappati (collab WS).
+- **`TopBar.tsx`** refactor:
+  - Versione `APP_VERSION` da `lib/version.ts` (era hardcoded `"v1.0"`)
+  - Aggiunti Breadcrumb, GlobalSearch, AICopilotButton, CollabAvatars
+  - Logo: aggiunto `font-display` (Inter primario per il marchio)
+  - Mantenute tutte le funzionalita' precedenti (model picker, CRUD,
+    run, location, account, auth, export)
+
+### Tests
+- **+11 vitest** in `TopBarParts.test.tsx` (215 → 226):
+  - Breadcrumb (3): placeholder no-model, model name truncate,
+    workspace label dinamica
+  - GlobalSearch (3): desktop button con kbd, click togglePalette,
+    mobile button con aria-label
+  - AICopilotButton (2): renders, click non crasha (toast info)
+  - CollabAvatars (3): nascosto se anonimo, iniziali da "mario.rossi"
+    → "MR", iniziali single-word "fedesanna" → "FE"
+
+### Build & gate
+- **Build TypeScript + Vite OK**: `✓ built in 10.27s`.
+- **226/226 vitest** (215 + 11). Nessuna regressione TopBar legacy.
+
+### UX polish
+- **Versione visibile**: l'utente vede subito che sta usando v1.4 (era
+  v1.0 ferma da release). Diminuisce ambiguita' "ho la versione vecchia?"
+- **Search-bar discoverable**: `Ctrl+K` finalmente esposto come UI element
+  (prima era solo shortcut nascosto). Tutorial-friendly per new user.
+- **AI placeholder**: gestisce le aspettative — l'utente sa che la feature
+  esistera' (chip "soon") senza dover indovinare.
+- **Avatar collab**: piccolo segnale che l'utente e' "presente" e logged in.
+  Dot live verde = stato attivo (precursore di multi-user real-time).
+
+### Gate
+| | alpha.17 | **alpha.18** |
+|---|---|---|
+| TopBar sub-component | 5 (logo, picker, CRUD, run, account) | **9** (+ Breadcrumb, Search, AI, Collab) |
+| Version display | hardcoded "v1.0" | **APP_VERSION = "v1.4"** |
+| Command palette discoverability | Ctrl+K hidden | **GlobalSearch UI** |
+| vitest frontend | 215 | **226** (+11) |
+
+---
+
 ## v1.4.0-alpha.17 — Sprint 4 / Asse G2: RightRail + slide-in panels — 2026-05-21
 
 Introdotto il **rail destro a 4 voci** (Inspect / View / Tools / History)

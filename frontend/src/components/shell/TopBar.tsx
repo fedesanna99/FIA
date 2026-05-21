@@ -1,9 +1,15 @@
 /**
- * TopBar — barra superiore 48 px, sempre visibile.
+ * TopBar — barra superiore 48px (alpha.18 Sprint 4 G3).
  *
- *  Layout: [logo+name] · [selettore modello] · [+ Nuovo · ⎘ Dup · ✎ Edit] · [▶ Esegui] · spazio · [status · ?]
+ * Layout aggiornato col mockup v1.3:
+ *   [logo · version]
+ *   [breadcrumb model › workspace]      (≥ lg)
+ *   [model picker · CRUD · Esegui]
+ *   [── flex spacer ──]
+ *   [search-bar Ctrl+K · AI Copilot · collab avatar · Loads · Account · Login · Export]
  *
- *  Mantiene la logica esistente (Toolbar.tsx) ma adottando i nuovi tokens.
+ * Mantiene tutta la logica precedente: TanStack Query, Auth verify
+ * al mount, run analysis, dialog modali.
  */
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -32,6 +38,11 @@ import { AuthDialog } from "../dialogs/AuthDialog";
 import { useClimateStore } from "../../store/climateStore";
 import { useAuthStore } from "../../store/authStore";
 import { toast } from "../../store/toastStore";
+import { APP_VERSION } from "../../lib/version";
+import { Breadcrumb } from "./topbar/Breadcrumb";
+import { GlobalSearch } from "./topbar/GlobalSearch";
+import { AICopilotButton } from "./topbar/AICopilotButton";
+import { CollabAvatars } from "./topbar/CollabAvatars";
 import { ExportMenu } from "./ExportMenu";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
@@ -85,14 +96,17 @@ export function TopBar({ models, activeId, onSelect }: Props) {
 
   return (
     <header className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 min-w-0 overflow-hidden">
-      {/* Logo — su mobile mostriamo solo l'iniziale per recuperare spazio */}
+      {/* Logo + version */}
       <div className="flex items-center gap-2 pr-2 border-r border-border h-7 flex-shrink-0">
         <div className="w-6 h-6 rounded bg-accent/15 border border-accent/40 flex items-center justify-center">
           <span className="text-accent text-xs font-bold">F</span>
         </div>
-        <span className="font-semibold text-sm text-ink hidden sm:inline">FEA Pro</span>
-        <span className="text-[10px] font-mono text-ink-dim hidden md:inline">v1.0</span>
+        <span className="font-semibold text-sm text-ink hidden sm:inline font-display">FEA Pro</span>
+        <span className="text-[10px] font-mono text-ink-dim hidden md:inline">{APP_VERSION}</span>
       </div>
+
+      {/* Breadcrumb: modello attivo › workspace (>= lg) */}
+      <Breadcrumb />
 
       {/* Model picker — fluido su mobile, fisso su desktop */}
       <div className="relative min-w-0 flex-1 sm:flex-initial">
@@ -184,6 +198,15 @@ export function TopBar({ models, activeId, onSelect }: Props) {
       </div>
 
       <div className="flex-1 min-w-0" />
+
+      {/* Search-bar globale (apre command palette) */}
+      <GlobalSearch />
+
+      {/* AI Copilot button (placeholder Sprint 5) */}
+      <AICopilotButton />
+
+      {/* Collab avatar (solo se loggato) */}
+      <CollabAvatars />
 
       {/* Location picker (Sprint 2 piano B: B1+B2+B3+B4 facade) */}
       <Tooltip content="Picker location: vento/neve/sismica da coordinate">
