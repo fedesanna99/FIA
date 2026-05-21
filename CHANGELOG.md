@@ -1,5 +1,81 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.14 — Frontend auth UI (Login/Register + interceptor) — 2026-05-21
+
+UI di accesso completa: AuthDialog combo Login/Register + zustand
+authStore persistente + axios interceptor che allega automaticamente
+`Authorization: Bearer <token>` a TUTTE le richieste API esistenti. Su
+401 → logout silenzioso (token scaduto/invalido → redirige a login).
+
+### Added
+- **`api/auth.ts`** — 3 funzioni tipizzate:
+  - `register(email, password)` → AuthResponse
+  - `login(email, password)` → AuthResponse
+  - `getMe(token)` → AuthUser (per verifica token al boot)
+  - Usa axios raw (non `api`) per evitare loop con interceptor toast
+- **`store/authStore.ts`** — zustand `persist` storage "auth-store":
+  - `token`, `user` (AuthUser | null)
+  - `setAuth(token, user)` — chiamato dopo register/login success
+  - `logout()` — pulisce stato
+  - `verifyToken()` — re-chiama `/api/auth/me` per refreshare. Su 401
+    auto-logout (clear localStorage). Usato in TopBar.useEffect al mount.
+  - `isLoggedIn()` — true sse token AND user
+- **`components/dialogs/AuthDialog.tsx`** — combo Login/Register:
+  - Tab switcher (Login / Registrati), `initialMode` prop
+  - Email + password fields con autocomplete, minLength (8 register / 1
+    login), maxLength 72 (limite bcrypt)
+  - Inline error display (no toast HTTP — gestito globale)
+  - Switch link "Nessun account? Crea account" + viceversa
+  - Su success: setAuth + toast verde + onClose
+- **`api/client.ts`** — 2 nuovi interceptor:
+  - **Request**: legge `localStorage["auth-store"]` (no import circolare
+    con authStore che usa axios) e allega `Authorization: Bearer <tok>`
+    se presente. ALL existing endpoint diventano auth-aware senza
+    modificare singolarmente loro client.
+  - **Response 401**: pulisce auth-store + dispatcha `storage` event
+    cosi' i componenti zustand-subscribers ri-renderizzano immediatamente
+    in stato anonimo.
+- **`TopBar.tsx`** integrazione UX:
+  - Pulsante 🔐 "Accedi" se anonimo → apre AuthDialog
+  - Se loggato → mostra email troncata + 🚪 LogOut tooltip
+  - useEffect al mount: se token salvato ma user null (es. dopo refresh
+    F5), chiama `verifyToken()` per ripopolare info user dal server.
+
+### Tests
+- **+14 vitest** (180 → 194):
+  - `authStore.test.ts` (7): starts logged out, setAuth, logout,
+    verifyToken (no-token, success, expired-clears, isLoggedIn variants)
+  - `AuthDialog.test.tsx` (7): renders Login default, switch to
+    Register, login API call, register API call, short password
+    rejected, server error inline, initialMode prop
+- **Build OK** (vite 6 + TypeScript): `✓ built in 10.30s`.
+
+### Backward compatibility
+alpha.14 e' **opt-in tier 1**: gli endpoint backend NON sono ancora
+gated. Un utente anonimo continua a usare l'app come prima (demo_user
+hardcoded in jobs/usage/...). L'unica differenza: se logga, il JWT
+viene allegato silenziosamente a tutte le richieste. La migrazione
+hard avviene in alpha.15.
+
+### UX details
+- Email autocomplete="email", password autocomplete="current-password"
+  (login) o "new-password" (register) per password manager
+- Errori server mostrati inline nel dialog (no toast popup → menorr
+  intrusivo durante login fallito)
+- Tooltip su LogOut button mostra email (utile per multi-account dev)
+- 401 da qualsiasi endpoint → silent logout (no toast "401 Unauthorized"
+  perche' il logout-event e' atteso)
+
+### Gate
+| | alpha.13 | **alpha.14** |
+|---|---|---|
+| Auth UI | 0 | **Login/Register dialog + topbar button** |
+| Auto-attach Bearer | no | **si (request interceptor)** |
+| Auto-logout 401 | no | **si (response interceptor)** |
+| vitest frontend | 180 | **194** (+14) |
+
+---
+
 ## v1.4.0-alpha.13 — JWT auth base (register/login/me) — 2026-05-21
 
 Primo step verso multi-user reale. Fino ad alpha.12 ogni utente era

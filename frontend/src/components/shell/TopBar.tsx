@@ -5,7 +5,7 @@
  *
  *  Mantiene la logica esistente (Toolbar.tsx) ma adottando i nuovi tokens.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Plus,
@@ -16,6 +16,8 @@ import {
   Loader2,
   User,
   MapPin,
+  LogIn,
+  LogOut,
 } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { modelsApi } from "../../api/client";
@@ -26,7 +28,10 @@ import { NewModelDialog } from "../dialogs/NewModelDialog";
 import { EditModelDialog } from "../dialogs/EditModelDialog";
 import { AccountDialog } from "../dialogs/AccountDialog";
 import { LocationPickerDialog } from "../dialogs/LocationPickerDialog";
+import { AuthDialog } from "../dialogs/AuthDialog";
 import { useClimateStore } from "../../store/climateStore";
+import { useAuthStore } from "../../store/authStore";
+import { toast } from "../../store/toastStore";
 import { ExportMenu } from "./ExportMenu";
 import { Button } from "../ui/Button";
 import { Tooltip } from "../ui/Tooltip";
@@ -54,8 +59,21 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
   const setClimateBundle = useClimateStore((s) => s.setBundle);
+  const authUser = useAuthStore((s) => s.user);
+  const authToken = useAuthStore((s) => s.token);
+  const authLogout = useAuthStore((s) => s.logout);
+  const verifyToken = useAuthStore((s) => s.verifyToken);
   const qc = useQueryClient();
+
+  // Al mount: se c'e' un token salvato, valida lato server (se invalido → logout)
+  useEffect(() => {
+    if (authToken && !authUser) {
+      verifyToken();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const dup = useMutation({
     mutationFn: (id: string) => modelsApi.duplicate(id),
@@ -193,6 +211,38 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         </Button>
       </Tooltip>
 
+      {/* Auth button: Login se anonimo, Logout (con email) se loggato */}
+      {authUser ? (
+        <Tooltip content={`Logged in: ${authUser.email}. Click per logout.`}>
+          <Button
+            size="sm"
+            variant="ghost"
+            iconLeft={<LogOut className="h-3.5 w-3.5" />}
+            onClick={() => {
+              authLogout();
+              toast("info", "Disconnesso.");
+            }}
+            data-testid="topbar-logout"
+          >
+            <span className="hidden md:inline truncate max-w-[140px]">
+              {authUser.email}
+            </span>
+          </Button>
+        </Tooltip>
+      ) : (
+        <Tooltip content="Accedi o crea un account">
+          <Button
+            size="sm"
+            variant="ghost"
+            iconLeft={<LogIn className="h-3.5 w-3.5" />}
+            onClick={() => setAuthOpen(true)}
+            data-testid="topbar-login"
+          >
+            <span className="hidden md:inline">Accedi</span>
+          </Button>
+        </Tooltip>
+      )}
+
       {/* Export menu — visibile sempre */}
       <div className="flex-shrink-0">
         <ExportMenu />
@@ -207,6 +257,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         onClose={() => setLocationOpen(false)}
         onApply={(bundle) => setClimateBundle(bundle)}
       />
+      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
     </header>
   );
 }

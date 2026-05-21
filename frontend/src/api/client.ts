@@ -11,11 +11,51 @@ export const api = axios.create({
   headers: { "Content-Type": "application/json" },
 });
 
+// REQUEST interceptor (alpha.14): allega il JWT bearer se l'utente e' loggato.
+// Letto direttamente da localStorage per evitare import circolari con authStore
+// (che importa axios indirettamente via api/auth.ts).
+api.interceptors.request.use((config) => {
+  try {
+    const raw = window.localStorage.getItem("auth-store");
+    if (raw) {
+      const parsed = JSON.parse(raw) as { state?: { token?: string } };
+      const token = parsed?.state?.token;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
+    }
+  } catch {
+    /* ignore: SSR/test env senza localStorage */
+  }
+  return config;
+});
+
 api.interceptors.response.use(
   (r) => r,
   (err) => {
     const status = err?.response?.status;
     const detail = err?.response?.data?.detail ?? err?.message ?? "Errore sconosciuto";
+    // 401 su endpoint authenticated: il token e' scaduto/invalido. Pulisci
+    // lo store cosi' la UI redirige a login. Tocca farlo qui per evitare
+    // di mostrare toast 401 ripetuti.
+    if (status === 401) {
+      try {
+        const raw = window.localStorage.getItem("auth-store");
+        if (raw) {
+          const parsed = JSON.parse(raw) as { state?: { token?: string } };
+          if (parsed?.state?.token) {
+            window.localStorage.setItem(
+              "auth-store",
+              JSON.stringify({ state: { token: "", user: null }, version: 0 }),
+            );
+            // Forza re-render delle componenti che leggono dallo store:
+            window.dispatchEvent(new Event("storage"));
+          }
+        }
+      } catch {
+        /* ignore */
+      }
+    }
     if (status && status >= 400) {
       toast("error", `HTTP ${status}: ${detail}`);
     }
