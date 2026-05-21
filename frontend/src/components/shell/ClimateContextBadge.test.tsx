@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactElement } from "react";
 
 import { useClimateStore } from "../../store/climateStore";
@@ -7,9 +8,17 @@ import { TooltipProvider } from "../ui/Tooltip";
 import { ClimateContextBadge } from "./ClimateContextBadge";
 
 
-// Helper: wrappa in TooltipProvider (richiesto da Radix Tooltip in test isolati).
+// Helper: TooltipProvider (Radix) + QueryClientProvider (TanStack) richiesti dai
+// child component (Tooltip + ApplyClimateLoadsDialog usa useMutation).
 function renderWithProvider(ui: ReactElement) {
-  return render(<TooltipProvider>{ui}</TooltipProvider>);
+  const qc = new QueryClient({
+    defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={qc}>
+      <TooltipProvider>{ui}</TooltipProvider>
+    </QueryClientProvider>,
+  );
 }
 
 

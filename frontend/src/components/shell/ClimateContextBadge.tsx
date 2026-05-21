@@ -8,10 +8,11 @@
  *   - "X" -> clear store
  */
 import { useState } from "react";
-import { MapPin, X, Edit2 } from "lucide-react";
+import { MapPin, X, Edit2, Wrench } from "lucide-react";
 
 import { useClimateStore } from "../../store/climateStore";
 import { Tooltip } from "../ui/Tooltip";
+import { ApplyClimateLoadsDialog } from "../dialogs/ApplyClimateLoadsDialog";
 
 
 interface Props {
@@ -23,6 +24,7 @@ export function ClimateContextBadge({ onReopen }: Props) {
   const bundle = useClimateStore((s) => s.bundle);
   const clear = useClimateStore((s) => s.clear);
   const [expanded, setExpanded] = useState(false);
+  const [applyOpen, setApplyOpen] = useState(false);
 
   if (!bundle) return null;
 
@@ -110,11 +112,24 @@ export function ClimateContextBadge({ onReopen }: Props) {
             </div>
           )}
 
-          <div className="text-[9px] text-ink-dim italic pt-1 border-t border-border">
+          <div className="flex items-center gap-1 pt-1 border-t border-border">
+            <button
+              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded bg-accent/20 hover:bg-accent/30 text-accent text-[11px] font-semibold transition-colors"
+              onClick={() => setApplyOpen(true)}
+              data-testid="climate-badge-apply"
+            >
+              <Wrench className="h-3 w-3" />
+              Applica come carichi al modello
+            </button>
+          </div>
+
+          <div className="text-[9px] text-ink-dim italic">
             calcolato {ageLabel} · valori da location reale via Open-Meteo + USGS + Open-Elevation
           </div>
         </div>
       )}
+
+      <ApplyClimateLoadsDialog open={applyOpen} onClose={() => setApplyOpen(false)} />
     </div>
   );
 }
