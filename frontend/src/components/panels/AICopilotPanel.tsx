@@ -1,18 +1,31 @@
 /**
- * AICopilotPanel — chat sul modello attivo (FASE 21).
+ * AICopilotPanel (alpha.30) — refactor visivo mockup v1.3.
  *
- * Backend: POST /api/ai/ask  (provider = Gemini o MockProvider).
- * Conversazione multi-turn (history viene rinviata ad ogni domanda).
+ * Layout completo:
+ *   ┌────────────────────────────────────────┐
+ *   │ [✨ gradient]  AI Copilot               │
+ *   │               Gemini Flash · ctx attivo │
+ *   ├────────────────────────────────────────┤
+ *   │ 🔗 Contesto: Portal · 11 N · 10 EL      │  ← banner
+ *   ├────────────────────────────────────────┤
+ *   │ [AI avatar]  Risposta...                │
+ *   │                                         │
+ *   │       [User] Domanda...                 │
+ *   ├────────────────────────────────────────┤
+ *   │ [chip] [chip] [chip] [chip]             │  ← suggestions
+ *   ├────────────────────────────────────────┤
+ *   │ [textarea] Chiedi...           [↑ blu] │
+ *   └────────────────────────────────────────┘
+ *
+ * Logica/API invariate: useMutation su aiApi.ask, history multi-turn,
+ * stato lastMeta per Badge provider/elapsed/tokens.
  */
 import { useState, useRef, useEffect } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Bot, Send, User, Trash2 } from "lucide-react";
+import { Sparkles, ArrowUp, Trash2, Link2 } from "lucide-react";
 import { aiApi, type CopilotAnswer } from "../../api/ai";
 import { useModelStore } from "../../store/modelStore";
 import { toast } from "../../store/toastStore";
-import { Button } from "../ui/Button";
-import { Card } from "../ui/Card";
-import { Badge } from "../ui/Badge";
 
 interface Message {
   role: "user" | "assistant";
@@ -20,11 +33,19 @@ interface Message {
 }
 
 const EXAMPLES = [
-  "Quanti nodi ed elementi ha il modello?",
-  "Qual è l'elemento con il rapporto utilizzazione più alto?",
-  "Suggerisci ottimizzazioni per ridurre peso strutturale.",
-  "Riassumi le condizioni di carico.",
+  "Quanti nodi ed elementi?",
+  "Elemento con UR più alto?",
+  "Ottimizzazioni peso",
+  "Riassumi carichi",
 ];
+
+const GRADIENT_AI = "linear-gradient(135deg, #185fa5 0%, #534ab7 100%)";
+const GRADIENT_USER = "linear-gradient(135deg, #534ab7, #7f77dd)";
+
+function userInitials(): string {
+  // Placeholder iniziali — quando l'auth user sara' propagato qui, useremo email.
+  return "GR";
+}
 
 export function AICopilotPanel() {
   const model = useModelStore((s) => s.model);
@@ -45,7 +66,7 @@ export function AICopilotPanel() {
       return aiApi.ask({
         model_id: model.id,
         question: q,
-        history: history.slice(-8), // last 4 turn pairs
+        history: history.slice(-8),
       });
     },
     onSuccess: (r) => {
@@ -66,81 +87,107 @@ export function AICopilotPanel() {
     mut.mutate(q.trim());
   };
 
+  const providerLabel = lastMeta?.provider ?? "Gemini Flash";
+
   return (
-    <div className="p-3 flex flex-col h-full gap-3">
-      <Card
-        title="Domande sul modello"
-        description="Chat con AI Copilot — il modello attivo viene riassunto e inviato come contesto. Provider: Gemini o MockProvider in fallback."
-        actions={
-          history.length > 0 && (
-            <Button variant="ghost" size="xs" iconLeft={<Trash2 className="h-3 w-3" />}
-                    onClick={() => { setHistory([]); setLastMeta(null); }}>
-              Reset
-            </Button>
-          )
-        }
+    <div className="flex flex-col h-full bg-bg-panel">
+      {/* Header: avatar gradient + titolo + sotto-titolo */}
+      <div className="flex items-center gap-2.5 p-3.5 border-b border-border flex-shrink-0">
+        <div
+          className="w-8 h-8 rounded-full flex items-center justify-center text-white flex-shrink-0"
+          style={{ background: GRADIENT_AI }}
+        >
+          <Sparkles className="w-4 h-4" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm text-ink">AI Copilot</div>
+          <div className="text-[11px] text-ink-dim font-mono truncate">
+            {providerLabel} · contesto {model ? "attivo" : "vuoto"}
+          </div>
+        </div>
+        {history.length > 0 && (
+          <button
+            type="button"
+            onClick={() => { setHistory([]); setLastMeta(null); }}
+            className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink flex-shrink-0"
+            title="Reset chat"
+            aria-label="Reset chat"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
+      {/* Context banner */}
+      {model && (
+        <div className="bg-bg-info text-ink-info text-[11px] font-mono px-3.5 py-2 border-b border-border flex items-center gap-2 flex-shrink-0">
+          <Link2 className="w-3 h-3 flex-shrink-0" />
+          <span className="truncate">
+            Contesto: {model.name} · {model.nodes?.length ?? 0} N · {model.elements?.length ?? 0} EL
+          </span>
+        </div>
+      )}
+
+      {/* Messaggi */}
+      <div
+        ref={scrollRef}
+        className="flex-1 overflow-y-auto p-3.5 space-y-3.5 min-h-0"
       >
         {history.length === 0 && (
-          <div className="space-y-1.5">
-            <div className="text-[10px] text-ink-dim uppercase tracking-wider">Suggerimenti:</div>
-            {EXAMPLES.map((q, i) => (
-              <button key={i}
-                className="block w-full text-left text-xs px-2 py-1 rounded bg-bg/40 border border-border hover:bg-bg-hover hover:border-accent/50 transition-colors"
-                onClick={() => send(q)}
-                disabled={!model || mut.isPending}>
-                {q}
-              </button>
-            ))}
+          <div className="text-center text-ink-dim text-xs py-8">
+            {model
+              ? "Chiedi qualcosa sul tuo modello o scegli un suggerimento qui sotto."
+              : "Carica un modello per iniziare la conversazione."}
           </div>
         )}
-      </Card>
-
-      {/* Conversazione */}
-      <div ref={scrollRef}
-           className="flex-1 overflow-y-auto space-y-2 px-1 min-h-0">
         {history.map((m, i) => (
-          <div key={i} className={`flex gap-2 ${m.role === "user" ? "justify-end" : ""}`}>
-            {m.role === "assistant" && (
-              <div className="w-6 h-6 rounded-full bg-accent/15 border border-accent/40 flex items-center justify-center flex-shrink-0">
-                <Bot className="h-3.5 w-3.5 text-accent" />
+          <div key={i} className="flex gap-2.5 items-start">
+            <Avatar role={m.role} />
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-semibold text-ink-muted mb-1">
+                {m.role === "user" ? "Tu" : "Copilot"}
               </div>
-            )}
-            <div className={`text-xs rounded-lg px-3 py-2 max-w-[80%] whitespace-pre-wrap
-              ${m.role === "user"
-                ? "bg-accent/15 border border-accent/40 text-ink"
-                : "bg-bg-elevated border border-border text-ink"}`}>
-              {m.content}
+              <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap break-words">
+                {m.content}
+              </div>
             </div>
-            {m.role === "user" && (
-              <div className="w-6 h-6 rounded-full bg-bg-elevated border border-border flex items-center justify-center flex-shrink-0">
-                <User className="h-3.5 w-3.5 text-ink-dim" />
-              </div>
-            )}
           </div>
         ))}
         {mut.isPending && (
-          <div className="flex gap-2">
-            <div className="w-6 h-6 rounded-full bg-accent/15 border border-accent/40 flex items-center justify-center">
-              <Bot className="h-3.5 w-3.5 text-accent animate-pulse" />
+          <div className="flex gap-2.5 items-start">
+            <Avatar role="assistant" />
+            <div className="flex-1">
+              <div className="text-[11px] font-semibold text-ink-muted mb-1">Copilot</div>
+              <div className="text-sm text-ink-dim italic">Pensando…</div>
             </div>
-            <div className="text-xs text-ink-dim italic">Pensando…</div>
+          </div>
+        )}
+        {lastMeta && (
+          <div className="text-[10px] text-ink-dim font-mono pt-2 border-t border-border/50">
+            {lastMeta.provider} · {lastMeta.elapsed_ms}ms · ≈{lastMeta.prompt_tokens_approx} tok
           </div>
         )}
       </div>
 
-      {/* Footer meta */}
-      {lastMeta && (
-        <div className="flex items-center gap-1.5 text-[10px]">
-          <Badge size="sm" variant="info">{lastMeta.provider}</Badge>
-          <Badge size="sm" variant="muted">{lastMeta.elapsed_ms}ms</Badge>
-          <Badge size="sm" variant="muted">≈{lastMeta.prompt_tokens_approx} tok</Badge>
-        </div>
-      )}
+      {/* Suggestions chips */}
+      <div className="px-3.5 py-2.5 border-t border-border flex flex-wrap gap-1.5 flex-shrink-0">
+        {EXAMPLES.map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => send(q)}
+            disabled={!model || mut.isPending}
+            className="px-2.5 py-1 bg-bg border border-border rounded-full text-[11px] text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          >
+            {q}
+          </button>
+        ))}
+      </div>
 
       {/* Input */}
-      <div className="flex gap-2 items-end">
+      <div className="p-3 border-t border-border bg-bg flex-shrink-0">
         <textarea
-          className="flex-1 text-sm px-3 py-2 rounded-md bg-bg-elevated border border-border text-ink placeholder:text-ink-dim resize-none focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+          className="w-full text-sm px-3 py-2 rounded-md bg-bg-panel border border-border text-ink placeholder:text-ink-dim resize-none focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
           rows={2}
           placeholder={model ? "Chiedi qualcosa sul modello…" : "Nessun modello attivo"}
           value={input}
@@ -153,14 +200,40 @@ export function AICopilotPanel() {
             }
           }}
         />
-        <Button
-          variant="primary" size="sm"
-          iconLeft={<Send className="h-3.5 w-3.5" />}
-          disabled={!model || !input.trim() || mut.isPending}
-          onClick={() => send(input)}>
-          Invia
-        </Button>
+        <div className="flex justify-between items-center mt-2">
+          <div className="text-[11px] text-ink-dim font-mono">{providerLabel}</div>
+          <button
+            type="button"
+            onClick={() => send(input)}
+            disabled={!model || !input.trim() || mut.isPending}
+            className="w-7 h-7 rounded-md bg-accent text-white flex items-center justify-center hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Invia messaggio"
+          >
+            <ArrowUp className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
+    </div>
+  );
+}
+
+function Avatar({ role }: { role: "user" | "assistant" }) {
+  if (role === "user") {
+    return (
+      <div
+        className="w-7 h-7 rounded-full flex items-center justify-center text-white text-[10px] font-semibold flex-shrink-0"
+        style={{ background: GRADIENT_USER }}
+      >
+        {userInitials()}
+      </div>
+    );
+  }
+  return (
+    <div
+      className="w-7 h-7 rounded-full flex items-center justify-center text-white flex-shrink-0"
+      style={{ background: GRADIENT_AI }}
+    >
+      <Sparkles className="w-3.5 h-3.5" />
     </div>
   );
 }
