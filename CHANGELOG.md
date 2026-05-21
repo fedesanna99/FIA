@@ -1,5 +1,85 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.4 — Closure end-to-end: climate loads → carichi nodali — 2026-05-20
+
+Chiusura naturale del loop Sprint 2: dopo aver calcolato i loads tramite
+LocationPickerDialog (B1-B4), ora si possono **applicare come carichi
+nodali reali** al modello attivo via un click dal ClimateContextBadge.
+
+### Added
+- **`lib/applyClimateLoads.ts`** — helper puro che genera `Load` entries
+  dal `ClimateBundle`:
+  - Per ogni nodo NON vincolato (skipConstrained=true default):
+    - Snow: `Load{type:"nodal", fz:-s_design × tributary_area, label}`
+    - Wind: `Load{type:"nodal", fx|fy: ±q_p × tributary_area, label}`
+  - Direzione vento configurabile: ±X / ±Y
+  - Tributary area: 1.0 m² default (= magnitudo identica a q,s in kN/m²)
+  - Labels per traceability: `"Snow EN1991-1-3 [Roma]"`,
+    `"Wind EN1991-1-4 [Roma, +X]"` — il professionista riconosce origin.
+- **`dialogs/ApplyClimateLoadsDialog.tsx`** — UX modale:
+  - Checkboxes wind/snow (toggle indipendenti)
+  - Select direzione vento (+X, -X, +Y, -Y)
+  - Input numerico tributary_area [m²]
+  - Checkbox skipConstrained
+  - **Anteprima live** count loads + force/nodo
+  - Click "Aggiungi N carichi al modello" → iter su `modelsApi.addLoad`
+    + invalidate query + toast success
+- **`shell/ClimateContextBadge.tsx`** wire bottone **🔧 Applica come
+  carichi al modello** nell'expanded view → apre dialog.
+
+### Tests
+- **+15 vitest helper** `lib/applyClimateLoads.test.ts`:
+  - bundle null → empty result; skipConstrained on/off
+  - snow magnitude = s_design × area, direzione -Z verificata
+  - wind magnitude = q_p × area, direzioni ±X/±Y, sign corretto
+  - includeWind/Snow false → solo l'altro
+  - location name nel label per traceability
+  - DEFAULT_APPLY_OPTIONS coerenti
+  - edge: 0 nodi, 0 constraints, entrambi false
+- **+1 helper test** in `ClimateContextBadge.test.tsx`: aggiunto
+  `QueryClientProvider` wrapper (perché badge ora include dialog con
+  useMutation).
+- **132/132 vitest totale** (117 + 15).
+
+### UX completo
+
+```
+TopBar Loads → LocationPickerDialog → "Applica al modello"
+  ↓
+ClimateContextBadge (floating, persiste in localStorage)
+  ↓ click sul nome → expanded
+  ↓ bottone "🔧 Applica come carichi al modello"
+  ↓
+ApplyClimateLoadsDialog (form: wind/snow/direction/area)
+  ↓ click "Aggiungi N carichi"
+  ↓ loop: modelsApi.addLoad × N
+  ↓
+Modello.loads aumenta → pannello CARICHI mostra count + label
+"Snow EN1991-1-3 [Roma]" / "Wind EN1991-1-4 [Roma, +X]"
+```
+
+### Limiti documentati (per v1.5 enhancement)
+
+- Tributary area = costante (1.0 m² default). Per modelli reali serve
+  derivare per nodo basato sulla topologia mesh (es. somma metà delle
+  lunghezze elementi adiacenti per beam, area shell adiacenti per Q4).
+- Direzione vento = uniforme su tutti i nodi. Realisticamente serve
+  pressione su una sola facciata + suction sull'altra.
+- No moltiplicatori NTC 2018 di sicurezza (γ_W = 1.5 ULS): l'utente li
+  applica manualmente in CombinazioneCarichi solver.
+- Sismica = ancora solo info nel badge (non applicata come accelerazione
+  spettrale). Future v1.5 wire al solver response spectrum NTC 2018.
+
+### Gate
+| Gate | alpha.3 | **alpha.4** |
+|---|---|---|
+| pytest backend | 1308 | 1308 |
+| vitest frontend | 117 | **132** (+15) |
+| Live URL | ✅ | ✅ deployed |
+| Loop closure | parziale (info only) | **completa (info → carichi)** |
+
+---
+
 ## v1.4.0-alpha.3 — UX continuity: ClimateContextBadge persistente — 2026-05-20
 
 Closure naturale di B1-B4: dopo aver calcolato loads via LocationPickerDialog,
