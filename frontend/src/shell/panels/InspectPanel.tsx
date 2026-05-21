@@ -11,7 +11,9 @@ import {
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useRightRailStore } from "../../store/rightRailStore";
 import { useResultsStore } from "../../store/resultsStore";
+import { useSelectionStore } from "../../store/selectionStore";
 import { PanelChrome, type PanelTab } from "./PanelChrome";
+import { NodeDetail } from "./inspect/NodeDetail";
 import { DriftPanel } from "../../components/panels/DriftPanel";
 import { ConvergencePanel } from "../../components/panels/ConvergencePanel";
 import { IsosurfacePanel } from "../../components/panels/IsosurfacePanel";
@@ -40,9 +42,30 @@ export function InspectPanel() {
   const modalRes = useResultsStore((s) => s.modalResults);
   const dynamicRes = useResultsStore((s) => s.dynamicResults);
 
+  // v1.5 Task 32: modalita' contestuale. Se c'e' un'entita' selezionata
+  // (nodo o elemento) mostriamo il dettaglio invece dei tab risultati.
+  const selectedNodeId = useSelectionStore((s) => s.selectedNodeId);
+
   function handleClose() {
     closeRight();
     closeRail();
+    useSelectionStore.getState().clear();
+  }
+
+  // ── Modalita' "Inspect nodo": vista contestuale senza tabs ───────────────
+  if (selectedNodeId !== null) {
+    return (
+      <PanelChrome
+        side="right"
+        title="Inspect"
+        Icon={IconChartArea}
+        subtitle={`Nodo N${selectedNodeId}`}
+        onClose={handleClose}
+        testId="panel-inspect-node"
+      >
+        <NodeDetail nodeId={selectedNodeId} />
+      </PanelChrome>
+    );
   }
 
   return (

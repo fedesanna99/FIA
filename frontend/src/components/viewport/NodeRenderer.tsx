@@ -3,6 +3,9 @@ import { Html } from "@react-three/drei";
 import { useModelStore } from "../../store/modelStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useUIStore } from "../../store/uiStore";
+import { useSelectionStore } from "../../store/selectionStore";
+import { useWorkspaceStore } from "../../store/workspaceStore";
+import { useRightRailStore } from "../../store/rightRailStore";
 import { modelBounds } from "../../utils/geometry";
 
 export function NodeRenderer() {
@@ -29,10 +32,22 @@ export function NodeRenderer() {
             <mesh
               onClick={(e) => {
                 e.stopPropagation();
+                // Highlight multi-select nel viewport (legacy modelStore).
                 selectNode(n.id, e.shiftKey);
+                // v1.5 Task 32: apre NodeDetail nel RightPanel Inspect senza shift.
+                // Con shift l'utente sta facendo multi-select bulk: non interrompere.
+                if (!e.shiftKey) {
+                  useSelectionStore.getState().selectNode(n.id);
+                  useWorkspaceStore.getState().openRightPanel("inspect");
+                  useRightRailStore.getState().open("inspect");
+                }
               }}
               onDoubleClick={(e) => {
                 e.stopPropagation();
+                // @deprecated v1.5 Task 32: il modal NodeDialog e' sostituito
+                // dal NodeDetail nel RightPanel. Doppio click rimane come
+                // shortcut all'edit modale finche' tutti i flow non saranno
+                // migrati. Rimuovere quando il pannello sara' production-ready.
                 openEditNode(n.id);
               }}
               onPointerOver={(e) => {

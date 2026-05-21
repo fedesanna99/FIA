@@ -1,3 +1,17 @@
+/**
+ * @deprecated v1.5 Task 32 — sostituito da NodeDetail nel RightPanel Inspect.
+ *
+ * Il modal qui sotto resta per retrocompatibilita':
+ *  - shortcut N apre questo dialog (creazione nodo)
+ *  - doppio-click su un nodo nel viewport (legacy edit modale)
+ *  - voce palette "Aggiungi nodo"
+ *
+ * Per il flow "ispeziona / modifica nodo esistente" il nuovo path e' click
+ * singolo sul nodo viewport → `useSelectionStore.selectNode(id)` →
+ * `RightPanel "Inspect"` renderizza `NodeDetail.tsx`.
+ *
+ * Da rimuovere quando tutti i caller saranno migrati al pannello.
+ */
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "./Dialog";
