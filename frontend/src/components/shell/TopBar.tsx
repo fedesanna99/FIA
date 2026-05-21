@@ -234,8 +234,12 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         </div>
       )}
 
-      {/* AI Copilot button (placeholder Sprint 5) */}
-      <AICopilotButton />
+      {/* AI Copilot button (placeholder Sprint 5).
+          v1.5 Task 30 follow-up: nascosto su mobile (<md). Resta raggiungibile
+          via palette → "AI Copilot · Debug FEM" / dropdown MobileMoreMenu. */}
+      <div className="hidden md:flex">
+        <AICopilotButton />
+      </div>
 
       {/* Avatar utente: dropdown con Account / Loads / Tema / Logout
           (sostituisce i bottoni isolati Loads/Account/Login in topbar) */}
@@ -243,13 +247,15 @@ export function TopBar({ models, activeId, onSelect }: Props) {
 
       {/* Bell notifications — visibile SOLO se ci sono notifiche unread
           (alpha.31 Task 17). Centro notifiche raggiungibile sempre via
-          command palette ("Mostra notifiche"). */}
+          command palette ("Mostra notifiche").
+          v1.5 Task 30 follow-up: nascosto su mobile (<md) — i toast restano
+          comunque visibili nello stack di alert in basso. */}
       {unreadCount > 0 && (
         <Tooltip content="Notifiche">
           <button
             type="button"
             onClick={() => toast("info", "Centro notifiche in arrivo (sheet).")}
-            className="relative w-8 h-8 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink flex-shrink-0"
+            className="hidden md:flex relative w-8 h-8 rounded-md items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink flex-shrink-0"
             aria-label="Notifiche"
             data-testid="topbar-bell"
           >

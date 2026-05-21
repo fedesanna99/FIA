@@ -5,16 +5,22 @@
  *  - Verifiche (apre VerifyPanel)
  *  - Tools (apre ToolsPanel)
  *  - Cerca comandi (apre palette)
+ *  - AI Copilot (placeholder Sprint 5 — accesso simmetrico a desktop)
  *  - Tema (toggle dark/light)
  *  - Account & quota
  *  - Modalita' focus
+ *
+ * v1.5 Task 30 follow-up: la TopBar su mobile non mostra piu' AICopilotButton
+ * ne' Bell, quindi questo menu' e' il fallback per AI Copilot. Le notifiche
+ * Bell restano accessibili indirettamente via toast stack in basso.
  */
 import {
-  ShieldCheck, Wrench, Search, Sun, Moon, User, Maximize,
+  ShieldCheck, Wrench, Search, Sun, Moon, User, Maximize, Sparkles,
   type LucideIcon, ChevronRight,
 } from "lucide-react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useThemeStore } from "../../store/themeStore";
+import { toast } from "../../store/toastStore";
 
 
 interface MenuRow {
@@ -81,6 +87,13 @@ export function MobileMoreMenu() {
       sub: "Command palette (Ctrl+K)",
       icon: Search,
       onClick: () => setPalette(true),
+    },
+    {
+      id: "ai-copilot",
+      label: "AI Copilot",
+      sub: "Debug FEM · spiegazione errori (soon)",
+      icon: Sparkles,
+      onClick: () => toast("info", "AI Copilot disponibile da v1.5 (Sprint 5)."),
     },
     {
       id: "theme",
