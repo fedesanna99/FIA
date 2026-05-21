@@ -38,8 +38,11 @@ function apply(resolved: ResolvedTheme) {
 export const useThemeStore = create<ThemeState>()(
   persist(
     (set, get) => ({
-      mode: "dark",
-      resolved: "dark",
+      // Default "system": rispetta la preferenza OS dell'utente. Cambiato
+      // da "dark" hard-coded in alpha.16 per allinearsi al mockup v1.3 che
+      // ha entrambe le palette equivalenti per qualita'.
+      mode: "system",
+      resolved: systemPref(),
 
       setMode: (m) => {
         const r = m === "system" ? systemPref() : m;

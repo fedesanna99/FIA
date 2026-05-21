@@ -1,5 +1,94 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.16 — Sprint 4 / Asse G: foundation CSS tokens v1.3 — 2026-05-21
+
+Apertura **Sprint 4 (Asse G del piano v1.3 rev2)**: refactor UI desktop
+verso il mockup "6-rail + command palette". alpha.16 e' la fondazione
+non-breaking: nuova palette colori warm-neutral allineata al mockup,
+font Inter aggiunto, semantic tints (info/success/warn/coral/purple),
+shadow tokens e border-radius scale, default theme cambiato da `dark`
+hardcoded a `system` (segue prefers-color-scheme OS).
+
+### Added
+- **`index.html`** — caricato font **Inter** (400/500/600/700) via Google
+  Fonts oltre a IBM Plex Sans e JetBrains Mono.
+- **`src/index.css`** — palette riallineata al mockup v1.3:
+  - **Light**: warm neutral `#F7F7F5` (page), `#FFFFFF` (surface),
+    accent blu info `#185FA5`, semantic ink `#3B6D11` (success),
+    `#854F0B` (warn), `#993C1D` (coral), `#534AB7` (purple).
+  - **Dark**: warm dark `#161618` (page), `#1F1F22` (surface),
+    accent `#5AB1EE`, palette semantica equivalente in tint scuro.
+  - 5 nuove **semantic backgrounds**: `--c-bg-info/success/warn/coral/
+    purple` (Tailwind: `bg-info`, `bg-success`, …).
+  - 5 nuove **semantic inks**: `ink-info/success/warn/coral/purple`.
+  - **ink-4** (faint) per testo disabilitato (mockup).
+  - **Shadow tokens**: `--shadow-pop` (soft) e `--shadow-elev`
+    (panel/dialog) auto-adapted al theme. Esposti come `shadow-pop`,
+    `shadow-elev`, `shadow-dialog` in Tailwind.
+  - **Border-radius scale** allineata mockup (4/6/10/14 px).
+  - **`.chip`** + 5 varianti semantiche (`.chip-info` etc).
+  - **`.kbd`** per shortcut visualizzati nei pannelli/palette.
+  - **`@keyframes feapro-pulse`** + classe `.feapro-pulse` per
+    indicatori "live" (collab cursor, dot status WebSocket).
+- **`tailwind.config.js`** — aggiornato:
+  - `colors.bg.{info,success,warn,coral,purple}` (tints semantici).
+  - `colors.ink.{info,success,warn,coral,purple,faint}`.
+  - `colors.{coral,purple,error}` come standalone (alias da
+    `--c-coral/-purple/-danger`).
+  - `boxShadow.{pop,elev,dialog,panel,dropdown}` ora referenzia
+    `var(--shadow-*)` per auto-theming.
+  - `borderRadius` allineato a mockup (4/6/10/14 px).
+  - `fontFamily.display` aggiunto (`Inter` primario).
+- **`themeStore.ts`** — default `mode` cambiato da `"dark"` a `"system"`.
+  Mantiene retrocompat: chi aveva localStorage `feapro-theme` con
+  `mode:"dark"` continua a vedere dark. Nuovi utenti seguono OS.
+
+### Tests
+- **+8 vitest** in nuovo file `themeStore.test.ts`:
+  - default `mode === "system"`
+  - setMode dark/light/system → applica `data-theme` su `<html>`
+  - system mode rispetta `prefers-color-scheme` (mocked matchMedia)
+  - cycle dark → light → system → dark
+  - init() registra MQ listener + cleanup correctly
+  - explicit modes (dark/light) NON cambiano resolved su MQ event
+- **202/202 vitest totale** (194 + 8).
+- **Build TypeScript + Vite OK**: `✓ built in 10.17s`. Nessun warning
+  Tailwind di token sconosciuti.
+
+### Breaking changes
+**Nessuno**. Tutti i token vecchi (`--c-bg`, `--c-ink`, `bg-bg`, `text-
+accent-primary`, ecc.) sono mantenuti. I componenti esistenti continuano
+a funzionare con la nuova palette (visivamente diversa: warm-neutral
+invece di cool-slate, ma struttura identica).
+
+### Visual diff
+- **TopBar/StatusBar/dialog** ora hanno background `#F7F7F5` (light) o
+  `#161618` (dark) — piu' caldo del precedente slate-blue.
+- **Bottoni accent** ora blu info `#185FA5` (light) o `#5AB1EE` (dark)
+  invece di `#2563EB` / `#3DA9FC`.
+- **Font sans** ora Inter (era IBM Plex Sans) — leggermente piu'
+  compatto/moderno, allineato al feeling Linear/Notion.
+
+### Roadmap Sprint 4 (alpha.16-.21)
+| Tag | Cosa |
+|---|---|
+| **alpha.16** | Foundation CSS tokens + dual theme system (**questo**) |
+| alpha.17 | RightRail (Inspect/View/Tools) + slide-in panel system |
+| alpha.18 | TopBar arricchita (breadcrumb + search + collab + AI) |
+| alpha.19 | StatusBar arricchita (job progress + crediti + WS dot) |
+| alpha.20 | Migrazione completa 6 rail (Make/Solve/Verify · Inspect/View/Tools) |
+| alpha.21 | Command palette espansa (180+ voci) + cost card inline |
+
+### Gate
+| | alpha.15 | **alpha.16** |
+|---|---|---|
+| CSS tokens semantici | 4 (bg/border/ink/accent) | **9** (+ 5 semantic + shadow + radius) |
+| Theme default | `dark` hardcoded | **`system`** (OS-aware) |
+| Font sans | IBM Plex Sans | **Inter** (mockup-aligned) |
+| vitest frontend | 194 | **202** (+8) |
+
+---
+
 ## v1.4.0-alpha.15 — user_id propagation (JWT → job ownership) — 2026-05-21
 
 Chiusura della trilogia auth (.13 backend → .14 frontend → .15 wiring).

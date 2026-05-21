@@ -1,6 +1,8 @@
 /** @type {import('tailwindcss').Config} */
-// Le palette ora referenziano CSS variables definite in `src/index.css`,
+// Le palette referenziano CSS variables definite in `src/index.css`,
 // così il theme store può swappare dark/light via attributo `data-theme`.
+// Aggiornato per Sprint 4 / Asse G (alpha.16): aggiunti tint semantici
+// info/success/warn/coral/purple come da mockup v1.3.
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   darkMode: ["selector", '[data-theme="dark"]'],
@@ -13,6 +15,13 @@ export default {
           elevated: "rgb(var(--c-bg-elevated) / <alpha-value>)",
           hover:    "rgb(var(--c-bg-hover) / <alpha-value>)",
           viewport: "rgb(var(--c-bg-viewport) / <alpha-value>)",
+          active:   "rgb(var(--c-bg-active) / <alpha-value>)",
+          // Semantic background tints (mockup v1.3)
+          info:     "rgb(var(--c-bg-info) / <alpha-value>)",
+          success:  "rgb(var(--c-bg-success) / <alpha-value>)",
+          warn:     "rgb(var(--c-bg-warn) / <alpha-value>)",
+          coral:    "rgb(var(--c-bg-coral) / <alpha-value>)",
+          purple:   "rgb(var(--c-bg-purple) / <alpha-value>)",
         },
         border: {
           DEFAULT: "rgb(var(--c-border) / <alpha-value>)",
@@ -23,6 +32,13 @@ export default {
           DEFAULT: "rgb(var(--c-ink) / <alpha-value>)",
           muted:   "rgb(var(--c-ink-muted) / <alpha-value>)",
           dim:     "rgb(var(--c-ink-dim) / <alpha-value>)",
+          faint:   "rgb(var(--c-ink-faint) / <alpha-value>)",
+          // Semantic ink (mockup v1.3) — testo info/success/warn/coral/purple
+          info:    "rgb(var(--c-accent) / <alpha-value>)",
+          success: "rgb(var(--c-success) / <alpha-value>)",
+          warn:    "rgb(var(--c-warn) / <alpha-value>)",
+          coral:   "rgb(var(--c-coral) / <alpha-value>)",
+          purple:  "rgb(var(--c-purple) / <alpha-value>)",
         },
         accent: {
           DEFAULT: "rgb(var(--c-accent) / <alpha-value>)",
@@ -34,14 +50,19 @@ export default {
           warning: "rgb(var(--c-warn) / <alpha-value>)",
           danger:  "rgb(var(--c-danger) / <alpha-value>)",
         },
+        coral:   "rgb(var(--c-coral) / <alpha-value>)",
+        purple:  "rgb(var(--c-purple) / <alpha-value>)",
         success: "rgb(var(--c-success) / <alpha-value>)",
         warn:    "rgb(var(--c-warn) / <alpha-value>)",
         danger:  "rgb(var(--c-danger) / <alpha-value>)",
         info:    "rgb(var(--c-info) / <alpha-value>)",
+        // Errore: alias per Tailwind text-error usato in alcuni component legacy
+        error:   "rgb(var(--c-danger) / <alpha-value>)",
       },
       fontFamily: {
-        sans: ["Inter", "IBM Plex Sans", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["Inter", "IBM Plex Sans", "-apple-system", "BlinkMacSystemFont", "ui-sans-serif", "system-ui", "sans-serif"],
         mono: ["JetBrains Mono", "ui-monospace", "monospace"],
+        display: ["Inter", "-apple-system", "sans-serif"],
       },
       fontSize: {
         xs: ["11px", { lineHeight: "16px" }],
@@ -54,15 +75,23 @@ export default {
         "3xl": ["28px", { lineHeight: "36px" }],
       },
       borderRadius: {
-        sm: "6px",
-        md: "10px",
-        lg: "14px",
-        xl: "20px",
+        // Allineata al mockup v1.3 (--r-sm 4 / md 6 / lg 10 / xl 14)
+        sm: "4px",
+        md: "6px",
+        lg: "10px",
+        xl: "14px",
+        // Legacy: mantenute alias precedenti per non rompere componenti che
+        // usano `rounded-2xl` (20px). Tailwind genera comunque "2xl" di default.
       },
       boxShadow: {
-        panel: "0 6px 24px -8px rgba(0,0,0,.55)",
-        dropdown: "0 8px 32px -6px rgba(0,0,0,.65)",
-        dialog: "0 24px 64px -12px rgba(0,0,0,.75)",
+        // Allineati al mockup (--shadow-pop / --shadow-elev / --shadow-dialog)
+        // Le ombre seguono il theme (light = soffuse, dark = piu' marcate).
+        pop:      "var(--shadow-pop)",
+        elev:     "var(--shadow-elev)",
+        dialog:   "var(--shadow-dialog)",
+        // Legacy alias (componenti pre-Sprint 4):
+        panel:    "var(--shadow-elev)",
+        dropdown: "var(--shadow-pop)",
       },
       transitionDuration: {
         fast: "120ms",

@@ -2,76 +2,154 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * FEA Pro — Design tokens v1.3 (Sprint 4 / Asse G)
+ * ─────────────────────────────────────────────────────────────────────────
+ * Le CSS variables hanno tre nature complementari:
+ *
+ *   1. `--c-*` triple "R G B" → consumate da Tailwind via opacity modifier
+ *      (es. `bg-accent/20` espande in `rgb(var(--c-accent) / 0.2)`).
+ *   2. Alias semantici (`--bg`, `--ink`, `--accent`, ...) per CSS custom.
+ *   3. Token v1.3 mockup-aligned (`--bg-page`, `--bg-surface`, `--ink-1..4`,
+ *      `--ink-info/success/warn/coral/purple`, `--shadow-pop/elev`, `--r-*`)
+ *      per il nuovo layout 6-rail (alpha.16+).
+ *
+ * Le palette light/dark ricalcano la palette del mockup v1.3:
+ *   - Light: warm neutral (`#f7f7f5`) + accent blu info (`#185fa5`)
+ *   - Dark:  surface scuro (`#1f1f22`) + accent blu chiaro (`#5ab1ee`)
+ */
+
 /* ── Tokens dark (default) ──────────────────────────────────────────────── */
-/* I valori sono triple "R G B" (no rgb()) per consentire l'opacity modifier
-   di Tailwind: `bg-accent/20` espande in rgb(var(--c-accent) / 0.2). */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --c-bg:          15  17  21;     /* #0F1115 */
-  --c-bg-panel:    23  26  33;     /* #171A21 */
-  --c-bg-elevated: 31  35  44;     /* #1F232C */
-  --c-bg-hover:    34  39  50;     /* #222732 */
-  --c-bg-viewport: 10  12  16;     /* #0A0C10 */
+  /* Base surfaces (warm dark, allineato mockup #161618 → #2a2a2e) */
+  --c-bg:          22  22  24;     /* #161618  page */
+  --c-bg-panel:    31  31  34;     /* #1F1F22  surface */
+  --c-bg-elevated: 42  42  46;     /* #2A2A2E  hover/elevated */
+  --c-bg-hover:    42  42  46;     /* #2A2A2E  alias */
+  --c-bg-viewport: 19  19  22;     /* #131316  viewport */
+  --c-bg-active:   26  58  95;     /* #1A3A5F  selected */
 
-  --c-border:        38  43  54;   /* #262B36 */
-  --c-border-light:  54  61  74;   /* #363D4A */
-  --c-border-strong: 75  85 104;   /* #4B5568 */
+  /* Borders */
+  --c-border:        58  58  62;   /* #3A3A3E */
+  --c-border-light:  74  74  80;   /* #4A4A50 */
+  --c-border-strong: 95  98 110;   /* #5F626E */
 
-  --c-ink:        230 232 238;     /* #E6E8EE */
-  --c-ink-muted:  154 160 171;     /* #9AA0AB */
-  --c-ink-dim:     95 102 117;     /* #5F6675 */
+  /* Ink (4 livelli mockup: ink-1=primary text … ink-4=disabled) */
+  --c-ink:        230 230 232;     /* #E6E6E8  ink-1 */
+  --c-ink-muted:  170 168 162;     /* #AAA8A2  ink-2 */
+  --c-ink-dim:    120 119 113;     /* #787771  ink-3 */
+  --c-ink-faint:   90  88  82;     /* #5A5852  ink-4 */
 
-  --c-accent:        61 169 252;   /* #3DA9FC */
-  --c-accent-hover:  91 186 255;   /* #5BBAFF */
-  --c-accent-subtle: 29  58  92;   /* #1D3A5C */
+  /* Accent (info blu, sempre principale) */
+  --c-accent:        90 177 238;   /* #5AB1EE */
+  --c-accent-hover: 124 192 245;   /* #7CC0F5 */
+  --c-accent-subtle: 12  37  64;   /* #0C2540 */
 
-  --c-success:  34 197  94;        /* #22C55E */
-  --c-warn:    245 158  11;        /* #F59E0B */
-  --c-danger:  239  68  68;        /* #EF4444 */
-  --c-info:      6 182 212;        /* #06B6D4 */
+  /* Semantic (mockup: 5 famiglie info/success/warn/coral/purple) */
+  --c-success:    132 196  70;     /* #84C446  success ink */
+  --c-warn:       228 156  56;     /* #E49C38 */
+  --c-coral:      217  93  53;     /* #D95D35  collab/load */
+  --c-purple:    140 132 230;      /* #8C84E6  annotation/AI */
+  --c-danger:    239  68  68;      /* #EF4444 */
+  --c-info:        90 177 238;     /* #5AB1EE  alias accent */
 
-  /* alias diretti (per custom CSS che non passano da Tailwind) */
+  /* Semantic backgrounds (tint chiaro su scuro) */
+  --c-bg-success:  26  48   9;     /* #1A3009 */
+  --c-bg-warn:     58  40   6;     /* #3A2806 */
+  --c-bg-coral:    58  24  16;     /* #3A1810 */
+  --c-bg-purple:   34  32  64;     /* #222040 */
+  --c-bg-info:     12  37  64;     /* #0C2540 */
+
+  /* Alias diretti (CSS custom non-Tailwind) */
+  --bg-page:      rgb(var(--c-bg));
+  --bg-surface:   rgb(var(--c-bg-panel));
+  --bg-viewport:  rgb(var(--c-bg-viewport));
+  --bg-hover:     rgb(var(--c-bg-hover));
+  --bg-active:    rgb(var(--c-bg-active));
   --bg:           rgb(var(--c-bg));
   --bg-panel:     rgb(var(--c-bg-panel));
   --bg-elevated:  rgb(var(--c-bg-elevated));
   --border:       rgb(var(--c-border));
+  --border-strong: rgb(var(--c-border-strong));
   --ink:          rgb(var(--c-ink));
+  --ink-1:        rgb(var(--c-ink));
+  --ink-2:        rgb(var(--c-ink-muted));
+  --ink-3:        rgb(var(--c-ink-dim));
+  --ink-4:        rgb(var(--c-ink-faint));
   --ink-muted:    rgb(var(--c-ink-muted));
   --ink-dim:      rgb(var(--c-ink-dim));
   --accent:       rgb(var(--c-accent));
+  --ink-info:     rgb(var(--c-accent));
+  --ink-success:  rgb(var(--c-success));
+  --ink-warn:     rgb(var(--c-warn));
+  --ink-coral:    rgb(var(--c-coral));
+  --ink-purple:   rgb(var(--c-purple));
   --success:      rgb(var(--c-success));
   --warn:         rgb(var(--c-warn));
   --danger:       rgb(var(--c-danger));
+
+  /* Shadow tokens (mockup v1.3) */
+  --shadow-pop:  0 2px 12px -4px rgba(0,0,0,.55), 0 8px 24px -6px rgba(0,0,0,.4);
+  --shadow-elev: 0 8px 24px -10px rgba(0,0,0,.65), 0 2px 6px -1px rgba(0,0,0,.3);
+  --shadow-dialog: 0 24px 64px -12px rgba(0,0,0,.85);
+
+  /* Border-radius scale (mockup r-sm 4 / md 6 / lg 10 / xl 14) */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+  --r-xl: 14px;
 }
 
 /* ── Tokens light ───────────────────────────────────────────────────────── */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --c-bg:          248 250 252;    /* #F8FAFC */
-  --c-bg-panel:    255 255 255;    /* #FFFFFF */
+  /* Base surfaces (warm neutral mockup #f7f7f5 / #ffffff / #fafaf8) */
+  --c-bg:          247 247 245;    /* #F7F7F5 page */
+  --c-bg-panel:    255 255 255;    /* #FFFFFF surface */
   --c-bg-elevated: 255 255 255;
-  --c-bg-hover:    241 245 249;    /* #F1F5F9 */
-  --c-bg-viewport: 255 255 255;
+  --c-bg-hover:    241 239 232;    /* #F1EFE8 */
+  --c-bg-viewport: 250 250 248;    /* #FAFAF8 */
+  --c-bg-active:   230 241 251;    /* #E6F1FB */
 
-  --c-border:        226 232 240;  /* #E2E8F0 */
-  --c-border-light:  203 213 225;  /* #CBD5E1 */
-  --c-border-strong: 148 163 184;  /* #94A3B8 */
+  /* Borders */
+  --c-border:        228 226 219;   /* rgba(0,0,0,0.08) over warm bg */
+  --c-border-light:  210 207 198;
+  --c-border-strong: 180 178 169;   /* #B4B2A9  ink-4 light */
 
-  --c-ink:         15  23  42;     /* #0F172A */
-  --c-ink-muted:   71  85 105;     /* #475569 */
-  --c-ink-dim:    148 163 184;     /* #94A3B8 */
+  /* Ink */
+  --c-ink:         26  26  26;     /* #1A1A1A ink-1 */
+  --c-ink-muted:   95  94  90;     /* #5F5E5A ink-2 */
+  --c-ink-dim:    136 135 128;     /* #888780 ink-3 */
+  --c-ink-faint:  180 178 169;     /* #B4B2A9 ink-4 */
 
-  --c-accent:        37  99 235;   /* #2563EB */
-  --c-accent-hover:  29  78 216;   /* #1D4ED8 */
-  --c-accent-subtle: 219 234 254;  /* #DBEAFE */
+  /* Accent (info blu mockup) */
+  --c-accent:        24  95 165;   /* #185FA5 */
+  --c-accent-hover:  18  72 130;
+  --c-accent-subtle: 230 241 251;  /* #E6F1FB */
 
-  --c-success:  22 163  74;        /* #16A34A */
-  --c-warn:    217 119   6;        /* #D97706 */
-  --c-danger:  220  38  38;        /* #DC2626 */
-  --c-info:      8 145 178;        /* #0891B2 */
+  /* Semantic */
+  --c-success:    59 109  17;      /* #3B6D11 */
+  --c-warn:      133  79  11;      /* #854F0B */
+  --c-coral:     153  60  29;      /* #993C1D */
+  --c-purple:     83  74 183;      /* #534AB7 */
+  --c-danger:    198  40  40;      /* #C62828 */
+  --c-info:       24  95 165;      /* alias accent */
+
+  /* Semantic backgrounds */
+  --c-bg-success: 234 243 222;     /* #EAF3DE */
+  --c-bg-warn:    250 238 218;     /* #FAEEDA */
+  --c-bg-coral:   250 236 231;     /* #FAECE7 */
+  --c-bg-purple:  238 237 254;     /* #EEEDFE */
+  --c-bg-info:    230 241 251;     /* #E6F1FB */
+
+  /* Shadow tokens (light: piu' soffuse, opacity ridotta) */
+  --shadow-pop:  0 2px 12px -4px rgba(0,0,0,.08), 0 8px 24px -6px rgba(0,0,0,.06);
+  --shadow-elev: 0 8px 24px -10px rgba(0,0,0,.12), 0 2px 6px -1px rgba(0,0,0,.04);
+  --shadow-dialog: 0 24px 64px -12px rgba(0,0,0,.18);
 }
 
 html, body, #root {
@@ -80,11 +158,14 @@ html, body, #root {
 }
 
 body {
-  background: var(--c-bg);
-  color: var(--c-ink);
-  font-family: "IBM Plex Sans", system-ui, sans-serif;
+  background: var(--bg-page);
+  color: var(--ink-1);
+  font-family: "Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont,
+               ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 ::-webkit-scrollbar {
@@ -92,14 +173,14 @@ body {
   height: 10px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--c-bg);
+  background: var(--bg);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--c-border-light);
+  background: rgb(var(--c-border-light));
   border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--c-border-strong);
+  background: var(--border-strong);
 }
 
 /* ── prefers-reduced-motion (a11y M8) ───────────────────────────────────── */
@@ -116,7 +197,7 @@ body {
 
 /* ── Focus visibile globale (a11y M8) ───────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid var(--c-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 button:focus-visible,
@@ -124,13 +205,22 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--c-accent);
+  outline: 2px solid var(--accent);
   outline-offset: 1px;
 }
 
 .numeric {
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-variant-numeric: tabular-nums;
+}
+
+/* ── Pulse animation (mockup .dot live indicator) ───────────────────────── */
+@keyframes feapro-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+.feapro-pulse {
+  animation: feapro-pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
 @layer components {
@@ -160,6 +250,31 @@ textarea:focus-visible {
   }
   .row {
     @apply flex items-center justify-between px-3 py-1.5 hover:bg-bg-hover cursor-pointer text-xs;
+  }
+
+  /* ── Chip / Badge (mockup) ────────────────────────────────────────────── */
+  .chip {
+    @apply inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-medium rounded-sm border;
+    background: var(--bg-hover);
+    color: var(--ink-2);
+    border-color: var(--border);
+  }
+  .chip-info    { background: rgb(var(--c-bg-info));    color: var(--ink-info);   border-color: rgb(var(--c-bg-info)); }
+  .chip-success { background: rgb(var(--c-bg-success)); color: var(--ink-success); border-color: rgb(var(--c-bg-success)); }
+  .chip-warn    { background: rgb(var(--c-bg-warn));    color: var(--ink-warn);    border-color: rgb(var(--c-bg-warn)); }
+  .chip-coral   { background: rgb(var(--c-bg-coral));   color: var(--ink-coral);   border-color: rgb(var(--c-bg-coral)); }
+  .chip-purple  { background: rgb(var(--c-bg-purple));  color: var(--ink-purple);  border-color: rgb(var(--c-bg-purple)); }
+
+  /* ── Kbd (mockup .palette / topbar shortcut) ─────────────────────────── */
+  .kbd {
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-size: 10px;
+    background: var(--bg-hover);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 1px 5px;
+    color: var(--ink-2);
+    box-shadow: inset 0 -1px 0 var(--border);
   }
 }
 
