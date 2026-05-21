@@ -24,6 +24,7 @@
  *   - Default theme = "light" per esposizione palette warm-neutral.
  */
 import { useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { TopBar } from "./components/shell/TopBar";
 import { LeftRail } from "./components/shell/LeftRail";
 import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
@@ -53,6 +54,11 @@ export default function App() {
   const setDialog = useUIStore((s) => s.setOpenDialog);
   const openDialog = useUIStore((s) => s.openDialog);
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
+  // alpha.31 Task 23: focus mode (= empty state) nasconde TopBar +
+  // StatusBar + LeftRail + RightRail. Resta solo viewport + un piccolo
+  // X in alto a destra per uscire.
+  const isFocusMode = useWorkspaceStore((s) => s.isEmptyState);
+  const exitFocus = useWorkspaceStore((s) => s.exitEmptyState);
 
   useKeyboardShortcuts((kind) => setDialog(kind));
 
@@ -67,13 +73,20 @@ export default function App() {
       const t = e.target as HTMLElement;
       if (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable) return;
 
-      // alpha.27: Shift+Space → enter empty state (chiude tutti i pannelli)
+      // alpha.27: Shift+Space → toggle focus mode. alpha.31 Task 23:
+      // se gia' in focus mode, esce. Altrimenti entra chiudendo tutto.
       if (e.shiftKey && e.code === "Space" && !e.ctrlKey && !e.metaKey && !e.altKey) {
         e.preventDefault();
-        useLeftRailStore.getState().close();
-        useWorkspaceStore.getState().enterEmptyState();
-        // Anche il right rail
-        import("./store/rightRailStore").then((m) => m.useRightRailStore.getState().close());
+        const ws = useWorkspaceStore.getState();
+        if (ws.isEmptyState) {
+          ws.exitEmptyState();
+        } else {
+          useLeftRailStore.getState().close();
+          ws.enterEmptyState();
+          void import("./store/rightRailStore").then((m) =>
+            m.useRightRailStore.getState().close(),
+          );
+        }
         return;
       }
 
@@ -114,13 +127,14 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-screen w-screen bg-bg text-ink overflow-hidden font-sans">
-      <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
+      {!isFocusMode && (
+        <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
+      )}
       <div className="flex flex-1 min-h-0 relative">
-        <LeftRail />
+        {!isFocusMode && <LeftRail />}
         {/* LeftSlidePanel ankorato a sinistra (toggle via leftRailStore).
-            Quando chiuso, viewport occupa tutto lo spazio fino al
-            RightSlidePanel/RightRail. */}
-        <LeftSlidePanel />
+            In focus mode il rail e' nascosto + il panel e' chiuso. */}
+        {!isFocusMode && <LeftSlidePanel />}
         <main className="flex-1 relative min-w-0 bg-bg-viewport">
           {/* alpha.30: Dashboard mockup-aligned quando nessun modello e' attivo.
               Quando l'utente seleziona/crea un modello, passa al Viewport3D. */}
@@ -135,13 +149,28 @@ export default function App() {
               <DropZone onImported={(id) => setActiveId(id)} />
             </>
           )}
+          {/* Exit focus mode button — visibile solo in focus mode */}
+          {isFocusMode && (
+            <button
+              type="button"
+              onClick={exitFocus}
+              className="absolute top-3 right-3 z-50 w-8 h-8 rounded-full bg-bg-panel/80 backdrop-blur border border-border text-ink-muted hover:text-ink flex items-center justify-center shadow-pop"
+              title="Esci da focus mode (Shift+Space)"
+              aria-label="Esci da focus mode"
+              data-testid="exit-focus"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
         </main>
-        <div className="relative flex flex-shrink-0">
-          <RightSlidePanel />
-          <RightRail />
-        </div>
+        {!isFocusMode && (
+          <div className="relative flex flex-shrink-0">
+            <RightSlidePanel />
+            <RightRail />
+          </div>
+        )}
       </div>
-      <StatusBar />
+      {!isFocusMode && <StatusBar />}
       <Toaster />
       <CommandPalette />
       <HelpSheet />
