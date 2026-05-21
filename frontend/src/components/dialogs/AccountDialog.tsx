@@ -28,6 +28,10 @@ import {
   addQuotaBonus,
   type UsageSummary,
 } from "../../api/usage";
+import {
+  getProvidersSummary,
+  type ProviderUsageSummary,
+} from "../../api/providers-usage";
 import { DEFAULT_USER_ID } from "../../hooks/useCostPreview";
 
 
@@ -48,12 +52,13 @@ const TIER_LABELS: Record<Tier, string> = {
 
 export function AccountDialog({ open, onClose, userId = DEFAULT_USER_ID }: Props) {
   return (
-    <Dialog open={open} onClose={onClose} title={`Account — ${userId}`} width={520}>
+    <Dialog open={open} onClose={onClose} title={`Account — ${userId}`} width={640}>
       <div className="px-4 py-3">
         <Tabs defaultValue="usage" className="flex flex-col">
           <TabsList>
             <TabsTrigger value="usage">📊 Usage</TabsTrigger>
             <TabsTrigger value="tier">💎 Tier</TabsTrigger>
+            <TabsTrigger value="providers">🌐 Providers</TabsTrigger>
             <TabsTrigger value="admin">⚙️ Admin</TabsTrigger>
           </TabsList>
 
@@ -62,6 +67,9 @@ export function AccountDialog({ open, onClose, userId = DEFAULT_USER_ID }: Props
           </TabsContent>
           <TabsContent value="tier" className="pt-3">
             <TierTab userId={userId} />
+          </TabsContent>
+          <TabsContent value="providers" className="pt-3">
+            <ProvidersTab />
           </TabsContent>
           <TabsContent value="admin" className="pt-3">
             <AdminTab userId={userId} />
@@ -295,6 +303,136 @@ function Stat({ label, value }: { label: string; value: string }) {
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
       <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
       <div className="text-sm font-mono text-ink">{value}</div>
+    </div>
+  );
+}
+
+
+// ============================================================================
+// ProvidersTab (alpha.9 — F6 observability dashboard)
+// ============================================================================
+
+function ProvidersTab() {
+  const [windowDays, setWindowDays] = useState(30);
+  const [domainFilter, setDomainFilter] = useState<string>("");
+
+  const q = useQuery<ProviderUsageSummary>({
+    queryKey: ["providers-usage", windowDays, domainFilter],
+    queryFn: () =>
+      getProvidersSummary({
+        window_days: windowDays,
+        ...(domainFilter ? { domain: domainFilter } : {}),
+      }),
+  });
+
+  if (q.isLoading) return <div className="text-xs text-ink-dim">Caricamento providers...</div>;
+  if (q.isError || !q.data) return <div className="text-xs text-error">Errore caricamento</div>;
+
+  const data = q.data;
+  const hasData = data.rows.length > 0;
+
+  return (
+    <div className="space-y-3 text-sm" data-testid="providers-tab">
+      {/* Filtri */}
+      <div className="flex items-center gap-2 text-xs flex-wrap">
+        <label className="text-ink-dim">Finestra:</label>
+        <select
+          className="bg-bg-elevated border border-border rounded px-2 py-1"
+          value={windowDays}
+          onChange={(e) => setWindowDays(Number(e.target.value))}
+          data-testid="providers-window"
+        >
+          <option value={1}>1 giorno</option>
+          <option value={7}>7 giorni</option>
+          <option value={30}>30 giorni</option>
+          <option value={90}>90 giorni</option>
+        </select>
+
+        <label className="text-ink-dim ml-2">Dominio:</label>
+        <select
+          className="bg-bg-elevated border border-border rounded px-2 py-1"
+          value={domainFilter}
+          onChange={(e) => setDomainFilter(e.target.value)}
+          data-testid="providers-domain"
+        >
+          <option value="">Tutti</option>
+          <option value="meteo">meteo</option>
+          <option value="geocoding">geocoding</option>
+          <option value="elevation">elevation</option>
+          <option value="seismic">seismic</option>
+        </select>
+      </div>
+
+      {/* Totals */}
+      <div className="grid grid-cols-3 gap-2">
+        <Stat label="Chiamate totali" value={String(data.totals.n_calls)} />
+        <Stat
+          label="Cache hit"
+          value={`${data.totals.n_cache_hits} (${(data.totals.cache_hit_ratio * 100).toFixed(0)}%)`}
+        />
+        <Stat
+          label="Errori"
+          value={`${data.totals.n_errors} (${(data.totals.error_ratio * 100).toFixed(1)}%)`}
+        />
+      </div>
+
+      {/* Tabella rows */}
+      {!hasData && (
+        <div className="text-xs text-ink-dim italic py-3 text-center">
+          Nessuna chiamata registrata nell'intervallo. Apri TopBar → Loads e cerca
+          una location per generare traffico.
+        </div>
+      )}
+      {hasData && (
+        <div className="border border-border rounded overflow-hidden">
+          <table className="w-full text-xs" data-testid="providers-table">
+            <thead className="bg-bg-elevated text-ink-dim">
+              <tr>
+                <th className="px-2 py-1.5 text-left font-semibold">Provider / Endpoint</th>
+                <th className="px-2 py-1.5 text-right font-semibold">Calls</th>
+                <th className="px-2 py-1.5 text-right font-semibold">Cache</th>
+                <th className="px-2 py-1.5 text-right font-semibold">Err</th>
+                <th className="px-2 py-1.5 text-right font-semibold">Lat avg (ms)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {data.rows.map((r, i) => (
+                <tr
+                  key={`${r.domain}-${r.provider}-${r.endpoint}-${i}`}
+                  className="border-t border-border"
+                  data-testid={`providers-row-${i}`}
+                >
+                  <td className="px-2 py-1">
+                    <div className="font-semibold text-ink">{r.provider}</div>
+                    <div className="text-[10px] text-ink-dim">
+                      {r.domain} · {r.endpoint}
+                    </div>
+                  </td>
+                  <td className="px-2 py-1 text-right font-mono">{r.n_calls}</td>
+                  <td className="px-2 py-1 text-right font-mono">
+                    <span className={r.cache_hit_ratio > 0.5 ? "text-accent" : ""}>
+                      {(r.cache_hit_ratio * 100).toFixed(0)}%
+                    </span>
+                  </td>
+                  <td className="px-2 py-1 text-right font-mono">
+                    <span className={r.error_ratio > 0.05 ? "text-error" : ""}>
+                      {r.n_errors}
+                    </span>
+                  </td>
+                  <td className="px-2 py-1 text-right font-mono">
+                    {r.avg_latency_ms.toFixed(0)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <div className="text-[10px] text-ink-dim italic">
+        Dati tracker F6 (services/usage_tracker). 1 record per ogni chiamata
+        provider F4 dei facade B1-B4. SQLite persistente su volume Fly.
+      </div>
     </div>
   );
 }

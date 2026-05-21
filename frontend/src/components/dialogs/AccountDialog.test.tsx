@@ -13,9 +13,13 @@ vi.mock("../../api/usage", () => ({
   resetQuota: vi.fn(),
   addQuotaBonus: vi.fn(),
 }));
+vi.mock("../../api/providers-usage", () => ({
+  getProvidersSummary: vi.fn(),
+}));
 
 import { getQuota, setQuotaTier } from "../../api/billing";
 import { getUsageSummary, resetQuota, addQuotaBonus } from "../../api/usage";
+import { getProvidersSummary } from "../../api/providers-usage";
 import { AccountDialog } from "./AccountDialog";
 
 
@@ -47,10 +51,36 @@ const baseUsage = {
 };
 
 
+const baseProvidersSummary = {
+  window_days: 30, domain: null, provider: null, user_id: null,
+  rows: [
+    {
+      domain: "meteo", provider: "open_meteo_archive", endpoint: "extremes",
+      n_calls: 12, n_cache_hits: 8, n_errors: 0,
+      cache_hit_ratio: 0.667, error_ratio: 0.0,
+      avg_latency_ms: 320.5, total_latency_ms: 3846.0,
+      last_call_ts: 1779264584000,
+    },
+    {
+      domain: "geocoding", provider: "open_meteo_geocoding", endpoint: "search",
+      n_calls: 45, n_cache_hits: 30, n_errors: 1,
+      cache_hit_ratio: 0.667, error_ratio: 0.022,
+      avg_latency_ms: 180.2, total_latency_ms: 8109.0,
+      last_call_ts: 1779265000000,
+    },
+  ],
+  totals: {
+    n_calls: 57, n_cache_hits: 38, n_errors: 1,
+    cache_hit_ratio: 0.667, error_ratio: 0.018,
+  },
+};
+
+
 beforeEach(() => {
   vi.clearAllMocks();
   (getQuota as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(baseQuota);
   (getUsageSummary as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(baseUsage);
+  (getProvidersSummary as unknown as ReturnType<typeof vi.fn>).mockResolvedValue(baseProvidersSummary);
 });
 
 
@@ -110,6 +140,50 @@ describe("AccountDialog", () => {
     await user.click(screen.getByTestId("admin-bonus-apply"));
     await waitFor(() => {
       expect(addQuotaBonus).toHaveBeenCalledWith("demo_user", 100);
+    });
+  });
+
+  it("renders Providers tab with summary rows (alpha.9)", async () => {
+    const user = userEvent.setup();
+    render(<AccountDialog open onClose={() => {}} />, { wrapper });
+    await user.click(screen.getByRole("tab", { name: /Providers/i }));
+    await waitFor(() => screen.getByTestId("providers-tab"));
+    // Totale chiamate = 57
+    await waitFor(() => {
+      expect(screen.getByText("57")).toBeInTheDocument();
+    });
+    // Provider names visible
+    expect(screen.getByText("open_meteo_archive")).toBeInTheDocument();
+    expect(screen.getByText("open_meteo_geocoding")).toBeInTheDocument();
+    // Cache hit 67%
+    const cacheCells = screen.getAllByText("67%");
+    expect(cacheCells.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it("Providers tab domain filter triggers re-query", async () => {
+    const user = userEvent.setup();
+    render(<AccountDialog open onClose={() => {}} />, { wrapper });
+    await user.click(screen.getByRole("tab", { name: /Providers/i }));
+    await waitFor(() => screen.getByTestId("providers-tab"));
+    await user.selectOptions(screen.getByTestId("providers-domain"), "meteo");
+    await waitFor(() => {
+      const calls = (getProvidersSummary as unknown as ReturnType<typeof vi.fn>).mock.calls;
+      const last = calls[calls.length - 1];
+      expect(last[0]).toEqual(expect.objectContaining({ domain: "meteo" }));
+    });
+  });
+
+  it("Providers tab window can be changed", async () => {
+    const user = userEvent.setup();
+    render(<AccountDialog open onClose={() => {}} />, { wrapper });
+    await user.click(screen.getByRole("tab", { name: /Providers/i }));
+    await waitFor(() => screen.getByTestId("providers-tab"));
+    fireEvent.change(screen.getByTestId("providers-window"), { target: { value: "7" } });
+    await waitFor(() => {
+      const calls = (getProvidersSummary as unknown as ReturnType<typeof vi.fn>).mock.calls;
+      expect(calls[calls.length - 1][0]).toEqual(
+        expect.objectContaining({ window_days: 7 }),
+      );
     });
   });
 

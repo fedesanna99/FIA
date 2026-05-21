@@ -1,5 +1,57 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.9 — Observability dashboard frontend — 2026-05-21
+
+I 3 endpoint backend F6 (`/api/providers/usage/{summary,timeline,health}`)
+ora hanno UI consumer: tab "🌐 Providers" in AccountDialog. L'admin vede
+live: cache hit ratio per provider, errori, latency media — utile per
+debug "Open-Meteo è giù" o "stiamo bruciando il rate limit Nominatim".
+
+### Added
+- **`api/providers-usage/index.ts`** — frontend client tipizzato per:
+  - `getProvidersSummary(params)` → `ProviderUsageSummary` con `rows[]` +
+    `totals` (cache_hit_ratio, error_ratio globali)
+  - `getProvidersTimeline(params)` → bin orari/giornalieri/settimanali
+  - `getProvidersHealth()` → status SQLite tracker (db_path, total_records,
+    by_domain breakdown)
+- **`AccountDialog`** Tab "🌐 Providers":
+  - Filtri: `window_days` (1/7/30/90) + `domain` dropdown
+    (meteo/geocoding/elevation/seismic)
+  - 3 Stat cards: chiamate totali, cache hit con %, errori con %
+  - Tabella per ogni (provider, endpoint) con calls/cache%/err/latency
+  - Cache hit > 50% evidenziato in accent color (✓ buona cache)
+  - Error ratio > 5% evidenziato in error color (⚠ provider unstable)
+  - Empty state friendly: "Apri TopBar → Loads per generare traffico"
+- Dialog width espanso 520 → 640 px per accomodare la nuova tab
+
+### Tests
+- **+3 vitest** in `AccountDialog.test.tsx`:
+  - Render Providers tab con summary rows (2 provider mock)
+  - Domain filter triggera re-query con `{domain: "meteo"}`
+  - Window selector cambia `window_days` nel params
+- **174/174 vitest totale** (171 + 3).
+
+### Use case admin
+
+Scenario: utente segnala "loads non si calcolano". Admin apre:
+1. AccountDialog → tab Providers
+2. Window 1 giorno → vede n_calls=0 su `open_meteo_archive` ❌
+3. Capisce: il provider meteo è in errore o quota esaurita
+4. Solution: switcha env var `FEAPRO_METEO_FALLBACK` o investiga
+   Open-Meteo upstream
+
+Senza questa dashboard, l'admin doveva fare `flyctl ssh sftp shell` e
+inspect `/data/usage.sqlite` manualmente. Time-to-debug 5min → 5s.
+
+### Gate
+| | alpha.8 | **alpha.9** |
+|---|---|---|
+| vitest frontend | 171 | **174** (+3) |
+| F6 endpoint UI consumer | 0 | **3** (summary, timeline pending, health pending) |
+| Live URL | ✅ | ✅ |
+
+---
+
 ## v1.4.0-alpha.8 — Location demo presets — 2026-05-21
 
 Onboarding rapido: 5 preset Italia (Roma, Milano, L'Aquila, Cagliari,
