@@ -14,11 +14,7 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
-  Plus,
-  Copy,
-  Pencil,
   Play,
-  ChevronDown,
   Eye,
   Check,
   Undo2,
@@ -43,7 +39,7 @@ import { useRightRailStore } from "../../store/rightRailStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { toast, useToastStore } from "../../store/toastStore";
 import { APP_VERSION } from "../../lib/version";
-import { Breadcrumb } from "./topbar/Breadcrumb";
+import { ModelMenu } from "./topbar/ModelMenu";
 import { GlobalSearch } from "./topbar/GlobalSearch";
 import { AICopilotButton } from "./topbar/AICopilotButton";
 import { AvatarMenu } from "./topbar/AvatarMenu";
@@ -55,7 +51,7 @@ import { cn } from "../ui/cn";
 interface Props {
   models: FEAModel[];
   activeId: string | null;
-  onSelect: (id: string) => void;
+  onSelect: (id: string | null) => void;
 }
 
 type AnalysisType = "static" | "modal" | "dynamic";
@@ -128,6 +124,18 @@ export function TopBar({ models, activeId, onSelect }: Props) {
     },
   });
 
+  // alpha.31: delete model con conferma window.confirm. Se confermato,
+  // reset activeId → la Dashboard riappare.
+  const del = useMutation({
+    mutationFn: (id: string) => modelsApi.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["models"] });
+      onSelect(null);
+      toast("info", "Modello eliminato.");
+    },
+    onError: (e) => toast("error", `Errore eliminazione: ${(e as Error).message}`),
+  });
+
   return (
     <header className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 min-w-0 overflow-hidden">
       {/* Logo + version */}
@@ -139,8 +147,25 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         <span className="text-[10px] font-mono text-ink-dim hidden md:inline">{APP_VERSION}</span>
       </div>
 
-      {/* Breadcrumb: modello attivo › workspace (>= lg) */}
-      <Breadcrumb />
+      {/* Model menu — single entry point per Duplica/Modifica/Switch/New/Delete.
+          Sostituisce Breadcrumb + model picker + CRUD + select tipo analisi
+          (alpha.31 — Progressive Disclosure Task 16). */}
+      <ModelMenu
+        modelName={model?.name ?? null}
+        hasModel={!!activeId}
+        isDuplicating={dup.isPending}
+        isDeleting={del.isPending}
+        onDuplicate={() => activeId && dup.mutate(activeId)}
+        onEdit={() => setEditOpen(true)}
+        onSwitch={() => onSelect(null)}
+        onNew={() => setNewOpen(true)}
+        onDelete={() => {
+          if (!activeId) return;
+          if (window.confirm(`Eliminare "${model?.name ?? "modello"}"? Operazione non reversibile.`)) {
+            del.mutate(activeId);
+          }
+        }}
+      />
 
       {/* Save status chip — visibile quando il modello e' stato salvato */}
       {lastSavedAt && (
@@ -150,80 +175,8 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         </div>
       )}
 
-      {/* Model picker — fluido su mobile, fisso su desktop */}
-      <div className="relative min-w-0 flex-1 sm:flex-initial">
-        <select
-          className={cn(
-            "appearance-none h-8 pl-3 pr-8 rounded-md text-sm",
-            "bg-bg-elevated border border-border text-ink",
-            "hover:bg-bg-hover focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30",
-            "w-full sm:min-w-[180px] md:min-w-[220px] cursor-pointer truncate",
-          )}
-          value={activeId ?? ""}
-          onChange={(e) => onSelect(e.target.value)}
-          aria-label="Modello attivo"
-        >
-          <option value="">— scegli modello —</option>
-          {models.map((m) => (
-            <option key={m.id} value={m.id}>
-              {m.name}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 h-4 w-4 text-ink-muted pointer-events-none" />
-      </div>
-
-      {/* Model CRUD — solo icone <md, icona+label da md in su */}
-      <div className="flex items-center gap-1 pl-2 border-l border-border ml-1 md:pl-3 flex-shrink-0">
-        <Tooltip content="Nuovo modello">
-          <Button size="sm" variant="secondary" iconLeft={<Plus className="h-3.5 w-3.5" />} onClick={() => setNewOpen(true)}>
-            <span className="hidden md:inline">Nuovo</span>
-          </Button>
-        </Tooltip>
-        <Tooltip content="Duplica modello corrente">
-          <Button
-            size="sm"
-            variant="ghost"
-            iconLeft={<Copy className="h-3.5 w-3.5" />}
-            disabled={!activeId || dup.isPending}
-            loading={dup.isPending}
-            onClick={() => activeId && dup.mutate(activeId)}
-          >
-            <span className="hidden md:inline">Duplica</span>
-          </Button>
-        </Tooltip>
-        <Tooltip content="Modifica nome / descrizione">
-          <Button
-            size="sm"
-            variant="ghost"
-            iconLeft={<Pencil className="h-3.5 w-3.5" />}
-            disabled={!activeId}
-            onClick={() => setEditOpen(true)}
-          >
-            <span className="hidden md:inline">Modifica</span>
-          </Button>
-        </Tooltip>
-      </div>
-
-      {/* Run analysis — il select del tipo è nascosto sotto sm */}
+      {/* Run analysis — tipo analisi scelto nel SolvePanel, qui solo il bottone */}
       <div className="flex items-center gap-1.5 sm:gap-2 pl-2 md:pl-3 border-l border-border ml-1 flex-shrink-0">
-        <select
-          className={cn(
-            "h-8 px-2 rounded-md text-xs font-medium",
-            "bg-bg-elevated border border-border text-ink",
-            "hover:bg-bg-hover focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30",
-            "cursor-pointer hidden sm:block",
-          )}
-          value={analysisType}
-          onChange={(e) => setAnalysisType(e.target.value as AnalysisType)}
-          aria-label="Tipo analisi"
-        >
-          {(Object.keys(ANALYSIS_LABELS) as AnalysisType[]).map((t) => (
-            <option key={t} value={t}>
-              {ANALYSIS_LABELS[t]}
-            </option>
-          ))}
-        </select>
         <Tooltip content={`Esegui ${ANALYSIS_LABELS[analysisType as AnalysisType]?.toLowerCase() ?? "analisi"} (F5)`}>
           <Button
             variant="run"
