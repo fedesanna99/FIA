@@ -178,20 +178,37 @@ export function CommandPalette() {
         break;
       }
       case "toggle-view": {
-        // v1.5 Task 34: toggle overlay viewport via analysisStore. Per i flag
-        // non ancora esistenti (showDeformed/showColormap/showIso/wireframe)
-        // mostro un toast informativo.
+        // v1.5.1 follow-up: i flag overlay vivono in due store:
+        //   - analysisStore: grid/loads/constraints/labels/diagrams/principals
+        //   - resultsStore:  deformed/isosurfaces/stress-colormap
+        // 'cycleViewportMode' cicla wireframe → solid → transparent.
         const flag = (item.payload as { flag: string }).flag;
         const a = useAnalysisStore.getState();
+        const r = useResultsStore.getState();
         switch (flag) {
+          // analysisStore (geometry overlays)
           case "showGrid":         a.toggleGrid(); break;
           case "showLoads":        a.toggleLoads(); break;
           case "showConstraints":  a.toggleConstraints(); break;
           case "showNodeLabels":   a.toggleNodeLabels(); break;
           case "showDiagrams":     a.toggleDiagrams(); break;
-          case "showPrincipal":    a.togglePrincipals(); break;
+          case "showPrincipals":   a.togglePrincipals(); break;
+          // resultsStore (post-processing overlays)
+          case "showDeformed":     r.toggleDeformed(); break;
+          case "showStressColormap": r.toggleStressColormap(); break;
+          case "showIsosurfaces":  r.toggleIsosurfaces(); break;
+          // viewportMode tri-state cycle
+          case "cycleViewportMode": {
+            const next: typeof a.viewportMode =
+              a.viewportMode === "wireframe" ? "solid" :
+              a.viewportMode === "solid"     ? "transparent" :
+                                                "wireframe";
+            a.setViewportMode(next);
+            toast("info", `Vista: ${next}`, 1500);
+            break;
+          }
           default:
-            toast("info", `Toggle "${flag}" — in arrivo nel prossimo update.`);
+            toast("info", `Toggle "${flag}" non riconosciuto.`);
         }
         break;
       }

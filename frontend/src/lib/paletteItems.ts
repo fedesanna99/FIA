@@ -266,17 +266,21 @@ const WIZARDS_EXTRA: PaletteItem[] = [
 
 // ── 9) VIEW TOGGLES — Overlay viewport (v1.5 Task 34) ──────────────────────
 // 10 toggle per overlay viewport. Action: "toggle-view" handler in CommandPalette.
+// v1.5.1 follow-up: flag allineati ai nomi reali nei due store:
+//   - resultsStore: showDeformed, showIsosurfaces, showStressColormap
+//   - analysisStore: showGrid, showLoads, showConstraints, showNodeLabels,
+//                    showDiagrams, showPrincipals, viewportMode (per wireframe)
 const VIEW_TOGGLES: PaletteItem[] = [
   { id: "view-deformed",    label: "Mostra/nascondi deformata",        aliases: ["deformata", "deformed"],            section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showDeformed" } },
-  { id: "view-colormap",    label: "Mostra/nascondi colormap Von Mises", aliases: ["colormap", "stress", "von mises"], section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showColormap" } },
+  { id: "view-colormap",    label: "Mostra/nascondi colormap Von Mises", aliases: ["colormap", "stress", "von mises"], section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showStressColormap" } },
   { id: "view-diagrams",    label: "Mostra/nascondi diagrammi N/V/M",    aliases: ["diagrammi", "moment", "shear"],   section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showDiagrams" } },
-  { id: "view-principal",   label: "Mostra/nascondi tensioni principali", aliases: ["sigma 1", "principal", "tensioni"], section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showPrincipal" } },
+  { id: "view-principal",   label: "Mostra/nascondi tensioni principali", aliases: ["sigma 1", "principal", "tensioni"], section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showPrincipals" } },
   { id: "view-grid",        label: "Mostra/nascondi griglia viewport",   aliases: ["grid", "griglia"],                section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showGrid" } },
   { id: "view-constraints", label: "Mostra/nascondi vincoli",            aliases: ["vincoli", "supports"],            section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showConstraints" } },
   { id: "view-loads",       label: "Mostra/nascondi carichi",            aliases: ["loads", "carichi"],               section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showLoads" } },
   { id: "view-labels",      label: "Mostra/nascondi etichette nodi",     aliases: ["labels", "etichette"],            section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showNodeLabels" } },
-  { id: "view-iso",         label: "Mostra/nascondi iso-superfici 3D",   aliases: ["iso", "isosurfaces"],             section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showIso" } },
-  { id: "view-wireframe",   label: "Toggle modo wireframe",              aliases: ["wireframe", "solid"],             section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "wireframe" } },
+  { id: "view-iso",         label: "Mostra/nascondi iso-superfici 3D",   aliases: ["iso", "isosurfaces"],             section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showIsosurfaces" } },
+  { id: "view-wireframe",   label: "Cicla modo vista (Wire / Solid / Transp)", aliases: ["wireframe", "solid", "transparent"], section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "cycleViewportMode" } },
 ];
 
 
