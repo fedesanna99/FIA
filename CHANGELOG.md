@@ -1,5 +1,125 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.8 — Location demo presets — 2026-05-21
+
+Onboarding rapido: 5 preset Italia (Roma, Milano, L'Aquila, Cagliari,
+Cortina) caricabili con 1 click senza API call. Utile per chi prova
+l'app a freddo e vuole vedere il workflow end-to-end senza aspettare
+le chiamate live ai provider.
+
+### Added
+- **`lib/locationPresets.ts`** — 5 `LocationPreset` predefiniti:
+  | Key | Location | q_p | s_design | a_g/g | Caratteristica |
+  |---|---|---|---|---|---|
+  | roma | Roma centro | 0.40 | 0.10 | 0.10 | sismica moderata |
+  | milano | Milano Duomo | 0.32 | 0.50 | 0.05 | sismica bassa |
+  | laquila | L'Aquila | 0.45 | 1.20 | **0.30** | **sismica ALTA** |
+  | cagliari | Cagliari porto | **0.55** | 0.02 | 0.04 | vento alto, no neve |
+  | cortina | Cortina d'Ampezzo | 0.35 | **1.80** | 0.10 | **neve estrema** |
+- **`LocationPickerDialog`** — Step 0 prima del search:
+  - "⚡ Preset rapidi (valori indicativi · no API call)"
+  - 5 bottoni emoji-labelled, tooltip con descrizione climate-zone
+  - Click → `climateStore.setBundle(preset)` + `onApply(bundle)` + toast
+    + chiude dialog. Onboarding ~5s vs ~25s con API live.
+
+### Tests
+- **+9 vitest** `locationPresets.test.ts`: 5 preset, key uniche, struttura
+  bundle, sanity (L'Aquila a_g≥0.20, Cortina s_d≥1.0, Cagliari no snow,
+  Milano a_g<0.10), source contains "preset".
+- Fix test `performs search and shows results`: distingue risultato live
+  (source=open_meteo_geocoding) dai preset (source=preset_*).
+- **171/171 vitest totale**.
+
+### Gate
+| | alpha.7 | **alpha.8** |
+|---|---|---|
+| vitest frontend | 162 | **171** (+9) |
+| Onboarding first-loads | ~25s | **~5s** |
+
+---
+
+## v1.4.0-alpha.7 — Seismic apply + wind envelope ±X — 2026-05-21
+
+Espansione applicabilita' loads: sismica come `ground_accel` model-level
++ wind envelope bidirezionale per inviluppo NTC §3.3.3.
+
+### Added
+- **`applyClimateLoads.ts`** opzioni nuove:
+  - `includeSeismic: boolean` (default false): se attiva + bundle.seismic
+    non null, aggiunge 1 Load `type: "ground_accel"`, `direction: [1,0,0]`,
+    `pressure: a_g_over_g × 9.81` (m/s²), label `"Seismic NTC2018 [Roma,
+    soil B, +X]"`. Usabile dal solver `seismic_th` come accelerazione
+    del terreno.
+  - `windEnvelope: boolean` (default false): se attiva, per ogni nodo
+    genera **2 wind loads** (positivo e negativo sull'asse scelto) invece
+    di 1. Labels `Envelope +X` / `-X`. Implementa NTC §3.3.3.
+  - `G_M_S2 = 9.81` exportato.
+- **`ApplyClimateLoadsResult.seismic_a_g_m_s2?: number`** popolato quando
+  includeSeismic + a_g > 0.
+- **`ApplyClimateLoadsDialog`** UI:
+  - Checkbox "🌋 Sismica (ground_accel +X)" visibile solo se bundle ha
+    seismic data. Mostra `a_g = X.XXX m/s²` dinamicamente.
+  - Sotto direzione wind: checkbox "Inviluppo bidirezionale (±X)" che
+    disabilita il select direzione.
+
+### Tests
+- **+8 vitest**: envelope ±X (sign flip), envelope su Y (fy invece fx),
+  envelope false=backward compat, includeSeismic genera ground_accel con
+  direction/magnitude correct, seismic null nel bundle = no load, a_g=0
+  skip, combo wind+snow+seismic counts, envelope+seismic counts.
+- **162/162 vitest totale**.
+
+### Solver wiring (lasciato per Sprint 3)
+
+Il backend `seismic_th_solver` accetta gia' `Load{type:"ground_accel"}` ma
+con time-history. In alpha.7 generiamo solo PGA costante — il professionista
+puo' usarlo come scaling base. Sprint 3 includera':
+- Generazione automatica time-history da spectrum (NTC §3.2)
+- Combinazione gravity + climate + seismic come LoadCases
+- UI per LoadCase con weights/factors NTC §2.5
+
+---
+
+## 🔮 Sprint 3 outline (roadmap v1.5+)
+
+### Multi-user + auth (alpha.10–.15)
+- JWT auth con email login (FastAPI + bcrypt)
+- `user_id` reale propagato (oggi hardcoded "demo_user")
+- Quota per-utente real-time (oggi mock)
+- Per-user climateStore (oggi shared via localStorage)
+
+### Billing Stripe (alpha.16–.20)
+- Webhook Stripe → quota.subscription update
+- Stripe checkout per upgrade tier
+- Tier capacities: free 50 / starter 500 / pro 5000 / enterprise illimitato
+- Trial 14gg automatici al signup
+
+### Observability dashboard (alpha.21–.25)
+- Frontend dashboard letta da `/api/providers/usage/*`
+- Grafico timeline 30gg cache hit / error rate / latency
+- Alerting su SLO breach (cache_hit_ratio < 50%, error_ratio > 5%)
+- Heatmap geografica chiamate Open-Meteo/USGS per regione utente
+
+### LoadCase combinations NTC §2.5 (alpha.26–.30)
+- UI `LoadCaseCombinationDialog`: combina Dead + Climate + Live
+- Coefficienti γ NTC tabella 2.5.I, formule SLU/SLE
+- Genera N LoadCases automaticamente con weights
+- Solver esegue tutti → inviluppo verifiche EC3/2/5/8
+
+### Production hardening (continuo)
+- Custom domain `feapro.app` o `fea-pro.it`
+- Cloudflare CDN davanti a Fly.io
+- UptimeRobot ping ogni 5min (no cold-start)
+- Sentry error tracking frontend + backend
+- Backup automatico volume Fly /data (cron daily → S3 backblaze)
+
+### Provider extensions
+- INGV Earthquake (Italia complementare USGS, M<3.5 dettagliato)
+- IGN España elevation
+- DGT3D digital terrain Italia (5m vs SRTM 30m)
+
+---
+
 ## v1.4.0-alpha.6 — Per-node magnitude: ogni nodo riceve q × tributary[i] — 2026-05-20
 
 Closure scientifico finale: invece di applicare una magnitudo costante,
