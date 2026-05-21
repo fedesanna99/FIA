@@ -1,5 +1,83 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.5 — Tributary area auto-derived dalla topologia — 2026-05-20
+
+L'engineer non deve più indovinare il "1.0 m² uniforme" — FEA Pro lo
+calcola dalla topologia del modello, rendendo i carichi climatici
+scientificamente difendibili.
+
+### Added
+- **`lib/tributaryAreas.ts`** — helper puro `computeTributaryAreas(model,
+  facadeWidthM=1.0)`:
+  - Per ogni nodo somma:
+    - 1/2 della lunghezza di ciascun beam/truss/cable adiacente
+    - 1/4 dell'area di ciascun shell Q4 adiacente
+    - 1/3 dell'area di ciascun tri3 adiacente
+  - Solid elements (tet/hex): ignorati (out of scope v1.4)
+  - `tributary_area_m2 = tributary_length × facade_width + tributary_area_shell`
+  - Ritorna `TributaryResult` con `by_node` map + `stats`
+    (min/max/mean/median, n_with_tributary, n_isolated).
+- **`ApplyClimateLoadsDialog`** wire bottone **🤖 Auto da topologia**
+  vicino al campo tributary_area:
+  - Click → calcola media topologia → aggiorna input
+  - Toast info con range min-max
+  - Toast errore se nessun beam/shell nella topologia
+
+### Algoritmo verificato
+
+| Topologia | Tributary nodo |
+|---|---|
+| 1 beam 6m | estremi 3m, area = 3 m² (facade 1m) |
+| 7 nodi, 6 beam 1m | interni 1m, estremi 0.5m |
+| 1 shell Q4 1m×1m | 4 nodi × 0.25 m² |
+| 3×3 nodi, 2×2 shell Q4 | corner 0.25, edge 0.5, centro 1.0 |
+| beam+shell coincidenti | somma contributi |
+| solid h8 | tutti isolati (skip) |
+
+### Tests
+- **+14 vitest** `tributaryAreas.test.ts`: empty/no-elements, beam2d
+  semplice, beam2d suddivisa (interno/estremo), facade_width custom,
+  shell Q4 1×1, shell Q4 2×2 (corner/edge/center), tri3, beam+shell
+  misti, solid skip, stats edge cases, beam3d con length 3D, element
+  nodi inesistenti safe, median pari.
+- **146/146 vitest totale** (132 + 14).
+
+### UX flow updated
+
+```
+ApplyClimateLoadsDialog ora ha:
+  [Area di influenza per nodo] [🤖 Auto da topologia]
+  [_____1.0_____] m²
+
+Click su 🤖:
+  → computeTributaryAreas(model) → stats
+  → input value = stats.area_mean_m2
+  → toast: "Auto-calc: media 0.85 m² (range 0.50-1.20)"
+```
+
+L'engineer vede subito la distribuzione spaziale dei loads, può
+decidere se accettare il default uniforme (vecchia logica) o l'auto
+(suggested mean) o un valore custom.
+
+### Limiti residui (v1.5 backlog)
+
+- Auto-calc usa la MEDIA per tutti i nodi (semplificazione). Per accuratezza
+  totale ogni nodo riceverebbe una magnitudo diversa = q × tributary[i].
+  Future enhancement: opzione "per-nodo" che genera N loads ciascuno con
+  magnitudo specifica.
+- Beam 1D usa default `facade_width = 1.0 m`. Per facciate verticali
+  reali serve definire altezza piano per ogni nodo. Future:
+  `facade_height_at_node[]` derivato dalla z-coordinate o input UI.
+
+### Gate
+| Gate | alpha.4 | **alpha.5** |
+|---|---|---|
+| pytest backend | 1308 | 1308 |
+| vitest frontend | 132 | **146** (+14) |
+| Live URL | ✅ | ✅ |
+
+---
+
 ## v1.4.0-alpha.4 — Closure end-to-end: climate loads → carichi nodali — 2026-05-20
 
 Chiusura naturale del loop Sprint 2: dopo aver calcolato i loads tramite

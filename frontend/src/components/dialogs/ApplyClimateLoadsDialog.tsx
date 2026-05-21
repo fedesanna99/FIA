@@ -20,6 +20,7 @@ import {
   DEFAULT_APPLY_OPTIONS,
   type WindDirection,
 } from "../../lib/applyClimateLoads";
+import { computeTributaryAreas } from "../../lib/tributaryAreas";
 
 
 interface Props {
@@ -159,9 +160,34 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
 
         {/* Tributary area */}
         <div className="space-y-1">
-          <label className="text-xs text-ink-dim">
-            Area di influenza per nodo [m²]
-          </label>
+          <div className="flex items-center justify-between">
+            <label className="text-xs text-ink-dim">
+              Area di influenza per nodo [m²]
+            </label>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                const r = computeTributaryAreas(model);
+                if (r.stats.n_nodes_with_tributary === 0) {
+                  toast(
+                    "error",
+                    "Topologia priva di beam/shell: impossibile derivare aree. Usa valore manuale.",
+                  );
+                  return;
+                }
+                setTributaryArea(Math.round(r.stats.area_mean_m2 * 1000) / 1000);
+                toast(
+                  "info",
+                  `Auto-calc: media ${r.stats.area_mean_m2.toFixed(3)} m² ` +
+                  `(range ${r.stats.area_min_m2.toFixed(3)}–${r.stats.area_max_m2.toFixed(3)})`,
+                );
+              }}
+              data-testid="apply-auto-tributary"
+            >
+              🤖 Auto da topologia
+            </Button>
+          </div>
           <input
             type="number"
             min={0.01}
