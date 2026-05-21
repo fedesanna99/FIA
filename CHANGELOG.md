@@ -1,5 +1,96 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.13 — JWT auth base (register/login/me) — 2026-05-21
+
+Primo step verso multi-user reale. Fino ad alpha.12 ogni utente era
+`demo_user` hardcoded. alpha.13 introduce registrazione + login con
+bcrypt + JWT bearer tokens, e l'endpoint protetto `/api/auth/me` come
+modello per la migrazione degli altri endpoint in alpha.15.
+
+### Added
+- **Nuovo modulo `backend/auth/`** (5 file, no breaking changes):
+  - `password.py` — wrapper bcrypt: `hash_password(plain)` →
+    `$2b$12$...` 60-char ASCII; `verify_password(plain, hash)` →
+    bool tollerante (no eccezioni). Cost factor 12 (OWASP 2025).
+    Rifiuta password vuote o >72 byte (limite bcrypt).
+  - `jwt_tokens.py` — wrapper PyJWT: HS256 firma con
+    `FEAPRO_JWT_SECRET`. TTL default 7gg (override
+    `FEAPRO_JWT_TTL_HOURS`). Payload: `sub`, `iat`, `exp` + extra
+    claims. `JWTError` unifica expired/invalid/malformed.
+  - `users_db.py` — SQLite WAL: tabella `users(id, email UNIQUE
+    COLLATE NOCASE, password_hash, created_at, last_login_at)`.
+    Path: `FEAPRO_USERS_DB` o `<DATA_DIR>/users.sqlite`. CRUD:
+    `register`, `get_by_email`, `get_by_id`, `update_last_login`,
+    `count`. DTO `User.to_public_dict()` esclude password_hash.
+  - `dependencies.py` — FastAPI deps:
+    - `get_current_user` strict: estrae Bearer, decode JWT, lookup
+      user → 401 se manca/invalido/expired/user-gone.
+    - `get_current_user_optional` tollerante: torna None su fail
+      (utile per migrazione endpoint legacy "demo_user").
+- **3 endpoint REST** in `api/routes/auth.py`:
+  - `POST /api/auth/register {email, password}` → 201
+    `{token, user}` (password >= 8 char, email validata via
+    `email-validator`). 409 se email gia' esiste.
+  - `POST /api/auth/login {email, password}` → 200 `{token, user}`
+    o 401 (no info-leak: stesso messaggio per email-not-found e
+    wrong-password). Auto-update `last_login_at`.
+  - `GET /api/auth/me` Authorization: Bearer X → `{user}` o 401.
+- **`main.py`** wired: `app.include_router(auth_routes.router,
+  prefix="/api/auth", tags=["auth"])`.
+- **`fly.toml`** — secret JWT settata via `flyctl secrets set
+  FEAPRO_JWT_SECRET=...` (NON in repo per ovvi motivi).
+- **`requirements.txt`** — 3 nuove deps:
+  - `bcrypt==4.2.1` (binary wheel, no system deps)
+  - `pyjwt==2.10.1` (pure Python)
+  - `email-validator==2.3.0` (richiesto da pydantic EmailStr)
+
+### Tests
+- **+48 pytest** in `tests/auth/`:
+  - `test_password.py` (11): hash format, roundtrip, reject wrong,
+    unique salt, empty/too-long input, malformed hash, unicode.
+  - `test_jwt_tokens.py` (10): create/decode roundtrip, extra
+    claims, sub/iat/exp protected from override, empty user_id,
+    invalid signature, malformed, expired, TTL default, invalid TTL.
+  - `test_users_db.py` (15): init creates file, register normalizes
+    email, duplicate raises, case-insensitive UNIQUE, get_by_email,
+    get_by_id, update_last_login, count, public_dict no leak.
+  - `test_routes_auth.py` (12): TestClient E2E flow — register
+    success, short password 422, invalid email 422, duplicate 409,
+    login success, wrong password 401, ghost user 401 (no leak),
+    /me without Bearer 401, invalid token 401, missing prefix 401,
+    valid token returns user, full register→login→me flow.
+- **1392/1394 pytest backend** (1344 + 48). Stessi 2 fail
+  pre-esistenti (calibration drift, USGS integration NON correlati).
+
+### Security notes
+- **bcrypt cost 12**: ~50ms/verify su shared-cpu-1x Fly. Rallenta
+  brute-force ma non e' bloccante per UX (single login).
+- **JWT HS256 stateless**: nessun refresh token (TTL 7gg semplice).
+  Migrazione futura → HS256 short-lived + refresh in alpha.16+ se
+  serve.
+- **No info-leak su login**: 401 generico sia per email-non-esiste
+  che password sbagliata. CWE-203 mitigato.
+- **email COLLATE NOCASE**: `Alice@X.com` e `alice@x.com` rifiutati
+  come duplicati. Standard RFC 5321 (local-part case-sensitive ma
+  in pratica case-insensitive).
+
+### Migration path (alpha.14-.15)
+alpha.13 introduce gli endpoint MA non li attiva sugli altri:
+`/api/jobs`, `/api/usage`, etc. continuano ad accettare
+`user_id="demo_user"` query param. alpha.14 aggiunge UI Login/Register
++ axios interceptor; alpha.15 sostituisce hardcoded `demo_user` con
+`current_user.id` derivato dal JWT.
+
+### Gate
+| | alpha.12 | **alpha.13** |
+|---|---|---|
+| Auth endpoint | 0 | **3** (register/login/me) |
+| Auth providers | demo_user | demo_user (+ JWT opt-in) |
+| pytest backend | 1344 | **1392** (+48) |
+| Coverage `auth/` | 0% | **~95%** (only routes happy-path) |
+
+---
+
 ## v1.4.0-alpha.12 — Cold-start mitigation interno (self-ping) — 2026-05-21
 
 Fly.io `auto_stop_machines = true` ferma la VM dopo ~5 min di idle.

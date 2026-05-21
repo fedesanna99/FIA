@@ -6,6 +6,10 @@ scipy==1.14.1
 python-multipart==0.0.19
 websockets==14.1
 httpx==0.28.1
+# Auth (alpha.13): bcrypt password hash + JWT bearer tokens + email validation
+bcrypt==4.2.1
+pyjwt==2.10.1
+email-validator==2.3.0
 pytest==8.3.4
 pytest-cov==7.1.0
 pytest-benchmark==5.2.3

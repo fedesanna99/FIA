@@ -16,6 +16,7 @@ from api.routes import (
     loads as loads_routes,
     geocoding as geocoding_routes,
     terrain as terrain_routes,
+    auth as auth_routes,
 )
 from api.websocket import router as ws_router
 from storage import seed_examples
@@ -64,6 +65,7 @@ app.include_router(
 app.include_router(loads_routes.router, prefix="/api/loads", tags=["loads"])
 app.include_router(geocoding_routes.router, prefix="/api/geocoding", tags=["geocoding"])
 app.include_router(terrain_routes.router, prefix="/api/terrain", tags=["terrain"])
+app.include_router(auth_routes.router, prefix="/api/auth", tags=["auth"])
 app.include_router(ws_router, tags=["websocket"])
 
 
