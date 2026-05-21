@@ -204,7 +204,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         </select>
         <Tooltip content={`Esegui ${ANALYSIS_LABELS[analysisType as AnalysisType]?.toLowerCase() ?? "analisi"} (F5)`}>
           <Button
-            variant="primary"
+            variant="run"
             size="md"
             disabled={!model || isRunning}
             loading={isRunning}

@@ -7,7 +7,7 @@ import { Slot } from "@radix-ui/react-slot";
 import { Loader2 } from "lucide-react";
 import { cn } from "./cn";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success" | "outline";
+export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger" | "success" | "outline" | "run";
 export type ButtonSize = "xs" | "sm" | "md" | "lg" | "icon";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -34,6 +34,12 @@ const VARIANT: Record<ButtonVariant, string> = {
     "bg-danger text-white hover:bg-danger/90 border border-danger/40",
   success:
     "bg-success text-white hover:bg-success/90 border border-success/40",
+  run:
+    "text-white border border-[#138855] " +
+    "shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_1px_2px_rgba(0,0,0,0.1)] " +
+    "bg-gradient-to-b from-[#1da97a] to-[#189465] " +
+    "hover:from-[#22b885] hover:to-[#1da970] " +
+    "active:from-[#168559] active:to-[#147a52]",
 };
 
 const SIZE: Record<ButtonSize, string> = {
