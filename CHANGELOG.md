@@ -1,5 +1,150 @@
 # Changelog FEA Pro
 
+## v1.5.0 — Brief v1.5 closure (UI/UX refactor + wizards + mobile + palette) — 2026-05-21
+
+Chiuso il `CLAUDE_CODE_BRIEF_v1_5.md` con 7 task atomici. Filosofia
+"togliere & consolidare": pattern wizard riusabile, hub navigation
+contestuale, palette come superpotere a 2 keystroke.
+
+### Task 33 — Focus mode polish (`aa1c538`)
+- **`App.tsx`** handler keyboard riorganizzato in 6 priorità:
+  1. In focus mode: F + Esc escono, blocca tutto tranne Cmd+K
+  2. F (senza modifier) → entra in focus mode + toast hint
+  3. Shift+Space toggle (esistente preservato)
+  4. Esc chiude pannelli (esistente)
+  5. Ctrl+N nuovo modello
+  6. Numeri 1-5 nav workspace
+- Helper `enterFocusMode()` estratto come funzione modulo riusabile.
+- **`paletteItems.ts`**: nuovo `actionKind: "focus-toggle"` + 2 voci
+  group "Vista" (focus-enter F · focus-exit Esc) con Maximize/Minimize.
+- **`CommandPalette.tsx`**: case `"focus-toggle"` cabla l'azione.
+
+### Task 28 — Tools panel hub navigation (`49afe02`)
+Refactor da lista piatta (5 voci affastellate in 2 sezioni) a "hub
+navigation": 4 card grandi colorate (info/success/purple/coral).
+
+- **NEW `shell/panels/tools/ToolsHub.tsx`** — 4 card con icona/label/sub.
+- **NEW `MeasureSnapshotView.tsx`** — misurazioni + snapshot uniti.
+- **NEW `ExportView.tsx`** — 5 rows export (PDF/XLSX/CSV nodi/CSV modi/
+  JSON) con CTA dedicate, riusa utils/export.ts.
+- **NEW `ValidationView.tsx`** — NAFEMS benchmark link + lista test.
+- **NEW `CostPreviewView.tsx`** — spiegazione + mock card.
+- **`ToolsPanel.tsx`** riscritto come container con state `view` +
+  breadcrumb interno "Strumenti › X" con back button.
+
+### Task 32 — NodeDetail in RightPanel (`990c5b5`)
+Click su nodo nel viewport apre il RightPanel "Inspect" in modalità
+contestuale invece del modal NodeDialog (UX moderna).
+
+- **NEW `store/selectionStore.ts`** — single-selection store separato
+  da `modelStore.selectedNodeIds` (multi-set per highlight bulk).
+- **NEW `shell/panels/inspect/NodeDetail.tsx`** — header + 3 colonne
+  XYZ editabili + vincolo + lista carichi + elementi connessi +
+  footer Annulla/Salva con mutation API updateNode.
+- **`InspectPanel.tsx`** — switch in cima: se selectionStore ha
+  selectedNodeId mostra NodeDetail al posto dei tab risultati.
+- **`viewport/NodeRenderer.tsx`** — click semplice dispatcha modelStore
+  (highlight) + selectionStore + apre RightPanel inspect. Shift+click
+  preserva multi-select bulk.
+- **`NodeDialog.tsx`** marcato `@deprecated` (resta per shortcut N +
+  doppio click legacy + voce palette).
+
+### Task 31 — WizardShell + SismicaTHWizard 3-step (`b95f453`)
+Pattern wizard riusabile + sostituzione form denso sismica TH con
+wizard guidato.
+
+- **NEW `dialogs/wizards/WizardShell.tsx`** — modal overlay riusabile
+  con breadcrumb header, step indicator (dot + connector colorato),
+  body scrollabile, footer Indietro/Avanti/Esegui. Props maxWidth,
+  canProceed, isSubmitting. Riusato da Task 29 e wizard futuri.
+- **NEW `dialogs/wizards/SismicaTHWizard.tsx`** — 3 step:
+  1. Direzioni (3 checkbox X/Y/Z, default X+Y)
+  2. Accelerogrammi (catalog/synthetic per asse attivo)
+  3. Parametri (dt + t_end visibili, Rayleigh damping collassato)
+- **`SeismicTHPanel.tsx`** ridotto a card descrittiva + bottone
+  "Configura analisi…". Logica solver preservata dentro il wizard.
+
+### Task 29 — ImportWizard 4-step (`5ade5fe`)
+Wizard guidato che sostituisce il pannello I/O legacy.
+
+- **NEW `dialogs/wizards/ImportWizard.tsx`** — 4 step:
+  1. Fonte (4 card DXF/IFC/JSON/Template-soon)
+  2. File (drop-zone + 3 default DXF editabili)
+  3. Anteprima (SVG wireframe proiezione XY + summary tabellare +
+     warning banner)
+  4. Conferma (success card + 3 azioni)
+- Wiring custom events globali:
+  - `feapro:open-import-wizard` (dispatch da palette/Dashboard)
+  - `feapro:model-imported` (aggiorna activeId in App)
+- **4 voci palette** aggiunte (open-wizard-import + 3 con source
+  pre-set DXF/IFC/JSON).
+- **`Dashboard.tsx`** "Importa file" ora dispatcha l'evento (rimosso
+  file picker hidden aggiunto in alpha.31 hotfix).
+- **`ImportPanel.tsx`** legacy diventa launcher card con bottoni
+  "Apri wizard" e "Solo DXF".
+
+### Task 30 — Mobile bottom tabbar + single-panel focus (`eb9d395`)
+Su mobile (< 768px) i rails laterali scompaiono e l'utente naviga
+via bottom tabbar.
+
+- **NEW `hooks/useIsMobile.ts`** — listener resize, breakpoint 768.
+- **NEW `components/shell/MobileTabbar.tsx`** — 5 voci (Modello/Make/
+  Solve/Risultati/Altro) + chip attiva blu.
+- **NEW `MobilePanel.tsx`** — wrapper full-screen z-30 con header back
+  + body scrollabile.
+- **NEW `MobileMoreMenu.tsx`** — hub "Altro" con 6 voci (Verifiche/
+  Tools/Cerca/Tema/Account/Focus). Drill-in verify/tools via custom event.
+- **`workspaceStore.ts`** — nuovo `MobileTab` type + `currentMobileTab`
+  + `setMobileTab`. Non persistito (state UI temporaneo).
+- **`App.tsx`** — `isMobile` via hook, `showRails = !focus && !mobile`.
+  MobileTabbar sostituisce StatusBar su mobile. MobilePanel monta
+  MakePanel/SolvePanel/InspectPanel/MobileMoreMenu. Cleanup automatico
+  state mobile quando si torna a desktop (resize).
+
+### Task 34 — Palette espansa a ~135 voci (`bf23f84`)
+Espansione catalogo palette da ~42 voci a ~135 voci organizzate in
+8 nuove categorie statiche.
+
+- **`paletteItems.ts`** — 4 nuovi actionKind (`apply-material`,
+  `apply-section`, `toggle-view`, `quick-export`) + 8 const array:
+  - MATERIALS (12): acciai S235/S275/S355/S460, cls C25..C50, legno
+    C24/GL24h, alluminio 6061/7075.
+  - SECTIONS (21): IPE 160/200/240/300/400/500, HEA 200..400, HEB
+    200..400, SHS/RHS/CHS tubolari, RC sezioni cls.
+  - WIZARDS_EXTRA (4): sismica TH/pushover/nonlinear/report.
+  - VIEW_TOGGLES (10): deformata, colormap, diagrammi, principal,
+    grid, vincoli, carichi, labels, iso 3D, wireframe.
+  - CLIMATE_PRESETS (15): vento/neve/sismica × 5 città Italia.
+  - QUICK_EXPORT (6): PDF/XLSX/CSV nodi/CSV modi/JSON/DXF.
+  - HELP_TOPICS (15): LTB, γ_M0, Rayleigh, Newmark, NAFEMS LE*, ecc.
+  - QUICK_RUN (5): statica/modale/dinamica + chain + replay.
+- **`CommandPalette.tsx`** — 4 nuovi case nel switch handler:
+  `apply-material`/`section` (toast con count selezione), `toggle-view`
+  (analysisStore.toggle*), `quick-export` (riusa utils/export +
+  reportPdf, 6 format).
+- `PALETTE_COUNT` calcolato via filter (dinamico per sezione) per
+  gestire le categorie multi-section.
+
+### Quality gates (dopo ogni commit)
+- `tsc --noEmit` → 0 errori
+- `vitest run` → 311/311 passed (38 file)
+- `npm run build` → OK
+- Bundle finale `index-*.js` ~1.19 MB (gzip 353 kB)
+
+### Follow-up tecnico (deferred)
+- Task 34: generazione dinamica voci palette via hook
+  (`useMaterialCommands`, `useNavigationCommands` con `goto-node`
+  per ogni nodo del modello). Pattern proposto nel brief, scope MVP
+  statico per pragmatismo di sessione.
+- Materials/sections apply: mutation API real (oggi solo toast con
+  marker). Richiede materialsApi/sectionsApi backend endpoints.
+- View toggles: aggiungere flag mancanti (showDeformed/showColormap/
+  showIso/wireframe) nello store (oggi toast informativo).
+- Mobile TopBar: ridurre ulteriormente (rimuovere AICopilot/Bell/Undo
+  su mobile) come da brief sezione TopBar.
+
+---
+
 ## v1.4.0-alpha.28 — Sprint 5 CLOSURE: OnboardingTour 9 step (brief complete) — 2026-05-21
 
 **Sprint 5 chiuso.** Codice ora pixel-aligned al
