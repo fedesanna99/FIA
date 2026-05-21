@@ -13,7 +13,8 @@
  *   - APP_VERSION constant (era "v0.1.0" hardcoded)
  *   - Click su credits apre AccountDialog
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { useModelStore } from "../../store/modelStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useResultsStore } from "../../store/resultsStore";
@@ -24,13 +25,43 @@ import { CreditsBadge } from "./statusbar/CreditsBadge";
 import { WSStatus } from "./statusbar/WSStatus";
 import { AccountDialog } from "../dialogs/AccountDialog";
 
+/** Formatta ETA in formato "X s" o "Xm Ys" leggibile. */
+function fmtEta(seconds: number): string {
+  if (!isFinite(seconds) || seconds < 0) return "—";
+  if (seconds < 60) return `${Math.ceil(seconds)} s`;
+  const m = Math.floor(seconds / 60);
+  const s = Math.ceil(seconds - m * 60);
+  return `${m}m ${s}s`;
+}
+
 
 export function StatusBar() {
   const model = useModelStore((s) => s.model);
-  const { isRunning, progress, progressMessage } = useAnalysisStore();
+  const { isRunning, progress, progressMessage, analysisType } = useAnalysisStore();
   const { staticResults, modalResults } = useResultsStore();
   const setDialog = useUIStore((s) => s.setOpenDialog);
   const [accountOpen, setAccountOpen] = useState(false);
+
+  // alpha.30: ETA per il job live. Salva il timestamp di inizio quando
+  // isRunning va true; ricalcola ETA = elapsed * (1 - progress) / progress
+  // (linear extrapolation). Reset a 0 quando isRunning torna false.
+  const [startedAt, setStartedAt] = useState<number | null>(null);
+  const [nowTick, setNowTick] = useState(Date.now());
+  useEffect(() => {
+    if (isRunning && startedAt === null) setStartedAt(Date.now());
+    if (!isRunning && startedAt !== null) setStartedAt(null);
+  }, [isRunning, startedAt]);
+  useEffect(() => {
+    if (!isRunning) return;
+    const t = setInterval(() => setNowTick(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [isRunning]);
+  const etaText = useMemo(() => {
+    if (!isRunning || startedAt === null || progress <= 0.01) return "—";
+    const elapsedS = (nowTick - startedAt) / 1000;
+    const remainingS = elapsedS * (1 - progress) / progress;
+    return fmtEta(remainingS);
+  }, [isRunning, startedAt, nowTick, progress]);
 
   const nNodes = model?.nodes.length ?? 0;
   const nElems = model?.elements.length ?? 0;
@@ -110,18 +141,26 @@ export function StatusBar() {
 
         <div className="flex-1 min-w-0" />
 
-        {/* Progress bar in-line per analisi/solver corrente */}
+        {/* Job live inline pillola (mockup v1.3): icona spin + nome + bar + ETA */}
         {isRunning && (
-          <div className="flex items-center gap-2 min-w-0 sm:min-w-[200px] md:min-w-[280px]" data-testid="statusbar-progress">
-            <span className="text-ink-dim truncate max-w-[120px] sm:max-w-[200px] hidden sm:inline">{progressMessage}</span>
-            <div className="w-16 sm:w-32 h-1.5 bg-border rounded overflow-hidden flex-shrink-0">
+          <div
+            className="flex items-center gap-2 bg-bg-info border border-accent/20 text-ink-info px-2 py-0.5 rounded-md text-[11px] flex-shrink-0"
+            data-testid="statusbar-progress"
+            title={progressMessage}
+          >
+            <Loader2 className="w-3 h-3 animate-spin flex-shrink-0" />
+            <span className="font-medium capitalize hidden sm:inline">{analysisType}</span>
+            <div className="w-16 sm:w-20 h-1 bg-accent/15 rounded-sm overflow-hidden flex-shrink-0">
               <div
                 className="h-full bg-accent transition-all"
                 style={{ width: `${Math.round(progress * 100)}%` }}
                 data-testid="statusbar-progress-bar"
               />
             </div>
-            <span className="numeric text-ink flex-shrink-0">{Math.round(progress * 100)}%</span>
+            <span className="font-mono flex-shrink-0">
+              {Math.round(progress * 100)}%
+              <span className="hidden md:inline"> · {etaText}</span>
+            </span>
           </div>
         )}
 
