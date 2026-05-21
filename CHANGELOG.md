@@ -1,5 +1,75 @@
 # Changelog FEA Pro
 
+## v1.5.1 — Brief v1.5 follow-up (palette dinamica + wizard hub + mobile TopBar) — 2026-05-21
+
+Chiude le deviazioni documentate in `docs/v1.5-postmortem.md` sezione
+"Cosa rimane aperto", tutte allineate al brief originale `CLAUDE_CODE_BRIEF_v1_5.md`.
+
+### Palette dinamica goto-node / goto-element (`94afe41`)
+- **NEW `hooks/useNavigationCommands.ts`** — generazione runtime di voci
+  palette per ogni nodo + elemento del modello attivo (capped 200 per
+  categoria per protezione meshes pesanti).
+- **`paletteItems.ts`**: nuovi actionKind `"goto-node"` + `"goto-element"`.
+- **`CommandPalette.tsx`**: merge dinamico in grouped Map, case handler
+  che fa modelStore.selectNode + selectionStore.selectNode + apre
+  RightRail.inspect in un keystroke. Placeholder input usa live
+  `allItems.length`.
+- 7 vitest nuovi: empty model, cap a 200, item shape, count snapshot.
+- Su modello 50-nodi/50-elem: palette passa da ~135 a ~235 voci.
+- Su `Ctrl+K · "n42"` → "Vai a · Nodo N42" con coordinate in descrizione.
+
+### Task 30 follow-up: TopBar minimal su mobile (`b5567be`)
+Chiude deviazione "TopBar minimal su mobile NON implementata" del
+postmortem. Brief Task 30 esplicito: rimuovere AICopilotButton, Bell,
+UndoRedo, CollabAvatars su mobile + search-icon → fullscreen palette.
+
+- **`TopBar.tsx`**: `<AICopilotButton>` wrapped in `<div hidden md:flex>`.
+  Bell button: class `hidden md:flex` aggiunta al button condizionale.
+  Undo/Redo + Save chip già nascosti pre-modifica via `hidden md:flex`.
+- **`MobileMoreMenu.tsx`**: aggiunta voce "AI Copilot" (Sparkles icon) con
+  onClick = toast "soon" — accesso simmetrico al desktop dato che la
+  TopBar mobile non lo mostra piu'.
+- GlobalSearch già si auto-adatta (icon-only su mobile, full bar su desktop).
+
+### Task 34 follow-up: open-wizard hub via wizardStore (`0c1688d`)
+Chiude la voce "Commit 3" del brief Task 34 (wizard openers via store
+unico) che il postmortem documentava come deferred.
+
+- **NEW `store/wizardStore.ts`** — Zustand thin shim con `WizardKind`
+  union (7 valori: new-model, mesh, import, sismica-th, pushover,
+  nonlinear, report) + active/payload state + open/close. Trigger
+  globale, no mount diretto.
+- **`paletteItems.ts`**: nuovo actionKind `"open-wizard"` + 6 voci
+  WIZARDS_EXTRA (new-model, mesh, sismica-th funzionale, pushover/
+  nonlinear/report marcate "soon").
+- **`CommandPalette.tsx`**: dispatcher `case "open-wizard"` legge
+  `payload.wizard` e chiama `useWizardStore.open(kind, ...rest)`.
+- **`App.tsx`**: nuovo `useEffect` con `useWizardStore.subscribe` instrada
+  per kind:
+  - `new-model` / `mesh` → `uiStore.setOpenDialog(...)`
+  - `import` → `feapro:open-import-wizard` event con payload.source
+  - `sismica-th` → wizard renderato al root (singleton)
+  - `pushover` / `nonlinear` / `report` → toast info "in arrivo"
+- **`SeismicTHPanel.tsx`**: rimosso useState locale e mount del wizard.
+  Bottone "Configura analisi" chiama `wizardStore.open("sismica-th")`.
+  Stesso codice path della voce palette ("Apri wizard sismica
+  time-history") che ora e' funzionale (non piu' "soon").
+- 6 vitest nuovi sul wizardStore (open/close/payload/subscribe).
+
+### Quality gates v1.5.1
+- tsc --noEmit exit 0 dopo ogni commit
+- vitest: 324/324 passed (311 baseline + 13 nuovi: 7 navigation + 6 wizard)
+- npm run build OK su tutti i commit (~1.19 MB / gzip ~353 kB invariato)
+- Sync: ogni commit pushato su `origin/test` + `origin/main`
+
+### Sintesi commit v1.5.1
+| Commit | Sostanza |
+|---|---|
+| `94afe41` | feat(palette): dynamic goto-node/element |
+| `b5567be` | feat(mobile): TopBar minimal AI/Bell hidden + MobileMoreMenu AI |
+| `0c1688d` | feat(palette): wizardStore hub + open-wizard actionKind |
+
+
 ## v1.5.0 — Brief v1.5 closure (UI/UX refactor + wizards + mobile + palette) — 2026-05-21
 
 Chiuso il `CLAUDE_CODE_BRIEF_v1_5.md` con 7 task atomici. Filosofia
