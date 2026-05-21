@@ -26,12 +26,15 @@ import {
   LogOut,
   Eye,
   Check,
+  Undo2,
+  Redo2,
 } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { modelsApi } from "../../api/client";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
 import { useModelStore } from "../../store/modelStore";
+import { useModelHistory } from "../../store/historyStore";
 import { NewModelDialog } from "../dialogs/NewModelDialog";
 import { EditModelDialog } from "../dialogs/EditModelDialog";
 import { AccountDialog } from "../dialogs/AccountDialog";
@@ -72,6 +75,12 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   const run = useRunAnalysis();
   const model = useModelStore((s) => s.model);
   const lastSavedAt = useModelStore((s) => s.lastSavedAt);
+  // alpha.30: undo/redo reattivi via historyStore. Il wiring del push
+  // automatico al modelStore verra' aggiunto in un task successivo: per
+  // ora i bottoni restano disabled finche' canUndo/canRedo non diventano
+  // veri (l'API e' pronta lato store).
+  const canUndo = useModelHistory((s) => s.past.length > 0);
+  const canRedo = useModelHistory((s) => s.future.length > 0);
   const [newOpen, setNewOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
@@ -231,6 +240,38 @@ export function TopBar({ models, activeId, onSelect }: Props) {
 
       {/* Search-bar globale (apre command palette) */}
       <GlobalSearch />
+
+      {/* Undo / Redo — collegati a useModelHistory (singleton) */}
+      <div className="hidden md:flex items-center gap-1 border-l border-border pl-2 ml-1 flex-shrink-0">
+        <Tooltip content="Annulla · Ctrl+Z">
+          <button
+            type="button"
+            onClick={() => {
+              const prev = useModelHistory.getState().undo();
+              if (prev) useModelStore.getState().setModel(prev as FEAModel);
+            }}
+            disabled={!canUndo}
+            className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Annulla"
+          >
+            <Undo2 className="w-4 h-4" />
+          </button>
+        </Tooltip>
+        <Tooltip content="Ripeti · Ctrl+Shift+Z">
+          <button
+            type="button"
+            onClick={() => {
+              const next = useModelHistory.getState().redo();
+              if (next) useModelStore.getState().setModel(next as FEAModel);
+            }}
+            disabled={!canRedo}
+            className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
+            aria-label="Ripeti"
+          >
+            <Redo2 className="w-4 h-4" />
+          </button>
+        </Tooltip>
+      </div>
 
       {/* AI Copilot button (placeholder Sprint 5) */}
       <AICopilotButton />
