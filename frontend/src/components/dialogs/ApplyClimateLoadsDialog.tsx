@@ -37,9 +37,11 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
 
   const [includeWind, setIncludeWind] = useState(DEFAULT_APPLY_OPTIONS.includeWind);
   const [includeSnow, setIncludeSnow] = useState(DEFAULT_APPLY_OPTIONS.includeSnow);
+  const [includeSeismic, setIncludeSeismic] = useState(DEFAULT_APPLY_OPTIONS.includeSeismic);
   const [windDirection, setWindDirection] = useState<WindDirection>(
     DEFAULT_APPLY_OPTIONS.windDirection,
   );
+  const [windEnvelope, setWindEnvelope] = useState(DEFAULT_APPLY_OPTIONS.windEnvelope);
   const [tributaryMode, setTributaryMode] = useState<TributaryMode>(
     DEFAULT_APPLY_OPTIONS.tributaryMode,
   );
@@ -57,12 +59,14 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
   const preview = useMemo(() => {
     if (!bundle || !model) return null;
     return applyClimateLoadsToModel(model, bundle, {
-      includeWind, includeSnow, windDirection,
+      includeWind, includeSnow, includeSeismic,
+      windDirection, windEnvelope,
       tributaryMode, tributaryArea, facadeWidthM,
       skipConstrained,
     });
   }, [
-    bundle, model, includeWind, includeSnow, windDirection,
+    bundle, model, includeWind, includeSnow, includeSeismic,
+    windDirection, windEnvelope,
     tributaryMode, tributaryArea, facadeWidthM, skipConstrained,
   ]);
 
@@ -140,19 +144,32 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
             <span className="font-semibold">🌬️ Vento (q_p)</span>
           </label>
           {includeWind && (
-            <div className="pl-6 flex items-center gap-2 text-xs">
-              <span className="text-ink-dim">Direzione:</span>
-              <select
-                className="bg-bg-elevated border border-border rounded px-2 py-1"
-                value={windDirection}
-                onChange={(e) => setWindDirection(e.target.value as WindDirection)}
-                data-testid="apply-wind-direction"
-              >
-                <option value="+X">+X (est →)</option>
-                <option value="-X">-X (ovest ←)</option>
-                <option value="+Y">+Y (nord ↑)</option>
-                <option value="-Y">-Y (sud ↓)</option>
-              </select>
+            <div className="pl-6 space-y-1 text-xs">
+              <div className="flex items-center gap-2">
+                <span className="text-ink-dim">Direzione:</span>
+                <select
+                  className="bg-bg-elevated border border-border rounded px-2 py-1"
+                  value={windDirection}
+                  onChange={(e) => setWindDirection(e.target.value as WindDirection)}
+                  disabled={windEnvelope}
+                  data-testid="apply-wind-direction"
+                >
+                  <option value="+X">+X (est →)</option>
+                  <option value="-X">-X (ovest ←)</option>
+                  <option value="+Y">+Y (nord ↑)</option>
+                  <option value="-Y">-Y (sud ↓)</option>
+                </select>
+              </div>
+              <label className="flex items-center gap-1.5 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={windEnvelope}
+                  onChange={(e) => setWindEnvelope(e.target.checked)}
+                  data-testid="apply-wind-envelope"
+                />
+                <span>Inviluppo bidirezionale (±{windDirection.replace(/[+-]/, "")})</span>
+                <span className="text-ink-dim">— 2 loads/nodo NTC §3.3.3</span>
+              </label>
             </div>
           )}
         </div>
@@ -169,6 +186,27 @@ export function ApplyClimateLoadsDialog({ open, onClose }: Props) {
             <span className="font-semibold">❄️ Neve (s_design, verso -Z)</span>
           </label>
         </div>
+
+        {/* Seismic (model-level ground_accel) */}
+        {bundle.seismic && (
+          <div>
+            <label className="flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={includeSeismic}
+                onChange={(e) => setIncludeSeismic(e.target.checked)}
+                data-testid="apply-include-seismic"
+              />
+              <span className="font-semibold">🌋 Sismica (ground_accel +X)</span>
+            </label>
+            {includeSeismic && (
+              <div className="pl-6 text-[10px] text-ink-dim mt-0.5">
+                a_g = a_g/g · g = {(bundle.seismic.site_params.a_g_over_g * 9.81).toFixed(3)} m/s²
+                (1 load model-level, NTC §7.3.3)
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Tributary mode selector */}
         <div className="space-y-2">

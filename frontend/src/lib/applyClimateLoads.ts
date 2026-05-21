@@ -26,7 +26,15 @@ export type TributaryMode = "uniform" | "per-node";
 export interface ApplyClimateOptions {
   includeWind: boolean;
   includeSnow: boolean;
+  /** Se true e bundle.seismic != null: aggiunge 1 Load model-level
+   * type="ground_accel" con magnitudo a_g [m/s²] (a_g/g × 9.81)
+   * in direzione X. Utile per solver dinamico/sismico equivalente. */
+  includeSeismic: boolean;
   windDirection: WindDirection;
+  /** Se true: applica wind in entrambe le direzioni opposte (es. +X e -X)
+   * generando 2 Load per nodo, ciascuno labellato come Envelope. Utile
+   * per inviluppo NTC §3.3.3 (4 casi vento). */
+  windEnvelope: boolean;
   /** Modalita' calcolo area di influenza. "uniform" usa `tributaryArea`
    * costante per ogni nodo; "per-node" deriva da topologia (chiama
    * computeTributaryAreas) e applica magnitudo specifica per nodo. */
@@ -43,12 +51,18 @@ export interface ApplyClimateOptions {
 export const DEFAULT_APPLY_OPTIONS: ApplyClimateOptions = {
   includeWind: true,
   includeSnow: true,
+  includeSeismic: false,
   windDirection: "+X",
+  windEnvelope: false,
   tributaryMode: "uniform",
   tributaryArea: 1.0,
   facadeWidthM: 1.0,
   skipConstrained: true,
 };
+
+
+/** Costante gravita' per conversione a_g/g → m/s². */
+export const G_M_S2 = 9.81;
 
 
 export interface ApplyClimateResult {
@@ -67,6 +81,8 @@ export interface ApplyClimateResult {
   /** Solo in "per-node": magnitudo snow min/max. */
   snow_force_min_kN?: number;
   snow_force_max_kN?: number;
+  /** Accelerazione sismica applicata in m/s² (solo se includeSeismic). */
+  seismic_a_g_m_s2?: number;
 }
 
 
@@ -143,13 +159,32 @@ export function applyClimateLoadsToModel(
     }
 
     if (opts.includeWind && nodeWindForce > 0) {
-      const force = windSign * nodeWindForce;
-      loads.push({
-        type: "nodal",
-        target_id: node.id,
-        ...(windAxis === "X" ? { fx: force } : { fy: force }),
-        label: `Wind EN1991-1-4 [${locLabel}, ${opts.windDirection}]`,
-      });
+      const labelBase = opts.windEnvelope
+        ? `Wind EN1991-1-4 [${locLabel}, Envelope]`
+        : `Wind EN1991-1-4 [${locLabel}, ${opts.windDirection}]`;
+      if (opts.windEnvelope) {
+        // Genera 2 loads: +axis e -axis (inviluppo NTC §3.3.3 cases)
+        loads.push({
+          type: "nodal",
+          target_id: node.id,
+          ...(windAxis === "X" ? { fx: +nodeWindForce } : { fy: +nodeWindForce }),
+          label: `${labelBase} +${windAxis}`,
+        });
+        loads.push({
+          type: "nodal",
+          target_id: node.id,
+          ...(windAxis === "X" ? { fx: -nodeWindForce } : { fy: -nodeWindForce }),
+          label: `${labelBase} -${windAxis}`,
+        });
+      } else {
+        const force = windSign * nodeWindForce;
+        loads.push({
+          type: "nodal",
+          target_id: node.id,
+          ...(windAxis === "X" ? { fx: force } : { fy: force }),
+          label: labelBase,
+        });
+      }
       windForces.push(nodeWindForce);
     }
 
@@ -184,6 +219,23 @@ export function applyClimateLoadsToModel(
     if (snowForces.length > 0) {
       result.snow_force_min_kN = Math.min(...snowForces);
       result.snow_force_max_kN = Math.max(...snowForces);
+    }
+  }
+
+  // Sismica: 1 Load model-level type=ground_accel con direzione X
+  // (NTC §7.3.3: accelerazione del terreno per analisi sismica dinamica
+  // o statica equivalente, scalata dal solver con S_e dello spettro).
+  if (opts.includeSeismic && bundle.seismic) {
+    const a_g_m_s2 = bundle.seismic.site_params.a_g_over_g * G_M_S2;
+    if (a_g_m_s2 > 0) {
+      loads.push({
+        type: "ground_accel",
+        target_id: 0, // model-level (no nodo specifico)
+        direction: [1, 0, 0],
+        pressure: a_g_m_s2, // m/s² magnitudine (campo "pressure" riusato come scalar)
+        label: `Seismic NTC2018 [${locLabel}, soil ${bundle.seismic.site_params.soil_category}, +X]`,
+      });
+      result.seismic_a_g_m_s2 = a_g_m_s2;
     }
   }
 

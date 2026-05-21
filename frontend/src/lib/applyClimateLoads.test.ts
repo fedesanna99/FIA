@@ -385,4 +385,137 @@ describe("applyClimateLoadsToModel", () => {
     expect(r.snow_force_min_kN).toBeUndefined();
     expect(r.snow_force_max_kN).toBeUndefined();
   });
+
+  // ============================================================
+  // Wind envelope ±X (v1.4.0-alpha.7)
+  // ============================================================
+
+  it("wind envelope genera 2 loads per nodo (+axis e -axis)", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      windEnvelope: true,
+      includeSnow: false,
+    });
+    // 3 nodi caricabili (estremi vincolati su 5 totali)
+    // Per ogni nodo: 2 wind loads (+X e -X) = 6 totale
+    expect(r.loads).toHaveLength(6);
+    const node2Loads = r.loads.filter((l) => l.target_id === 2);
+    expect(node2Loads).toHaveLength(2);
+    // Una positiva, una negativa
+    const positives = node2Loads.filter((l) => (l.fx ?? 0) > 0);
+    const negatives = node2Loads.filter((l) => (l.fx ?? 0) < 0);
+    expect(positives).toHaveLength(1);
+    expect(negatives).toHaveLength(1);
+    expect(Math.abs((positives[0].fx ?? 0) + (negatives[0].fx ?? 0))).toBeCloseTo(0);
+    // Label contiene Envelope
+    expect(positives[0].label).toContain("Envelope");
+    expect(positives[0].label).toContain("+X");
+    expect(negatives[0].label).toContain("-X");
+  });
+
+  it("wind envelope con +Y inverte su asse Y", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      windEnvelope: true,
+      windDirection: "+Y",
+      includeSnow: false,
+    });
+    const node2Loads = r.loads.filter((l) => l.target_id === 2);
+    expect(node2Loads).toHaveLength(2);
+    node2Loads.forEach((l) => {
+      expect(l.fx).toBeUndefined();
+      expect(l.fy).toBeDefined();
+    });
+  });
+
+  it("wind envelope=false (default) genera 1 load per nodo", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      windEnvelope: false,
+      includeSnow: false,
+    });
+    expect(r.loads).toHaveLength(3); // 3 nodi × 1 wind
+  });
+
+  // ============================================================
+  // Seismic apply (v1.4.0-alpha.7)
+  // ============================================================
+
+  const sampleBundleWithSeismic = {
+    ...sampleBundle,
+    seismic: {
+      location: { lat: 39.23, lon: 9.12, elevation_m: 36, elevation_source: null },
+      historical_max_magnitude: 5.0,
+      search_radius_km: 100, search_years_back: 100,
+      site_params: {
+        a_g_over_g: 0.045, F_0: 2.5, T_c_star_s: 0.35,
+        soil_category: "B" as const, S: 1.2, C_C: 1.1,
+        T_B_s: 0.128, T_C_s: 0.385, T_D_s: 1.78, eta: 1.0, damping_ratio: 0.05,
+      },
+      spectrum: [], notes: [], gmpe_used: "simplified_italy_2018",
+    },
+  };
+
+  it("includeSeismic genera 1 Load type=ground_accel model-level", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundleWithSeismic, {
+      includeWind: false, includeSnow: false, includeSeismic: true,
+    });
+    expect(r.loads).toHaveLength(1);
+    const seismic = r.loads[0];
+    expect(seismic.type).toBe("ground_accel");
+    expect(seismic.target_id).toBe(0);
+    expect(seismic.direction).toEqual([1, 0, 0]);
+    // a_g_over_g = 0.045 × 9.81 = 0.44145 m/s²
+    expect(seismic.pressure).toBeCloseTo(0.045 * 9.81, 4);
+    expect(seismic.label).toContain("Seismic");
+    expect(seismic.label).toContain("soil B");
+    expect(r.seismic_a_g_m_s2).toBeCloseTo(0.4415, 4);
+  });
+
+  it("includeSeismic=true ma seismic=null nel bundle: no load aggiunto", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundle, {
+      includeWind: false, includeSnow: false, includeSeismic: true,
+    });
+    expect(r.loads).toEqual([]);
+    expect(r.seismic_a_g_m_s2).toBeUndefined();
+  });
+
+  it("includeSeismic con a_g_over_g=0 non aggiunge load", () => {
+    const bundle0 = {
+      ...sampleBundleWithSeismic,
+      seismic: {
+        ...sampleBundleWithSeismic.seismic!,
+        site_params: { ...sampleBundleWithSeismic.seismic!.site_params, a_g_over_g: 0 },
+      },
+    };
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, bundle0, {
+      includeWind: false, includeSnow: false, includeSeismic: true,
+    });
+    expect(r.loads).toEqual([]);
+  });
+
+  it("combo: wind + snow + seismic genera tutti", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundleWithSeismic, {
+      includeWind: true, includeSnow: true, includeSeismic: true,
+    });
+    // 3 nodi × 2 (wind+snow) + 1 seismic = 7
+    expect(r.loads).toHaveLength(7);
+    const seismicLoads = r.loads.filter((l) => l.type === "ground_accel");
+    expect(seismicLoads).toHaveLength(1);
+    const nodalLoads = r.loads.filter((l) => l.type === "nodal");
+    expect(nodalLoads).toHaveLength(6);
+  });
+
+  it("envelope + seismic: 6 wind + 3 snow + 1 seismic = 10", () => {
+    const m: FEAModel = makeModel();
+    const r = applyClimateLoadsToModel(m, sampleBundleWithSeismic, {
+      windEnvelope: true, includeSeismic: true,
+    });
+    // 3 nodi × (2 wind + 1 snow) + 1 seismic = 10
+    expect(r.loads).toHaveLength(10);
+  });
 });

@@ -112,7 +112,10 @@ describe("LocationPickerDialog", () => {
     });
     await waitFor(() => screen.getByTestId("location-results"));
     expect(screen.getByTestId("location-result-0")).toBeInTheDocument();
-    expect(screen.getByText(/Cagliari/i)).toBeInTheDocument();
+    // Risultato live (mock) ha source open_meteo_geocoding (NON un preset)
+    const result0 = screen.getByTestId("location-result-0");
+    expect(result0).toHaveTextContent("Cagliari");
+    expect(result0).toHaveTextContent("open_meteo_geocoding");
   });
 
   it("on result click loads detail with elevation + loads", async () => {

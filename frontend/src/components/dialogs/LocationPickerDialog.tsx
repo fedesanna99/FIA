@@ -19,6 +19,7 @@ import { Button } from "../ui/Button";
 import { Badge } from "../ui/Badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui/Tabs";
 import { toast } from "../../store/toastStore";
+import { useClimateStore } from "../../store/climateStore";
 import {
   geocodingSearch,
   type Location,
@@ -31,6 +32,7 @@ import {
   type SeismicLoadsResult,
   type SoilCategory,
 } from "../../api/loads";
+import { LOCATION_PRESETS } from "../../lib/locationPresets";
 
 
 export interface LocationLoadsBundle {
@@ -128,6 +130,30 @@ export function LocationPickerDialog({ open, onClose, onApply, initialQuery = ""
     setSelected(null);
   };
 
+  /**
+   * Preset rapido: salva direttamente il bundle nel climateStore + chiude
+   * il dialog. NO API call — i valori sono indicativi (vedi locationPresets.ts).
+   */
+  const setBundleDirect = useClimateStore((s) => s.setBundle);
+  const applyPreset = (key: string) => {
+    const p = LOCATION_PRESETS.find((x) => x.key === key);
+    if (!p) return;
+    setBundleDirect(p.bundle);
+    if (onApply) {
+      onApply({
+        location: p.bundle.location,
+        elevation_m: p.bundle.elevation_m,
+        meteo: p.bundle.meteo,
+        seismic: p.bundle.seismic,
+      });
+    }
+    toast(
+      "success",
+      `${p.emoji} Preset ${p.label} caricato (valori indicativi)`,
+    );
+    onClose();
+  };
+
   return (
     <Dialog
       open={open}
@@ -136,6 +162,29 @@ export function LocationPickerDialog({ open, onClose, onApply, initialQuery = ""
       width={640}
     >
       <div className="px-2 py-2" data-testid="location-picker-dialog">
+        {/* Step 0: Demo presets (solo se nessuna location selezionata) */}
+        {!selected && (
+          <div className="mb-3" data-testid="location-presets">
+            <div className="text-[10px] text-ink-dim mb-1 px-1">
+              ⚡ Preset rapidi (valori indicativi · no API call):
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {LOCATION_PRESETS.map((p) => (
+                <button
+                  key={p.key}
+                  onClick={() => applyPreset(p.key)}
+                  title={p.description}
+                  className="px-2.5 py-1 rounded bg-bg-elevated border border-border hover:bg-bg-hover hover:border-accent/40 text-[11px] flex items-center gap-1 transition-colors"
+                  data-testid={`location-preset-${p.key}`}
+                >
+                  <span>{p.emoji}</span>
+                  <span>{p.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Step 1: Search */}
         <form onSubmit={onSearchSubmit} className="flex items-center gap-2 mb-3">
           <input
