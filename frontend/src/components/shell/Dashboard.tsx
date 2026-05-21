@@ -98,20 +98,21 @@ export function Dashboard({ models, onSelect }: Props) {
 function QuotaCard({ used, total, tier }: { used: number; total: number; tier: string }) {
   const pct = total > 0 ? (used / total) * 100 : 0;
   const tone = pct >= 100 ? "danger" : pct >= 80 ? "warn" : "ok";
-  const barColor = tone === "danger" ? "bg-danger" : tone === "warn" ? "bg-warn" : "bg-success";
+  const barColor = tone === "danger" ? "bg-danger" : tone === "warn" ? "bg-warn" : "bg-accent";
 
+  // alpha.31 Task 24: rimossa la percentuale numerica in header — era
+  // ridondante con la barra di progress visibile in basso. Card piu'
+  // asciutta: label + numero + barra (3 livelli invece di 4).
   return (
     <div className="bg-bg-panel border border-border rounded-lg p-3.5 min-w-[200px] shadow-pop">
-      <div className="flex items-center justify-between mb-1.5">
-        <div className="text-[11px] uppercase tracking-wider text-ink-dim font-semibold">
-          Crediti {tier}
-        </div>
-        <div className="text-[11px] font-mono text-ink-muted">{pct.toFixed(0)}%</div>
+      <div className="text-[10px] uppercase tracking-wider text-ink-dim font-semibold mb-2">
+        Crediti {tier}
       </div>
-      <div className="text-lg font-semibold font-mono text-ink">
-        {used.toFixed(0)} <span className="text-ink-dim text-sm">/ {total.toFixed(0)}</span>
+      <div className="text-2xl font-bold font-mono text-ink">
+        {used.toFixed(0)}
+        <span className="text-ink-muted text-base font-normal"> / {total.toFixed(0)}</span>
       </div>
-      <div className="mt-2 w-full h-1.5 bg-border rounded-sm overflow-hidden">
+      <div className="mt-2 h-1 bg-bg rounded-full overflow-hidden">
         <div
           className={`h-full ${barColor} transition-all`}
           style={{ width: `${Math.min(pct, 100)}%` }}
