@@ -106,9 +106,11 @@ describe("VerificationPanel", () => {
       expect(verifyApi.ec3).toHaveBeenCalledWith("test_model", {
         gamma_M0: 1.05, gamma_M1: 1.05,
       });
-      // UR formattati a 3 decimali (univoci)
-      expect(screen.getByText("0.278")).toBeInTheDocument();
-      expect(screen.getByText("1.389")).toBeInTheDocument();
+      // UCBadge mostra UR a 2 decimali (alpha.30). I valori UR_max degli
+      // elementi appaiono nella lista; il SummaryRow LTB max aggrega lo
+      // stesso valore — quindi possono esserci match multipli per "UC 1.39".
+      expect(screen.getAllByText(/UC\s*0\.28/).length).toBeGreaterThan(0);
+      expect(screen.getAllByText(/UC\s*1\.39/).length).toBeGreaterThan(0);
     });
     // Conteggi: 2 elementi, 1 failure
     expect(screen.getByText(/Elementi verificati:/i)).toBeInTheDocument();
@@ -138,11 +140,11 @@ describe("VerificationPanel", () => {
     const user = userEvent.setup();
     renderWithQuery();
     await user.click(screen.getByRole("button", { name: /Esegui verifica/i }));
-    // attendi la riga della tabella
+    // attendi la riga della lista (heb_300 · resistance)
     await waitFor(() => expect(screen.getByText(/resistance/i)).toBeInTheDocument());
 
-    // Click sulla cella ID (univoca) per aprire il modale
-    await user.click(screen.getByText("42"));
+    // Click sull'ID prefissato (#42) per aprire il modale dettagli
+    await user.click(screen.getByText("#42"));
     // Il modale dettagli mostra il titolo composto
     expect(screen.getByText(/Elemento 42/i)).toBeInTheDocument();
     // Chiudi modale

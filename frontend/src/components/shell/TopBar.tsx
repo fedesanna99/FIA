@@ -19,7 +19,6 @@ import {
   Pencil,
   Play,
   ChevronDown,
-  Loader2,
   Eye,
   Check,
   Undo2,
@@ -237,7 +236,6 @@ export function TopBar({ models, activeId, onSelect }: Props) {
             <span className="hidden sm:inline">{isRunning ? "Esecuzione…" : "Esegui"}</span>
           </Button>
         </Tooltip>
-        {isRunning && <Loader2 className="h-4 w-4 animate-spin text-accent hidden sm:inline" aria-hidden />}
       </div>
 
       <div className="flex-1 min-w-0" />
