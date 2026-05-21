@@ -111,10 +111,10 @@ export function Viewport3D() {
           makeDefault
           enableDamping dampingFactor={0.1}
         />
-        <GizmoHelper alignment="bottom-right" margin={[80, 80]}>
+        <GizmoHelper alignment="top-right" margin={[80, 100]}>
           <GizmoViewport
-            axisColors={["#ff4444", "#00ff88", "#00d4ff"]}
-            labelColor="#e8eaed"
+            axisColors={["#e24b4a", "#3b8c2a", "#378add"]}
+            labelColor={theme === "light" ? "#1a1a1a" : "#e8eaed"}
           />
         </GizmoHelper>
       </Canvas>
