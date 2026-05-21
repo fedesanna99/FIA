@@ -98,6 +98,20 @@ export default function App() {
   // da Modelli recenti (Dashboard) o dal model picker in topbar. Cosi'
   // selezionando "— scegli modello —" si torna alla Dashboard.
 
+  // alpha.31 Task 21: quando si entra nella dashboard (no modello attivo),
+  // chiudi automaticamente tutti i pannelli laterali rimasti aperti dal
+  // modello precedente. La dashboard appare cosi' pulita.
+  useEffect(() => {
+    if (!activeId) {
+      useLeftRailStore.getState().close();
+      useWorkspaceStore.getState().closeLeftPanel();
+      useWorkspaceStore.getState().closeRightPanel();
+      void import("./store/rightRailStore").then((m) =>
+        m.useRightRailStore.getState().close(),
+      );
+    }
+  }, [activeId]);
+
   return (
     <div className="flex flex-col h-screen w-screen bg-bg text-ink overflow-hidden font-sans">
       <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
