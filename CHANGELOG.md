@@ -1,5 +1,85 @@
 # Changelog FEA Pro
 
+## v1.4.0-alpha.20 — Sprint 4 / Asse G5: 6-rail layout (Make/Solve/Verify + Inspect/View/Tools) — 2026-05-21
+
+LeftRail riallineato al mockup v1.3: i 3 workflow strutturali
+(**Make / Solve / Verify**) sono ora le voci principali, mentre Results
+e I/O scendono in basso come voci "legacy deep-link". Il RightRail
+(alpha.17) gia' offre l'accesso primario a Results (via Inspect),
+View, Tools, History.
+
+Strategia non-breaking: il `workspaceStore` mantiene le 5 keys
+(model/analysis/verify/results/io) per backward compat con localStorage
+esistenti e bookmark. Solo i **label** cambiano.
+
+### Added / Changed
+- **`LeftRail.tsx`** refactor:
+  - **3 voci principali** workflow-oriented (mockup v1.3):
+    - 1 · **Make**   (workspace `model`) — icona `Hammer`
+    - 2 · **Solve**  (workspace `analysis`) — icona `Cpu`
+    - 3 · **Verify** (workspace `verify`) — icona `ShieldCheck`
+  - **2 voci secondarie** legacy in fondo, tono `ink-faint`:
+    - 4 · Risultati (legacy) — deprecato in favore di Inspect (RightRail)
+    - 5 · I/O (legacy) — deprecato in favore di Tools + Export menu
+  - Estratto `<RailButton>` come componente interno per dedup
+  - Divider tra main e secondary section
+- **`Breadcrumb.tsx`** — `WORKSPACE_LABELS` aggiornato:
+  - `model` → "Make" (era "Modello")
+  - `analysis` → "Solve" (era "Analisi")
+  - `verify` → "Verify" (era "Verifiche")
+  - Results/IO restano in italiano (sono ora voci secondarie)
+- **`OnboardingTour.tsx`** — STORAGE_KEY bumped da v2 → **v3** per
+  re-mostrare tour a tutti. Welcome step riscritto:
+  - Sezione sinistra "A sinistra · costruisci" (Make/Solve/Verify)
+  - Sezione destra "A destra · esplora" (Inspect/View/Tools)
+  - Shortcut hint aggiornato da "1-5" → "1-3" + Ctrl+K
+- **`lib/version.ts`** — APP_TAG bumped da `alpha.19` → `alpha.20`.
+
+### Tests
+- **+9 vitest** in `LeftRail.test.tsx` (243 totale):
+  - Renders 3 main buttons + 2 secondary legacy
+  - Click Solve switches to analysis
+  - Click Verify switches to verify
+  - Click Make switches to model
+  - aria-current="page" su button attivo
+  - Secondary items have `text-ink-faint` (deprecated visual cue)
+  - Palette button renders
+  - Palette button toggles paletteOpen
+  - Help button opens documentation
+- **TopBarParts.test.tsx** aggiornato (1 test): label "Solve"
+  invece di "Analisi" nel Breadcrumb
+- **243/243 vitest totale**. Build TypeScript + Vite OK (10.03s).
+
+### Backward compat
+- `workspaceStore` keys NON cambiate: codice esistente che fa
+  `setWorkspace("model")` continua a funzionare.
+- localStorage `feapro-workspace` carica correttamente (stessi keys).
+- Shortcut keyboard `1-5` da `App.tsx` continuano a switchare workspace
+  (map invariata). L'utente puo' ancora premere `3` per Risultati o
+  `5` per I/O (legacy bookmarks).
+- WorkspacePanel renderizza ancora i 5 workspaces (no rimozione
+  componenti: solo riposizionamento visivo nel rail).
+
+### UX impact
+- **Workflow chiaro**: Make → Solve → Verify e' un mental model
+  riconoscibile per ingegneri strutturisti (parallelo CAD: modela,
+  calcola, verifica).
+- **Discoverable RightRail**: l'utente che cerca i risultati ora
+  trova primary path nel rail destro (Inspect) anziche' nel sinistro.
+- **Legacy gentle deprecation**: chi era abituato a "Risultati" nel
+  rail sinistro lo vede ancora (in fondo, in `ink-faint`) ma con
+  un tooltip che suggerisce il nuovo path.
+
+### Gate
+| | alpha.19 | **alpha.20** |
+|---|---|---|
+| Workspace label rail sinistro | Modello/Analisi/Risultati/Verifiche/I/O | **Make/Solve/Verify** (main) + 2 legacy |
+| Workflow nominazione | generica | **mockup v1.3** (workflow-oriented) |
+| Onboarding tour | v2 (Climate Loads) | **v3** (6-rail layout) |
+| vitest frontend | 234 | **243** (+9) |
+
+---
+
 ## v1.4.0-alpha.19 — Sprint 4 / Asse G4: StatusBar arricchita — 2026-05-21
 
 StatusBar a destra ora include **WS dot live**, **credits badge** dal

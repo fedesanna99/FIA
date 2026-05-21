@@ -14,11 +14,12 @@ import { useModelStore } from "../../../store/modelStore";
 import { useWorkspaceStore, type Workspace } from "../../../store/workspaceStore";
 
 
+// Allineato al LeftRail v3 (alpha.20): label corti workflow-oriented
 const WORKSPACE_LABELS: Record<Workspace, string> = {
-  model:    "Modello",
-  analysis: "Analisi",
+  model:    "Make",
+  analysis: "Solve",
+  verify:   "Verify",
   results:  "Risultati",
-  verify:   "Verifiche",
   io:       "I/O & Collab",
   docs:     "Docs",
 };

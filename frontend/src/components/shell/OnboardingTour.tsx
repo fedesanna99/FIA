@@ -15,14 +15,15 @@ import { useState, useEffect } from "react";
 import {
   Boxes, Cpu, BarChart3, ShieldCheck, ArrowRightLeft,
   ChevronLeft, ChevronRight, X, Sparkles, Command, MapPin,
+  Hammer, Eye, Layers, Wrench,
 } from "lucide-react";
 import { useWorkspaceStore, type Workspace } from "../../store/workspaceStore";
 import { Button } from "../ui/Button";
 import { cn } from "../ui/cn";
 
-// v2: bump per re-mostrare onboarding agli utenti esistenti dopo aggiunta
-// step Climate Loads (v1.4 alpha.3-.10).
-const STORAGE_KEY = "feapro-onboarding-seen-v2";
+// v3: bump per re-mostrare onboarding dopo refactor UI 6-rail (Sprint 4
+// alpha.20). Aggiornato welcome step con i nuovi label Make/Solve/Verify.
+const STORAGE_KEY = "feapro-onboarding-seen-v3";
 
 interface Step {
   id: string;
@@ -42,15 +43,26 @@ const STEPS: Step[] = [
     description: "Analisi strutturale agli elementi finiti — moderna, didattica, completa.",
     body: (
       <div className="space-y-2 text-sm text-ink-muted">
-        <p>L'app è organizzata in <strong className="text-ink">5 workspace tematici</strong>, navigabili dalla barra a sinistra:</p>
+        <p>L'app e' organizzata in <strong className="text-ink">due rail laterali</strong> ispirati al workflow strutturale.</p>
+
+        <p className="font-semibold text-ink pt-1 text-xs uppercase tracking-wider">A sinistra · costruisci</p>
         <ul className="space-y-1.5 list-none pl-0 text-xs">
-          <li className="flex items-center gap-2"><Boxes        className="h-4 w-4 text-accent" /> Modello — costruisci la struttura</li>
-          <li className="flex items-center gap-2"><Cpu          className="h-4 w-4 text-accent" /> Analisi — esegui calcoli</li>
-          <li className="flex items-center gap-2"><BarChart3    className="h-4 w-4 text-accent" /> Risultati — visualizza + postprocess</li>
-          <li className="flex items-center gap-2"><ShieldCheck  className="h-4 w-4 text-accent" /> Verifiche — controlli EC2/3/5/8 + NTC</li>
-          <li className="flex items-center gap-2"><ArrowRightLeft className="h-4 w-4 text-accent" /> I/O & Collab — import/export, AI, real-time</li>
+          <li className="flex items-center gap-2"><Hammer       className="h-4 w-4 text-accent" /> <strong>Make</strong> — geometria, mesh, carichi, vincoli</li>
+          <li className="flex items-center gap-2"><Cpu          className="h-4 w-4 text-accent" /> <strong>Solve</strong> — statica · modale · dinamica · sismica · pushover</li>
+          <li className="flex items-center gap-2"><ShieldCheck  className="h-4 w-4 text-accent" /> <strong>Verify</strong> — EC2/3/5/8 + NTC + fatica</li>
         </ul>
-        <p className="text-[11px] text-ink-dim pt-2">Tip: usa i tasti <kbd className="bg-bg px-1 rounded border border-border">1</kbd>–<kbd className="bg-bg px-1 rounded border border-border">5</kbd> per saltare tra workspace.</p>
+
+        <p className="font-semibold text-ink pt-1 text-xs uppercase tracking-wider">A destra · esplora</p>
+        <ul className="space-y-1.5 list-none pl-0 text-xs">
+          <li className="flex items-center gap-2"><Eye          className="h-4 w-4 text-accent" /> <strong>Inspect</strong> — risultati delle analisi</li>
+          <li className="flex items-center gap-2"><Layers       className="h-4 w-4 text-accent" /> <strong>View</strong> — overlay viewport (deformata, stress, iso)</li>
+          <li className="flex items-center gap-2"><Wrench       className="h-4 w-4 text-accent" /> <strong>Tools</strong> — cost preview, compare, misure, BIM</li>
+        </ul>
+
+        <p className="text-[11px] text-ink-dim pt-2">
+          Tip: usa <kbd className="bg-bg px-1 rounded border border-border">1</kbd>–<kbd className="bg-bg px-1 rounded border border-border">3</kbd> per i rail principali,{" "}
+          <kbd className="bg-bg px-1 rounded border border-border">Ctrl K</kbd> per la palette comandi globale.
+        </p>
       </div>
     ),
   },

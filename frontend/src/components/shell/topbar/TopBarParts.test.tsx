@@ -49,7 +49,8 @@ describe("Breadcrumb", () => {
       workspace: "analysis",
     } as any);
     render(wrap(<Breadcrumb />));
-    expect(screen.getByTestId("breadcrumb-workspace")).toHaveTextContent("Analisi");
+    // alpha.20: label workflow-oriented "Solve" sostituisce "Analisi"
+    expect(screen.getByTestId("breadcrumb-workspace")).toHaveTextContent("Solve");
   });
 });
 

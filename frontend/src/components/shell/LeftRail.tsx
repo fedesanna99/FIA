@@ -1,17 +1,24 @@
 /**
- * LeftRail — barra verticale 48 px con 6 icone workspace.
- * Switch workspace via Zustand `workspaceStore`.
+ * LeftRail — barra verticale 48 px (alpha.20 Sprint 4 G5).
+ *
+ * Refactor mockup-aligned: 3 voci principali **Make / Solve / Verify**
+ * (corrispondono a workspace `model` / `analysis` / `verify`) + 2 voci
+ * secondarie in basso (Results / I/O) per backward compat con utenti
+ * che hanno bookmark sui vecchi workspace.
+ *
+ * I "results" e "io" sono ora accessibili principalmente via RightRail
+ * (Inspect / Tools). Le voci LeftRail bottom servono solo come deep-link.
  *
  * UX:
- *  - Hover → tooltip lato destro
- *  - Active → background accent-subtle + barra verticale 2px accent
- *  - Keyboard: `1`–`5` switchano workspace (gestito in CommandPalette / shortcuts)
+ *  - Hover → tooltip side=right
+ *  - Active → bg-accent-subtle + barra verticale 2px accent
+ *  - Keyboard: 1-3 main, 4-5 secondary (compat con shortcut storici)
  */
 import {
-  Boxes,
+  Hammer,
   Cpu,
-  BarChart3,
   ShieldCheck,
+  BarChart3,
   ArrowRightLeft,
   HelpCircle,
   Search,
@@ -25,71 +32,85 @@ interface RailItem {
   key: Workspace;
   label: string;
   description: string;
-  icon: typeof Boxes;
+  icon: typeof Hammer;
   shortcut?: string;
+  /** Se true: posizionato in fondo al rail (separato da divider). */
+  secondary?: boolean;
 }
 
 const ITEMS: RailItem[] = [
-  { key: "model",    label: "Modello",   description: "Geometria, carichi, vincoli", icon: Boxes,           shortcut: "1" },
-  { key: "analysis", label: "Analisi",   description: "Statica · modale · dinamica · buckling", icon: Cpu,  shortcut: "2" },
-  { key: "results",  label: "Risultati", description: "Deformata, stress, diagrammi", icon: BarChart3,      shortcut: "3" },
-  { key: "verify",   label: "Verifiche", description: "EC2/3/5/8 · NTC · fatica",     icon: ShieldCheck,    shortcut: "4" },
-  { key: "io",       label: "I/O & Collab", description: "Import/export · AI · multi-utente", icon: ArrowRightLeft, shortcut: "5" },
+  // Voci principali (mockup v1.3): tre fasi del workflow
+  { key: "model",    label: "Make",     description: "Geometria · carichi · vincoli · mesh", icon: Hammer,         shortcut: "1" },
+  { key: "analysis", label: "Solve",    description: "Statica · modale · dinamica · buckling · pushover", icon: Cpu, shortcut: "2" },
+  { key: "verify",   label: "Verify",   description: "EC2/3/5/8 · NTC · fatica · convergenza", icon: ShieldCheck, shortcut: "3" },
+  // Voci secondarie (deep-link backward compat — di solito si usa il RightRail)
+  { key: "results",  label: "Risultati (legacy)", description: "Deprecato: usa Inspect del rail destro per i risultati", icon: BarChart3, shortcut: "4", secondary: true },
+  { key: "io",       label: "I/O (legacy)",       description: "Deprecato: usa Tools per import/export e collab",       icon: ArrowRightLeft, shortcut: "5", secondary: true },
 ];
 
-export function LeftRail() {
+function RailButton({ item }: { item: RailItem }) {
   const workspace = useWorkspaceStore((s) => s.workspace);
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
+  const Icon = item.icon;
+  const active = workspace === item.key;
+
+  return (
+    <Tooltip
+      side="right"
+      content={
+        <div>
+          <div className="font-semibold flex items-center gap-2">
+            {item.label}
+            {item.shortcut && (
+              <kbd className="text-[10px] bg-bg-hover px-1 rounded border border-border">
+                {item.shortcut}
+              </kbd>
+            )}
+          </div>
+          <div className="text-ink-muted text-[11px] mt-0.5">{item.description}</div>
+        </div>
+      }
+    >
+      <button
+        type="button"
+        onClick={() => setWorkspace(item.key)}
+        aria-label={item.label}
+        aria-current={active ? "page" : undefined}
+        data-testid={`left-rail-${item.key}`}
+        className={cn(
+          "relative w-9 h-9 rounded-md flex items-center justify-center",
+          "transition-colors duration-fast outline-none",
+          "focus-visible:ring-2 focus-visible:ring-accent/60",
+          active
+            ? "bg-accent-subtle text-accent"
+            : item.secondary
+              ? "text-ink-faint hover:bg-bg-hover hover:text-ink-muted"
+              : "text-ink-muted hover:bg-bg-hover hover:text-ink",
+        )}
+      >
+        <Icon className="h-4 w-4" strokeWidth={1.8} />
+        {active && (
+          <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r bg-accent" aria-hidden />
+        )}
+      </button>
+    </Tooltip>
+  );
+}
+
+
+export function LeftRail() {
   const togglePalette = useWorkspaceStore((s) => s.togglePalette);
+  const mainItems = ITEMS.filter((i) => !i.secondary);
+  const secondaryItems = ITEMS.filter((i) => i.secondary);
 
   return (
     <nav
       className="w-12 flex-shrink-0 border-r border-border bg-bg-panel flex flex-col py-2 gap-1 items-center"
       aria-label="Workspace navigation"
+      data-testid="left-rail"
     >
-      {ITEMS.map((it) => {
-        const Icon = it.icon;
-        const active = workspace === it.key;
-        return (
-          <Tooltip
-            key={it.key}
-            side="right"
-            content={
-              <div>
-                <div className="font-semibold flex items-center gap-2">
-                  {it.label}
-                  {it.shortcut && (
-                    <kbd className="text-[10px] bg-bg-hover px-1 rounded border border-border">
-                      {it.shortcut}
-                    </kbd>
-                  )}
-                </div>
-                <div className="text-ink-muted text-[11px] mt-0.5">{it.description}</div>
-              </div>
-            }
-          >
-            <button
-              type="button"
-              onClick={() => setWorkspace(it.key)}
-              aria-label={it.label}
-              aria-current={active ? "page" : undefined}
-              className={cn(
-                "relative w-9 h-9 rounded-md flex items-center justify-center",
-                "transition-colors duration-fast outline-none",
-                "focus-visible:ring-2 focus-visible:ring-accent/60",
-                active
-                  ? "bg-accent-subtle text-accent"
-                  : "text-ink-muted hover:bg-bg-hover hover:text-ink",
-              )}
-            >
-              <Icon className="h-4.5 w-4.5" strokeWidth={1.8} />
-              {active && (
-                <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r bg-accent" aria-hidden />
-              )}
-            </button>
-          </Tooltip>
-        );
-      })}
+      {/* Voci principali (Make / Solve / Verify) */}
+      {mainItems.map((it) => <RailButton key={it.key} item={it} />)}
 
       <div className="my-1 w-7 border-t border-border" aria-hidden />
 
@@ -99,6 +120,7 @@ export function LeftRail() {
           type="button"
           onClick={togglePalette}
           aria-label="Apri comandi"
+          data-testid="left-rail-palette"
           className="w-9 h-9 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink transition-colors duration-fast"
         >
           <Search className="h-4 w-4" strokeWidth={1.8} />
@@ -106,6 +128,14 @@ export function LeftRail() {
       </Tooltip>
 
       <div className="flex-1" />
+
+      {/* Voci secondarie (legacy: Results / I/O) sopra theme/help */}
+      {secondaryItems.length > 0 && (
+        <>
+          <div className="my-1 w-7 border-t border-border" aria-hidden />
+          {secondaryItems.map((it) => <RailButton key={it.key} item={it} />)}
+        </>
+      )}
 
       {/* Theme toggle (dark/light/system) */}
       <ThemeToggle compact />
@@ -116,6 +146,7 @@ export function LeftRail() {
           type="button"
           onClick={() => useWorkspaceStore.getState().setHelp(true)}
           aria-label="Apri documentazione"
+          data-testid="left-rail-help"
           className="w-9 h-9 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink transition-colors duration-fast"
         >
           <HelpCircle className="h-4 w-4" strokeWidth={1.8} />
