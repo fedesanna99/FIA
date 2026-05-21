@@ -18,6 +18,7 @@ import {
 } from "@tabler/icons-react";
 import { useUIStore } from "../../store/uiStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
+import { useLeftRailStore } from "../../store/leftRailStore";
 import { useModelStore } from "../../store/modelStore";
 import { ModelTree } from "../../components/panels/ModelTree";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -34,7 +35,12 @@ const TABS: PanelTab[] = [
 
 
 export function MakePanel() {
-  const closeLeft = useWorkspaceStore((s) => s.closeLeftPanel);
+  // alpha.31 Task 25: la X deve chiudere SIA il flag workspace SIA il
+  // rail openSection — altrimenti LeftSlidePanel resta montato.
+  const closeLeft = () => {
+    useWorkspaceStore.getState().closeLeftPanel();
+    useLeftRailStore.getState().close();
+  };
   const setTab    = useWorkspaceStore((s) => s.setLeftTab);
   const tab       = useWorkspaceStore((s) => s.currentLeftTab) ?? "geometria";
   const model     = useModelStore((s) => s.model);

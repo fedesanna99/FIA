@@ -20,6 +20,7 @@ import {
 } from "@tabler/icons-react";
 import { Button } from "../../components/ui/Button";
 import { useWorkspaceStore } from "../../store/workspaceStore";
+import { useLeftRailStore } from "../../store/leftRailStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useModelStore } from "../../store/modelStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
@@ -59,7 +60,11 @@ const LINEAR_OPTIONS: AnalysisOption[] = [
 
 
 export function SolvePanel() {
-  const closeLeft = useWorkspaceStore((s) => s.closeLeftPanel);
+  // alpha.31 Task 25: la X deve chiudere SIA workspace SIA rail.
+  const closeLeft = () => {
+    useWorkspaceStore.getState().closeLeftPanel();
+    useLeftRailStore.getState().close();
+  };
   const setTab = useWorkspaceStore((s) => s.setLeftTab);
   const tab = useWorkspaceStore((s) => s.currentLeftTab) ?? "lineari";
   const model = useModelStore((s) => s.model);

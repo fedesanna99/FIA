@@ -9,6 +9,7 @@ import {
   IconWood, IconMountain, IconFlag,
 } from "@tabler/icons-react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
+import { useLeftRailStore } from "../../store/leftRailStore";
 import { PanelChrome, type PanelTab } from "./PanelChrome";
 import { VerificationPanel } from "../../components/panels/VerificationPanel";
 import { EC2Panel } from "../../components/panels/EC2Panel";
@@ -27,7 +28,11 @@ const TABS: PanelTab[] = [
 
 
 export function VerifyPanel() {
-  const closeLeft = useWorkspaceStore((s) => s.closeLeftPanel);
+  // alpha.31 Task 25: la X deve chiudere SIA workspace SIA rail.
+  const closeLeft = () => {
+    useWorkspaceStore.getState().closeLeftPanel();
+    useLeftRailStore.getState().close();
+  };
   const setTab = useWorkspaceStore((s) => s.setLeftTab);
   const tab = useWorkspaceStore((s) => s.currentLeftTab) ?? "ec3";
 
