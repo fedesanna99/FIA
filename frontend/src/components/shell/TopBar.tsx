@@ -71,11 +71,16 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   // veri (l'API e' pronta lato store).
   const canUndo = useModelHistory((s) => s.past.length > 0);
   const canRedo = useModelHistory((s) => s.future.length > 0);
-  // alpha.30: placeholder per il bell counter. toastStore non ha ancora
-  // il concetto di read/unread: per ora usiamo la length dei toast attivi
-  // (che auto-decade con ttlMs). Verra' sostituito da un notificationsStore
-  // dedicato quando arriverà la persistenza side-bar.
-  const unreadCount = useToastStore((s) => s.toasts.length);
+  // v1.6.1 T3 · BUG-3: il badge "3" al primo avvio era correlato a toast
+  // errore generici del backend offline (gia' fixati in T1: client.ts ora
+  // non emette toast su network error puro). In piu' filtriamo qui per
+  // contare SOLO toast error/warning come "notifiche unread": un toast
+  // info "Tema scuro applicato" non deve far apparire il bell rosso.
+  // alpha.30: placeholder. Verra' sostituito da notificationsStore dedicato
+  // quando arrivera' la persistenza side-bar.
+  const unreadCount = useToastStore((s) =>
+    s.toasts.filter((t) => t.level === "error" || t.level === "warning").length,
+  );
   // v1.6 S0 · B17: chip job attivo sempre visibile in topbar quando un'analisi
   // sta girando, cosi' l'utente vede progresso live senza dover aprire la
   // statusbar. Subscribe a activeJob da jobsStore.
