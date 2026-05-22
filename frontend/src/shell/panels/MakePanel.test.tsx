@@ -116,4 +116,29 @@ describe("MakePanel (Sprint 5 G9 / alpha.24)", () => {
     expect(screen.getByTestId("panel-make-tab-geometria"))
       .toHaveAttribute("aria-selected", "false");
   });
+
+  // v1.6 S0 · B07: hub-first navigation desktop = mobile
+  describe("hub-first navigation (B07 audit)", () => {
+    it("currentLeftTab=null mostra PanelHub con 5 card senza tab orizzontali", () => {
+      useWorkspaceStore.setState({ currentLeftTab: null } as any);
+      renderPanel();
+      // L'hub e' renderato (data-testid="make-hub")
+      expect(screen.getByTestId("make-hub")).toBeInTheDocument();
+      // Le 5 hub-card sono presenti
+      expect(screen.getByTestId("hub-card-geometria")).toBeInTheDocument();
+      expect(screen.getByTestId("hub-card-mesh")).toBeInTheDocument();
+      expect(screen.getByTestId("hub-card-carichi")).toBeInTheDocument();
+      expect(screen.getByTestId("hub-card-vincoli")).toBeInTheDocument();
+      expect(screen.getByTestId("hub-card-io")).toBeInTheDocument();
+      // I tab orizzontali NON sono renderizzati in hub mode
+      expect(screen.queryByTestId("panel-make-tab-geometria")).toBeNull();
+    });
+
+    it("click su una hub-card setta currentLeftTab e mostra breadcrumb back", () => {
+      useWorkspaceStore.setState({ currentLeftTab: null } as any);
+      renderPanel();
+      fireEvent.click(screen.getByTestId("hub-card-mesh"));
+      expect(useWorkspaceStore.getState().currentLeftTab).toBe("mesh");
+    });
+  });
 });
