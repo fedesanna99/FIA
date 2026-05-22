@@ -414,6 +414,17 @@ export default function App() {
         "flex flex-col bg-bg text-ink overflow-hidden font-sans",
       )}
     >
+      {/* v1.8.4 T4: skip link a11y. Nascosto fuori dal flusso visivo
+          finche' non riceve focus (es. Tab dalla URL bar). Porta lo
+          screen reader user direttamente al <main> saltando topbar e
+          rail navigation. WCAG 2.1 Success Criterion 2.4.1. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:bg-accent focus:text-white focus:px-3 focus:py-1.5 focus:rounded-md focus:text-sm focus:font-medium focus:shadow-elev focus:outline-none focus:ring-2 focus:ring-accent/60"
+        data-testid="skip-to-content"
+      >
+        Vai al contenuto
+      </a>
       {!isFocusMode && (
         <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
       )}
@@ -426,6 +437,8 @@ export default function App() {
             In focus mode il rail e' nascosto + il panel e' chiuso. */}
         {showRails && <LeftSlidePanel />}
         <main
+          id="main-content"
+          tabIndex={-1}
           className={cn(
             "flex-1 relative min-w-0 bg-bg-viewport",
             // v1.5.2 Task 36: compensa la MobileTabbar `position: fixed`

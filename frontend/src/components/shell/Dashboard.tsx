@@ -19,6 +19,7 @@ import type { FEAModel } from "../../types/model";
 import { getQuota } from "../../api/billing";
 import { useAuthStore } from "../../store/authStore";
 import { useAnalysisStore } from "../../store/analysisStore";
+import { useWorkspaceStore } from "../../store/workspaceStore";
 
 interface Props {
   models: FEAModel[];
@@ -113,7 +114,7 @@ export function Dashboard({
           onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-new-model"))}
           disabled={modelsUnavailable}
           data-testid="home-cta-studio-pro"
-          className="text-left bg-accent text-white border border-accent-hover/30 rounded-lg p-5 shadow-pop hover:bg-accent-hover hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+          className="text-left bg-accent text-white border border-accent-hover/30 rounded-lg p-5 shadow-pop hover:bg-accent-hover hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           <div className="text-[10px] uppercase tracking-wider font-mono opacity-80 mb-1">
             Modalita' esperto
@@ -129,7 +130,7 @@ export function Dashboard({
           onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-percorsi"))}
           disabled={modelsUnavailable}
           data-testid="home-cta-percorsi"
-          className="text-left bg-percorsi text-white border border-percorsi/30 rounded-lg p-5 shadow-pop hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+          className="text-left bg-percorsi text-white border border-percorsi/30 rounded-lg p-5 shadow-pop hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-percorsi focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
           <div className="text-[10px] uppercase tracking-wider font-mono opacity-80 mb-1">
             Workflow guidato
@@ -181,7 +182,7 @@ export function Dashboard({
 
       {/* Jobs + Modelli */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-7 max-w-5xl mx-auto">
-        <JobsSection isRunning={isRunning} />
+        <JobsSection isRunning={isRunning} hasActiveModel={models.length > 0} />
         <ModelsSection
           models={models}
           modelsUnavailable={modelsUnavailable}
@@ -270,7 +271,7 @@ function ActionBtn({
   );
 }
 
-function JobsSection({ isRunning }: { isRunning: boolean }) {
+function JobsSection({ isRunning, hasActiveModel }: { isRunning: boolean; hasActiveModel: boolean }) {
   return (
     <div className="bg-bg-panel border border-border rounded-lg p-4 shadow-pop">
       <div className="text-[11px] uppercase tracking-wider text-ink-dim font-semibold mb-3">
@@ -282,7 +283,24 @@ function JobsSection({ isRunning }: { isRunning: boolean }) {
           Analisi in esecuzione…
         </div>
       ) : (
-        <div className="text-sm text-ink-dim">Nessun job attivo.</div>
+        <div className="space-y-2">
+          <div className="text-sm text-ink-dim">Nessun job attivo.</div>
+          {/* v1.8.4 T3: CTA inline "Apri Solve" quando c'e' almeno un modello
+              ma nessun job in corso. Click → dispatch event ascoltato dal
+              workspaceStore via CommandPalette (open-solve action). */}
+          {hasActiveModel && (
+            <button
+              type="button"
+              onClick={() => {
+                useWorkspaceStore.getState().openLeftPanel("solve");
+              }}
+              data-testid="jobs-section-open-solve"
+              className="text-[11px] text-ink-info hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 rounded-sm"
+            >
+              Apri Solve →
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

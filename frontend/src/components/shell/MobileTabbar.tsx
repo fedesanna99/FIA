@@ -53,14 +53,15 @@ export function MobileTabbar() {
               type="button"
               onClick={() => setTab(tab.id === "model" ? null : tab.id)}
               data-testid={`mobile-tab-${tab.id}`}
-              aria-pressed={isActive}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-md mx-0.5 transition-colors ${
+              aria-current={isActive ? "page" : undefined}
+              aria-label={`${tab.label}${isActive ? " (attivo)" : ""}`}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-md mx-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
                 isActive
                   ? "text-ink-info bg-bg-info/40 font-semibold"
                   : "text-ink-muted hover:text-ink hover:bg-bg-hover"
               }`}
             >
-              <Icon className="w-4 h-4" />
+              <Icon className="w-4 h-4" aria-hidden="true" />
               <span className="text-[10px]">{tab.label}</span>
             </button>
           );
