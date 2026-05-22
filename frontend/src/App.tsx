@@ -29,6 +29,8 @@ import { cn } from "./components/ui/cn";
 import { TopBar } from "./components/shell/TopBar";
 import { MissionBar } from "./components/shell/MissionBar";
 import { ModelInfoCard } from "./components/shell/ModelInfoCard";
+import { AnalysisSummaryCard } from "./components/shell/AnalysisSummaryCard";
+import { ResultsOverviewCard } from "./components/shell/ResultsOverviewCard";
 import { LeftRail } from "./components/shell/LeftRail";
 import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
 import { RightRail } from "./components/shell/RightRail";
@@ -488,10 +490,12 @@ export default function App() {
                 Visibile solo quando c'e' un modello attivo. */}
             {models && activeId && (
               <aside
-                className="hidden md:flex md:w-56 lg:w-64 border-l border-border flex-col bg-bg-panel"
+                className="hidden md:flex md:w-56 lg:w-64 border-l border-border flex-col bg-bg-panel overflow-y-auto"
                 data-testid="right-info-sidebar"
               >
                 <ModelInfoCard />
+                <AnalysisSummaryCard />
+                <ResultsOverviewCard />
               </aside>
             )}
             <RightSlidePanel />
