@@ -14,3 +14,10 @@ if (typeof globalThis.ResizeObserver === "undefined") {
   (globalThis as { ResizeObserver?: typeof ResizeObserver }).ResizeObserver =
     ResizeObserverStub as unknown as typeof ResizeObserver;
 }
+
+// Polyfill Element.scrollIntoView per jsdom (richiesto da cmdk Command.Item).
+// Senza questo, vi/jest crashano con "i.scrollIntoView is not a function"
+// quando si monta CommandPalette nei test.
+if (typeof window !== "undefined" && !Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = function () { /* noop */ };
+}

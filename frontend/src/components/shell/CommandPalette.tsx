@@ -366,12 +366,24 @@ export function CommandPalette() {
       open={open}
       onOpenChange={setOpen}
       label="Comandi"
-      className={cn(
-        "fixed inset-0 z-40 flex items-start justify-center pt-[10vh]",
-        "before:content-[''] before:fixed before:inset-0 before:bg-black/60 before:backdrop-blur-sm before:-z-10",
-      )}
+      className="fixed inset-0 z-40 flex items-start justify-center pt-[10vh]"
     >
-      <div className="w-[720px] max-w-[calc(100vw-32px)] bg-bg-elevated border border-border rounded-lg shadow-dialog overflow-hidden animate-slide-up">
+      {/*
+       * v1.6 S0 · B02: backdrop reale (era ::before pseudo-element non-DOM
+       * → click outside intrappolava l'utente). Ora un div con onClick che
+       * setta open=false. Il container interno usa stopPropagation per
+       * impedire che il click su una riga buchi fino al backdrop.
+       */}
+      <div
+        className="fixed inset-0 -z-10 bg-black/60 backdrop-blur-sm"
+        onClick={() => setOpen(false)}
+        aria-hidden="true"
+        data-testid="palette-backdrop"
+      />
+      <div
+        className="w-[720px] max-w-[calc(100vw-32px)] bg-bg-elevated border border-border rounded-lg shadow-dialog overflow-hidden animate-slide-up"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Command.Input
           placeholder={`Cerca tra ${allItems.length} comandi…  (workspace, analisi, theme, location, n42, e17)`}
           className={cn(
