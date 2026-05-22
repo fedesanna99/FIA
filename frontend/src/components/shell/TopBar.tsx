@@ -12,7 +12,8 @@
  * al mount, run analysis, dialog modali.
  */
 import { useEffect, useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getQuota } from "../../api/billing";
 import {
   Play,
   Check,
@@ -158,15 +159,10 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           <span className="text-accent text-xs font-bold">F</span>
         </div>
         <span className="font-semibold text-sm text-ink hidden sm:inline font-display">FEA Pro</span>
-        {/* v1.8 T6: tier badge "Pro" (hardcoded fino al wire authStore.tier).
-            Stile emerald percorsi per coerenza asse Studio Pro/Percorsi. */}
-        <span
-          className="hidden sm:inline text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-percorsi/15 text-percorsi border border-percorsi/30 leading-none"
-          data-testid="topbar-tier-badge"
-          title="Tier attuale"
-        >
-          Pro
-        </span>
+        {/* v1.8.1 P2: tier badge ora wire al billing API via React Query
+            (gia' fetchato da Dashboard per QuotaCard). Si auto-refresha. */}
+        <TopBarTierBadge />
+
         <span className="text-[10px] font-mono text-ink-dim hidden md:inline">{APP_VERSION}</span>
       </div>
 
@@ -355,5 +351,48 @@ export function TopBar({ models, activeId, onSelect }: Props) {
       />
       <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
     </header>
+  );
+}
+
+
+/**
+ * TopBarTierBadge (v1.8.1 P2).
+ *
+ * Tier dinamico letto dall'API billing/quota tramite React Query. Si
+ * auto-refresha quando la cache `billing-quota` viene invalidata
+ * altrove (es. dopo upgrade tier in AccountDialog).
+ *
+ * Stili per tier:
+ *   - free       → bg-bg-hover / text-ink-dim   (default neutrale)
+ *   - starter    → bg-bg-info / text-ink-info   (blu)
+ *   - pro        → bg-bg-percorsi / text-ink-percorsi (emerald, asse Percorsi)
+ *   - enterprise → bg-bg-purple / text-ink-purple (premium)
+ */
+function TopBarTierBadge() {
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.id ?? "demo_user";
+  const { data: quota } = useQuery({
+    queryKey: ["billing-quota", userId],
+    queryFn: () => getQuota(userId),
+    retry: false,
+    staleTime: 60_000,
+  });
+  const tier = quota?.tier ?? "free";
+
+  const styleByTier: Record<typeof tier, string> = {
+    free:       "bg-bg-hover text-ink-dim border-border",
+    starter:    "bg-bg-info text-ink-info border-ink-info/30",
+    pro:        "bg-bg-percorsi text-ink-percorsi border-percorsi/30",
+    enterprise: "bg-bg-purple text-ink-purple border-ink-purple/30",
+  };
+
+  return (
+    <span
+      className={`hidden sm:inline text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border leading-none capitalize ${styleByTier[tier]}`}
+      data-testid="topbar-tier-badge"
+      title={`Tier corrente: ${tier}`}
+    >
+      {tier}
+    </span>
   );
 }
