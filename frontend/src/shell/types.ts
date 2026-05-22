@@ -38,7 +38,7 @@ export interface ShellActions {
   closeLeftPanel: () => void;
   openRightPanel: (id: NonNullable<RightPanelId>, tab?: string) => void;
   closeRightPanel: () => void;
-  setLeftTab: (tab: string) => void;
+  setLeftTab: (tab: string | null) => void;
   setRightTab: (tab: string) => void;
   toggleAiPanel: () => void;
   toggleSettings: () => void;

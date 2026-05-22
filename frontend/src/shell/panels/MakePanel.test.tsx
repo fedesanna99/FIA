@@ -27,7 +27,10 @@ beforeEach(() => {
     activeTab: {} as any,
     currentLeftPanel: "make",
     currentRightPanel: null,
-    currentLeftTab: null,
+    // v1.5.2 Task 39: i test pre-impostano il tab "geometria" cosi'
+    // saltano la vista hub introdotta in questo task. Il test specifico
+    // dell'hub e' in fondo.
+    currentLeftTab: "geometria",
     currentRightTab: null,
     isAiPanelOpen: false,
     isSettingsOpen: false,
@@ -44,7 +47,9 @@ beforeEach(() => {
 describe("MakePanel (Sprint 5 G9 / alpha.24)", () => {
   it("renders header with title 'Make' + close button", () => {
     renderPanel();
-    expect(screen.getByText("Make")).toBeInTheDocument();
+    // v1.5.2 Task 39: il breadcrumb "← Make" contiene anche "Make", quindi
+    // getAllByText e' obbligatorio (2 match: heading + breadcrumb back).
+    expect(screen.getAllByText("Make").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByTestId("panel-make-close")).toBeInTheDocument();
   });
 

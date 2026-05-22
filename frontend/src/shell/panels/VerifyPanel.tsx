@@ -11,6 +11,7 @@ import {
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
 import { PanelChrome, type PanelTab } from "./PanelChrome";
+import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
 import { VerificationPanel } from "../../components/panels/VerificationPanel";
 import { EC2Panel } from "../../components/panels/EC2Panel";
 import { EC5Panel } from "../../components/panels/EC5Panel";
@@ -27,6 +28,25 @@ const TABS: PanelTab[] = [
 ];
 
 
+// v1.5.2 Task 39: hub-first per Verify. 5 card, una per normativa.
+const HUB_CARDS: HubCard[] = [
+  { id: "ec2",   label: "EC2 — Calcestruzzo",     sub: "Flessione · taglio · armatura",            icon: IconBuildingFactory2 as unknown as HubCard["icon"], tone: "info" },
+  { id: "ec3",   label: "EC3 — Acciaio",          sub: "Resistenza · stabilita' · LTB",            icon: IconBolt as unknown as HubCard["icon"],             tone: "success" },
+  { id: "ec5",   label: "EC5 — Legno",            sub: "k_mod · classi servizio · UR combinati",   icon: IconWood as unknown as HubCard["icon"],             tone: "warn" },
+  { id: "ec8",   label: "EC8 — Sismica",          sub: "Spettro elastico/design · fattore q",      icon: IconMountain as unknown as HubCard["icon"],         tone: "purple" },
+  { id: "ntc18", label: "NTC 2018",               sub: "Combinazioni SLU/SLE/sismica + envelope",  icon: IconFlag as unknown as HubCard["icon"],             tone: "coral" },
+];
+
+
+const TAB_LABELS: Record<string, string> = {
+  ec2:   "EC2 — Calcestruzzo",
+  ec3:   "EC3 — Acciaio",
+  ec5:   "EC5 — Legno",
+  ec8:   "EC8 — Sismica",
+  ntc18: "NTC 2018",
+};
+
+
 export function VerifyPanel() {
   // alpha.31 Task 25: la X deve chiudere SIA workspace SIA rail.
   const closeLeft = () => {
@@ -34,7 +54,29 @@ export function VerifyPanel() {
     useLeftRailStore.getState().close();
   };
   const setTab = useWorkspaceStore((s) => s.setLeftTab);
-  const tab = useWorkspaceStore((s) => s.currentLeftTab) ?? "ec3";
+  // v1.5.2 Task 39: tab=null = hub mode.
+  const tabRaw = useWorkspaceStore((s) => s.currentLeftTab);
+  const isHub  = tabRaw === null || tabRaw === undefined;
+  const tab    = tabRaw ?? "ec3";
+
+  if (isHub) {
+    return (
+      <PanelChrome
+        side="left"
+        title="Verify"
+        Icon={IconShieldCheck}
+        subtitle="Verifiche normative"
+        onClose={closeLeft}
+        testId="panel-verify"
+      >
+        <PanelHub
+          cards={HUB_CARDS}
+          onSelect={(id) => setTab(id)}
+          testId="verify-hub"
+        />
+      </PanelChrome>
+    );
+  }
 
   return (
     <PanelChrome
@@ -48,6 +90,11 @@ export function VerifyPanel() {
       onClose={closeLeft}
       testId="panel-verify"
     >
+      <PanelBreadcrumb
+        root="Verify"
+        current={TAB_LABELS[tab] ?? tab}
+        onBack={() => setTab(null)}
+      />
       <div className="p-2 space-y-3">
         {tab === "ec2" && (
           <Section title="EC2 — Calcestruzzo armato" icon={IconBuildingFactory2}>

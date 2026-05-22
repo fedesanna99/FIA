@@ -23,6 +23,8 @@ import { useModelStore } from "../../store/modelStore";
 import { ModelTree } from "../../components/panels/ModelTree";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { PanelChrome, type PanelTab } from "./PanelChrome";
+import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
+import { Box, Layers as LayersIcon, ArrowDownToLine, Anchor, ArrowRightLeft as Swap } from "lucide-react";
 
 
 const TABS: PanelTab[] = [
@@ -34,6 +36,26 @@ const TABS: PanelTab[] = [
 ];
 
 
+// v1.5.2 Task 39: hub-first navigation per Make. 4 card primarie + 1
+// "I/O" mantenuto come tab secondario raggiungibile dal tab bar.
+const HUB_CARDS: HubCard[] = [
+  { id: "geometria", label: "Geometria",  sub: "Albero · nodi · elementi · materiali",   icon: Box,             tone: "info" },
+  { id: "mesh",      label: "Mesh",       sub: "Wizard discretizzazione (line/quad/h8)", icon: LayersIcon,      tone: "success" },
+  { id: "carichi",   label: "Carichi",    sub: "Nodali · distribuiti · climate apply",   icon: ArrowDownToLine, tone: "purple" },
+  { id: "vincoli",   label: "Vincoli",    sub: "Fixed · pinned · rollers · springs",     icon: Anchor,          tone: "coral" },
+  { id: "io",        label: "Import / Export", sub: "Wizard DXF/IFC/JSON · Tools export", icon: Swap,           tone: "warn" },
+];
+
+
+const TAB_LABELS: Record<string, string> = {
+  geometria: "Geometria",
+  mesh:      "Mesh",
+  carichi:   "Carichi",
+  vincoli:   "Vincoli",
+  io:        "I/O",
+};
+
+
 export function MakePanel() {
   // alpha.31 Task 25: la X deve chiudere SIA il flag workspace SIA il
   // rail openSection — altrimenti LeftSlidePanel resta montato.
@@ -42,7 +64,10 @@ export function MakePanel() {
     useLeftRailStore.getState().close();
   };
   const setTab    = useWorkspaceStore((s) => s.setLeftTab);
-  const tab       = useWorkspaceStore((s) => s.currentLeftTab) ?? "geometria";
+  // v1.5.2 Task 39: tab=null = hub mode (5 card iniziali, I/O incluso).
+  const tabRaw    = useWorkspaceStore((s) => s.currentLeftTab);
+  const isHub     = tabRaw === null || tabRaw === undefined;
+  const tab       = tabRaw ?? "geometria";
   const model     = useModelStore((s) => s.model);
   const setDialog = useUIStore((s) => s.setOpenDialog);
 
@@ -52,6 +77,25 @@ export function MakePanel() {
     loads:       model?.loads.length ?? 0,
     constraints: model?.constraints.length ?? 0,
   }), [model]);
+
+  if (isHub) {
+    return (
+      <PanelChrome
+        side="left"
+        title="Make"
+        Icon={IconShape3}
+        subtitle={model ? "Modello attivo" : "—"}
+        onClose={closeLeft}
+        testId="panel-make"
+      >
+        <PanelHub
+          cards={HUB_CARDS}
+          onSelect={(id) => setTab(id)}
+          testId="make-hub"
+        />
+      </PanelChrome>
+    );
+  }
 
   return (
     <PanelChrome
@@ -65,6 +109,11 @@ export function MakePanel() {
       onClose={closeLeft}
       testId="panel-make"
     >
+      <PanelBreadcrumb
+        root="Make"
+        current={TAB_LABELS[tab] ?? tab}
+        onBack={() => setTab(null)}
+      />
       {/* GEOMETRIA */}
       {tab === "geometria" && (
         <div className="flex flex-col h-full min-h-0">

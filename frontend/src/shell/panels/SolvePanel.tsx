@@ -18,6 +18,7 @@ import clsx from "clsx";
 import {
   IconBolt, IconArrowRight, IconWaveSine, IconArrowsVertical,
 } from "@tabler/icons-react";
+import { Activity, Zap, Waves, GitBranch } from "lucide-react";
 import { Button } from "../../components/ui/Button";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
@@ -26,6 +27,7 @@ import { useModelStore } from "../../store/modelStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
 import { CostPreviewCard } from "./CostPreviewCard";
 import { PanelChrome, type PanelTab } from "./PanelChrome";
+import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
 // Pannelli legacy che wrappiamo:
 import { NonlinearPanel } from "../../components/panels/NonlinearPanel";
 import { ArcLengthPanel } from "../../components/panels/ArcLengthPanel";
@@ -39,6 +41,23 @@ const TABS: PanelTab[] = [
   { id: "sismica",  label: "Sismica" },
   { id: "nonlin",   label: "Non-lin." },
 ];
+
+
+// v1.5.2 Task 39: hub-first navigation. La prima vista quando si apre
+// Solve e' una griglia di 4 card grandi, una per tipologia di analisi.
+const HUB_CARDS: HubCard[] = [
+  { id: "lineari",  label: "Lineari",     sub: "Statica · Modale · Buckling",          icon: Activity,  tone: "info" },
+  { id: "dinamica", label: "Dinamica",    sub: "Newmark β-γ · Pushover",               icon: Zap,       tone: "success" },
+  { id: "sismica",  label: "Sismica",     sub: "Time-history multi-componente NTC",    icon: Waves,     tone: "purple" },
+  { id: "nonlin",   label: "Non-lineari", sub: "Newton-Raphson · Arc-Length",          icon: GitBranch, tone: "coral" },
+];
+
+const TAB_LABELS: Record<string, string> = {
+  lineari:  "Lineari",
+  dinamica: "Dinamica",
+  sismica:  "Sismica",
+  nonlin:   "Non-lineari",
+};
 
 
 type SolverId = "static" | "modal" | "buckling";
@@ -66,7 +85,10 @@ export function SolvePanel() {
     useLeftRailStore.getState().close();
   };
   const setTab = useWorkspaceStore((s) => s.setLeftTab);
-  const tab = useWorkspaceStore((s) => s.currentLeftTab) ?? "lineari";
+  // v1.5.2 Task 39: tab=null = hub mode (4 card iniziali).
+  const tabRaw = useWorkspaceStore((s) => s.currentLeftTab);
+  const isHub = tabRaw === null || tabRaw === undefined;
+  const tab = tabRaw ?? "lineari";
   const model = useModelStore((s) => s.model);
   const { analysisType, setAnalysisType, isRunning } = useAnalysisStore();
   const run = useRunAnalysis();
@@ -82,6 +104,28 @@ export function SolvePanel() {
     run();
   }
 
+  // v1.5.2 Task 39: vista iniziale = hub 4 card. Click su card → entra
+  // nel tab corrispondente. I tab restano disponibili in header per
+  // navigation laterale; lo "← Solve" del breadcrumb torna all'hub.
+  if (isHub) {
+    return (
+      <PanelChrome
+        side="left"
+        title="Solve"
+        Icon={IconBolt}
+        subtitle={isRunning ? "Esec." : "Pronto"}
+        onClose={closeLeft}
+        testId="panel-solve"
+      >
+        <PanelHub
+          cards={HUB_CARDS}
+          onSelect={(id) => setTab(id)}
+          testId="solve-hub"
+        />
+      </PanelChrome>
+    );
+  }
+
   return (
     <PanelChrome
       side="left"
@@ -94,6 +138,12 @@ export function SolvePanel() {
       onClose={closeLeft}
       testId="panel-solve"
     >
+      {/* v1.5.2 Task 39: breadcrumb back-to-hub */}
+      <PanelBreadcrumb
+        root="Solve"
+        current={TAB_LABELS[tab] ?? tab}
+        onBack={() => setTab(null)}
+      />
       {/* ── LINEARI ───────────────────────────────────────────────────────── */}
       {tab === "lineari" && (
         <div className="flex flex-col">

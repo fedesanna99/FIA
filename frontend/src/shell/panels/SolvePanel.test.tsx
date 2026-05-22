@@ -34,7 +34,8 @@ beforeEach(() => {
     activeTab: { analysis: "linear" } as any,
     currentLeftPanel: "solve",
     currentRightPanel: null,
-    currentLeftTab: null,
+    // v1.5.2 Task 39: pre-imposta "lineari" per saltare la vista hub.
+    currentLeftTab: "lineari",
     currentRightTab: null,
     isAiPanelOpen: false,
     isSettingsOpen: false,
@@ -50,7 +51,9 @@ beforeEach(() => {
 describe("SolvePanel (Sprint 5 G10 / alpha.25)", () => {
   it("renders header with title 'Solve' + close button", () => {
     renderPanel();
-    expect(screen.getByText("Solve")).toBeInTheDocument();
+    // v1.5.2 Task 39: il breadcrumb "← Solve" duplica il match — usare
+    // getAllByText perche' ora ci sono 2 elementi con "Solve" (heading + back).
+    expect(screen.getAllByText("Solve").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByTestId("panel-solve-close")).toBeInTheDocument();
   });
 
