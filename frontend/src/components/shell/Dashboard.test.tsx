@@ -79,4 +79,15 @@ describe("Dashboard offline/database state", () => {
     fireEvent.click(screen.getByText("Telaio test"));
     expect(onSelect).toHaveBeenCalledWith("m1");
   });
+
+  // v1.6.1 T2 · BUG-2
+  it("non espone un bottone 'View' inline accanto a QuotaCard", () => {
+    render(<Dashboard models={[model]} onSelect={() => {}} />, { wrapper });
+    expect(screen.queryByTestId("dashboard-open-view")).not.toBeInTheDocument();
+    // Difensivo: nessun bottone con label esatto "View" nel corpo Dashboard.
+    const viewButtons = screen
+      .queryAllByRole("button", { name: /^View$/ })
+      .filter((b) => !b.getAttribute("data-testid")?.startsWith("right-rail"));
+    expect(viewButtons).toHaveLength(0);
+  });
 });

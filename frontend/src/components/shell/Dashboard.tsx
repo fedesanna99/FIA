@@ -14,7 +14,7 @@
  * sorgenti.
  */
 import { useQuery } from "@tanstack/react-query";
-import { Plus, FileUp, Layers, FlaskConical, RefreshCcw, SlidersHorizontal, WifiOff, type LucideIcon } from "lucide-react";
+import { Plus, FileUp, Layers, FlaskConical, RefreshCcw, WifiOff, type LucideIcon } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { getQuota } from "../../api/billing";
 import { useAuthStore } from "../../store/authStore";
@@ -74,19 +74,10 @@ export function Dashboard({
             {models.length} {models.length === 1 ? "modello" : "modelli"} · {nJobs} job in corso
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap justify-end">
-          <button
-            type="button"
-            onClick={() => window.dispatchEvent(new CustomEvent("feapro:open-view-panel"))}
-            className="h-9 px-3 rounded-md border border-border bg-bg-panel text-ink-muted hover:text-ink hover:bg-bg-hover text-[11px] font-mono flex items-center gap-1.5 shadow-pop transition-colors"
-            data-testid="dashboard-open-view"
-            title="Apri cockpit View"
-          >
-            <SlidersHorizontal className="w-3.5 h-3.5" />
-            View
-          </button>
-          <QuotaCard used={used} total={totalCap} tier={quota?.tier ?? "free"} />
-        </div>
+        {/* v1.6.1 T2 · BUG-2: "View" button inline rimosso. Il ViewPanel
+            si apre dalla RightRail (tasto "View") o dal chip preset nello
+            HUD del Viewport: una sola via di accesso e' meno confusa. */}
+        <QuotaCard used={used} total={totalCap} tier={quota?.tier ?? "free"} />
       </div>
 
       {modelsUnavailable && (
