@@ -3,6 +3,7 @@ import type { FEAModel, Node, Element, Load, Constraint } from "../types/model";
 import type { Material, Section } from "../types/material";
 import type { StaticResults, ModalResults, DynamicResults } from "../types/results";
 import { toast } from "../store/toastStore";
+import { translateAxiosError } from "../lib/apiErrors";
 
 const baseURL = import.meta.env.VITE_API_URL || "";
 
@@ -34,7 +35,6 @@ api.interceptors.response.use(
   (r) => r,
   (err) => {
     const status = err?.response?.status;
-    const detail = err?.response?.data?.detail ?? err?.message ?? "Errore sconosciuto";
     // 401 su endpoint authenticated: il token e' scaduto/invalido. Pulisci
     // lo store cosi' la UI redirige a login. Tocca farlo qui per evitare
     // di mostrare toast 401 ripetuti.
@@ -57,7 +57,12 @@ api.interceptors.response.use(
       }
     }
     if (status && status >= 400) {
-      toast("error", `HTTP ${status}: ${detail}`);
+      // v1.6 S0 · B05: traduzione errori in italiano umano. Prima il toast
+      // mostrava `HTTP 422: [object Object]` quando il body era strutturato.
+      // Ora translateAxiosError mappa i kind backend riconosciuti
+      // (missing_constraints, singular_matrix, ...) a messaggi leggibili.
+      const { title, description } = translateAxiosError(status, err?.response?.data);
+      toast("error", description ? `${title} · ${description}` : title);
     }
     return Promise.reject(err);
   },
