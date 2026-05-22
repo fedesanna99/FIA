@@ -28,6 +28,7 @@ import { ClickPlane } from "./ClickPlane";
 import { ToolHUD } from "./ToolHUD";
 import { ViewportHud } from "./ViewportHud";
 import { ScaleIndicator } from "./ScaleIndicator";
+import { EmptyModelOverlay } from "./EmptyModelOverlay";
 
 export function Viewport3D() {
   const model = useModelStore((s) => s.model);
@@ -156,6 +157,7 @@ export function Viewport3D() {
       )}
 
       <ViewportHud />
+      <EmptyModelOverlay />
       <ScaleIndicator />
       <DynamicTimelineHUD />
       <StaleResultsBanner />
