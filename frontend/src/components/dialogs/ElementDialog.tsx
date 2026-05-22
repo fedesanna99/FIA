@@ -145,15 +145,18 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
         {mutation.isError && (
           <div className="text-accent-danger text-xs">{(mutation.error as Error).message}</div>
         )}
-        <div className="grid grid-cols-2 gap-3">
+        {/* v1.7 T4: stack su mobile (no overflow del select Tipo con
+            label lunghe come "Shell Q4 MITC4 (anti-locking)"). 2 colonne
+            da sm: 640px in su. */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
             <label className="label block mb-1">ID</label>
-            <input type="number" className="input" value={id}
+            <input type="number" className="input w-full" value={id}
                    onChange={(e) => setId(Number(e.target.value))} disabled={!!editing} />
           </div>
           <div>
             <label className="label block mb-1">Tipo</label>
-            <select className="input" value={type} onChange={(e) => setType(e.target.value as ElementType)}
+            <select className="input w-full" value={type} onChange={(e) => setType(e.target.value as ElementType)}
                     disabled={!!editing}>
               {ELEMENT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>

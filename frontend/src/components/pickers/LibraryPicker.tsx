@@ -123,10 +123,10 @@ export function LibraryPicker<T extends LibraryItem>({
           </button>
         </header>
 
-        {/* Body 2-cols */}
-        <div className="flex flex-1 min-h-0">
-          {/* Sx: famiglie */}
-          <aside className="w-40 border-r border-border p-2 space-y-0.5 overflow-y-auto flex-shrink-0">
+        {/* Body responsive: stack su mobile, 2-cols su md+ (v1.7 T4) */}
+        <div className="flex flex-col md:flex-row flex-1 min-h-0">
+          {/* Famiglie: orizzontale scrollabile su mobile, sidebar sx su desktop */}
+          <aside className="md:w-40 border-b md:border-b-0 md:border-r border-border p-2 flex md:flex-col gap-1 md:space-y-0.5 md:gap-0 overflow-x-auto md:overflow-x-visible md:overflow-y-auto flex-shrink-0">
             <FamilyButton
               label={`Tutte (${items.length})`}
               active={family === "all"}
@@ -230,7 +230,9 @@ function FamilyButton({
       onClick={onClick}
       data-testid={testId}
       className={cn(
-        "w-full text-left px-2.5 py-1.5 rounded text-[12px] transition-colors",
+        // v1.7 T4: su mobile e' in flex-row → whitespace-nowrap evita wrap.
+        // md:w-full ripristina il pieno width nella sidebar desktop.
+        "whitespace-nowrap md:w-full text-left px-2.5 py-1.5 rounded text-[12px] transition-colors flex-shrink-0 md:flex-shrink",
         active
           ? "bg-bg-info text-ink-info font-medium"
           : "text-ink-muted hover:bg-bg-hover hover:text-ink",
