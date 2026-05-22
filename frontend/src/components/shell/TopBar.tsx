@@ -20,6 +20,7 @@ import {
   Redo2,
   Bell,
   Loader2,
+  Pencil,
 } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { modelsApi } from "../../api/client";
@@ -151,12 +152,21 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   // hidden sm:inline / hidden md:flex.
   return (
     <header className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-2 px-3 min-w-0 overflow-hidden">
-      {/* Logo + version */}
+      {/* Logo + version + tier badge (v1.8 T6) */}
       <div className="flex items-center gap-2 pr-2 border-r border-border h-7 flex-shrink-0">
         <div className="w-6 h-6 rounded bg-accent/15 border border-accent/40 flex items-center justify-center">
           <span className="text-accent text-xs font-bold">F</span>
         </div>
         <span className="font-semibold text-sm text-ink hidden sm:inline font-display">FEA Pro</span>
+        {/* v1.8 T6: tier badge "Pro" (hardcoded fino al wire authStore.tier).
+            Stile emerald percorsi per coerenza asse Studio Pro/Percorsi. */}
+        <span
+          className="hidden sm:inline text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded bg-percorsi/15 text-percorsi border border-percorsi/30 leading-none"
+          data-testid="topbar-tier-badge"
+          title="Tier attuale"
+        >
+          Pro
+        </span>
         <span className="text-[10px] font-mono text-ink-dim hidden md:inline">{APP_VERSION}</span>
       </div>
 
@@ -179,6 +189,21 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           }
         }}
       />
+      {/* v1.8 T6: edit nome modello inline rapido (apre EditModelDialog).
+          Visibile solo con modello attivo; click su pencil → dialog edit. */}
+      {activeId && model && (
+        <Tooltip content="Modifica nome / descrizione modello">
+          <button
+            type="button"
+            onClick={() => setEditOpen(true)}
+            data-testid="topbar-edit-model"
+            aria-label="Modifica modello"
+            className="h-7 w-7 rounded-md flex items-center justify-center text-ink-muted hover:text-ink hover:bg-bg-hover transition-colors flex-shrink-0"
+          >
+            <Pencil className="w-3.5 h-3.5" strokeWidth={1.8} />
+          </button>
+        </Tooltip>
+      )}
 
       {/* Save status chip — visibile quando il modello e' stato salvato */}
       {lastSavedAt && (
