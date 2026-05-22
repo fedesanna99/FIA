@@ -89,4 +89,23 @@ describe("viewportEngineStats", () => {
     expect(s.nodes).toBe(3);
     expect(s.engineDrawPaths).toBe(1);
   });
+
+  // v1.6.1 T5 · parity guard: il count "shared truth" tra Legacy ed Engine.
+  // Se per qualche regression viewport-engine non riconosce un tipo che
+  // Legacy renderizza, il count divergerebbe e questa unit test diventa
+  // sentinella.
+  it("conta tutti i tipi standard (no unsupported per modello demo telaio)", () => {
+    const m = model(
+      [node(1), node(2), node(3), node(4)],
+      [
+        elem(1, "beam3d", [1, 2]),
+        elem(2, "truss3d", [2, 3]),
+        elem(3, "shell_q4", [1, 2, 3, 4]),
+        elem(4, "solid_t4", [1, 2, 3, 4]),
+      ],
+    );
+    const s = createViewportEngineStats(m);
+    expect(s.unsupportedElements).toBe(0);
+    expect(s.lineElements + s.surfaceElements + s.solidElements).toBe(4);
+  });
 });
