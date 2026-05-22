@@ -168,8 +168,10 @@ export function MakePanel() {
               testId="make-add-load"
             />
             <p className="text-[11px] text-ink-muted mt-2 leading-relaxed">
-              Per Climate Loads (vento / neve / sismica) usa{" "}
-              <span className="kbd">Loads</span> nella TopBar.
+              Per Climate Loads (vento / neve / sismica): apri la palette{" "}
+              <span className="kbd">Ctrl K</span> e cerca{" "}
+              <span className="kbd">Location</span> · oppure dall'AvatarMenu →
+              "Loads location".
             </p>
           </Section>
         </div>

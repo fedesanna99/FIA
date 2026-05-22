@@ -177,7 +177,7 @@ const STEPS: Step[] = [
     description: "Calcola loads EN 1991 + NTC 2018 da coordinate reali.",
     body: (
       <div className="space-y-2 text-xs text-ink-muted">
-        <p>Click <kbd className="bg-bg px-1 rounded border border-border">📍 Loads</kbd> in TopBar per:</p>
+        <p>Click sull'avatar in alto a destra → <kbd className="bg-bg px-1 rounded border border-border">📍 Loads location</kbd> per:</p>
         <ul className="list-disc pl-4 space-y-0.5">
           <li><strong className="text-ink">5 preset rapidi</strong> Italia (Roma, Milano, L'Aquila, Cagliari, Cortina) — 1 click, no API call</li>
           <li><strong className="text-ink">Search live</strong> qualsiasi città mondo via Open-Meteo</li>
@@ -242,7 +242,7 @@ const STEPS: Step[] = [
       <div className="space-y-2 text-xs text-ink-muted">
         <p>Per il momento "solo viewport" hai due modi:</p>
         <ul className="list-disc pl-4 space-y-0.5">
-          <li>Click sull'icona <kbd className="bg-bg px-1 rounded border border-border">👁 Focus</kbd> in TopBar</li>
+          <li>Click sull'avatar in alto a destra → <kbd className="bg-bg px-1 rounded border border-border">👁 Modalità focus</kbd></li>
           <li>Shortcut <kbd className="bg-bg px-1 rounded border border-border">Shift Space</kbd> da qualunque punto dell'app</li>
         </ul>
         <p>Chiude entrambi i rail e il pannello centrale, lasciando solo il viewport 3D massimizzato. Premi 1/2/3 o clicca un rail per ri-aprire un panel.</p>
