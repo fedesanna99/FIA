@@ -1,13 +1,13 @@
-﻿/**
- * ViewportHud â€” chip informativi top-left del viewport (mockup v1.3).
+/**
+ * ViewportHud — chip informativi top-left del viewport (mockup v1.3).
  *
  * Tre pillole sovrapposte al Canvas:
- *  - [ðŸ“¦ cubo]   nome modello
- *  - [ðŸ“š layers] N nodi Â· E elementi Â· materiale
- *  - [â— ping]    Auto-save (puntino verde animato)
+ *  - [📦 cubo]   nome modello
+ *  - [📚 layers] N nodi · E elementi · materiale
+ *  - [● ping]    Auto-save (puntino verde animato)
  *
- * `materials` non Ã¨ ancora nello schema FEAModel ufficiale: accesso
- * difensivo + fallback "â€”".
+ * `materials` non è ancora nello schema FEAModel ufficiale: accesso
+ * difensivo + fallback "—".
  */
 import type { ReactNode } from "react";
 import { Box, Gauge, Layers, SlidersHorizontal } from "lucide-react";
@@ -42,15 +42,15 @@ export function ViewportHud() {
   const activeBaseLayers = [showGrid, showLoads, showConstraints, showNodeLabels].filter(Boolean).length;
   const renderLabel = viewportMode === "wireframe" ? "Wire" : viewportMode === "transparent" ? "Transp" : "Solid";
   const cameraLabel = projection === "orthographic" ? "Orto" : "Persp";
-  // materials non Ã¨ ancora nel tipo FEAModel: read difensivo
+  // materials non è ancora nel tipo FEAModel: read difensivo
   const materials = (model as unknown as { materials?: { name?: string }[] }).materials;
-  const material = materials?.[0]?.name ?? "â€”";
+  const material = materials?.[0]?.name ?? "—";
 
   return (
     <div className="absolute top-3.5 left-3.5 right-3.5 z-10 flex flex-wrap gap-2 pointer-events-none">
       <Chip icon={<Box className="w-3 h-3" />}>{model.name}</Chip>
       <Chip icon={<Layers className="w-3 h-3" />}>
-        {nNodes} nodi Â· {nElems} elem Â· {material}
+        {nNodes} nodi · {nElems} elem · {material}
       </Chip>
       <button
         className="pointer-events-auto max-w-[220px] bg-bg-panel border border-border rounded-md px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-muted hover:text-ink hover:bg-bg-hover shadow-pop font-mono transition"
@@ -60,7 +60,7 @@ export function ViewportHud() {
       >
         <SlidersHorizontal className="w-3 h-3 flex-shrink-0" />
         <span className="truncate">
-          {PRESET_LABELS[activeViewPreset]} Â· {renderLabel} Â· {cameraLabel} Â· L{activeBaseLayers}
+          {PRESET_LABELS[activeViewPreset]} · {renderLabel} · {cameraLabel} · L{activeBaseLayers}
         </span>
       </button>
       <button
@@ -77,8 +77,8 @@ export function ViewportHud() {
         <Gauge className="w-3 h-3" />
         Engine
       </button>
-      {/* alpha.31 Task 20: "Auto-save" chip rimosso â€” ridondante con il
-          chip "âœ“ Salvato HH:MM" in topbar. */}
+      {/* alpha.31 Task 20: "Auto-save" chip rimosso — ridondante con il
+          chip "✓ Salvato HH:MM" in topbar. */}
     </div>
   );
 }
