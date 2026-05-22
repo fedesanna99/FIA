@@ -55,8 +55,49 @@ export function ResultsOverviewCard() {
     "text-ink-success";
   const stressHint = `σ / 235 MPa = ${safetyRatio.toFixed(2)} (riferimento S235, solo visivo)`;
 
+  // v1.9.0 T2: GPS Strutturale - 3 verifiche normative semplificate.
+  // Tutti i ratio sono calcolati da `safetyRatio` (UC = σ/fyd) e sono
+  // PURAMENTE VISIVI/DIDATTICI — non sostituiscono verifica strutturale
+  // formale secondo Eurocodice / NTC.
+  type CheckTone = "ok" | "warn" | "critical";
+  function toneFromUc(uc: number): CheckTone {
+    if (uc >= 1.0) return "critical";
+    if (uc >= 0.7) return "warn";
+    return "ok";
+  }
+  const checks = [
+    {
+      id: "s275",
+      label: "S275 · UC",
+      ratio: maxStressMPa / 275,
+      hint: "fy = 275 MPa (acciaio S275, fyd ≈ 261 MPa con γM0 = 1.05)",
+    },
+    {
+      id: "ec3",
+      label: "EC3 · UC",
+      ratio: maxStressMPa / 235,
+      hint: "EN 1993-1-1 §6.2.1 (verifica tensionale base S235)",
+    },
+    {
+      id: "ntc",
+      label: "NTC · UC",
+      ratio: maxStressMPa / 261,
+      hint: "NTC 2018 §4.2.4.1 (S275 con γM0 = 1.05)",
+    },
+  ] as const;
+  const toneClasses: Record<CheckTone, string> = {
+    ok:       "bg-bg-success text-ink-success border-success/30",
+    warn:     "bg-bg-warn text-ink-warn border-warn/30",
+    critical: "bg-bg-coral text-ink-coral border-coral/30",
+  };
+  const toneLabel: Record<CheckTone, string> = {
+    ok: "OK",
+    warn: "Attenzione",
+    critical: "Critico",
+  };
+
   return (
-    <div className="border-b border-border p-3 space-y-1.5 bg-bg-panel" data-testid="results-overview-card">
+    <div className="border-b border-border p-3 space-y-2 bg-bg-panel" data-testid="results-overview-card">
       <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
         Results overview
       </div>
@@ -74,6 +115,32 @@ export function ResultsOverviewCard() {
             {maxStressMPa.toFixed(1)}
             <span className="text-ink-muted font-normal ml-0.5">MPa</span>
           </div>
+        </div>
+      </div>
+      {/* v1.9.0 T2: GPS Strutturale — Stato verifiche didattiche */}
+      <div className="space-y-1 pt-1.5 border-t border-border" data-testid="gps-verifiche">
+        <div className="text-[9px] uppercase tracking-wider text-ink-muted font-mono">
+          Stato verifiche
+        </div>
+        {checks.map((c) => {
+          const tone = toneFromUc(c.ratio);
+          return (
+            <div
+              key={c.id}
+              title={`${c.hint} · ratio ${c.ratio.toFixed(2)}`}
+              className="flex items-center gap-2 text-[10px]"
+              data-testid={`gps-check-${c.id}`}
+            >
+              <span className="text-ink-muted flex-shrink-0 w-[60px]">{c.label}</span>
+              <span className="font-mono text-ink flex-1">{c.ratio.toFixed(2)}</span>
+              <span className={`font-mono font-semibold px-1.5 py-px rounded border leading-none ${toneClasses[tone]}`}>
+                {toneLabel[tone]}
+              </span>
+            </div>
+          );
+        })}
+        <div className="text-[9px] text-ink-muted italic pt-0.5">
+          Hint visivo · non sostituisce verifica formale
         </div>
       </div>
       <button

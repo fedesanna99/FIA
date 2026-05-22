@@ -53,7 +53,8 @@ import { MeshWizardDialog } from "./components/dialogs/MeshWizardDialog";
 import { ImportWizard } from "./components/dialogs/wizards/ImportWizard";
 import { SismicaTHWizard } from "./components/dialogs/wizards/SismicaTHWizard";
 import { TemplateGalleryDialog } from "./components/dialogs/TemplateGalleryDialog";
-import { PercorsiPlaceholderDialog } from "./components/dialogs/PercorsiPlaceholderDialog";
+import { PercorsiBeamWizard } from "./components/dialogs/PercorsiBeamWizard";
+import { ReportExportDialog } from "./components/dialogs/ReportExportDialog";
 import { MobileTabbar } from "./components/shell/MobileTabbar";
 import { MobilePanel } from "./components/shell/MobilePanel";
 import { MobileMoreMenu } from "./components/shell/MobileMoreMenu";
@@ -107,6 +108,8 @@ export default function App() {
   const [templateGalleryOpen, setTemplateGalleryOpen] = useState(false);
   // v1.8 T2: placeholder Percorsi (apre da CTA Home, palette, futuro).
   const [percorsiPlaceholderOpen, setPercorsiPlaceholderOpen] = useState(false);
+  // v1.9.0 T4: modal export PDF (apre da bottone ResultsOverviewCard).
+  const [reportExportOpen, setReportExportOpen] = useState(false);
   useLoadModel(activeId);
   // v1.5 Task 34 follow-up: leggo wizardStore.active per renderizzare il
   // SismicaTHWizard singleton al root.
@@ -222,11 +225,15 @@ export default function App() {
     // (3 claim del prodotto + escape hatch a Studio Pro).
     const openPercorsi = () => setPercorsiPlaceholderOpen(true);
     window.addEventListener("feapro:open-percorsi", openPercorsi);
+    // v1.9.0 T4: listener per bottone "Genera report PDF" in ResultsOverviewCard.
+    const openExportPdf = () => setReportExportOpen(true);
+    window.addEventListener("feapro:open-export-pdf", openExportPdf);
     return () => {
       window.removeEventListener("feapro:open-import-wizard", openImport);
       window.removeEventListener("feapro:model-imported", onImported);
       window.removeEventListener("feapro:open-template-gallery", openTemplate);
       window.removeEventListener("feapro:open-percorsi", openPercorsi);
+      window.removeEventListener("feapro:open-export-pdf", openExportPdf);
     };
   }, []);
 
@@ -567,10 +574,21 @@ export default function App() {
         models={models ?? []}
         onSelect={(id) => setActiveId(id)}
       />
-      {/* v1.8 T2: placeholder Percorsi (asse semantico prodotto). */}
-      <PercorsiPlaceholderDialog
+      {/* v1.9.0 T1: PercorsiBeamWizard 3-step (sostituisce placeholder).
+          Demo Slice GPS Strutturale: porta da CTA "Percorsi" a modello
+          attivo + analisi pronta da lanciare. */}
+      <PercorsiBeamWizard
         open={percorsiPlaceholderOpen}
         onClose={() => setPercorsiPlaceholderOpen(false)}
+        onLoadTemplate={(templateId) => {
+          setPercorsiPlaceholderOpen(false);
+          setActiveId(templateId);
+        }}
+      />
+      {/* v1.9.0 T4: ReportExportDialog (export PDF multi-sezione). */}
+      <ReportExportDialog
+        open={reportExportOpen}
+        onClose={() => setReportExportOpen(false)}
       />
     </div>
   );

@@ -1,29 +1,76 @@
 /**
- * ModelInfoCard (v1.8 T4).
+ * ModelInfoCard (v1.8 T4, esteso v1.9.0 T3).
  *
  * Card persistente always-on sulla shell desktop (md+), mostra info
- * sintetiche del modello attivo: nome, counts, unita', dimensione.
+ * sintetiche del modello attivo: nome, counts, unita', dimensione, e
+ * **Trust Layer** badge (v1.9.0 T3).
  *
- * Anteprima del pattern "Studio Pro sidebar destra densa" del mockup 08
- * del pacchetto v0.3 (UI Gap Analysis P1 #1). T4 introduce solo la
- * Model info card; Analysis summary + Results overview restano per
- * v1.9 (richiedono Demo Slice end-to-end).
+ * Trust Layer (deterministico, basato su id pattern del modello):
+ *   - 🟢 "Utente"   — modello creato dall'utente (id non riconosciuto come template/AI)
+ *   - 🟡 "Template" — id inizia con "ex_" (template didattico backend)
+ *   - 🟠 "Importato" — id contiene "imp_" o "dxf_" o "ifc_" (placeholder per import)
+ *   - 🟣 "AI-gen"   — id inizia con "ai_" (placeholder per AI generation v2.0)
  *
- * Si nasconde quando model = null (nessuna card vuota).
+ * Si nasconde quando model = null.
  */
 import { useModelStore } from "../../store/modelStore";
+
+type TrustOrigin = "user" | "template" | "imported" | "ai";
+
+function inferTrustOrigin(id: string): TrustOrigin {
+  if (id.startsWith("ai_")) return "ai";
+  if (id.startsWith("ex_")) return "template";
+  if (id.startsWith("imp_") || id.startsWith("dxf_") || id.startsWith("ifc_")) return "imported";
+  return "user";
+}
+
+const TRUST_STYLE: Record<TrustOrigin, { label: string; cls: string; hint: string }> = {
+  user: {
+    label: "Utente",
+    cls: "bg-bg-success text-ink-success border-success/30",
+    hint: "Modello creato dall'utente (Studio Pro o New). Fidato.",
+  },
+  template: {
+    label: "Template",
+    cls: "bg-bg-info text-ink-info border-ink-info/30",
+    hint: "Template didattico fornito (id ex_*). Sostituisci sezione/carichi prima della verifica formale.",
+  },
+  imported: {
+    label: "Importato",
+    cls: "bg-bg-warn text-ink-warn border-warn/30",
+    hint: "Modello da import esterno (DXF/IFC/JSON). Verifica unità e topologia.",
+  },
+  ai: {
+    label: "AI-gen",
+    cls: "bg-bg-purple text-ink-purple border-purple/30",
+    hint: "Generato da AI. Richiede revisione completa prima dell'uso normativo.",
+  },
+};
 
 export function ModelInfoCard() {
   const model = useModelStore((s) => s.model);
   if (!model) return null;
+
+  const origin = inferTrustOrigin(model.id);
+  const trust = TRUST_STYLE[origin];
 
   return (
     <div
       className="border-b border-border p-3 space-y-1.5 bg-bg-panel"
       data-testid="model-info-card"
     >
-      <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
-        Model information
+      <div className="flex items-center justify-between gap-2">
+        <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
+          Model information
+        </div>
+        {/* v1.9.0 T3: Trust Layer badge */}
+        <span
+          title={trust.hint}
+          className={`text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border leading-none ${trust.cls}`}
+          data-testid={`trust-badge-${origin}`}
+        >
+          {trust.label}
+        </span>
       </div>
       <div
         className="text-sm font-semibold text-ink truncate"
