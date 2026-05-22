@@ -279,10 +279,12 @@ export default function App() {
         return;
       }
 
-      // === PRIORITA' 6: numeri 1-5 → navigazione workspace ====================
+      // === PRIORITA' 6: numeri 1-3 → navigazione workspace ====================
+      // v1.5.2 Task 35: "results" (4) e "io" (5) rimossi col legacy. I
+      // risultati vivono nel rail destro Inspect (accessibile via palette).
       if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
-      const map: Record<string, "model" | "analysis" | "results" | "verify" | "io"> = {
-        "1": "model", "2": "analysis", "3": "verify", "4": "results", "5": "io",
+      const map: Record<string, "model" | "analysis" | "verify"> = {
+        "1": "model", "2": "analysis", "3": "verify",
       };
       const ws = map[e.key];
       if (ws) {

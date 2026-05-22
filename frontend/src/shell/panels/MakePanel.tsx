@@ -150,19 +150,28 @@ export function MakePanel() {
         <div className="p-3 space-y-3">
           <Section title="Import / Export">
             <p className="text-[11px] text-ink-muted leading-relaxed mb-2">
-              Import: DXF, IFC, JSON. Export: DXF, IFC, XLSX, PDF.
+              Import: DXF, IFC, JSON (wizard 4-step). Export: PDF, XLSX, CSV,
+              JSON (rail destro · Tools).
             </p>
             <SecondaryButton
               icon={IconArrowsLeftRight}
-              label="Apri menu Export…"
+              label="Apri wizard Import…"
               onClick={() => {
-                // alpha.31 hotfix: setWorkspace("io") aggiornava solo lo store
-                // legacy, ma LeftSlidePanel monta in base a leftRailStore.openSection.
-                // Apriamo entrambi cosi' il pannello I/O viene effettivamente mostrato.
-                useWorkspaceStore.getState().setWorkspace("io");
-                useLeftRailStore.getState().open("io");
+                // v1.5.2 Task 35: rimosso panel I/O legacy. Import via wizard
+                // 4-step (custom event globale gestito da App.tsx).
+                window.dispatchEvent(new CustomEvent("feapro:open-import-wizard"));
               }}
-              testId="make-open-io"
+              testId="make-open-import-wizard"
+            />
+            <SecondaryButton
+              icon={IconArrowsLeftRight}
+              label="Apri Export (rail destro · Tools)"
+              onClick={() => {
+                void import("../../store/rightRailStore").then((m) =>
+                  m.useRightRailStore.getState().open("tools"),
+                );
+              }}
+              testId="make-open-tools-export"
             />
           </Section>
         </div>

@@ -15,8 +15,6 @@ import {
   Hammer,
   Cpu,
   ShieldCheck,
-  BarChart3,
-  ArrowRightLeft,
   HelpCircle,
   Search,
 } from "lucide-react";
@@ -32,18 +30,15 @@ interface RailItem {
   description: string;
   icon: typeof Hammer;
   shortcut?: string;
-  /** Se true: posizionato in fondo al rail (separato da divider). */
-  secondary?: boolean;
 }
 
+// v1.5.2 Task 35: rimosse le voci legacy "Risultati (legacy)" + "I/O (legacy)"
+// (chiave "results" / "io"). Il workflow utente ora e' Make → Solve → Verify
+// e i risultati vivono nel rail destro (Inspect), import/export in Tools.
 const ITEMS: RailItem[] = [
-  // Voci principali (mockup v1.3): tre fasi del workflow
   { key: "model",    label: "Make",     description: "Geometria · carichi · vincoli · mesh", icon: Hammer,         shortcut: "1" },
   { key: "analysis", label: "Solve",    description: "Statica · modale · dinamica · buckling · pushover", icon: Cpu, shortcut: "2" },
   { key: "verify",   label: "Verify",   description: "EC2/3/5/8 · NTC · fatica · convergenza", icon: ShieldCheck, shortcut: "3" },
-  // Voci secondarie (deep-link backward compat — di solito si usa il RightRail)
-  { key: "results",  label: "Risultati (legacy)", description: "Deprecato: usa Inspect del rail destro per i risultati", icon: BarChart3, shortcut: "4", secondary: true },
-  { key: "io",       label: "I/O (legacy)",       description: "Deprecato: usa Tools per import/export e collab",       icon: ArrowRightLeft, shortcut: "5", secondary: true },
 ];
 
 function RailButton({ item }: { item: RailItem }) {
@@ -93,9 +88,7 @@ function RailButton({ item }: { item: RailItem }) {
           "focus-visible:ring-2 focus-visible:ring-accent/60",
           active
             ? "bg-accent-subtle text-accent"
-            : item.secondary
-              ? "text-ink-faint hover:bg-bg-hover hover:text-ink-muted"
-              : "text-ink-muted hover:bg-bg-hover hover:text-ink",
+            : "text-ink-muted hover:bg-bg-hover hover:text-ink",
         )}
       >
         <Icon className="h-4 w-4" strokeWidth={1.8} />
@@ -110,8 +103,6 @@ function RailButton({ item }: { item: RailItem }) {
 
 export function LeftRail() {
   const togglePalette = useWorkspaceStore((s) => s.togglePalette);
-  const mainItems = ITEMS.filter((i) => !i.secondary);
-  const secondaryItems = ITEMS.filter((i) => i.secondary);
 
   return (
     <nav
@@ -119,8 +110,8 @@ export function LeftRail() {
       aria-label="Workspace navigation"
       data-testid="left-rail"
     >
-      {/* Voci principali (Make / Solve / Verify) */}
-      {mainItems.map((it) => <RailButton key={it.key} item={it} />)}
+      {/* Voci principali (Make / Solve / Verify) — workflow fasi */}
+      {ITEMS.map((it) => <RailButton key={it.key} item={it} />)}
 
       <div className="my-1 w-7 border-t border-border" aria-hidden />
 
@@ -138,14 +129,6 @@ export function LeftRail() {
       </Tooltip>
 
       <div className="flex-1" />
-
-      {/* Voci secondarie (legacy: Results / I/O) sopra theme/help */}
-      {secondaryItems.length > 0 && (
-        <>
-          <div className="my-1 w-7 border-t border-border" aria-hidden />
-          {secondaryItems.map((it) => <RailButton key={it.key} item={it} />)}
-        </>
-      )}
 
       {/* Theme toggle (dark/light/system) */}
       <ThemeToggle compact />

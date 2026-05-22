@@ -22,8 +22,9 @@ export function MeasureSnapshotView() {
   };
 
   const openSnapshot = () => {
-    useWorkspaceStore.getState().setWorkspace("results");
-    useLeftRailStore.getState().open("results");
+    // v1.5.2 Task 35: il workspace "results" legacy non esiste piu'.
+    // Snapshot/risultati vivono nel rail destro · Inspect.
+    useRightRailStore.getState().open("inspect");
   };
 
   return (
@@ -44,7 +45,7 @@ export function MeasureSnapshotView() {
         icon={Camera}
         title="Snapshot"
         description="Congela lo stato corrente dei risultati (deformata + stress + colormap) per confrontarli con un run successivo."
-        ctaLabel="Apri pannello Risultati"
+        ctaLabel="Apri Inspect (rail destro)"
         onAction={openSnapshot}
         disabled={!model}
         hint="Disponibile dopo aver eseguito un'analisi."

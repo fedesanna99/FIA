@@ -33,12 +33,12 @@ describe("leftRailStore (alpha.22)", () => {
   });
 
   it("open() forces section explicitly", () => {
-    useLeftRailStore.getState().open("results");
-    expect(useLeftRailStore.getState().openSection).toBe("results");
+    useLeftRailStore.getState().open("analysis");
+    expect(useLeftRailStore.getState().openSection).toBe("analysis");
   });
 
   it("close() resets to null", () => {
-    useLeftRailStore.getState().open("io");
+    useLeftRailStore.getState().open("verify");
     useLeftRailStore.getState().close();
     expect(useLeftRailStore.getState().openSection).toBeNull();
   });

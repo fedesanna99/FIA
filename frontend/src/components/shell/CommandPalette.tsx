@@ -98,7 +98,9 @@ export function CommandPalette() {
       case "run-analysis":
         if (!model) return;
         setAnalysisType(item.payload as Parameters<typeof setAnalysisType>[0]);
-        setWorkspace("results");
+        // v1.5.2 Task 35: workspace "results" rimosso. Apriamo direttamente
+        // l'Inspect del RightRail dove ora vivono i risultati post-analisi.
+        setOpenSection("inspect");
         run();
         break;
       case "external-link":
@@ -120,11 +122,10 @@ export function CommandPalette() {
         window.dispatchEvent(new CustomEvent("feapro:open-auth"));
         break;
       case "openExport":
-        // alpha.31 hotfix: setWorkspace("io") da solo non monta nulla — il
-        // LeftSlidePanel legge da leftRailStore.openSection. Apriamo
-        // esplicitamente la sezione "io" cosi' compare il pannello I/O.
-        setWorkspace("io");
-        useLeftRailStore.getState().open("io");
+        // v1.5.2 Task 35: il pannello I/O legacy e' stato rimosso. L'export
+        // vive ora nel rail destro "Tools" (ExportView con 5 rows PDF/XLSX/
+        // CSV/JSON). Lo apriamo direttamente.
+        setOpenSection("tools");
         break;
       case "logout":
         authLogout();
@@ -321,13 +322,14 @@ export function CommandPalette() {
   }
 
   // ── Suggeriti contestuali (top 3 in base al workspace) ───────────────────
+  // v1.5.2 Task 35: rimossi suggerimenti per "results"/"io" insieme al
+  // workspace legacy. Inspect e Tools restano raggiungibili da palette via
+  // alias ("risultati" → rp-inspect, "import"/"export" → rp-tools).
   const favorites = useMemo<PaletteItem[]>(() => {
     const map: Partial<Record<typeof workspace, string[]>> = {
       model:    ["open-mesh-wizard", "add-node", "add-load"],
       analysis: ["run-static", "run-modal", "run-dynamic"],
-      results:  ["rp-inspect", "rp-view", "open-export"],
-      verify:   ["ws-results", "rp-inspect", "help-validation"],
-      io:       ["open-export", "open-location", "concept-wind"],
+      verify:   ["rp-inspect", "help-validation", "open-export"],
       docs:     ["help-overview", "help-shortcuts", "help-api-docs"],
     };
     const ids = map[workspace] ?? [];

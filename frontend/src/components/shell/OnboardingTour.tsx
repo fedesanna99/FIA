@@ -107,18 +107,23 @@ const STEPS: Step[] = [
   },
   {
     id: "results",
-    workspace: "results",
+    // v1.5.2 Task 35: workspace "results" rimosso. Lo step ora preview il
+    // rail destro Inspect (post-analisi) — workspace target è il piu'
+    // contestuale "analysis" (Solve panel sinistro).
+    workspace: "analysis",
     icon: <BarChart3 className="h-8 w-8 text-accent" />,
-    title: "3 · Workspace RISULTATI",
-    description: "Deformata, drift, modi, qualità mesh.",
+    title: "3 · Risultati nel rail destro · Inspect",
+    description: "Deformata, drift, modi, qualità mesh — Inspect del rail destro.",
     body: (
       <div className="space-y-2 text-xs text-ink-muted">
-        <p>Visualizza i risultati delle analisi nel viewport 3D ed esplora i dati nelle tab:</p>
+        <p>Dopo aver eseguito un'analisi i risultati vivono nel <strong className="text-ink">rail destro · Inspect</strong> (icona occhio). Tab disponibili:</p>
         <ul className="list-disc pl-4 space-y-0.5">
-          <li><strong className="text-ink">Drift</strong> — interstory drift sismico con soglie EC8</li>
-          <li><strong className="text-ink">Modi</strong> — sovrapposizione modale con slider weight</li>
-          <li><strong className="text-ink">Qualità</strong> — convergenza Richardson + errore ZZ per h-refinement</li>
+          <li><strong className="text-ink">Statica</strong> — spostamenti, reazioni vincolari, σ Von Mises</li>
+          <li><strong className="text-ink">Modale</strong> — frequenze, modi animati, massa partecipante</li>
+          <li><strong className="text-ink">Dinamica</strong> — time-history nodi + envelope</li>
+          <li><strong className="text-ink">Iso 3D</strong> — iso-superfici per modelli solidi</li>
         </ul>
+        <p className="text-[11px] pt-1">Il drift sismico EC8 vive in <strong className="text-ink">Verify</strong> (sinistro). Cerca "drift" in Ctrl+K.</p>
       </div>
     ),
   },
@@ -143,20 +148,20 @@ const STEPS: Step[] = [
   },
   {
     id: "io-collab",
-    workspace: "io",
+    // v1.5.2 Task 35: workspace "io" rimosso. Import/export ora vivono in:
+    //   - ImportWizard 4-step (Ctrl+K · "import" o Dashboard)
+    //   - Tools del rail destro (Export PDF/XLSX/CSV/JSON/DXF)
     icon: <ArrowRightLeft className="h-8 w-8 text-accent" />,
-    title: "5 · Workspace I/O & COLLAB",
-    description: "Import/export · AI Copilot · multi-utente.",
+    title: "5 · Import / Export / Collab",
+    description: "Wizard import 4-step · Tools (rail destro) · palette per tutto.",
     body: (
       <div className="space-y-2 text-xs text-ink-muted">
-        <p>7 tab per tutte le interazioni con l'esterno:</p>
+        <p>L'I/O e' stato semplificato:</p>
         <ul className="list-disc pl-4 space-y-0.5">
-          <li>Validazione automatica del modello (FASE 23)</li>
-          <li>Import DXF / IFC, Export PDF / Excel / DXF / IFC</li>
-          <li>Catalogo accelerogrammi PEER + sintetici Kanai-Tajimi / Boore</li>
-          <li>Confronto modelli A vs B</li>
-          <li>Chat AI Copilot sul modello attivo</li>
-          <li>Sessione collaborativa WebSocket</li>
+          <li><strong className="text-ink">Import</strong> — wizard 4-step (Fonte → File → Anteprima → Conferma). Cerca "import" in Ctrl+K o usa Dashboard.</li>
+          <li><strong className="text-ink">Export</strong> — rail destro · Tools · 5 formati (PDF / XLSX / CSV / JSON / DXF).</li>
+          <li><strong className="text-ink">Validazione NAFEMS</strong> — rail destro · Tools · Validation.</li>
+          <li><strong className="text-ink">AI Copilot</strong> — placeholder Sprint 5 (toast "soon"). Disponibile in palette + AvatarMenu.</li>
         </ul>
         <div className="flex items-center gap-2 pt-2 text-[11px]">
           <Command className="h-3.5 w-3.5" />

@@ -29,16 +29,18 @@ function renderRail() {
 }
 
 
-describe("LeftRail (alpha.20: Make/Solve/Verify + Results/IO legacy)", () => {
-  it("renders 3 main workspace buttons + 2 secondary legacy", () => {
+describe("LeftRail (v1.5.2: Make/Solve/Verify · legacy Results/IO rimossi)", () => {
+  it("renders 3 main workspace buttons (Make/Solve/Verify)", () => {
     renderRail();
-    // 3 main (workflow): model=Make, analysis=Solve, verify=Verify
     expect(screen.getByTestId("left-rail-model")).toBeInTheDocument();
     expect(screen.getByTestId("left-rail-analysis")).toBeInTheDocument();
     expect(screen.getByTestId("left-rail-verify")).toBeInTheDocument();
-    // 2 secondary (legacy deep-link)
-    expect(screen.getByTestId("left-rail-results")).toBeInTheDocument();
-    expect(screen.getByTestId("left-rail-io")).toBeInTheDocument();
+  });
+
+  it("does NOT render legacy Results/IO buttons (v1.5.2 Task 35)", () => {
+    renderRail();
+    expect(screen.queryByTestId("left-rail-results")).toBeNull();
+    expect(screen.queryByTestId("left-rail-io")).toBeNull();
   });
 
   it("click on Solve opens slide panel + sets workspace=analysis", () => {
@@ -85,13 +87,6 @@ describe("LeftRail (alpha.20: Make/Solve/Verify + Results/IO legacy)", () => {
     expect(screen.getByTestId("left-rail-model")).toHaveAttribute("aria-expanded", "false");
     fireEvent.click(screen.getByTestId("left-rail-model"));
     expect(screen.getByTestId("left-rail-model")).toHaveAttribute("aria-expanded", "true");
-  });
-
-  it("secondary items use ink-faint color (deprecated visual cue)", () => {
-    renderRail();
-    const secondary = screen.getByTestId("left-rail-results");
-    // Quando NON attivo, deve avere classe text-ink-faint
-    expect(secondary.className).toMatch(/text-ink-faint/);
   });
 
   it("palette button is rendered", () => {

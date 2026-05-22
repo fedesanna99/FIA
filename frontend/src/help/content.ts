@@ -85,39 +85,6 @@ Lanczos per modale, eigenvalue analysis per buckling, active-set per molle unila
 `,
   },
 
-  results: {
-    title: "Workspace RISULTATI",
-    md: `
-## Cosa fa
-Visualizza, interroga e post-elabora i risultati delle analisi.
-
-## Tab disponibili
-- **Vista** — controlli viewport (deformata, stress, modi, animazioni).
-- **Dati** — tabelle nodi, reazioni, forze elementi, modi.
-- **Drift** — interstory drift sismico (EC8 §4.4.3).
-- **Modi** — sovrapposizione modale con slider weight ∈ [-1, +1] per modo.
-- **Qualità** — convergenza Richardson + GCI ASME V&V20 + errore Zienkiewicz-Zhu.
-- **Snapshot** — confronto risultati salvati (versioning).
-
-## Drift
-- Inserisci i node_id dei piani **ordinati dal basso verso l'alto**.
-- Specifica \`h_storey\` [m] per ottenere il **drift ratio**.
-- Soglie EC8: ≤ 0.5% h_storey (contenuto fragile), ≤ 1% h (duttile).
-
-## Convergenza (h-refinement)
-Lancia la stessa analisi su 3+ mesh sempre più fini, e inserisci i valori
-della grandezza di interesse (es. freccia max). Il backend stima:
-- **Ordine apparente** (≈ 2 per Bernoulli, Q4, CST)
-- **q estrapolato** Richardson
-- **GCI fine** < 5% indica convergenza accettabile
-
-## Errore ZZ (Zienkiewicz-Zhu)
-Stima a posteriori dell'errore basata su smoothing nodale dei valori
-discontinui per elemento. Il sistema ti suggerisce i **top 20% elementi**
-candidati per h-refinement.
-`,
-  },
-
   verify: {
     title: "Workspace VERIFICHE",
     md: `
@@ -156,41 +123,6 @@ Grafico interattivo, parametri S/T_B/T_C/T_D visibili.
 Costruisci la lista azioni (G1, G2, P, Q, E, A) con categorie ψ. Il sistema
 **enumera tutte le combinazioni** per il tipo richiesto, con coefficienti per
 ciascuna azione + envelope max/min.
-`,
-  },
-
-  io: {
-    title: "Workspace I/O & COLLAB",
-    md: `
-## Cosa fa
-Import/export, generatori, AI Copilot, collaborazione real-time.
-
-## Tab disponibili
-- **Validazione** — auto-detect issues nel modello (FASE 23): nodi orfani, elementi duplicati, ecc.
-- **Import** — DXF (LINE/POLYLINE → BEAM) e IFC4 (IfcBeam/Column/Member).
-- **Export** — PDF reportlab · Excel multi-sheet · DXF strutturato · IFC4.
-- **Accel** — catalogo accelerogrammi PEER NGA + generatore sintetico (Kanai-Tajimi / Boore).
-- **Compare** — confronto modelli A vs B (entità aggiunte/rimosse/modificate + delta risultati).
-- **AI** — chat Copilot sul modello attivo (provider Gemini con fallback Mock).
-- **Collab** — sessione WebSocket multi-utente (presence + Lamport ordering).
-
-## Import DXF
-Default: tutti gli elementi ricevono il materiale e la sezione configurati.
-Tolleranza dedupe nodi coincidenti (default 1e-6 m).
-
-> **Nota**: mapping layer DXF → materiale/sezione è carry-over BL-8 (non ancora UI-driven).
-
-## AI Copilot
-Multi-turn con storia ultime 8 messaggi. Esempi:
-- "Quanti nodi ha il modello?"
-- "Qual è l'elemento con UR massimo?"
-- "Suggerisci ottimizzazioni per ridurre peso."
-
-## Collab
-1. Imposta un nome utente.
-2. **Connetti** — apre WebSocket /ws/collab/{model_id}.
-3. La presenza è propagata in tempo reale agli altri client connessi.
-4. L'editing si propaga via lo store esistente (op-based con Lamport timestamp).
 `,
   },
 

@@ -14,13 +14,12 @@ import { useModelStore } from "../../../store/modelStore";
 import { useWorkspaceStore, type Workspace } from "../../../store/workspaceStore";
 
 
-// Allineato al LeftRail v3 (alpha.20): label corti workflow-oriented
+// Allineato al LeftRail v3 (alpha.20): label corti workflow-oriented.
+// v1.5.2 Task 35: rimossi "results" e "io" dopo dismissione legacy panels.
 const WORKSPACE_LABELS: Record<Workspace, string> = {
   model:    "Make",
   analysis: "Solve",
   verify:   "Verify",
-  results:  "Risultati",
-  io:       "I/O & Collab",
   docs:     "Docs",
 };
 

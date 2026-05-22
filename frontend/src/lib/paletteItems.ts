@@ -103,18 +103,20 @@ export interface PaletteItem {
 
 
 // ── 1) PANELS — Workspace + RightRail ──────────────────────────────────────
+// v1.5.2 Task 35: rimosse voci ws-results / ws-io legacy. Chi cerca
+// "risultati" trova rp-inspect (alias "risultati"); chi cerca "import"/
+// "export" trova rp-tools (alias "import"/"export") + le voci wizard
+// dedicate.
 const PANELS: PaletteItem[] = [
-  // Workspace (LeftRail 6-rail)
+  // Workspace (LeftRail Make/Solve/Verify)
   { id: "ws-make",    label: "Vai a · Make",    description: "Geometria · mesh · carichi · vincoli", aliases: ["modello", "geometry", "geometria"], section: "panels", group: "Workspace", icon: Boxes,        shortcut: "1", actionKind: "workspace", payload: "model" },
   { id: "ws-solve",   label: "Vai a · Solve",   description: "Statica · modale · dinamica · sismica · pushover", aliases: ["analisi", "calcola", "run"], section: "panels", group: "Workspace", icon: Cpu,           shortcut: "2", actionKind: "workspace", payload: "analysis" },
   { id: "ws-verify",  label: "Vai a · Verify",  description: "EC2/3/5/8 · NTC · fatica", aliases: ["verifiche", "ec3", "ec8"], section: "panels", group: "Workspace", icon: ShieldCheck, shortcut: "3", actionKind: "workspace", payload: "verify" },
-  { id: "ws-results", label: "Vai a · Risultati (legacy)", description: "Deprecato: usa Inspect del rail destro", aliases: ["results"], section: "panels", group: "Workspace", icon: BarChart3, shortcut: "4", actionKind: "workspace", payload: "results" },
-  { id: "ws-io",      label: "Vai a · I/O (legacy)", description: "Deprecato: usa Tools", aliases: ["import", "export", "collab"], section: "panels", group: "Workspace", icon: ArrowRightLeft, shortcut: "5", actionKind: "workspace", payload: "io" },
 
   // RightRail sections
-  { id: "rp-inspect", label: "Pannello · Inspect (risultati)", aliases: ["risultati"], section: "panels", group: "Rail destro", icon: Eye,    actionKind: "right-panel", payload: "inspect" },
+  { id: "rp-inspect", label: "Pannello · Inspect (risultati)", aliases: ["risultati", "results", "inspect"], section: "panels", group: "Rail destro", icon: Eye,    actionKind: "right-panel", payload: "inspect" },
   { id: "rp-view",    label: "Pannello · View (overlay)", aliases: ["layer", "deformata", "stress"], section: "panels", group: "Rail destro", icon: Layers,  actionKind: "right-panel", payload: "view" },
-  { id: "rp-tools",   label: "Pannello · Tools (strumenti)", aliases: ["compare", "snapshot", "misure"], section: "panels", group: "Rail destro", icon: Wrench,  actionKind: "right-panel", payload: "tools" },
+  { id: "rp-tools",   label: "Pannello · Tools (strumenti)", aliases: ["compare", "snapshot", "misure", "io", "import", "export", "collab"], section: "panels", group: "Rail destro", icon: Wrench,  actionKind: "right-panel", payload: "tools" },
   { id: "rp-history", label: "Pannello · History (snapshot)", aliases: ["timeline", "undo"], section: "panels", group: "Rail destro", icon: History, actionKind: "right-panel", payload: "history" },
 ];
 

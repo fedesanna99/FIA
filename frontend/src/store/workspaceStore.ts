@@ -18,12 +18,13 @@ import { LEFT_TO_LEGACY, LEGACY_TO_LEFT } from "../shell/types";
 
 
 // ── Tipi legacy (mantenuti per backward compat) ────────────────────────────
+// v1.5.2 Task 35: rimosse "results" e "io" da Workspace dopo la dismissione
+// definitiva dei due panel legacy. Risultati restano accessibili via
+// RightRail "inspect", import/export via Tools panel.
 export type Workspace =
   | "model"      // 🏗️ Modello → mappato a LeftPanelId "make"
   | "analysis"   // ⚙️ Analisi → mappato a LeftPanelId "solve"
-  | "results"    // 📊 Risultati → ora accessibile via RightRail "inspect"
   | "verify"     // ✅ Verifiche → mappato a LeftPanelId "verify"
-  | "io"         // 🔄 I/O → ora via Tools panel + Export menu
   | "docs";      // ⓘ Docs / Help — overlay
 
 export type WorkspaceTab = string;
@@ -57,9 +58,7 @@ interface WorkspaceState extends ShellState, ShellActions {
 const DEFAULT_TAB: Record<Workspace, WorkspaceTab> = {
   model:    "tree",
   analysis: "linear",
-  results:  "viewport",
   verify:   "ec3",
-  io:       "import",
   docs:     "overview",
 };
 

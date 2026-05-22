@@ -51,14 +51,16 @@ describe("paletteItems registry", () => {
     expect(sections.has("loads")).toBe(true);
   });
 
-  it("workspace navigation items cover all 5 workspaces", () => {
+  it("workspace navigation items cover Make/Solve/Verify (v1.5.2)", () => {
+    // v1.5.2 Task 35: "results" e "io" rimossi col legacy. Le 3 fasi
+    // workflow restano i soli destination del LeftRail.
     const wsItems = PALETTE_ITEMS.filter((i) => i.actionKind === "workspace");
     const payloads = wsItems.map((i) => i.payload);
     expect(payloads).toContain("model");
     expect(payloads).toContain("analysis");
-    expect(payloads).toContain("results");
     expect(payloads).toContain("verify");
-    expect(payloads).toContain("io");
+    expect(payloads).not.toContain("results");
+    expect(payloads).not.toContain("io");
   });
 
   it("right-panel items cover Inspect/View/Tools/History", () => {
