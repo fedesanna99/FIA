@@ -71,6 +71,7 @@ import { useWorkspaceStore } from "./store/workspaceStore";
 import { useLeftRailStore } from "./store/leftRailStore";
 import { useRightRailStore } from "./store/rightRailStore";
 import { useThemeStore } from "./store/themeStore";
+import { toast } from "./store/toastStore";
 import { useWizardStore } from "./store/wizardStore";
 
 /**
@@ -82,12 +83,8 @@ function enterFocusMode() {
   const ws = useWorkspaceStore.getState();
   useLeftRailStore.getState().close();
   ws.enterEmptyState();
-  void import("./store/rightRailStore").then((m) =>
-    m.useRightRailStore.getState().close(),
-  );
-  void import("./store/toastStore").then(({ toast }) => {
-    toast("info", "Modalità focus — premi F o Esc per tornare", 3000);
-  });
+  useRightRailStore.getState().close();
+  toast("info", "Modalità focus — premi F o Esc per tornare", 3000);
 }
 
 function pwaSafeAreaEnabled() {
@@ -274,9 +271,7 @@ export default function App() {
         case "pushover":
         case "nonlinear":
         case "report":
-          void import("./store/toastStore").then(({ toast }) =>
-            toast("info", `Wizard ${kind} in arrivo nel prossimo update.`),
-          );
+          toast("info", `Wizard ${kind} in arrivo nel prossimo update.`);
           break;
       }
       if (oneShot) useWizardStore.getState().close();
@@ -332,9 +327,7 @@ export default function App() {
           ws.closeLeftPanel();
           ws.closeRightPanel();
           useLeftRailStore.getState().close();
-          void import("./store/rightRailStore").then((m) =>
-            m.useRightRailStore.getState().close(),
-          );
+          useRightRailStore.getState().close();
           return;
         }
       }

@@ -334,9 +334,7 @@ export function CommandPalette() {
         } else {
           useLeftRailStore.getState().close();
           ws.enterEmptyState();
-          void import("../../store/rightRailStore").then((m) =>
-            m.useRightRailStore.getState().close(),
-          );
+          useRightRailStore.getState().close();
         }
         break;
       }

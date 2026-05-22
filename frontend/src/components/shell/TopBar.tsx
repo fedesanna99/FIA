@@ -41,7 +41,8 @@ import { LocationPickerDialog } from "../dialogs/LocationPickerDialog";
 import { AuthDialog } from "../dialogs/AuthDialog";
 import { useClimateStore } from "../../store/climateStore";
 import { useAuthStore } from "../../store/authStore";
-import { toast, useToastStore } from "../../store/toastStore";
+import { toast } from "../../store/toastStore";
+import { useNotificationsStore } from "../../store/notificationsStore";
 import { APP_VERSION } from "../../lib/version";
 import { ModelMenu } from "./topbar/ModelMenu";
 import { GlobalSearch } from "./topbar/GlobalSearch";
@@ -76,15 +77,12 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   // veri (l'API e' pronta lato store).
   const canUndo = useModelHistory((s) => s.past.length > 0);
   const canRedo = useModelHistory((s) => s.future.length > 0);
-  // v1.6.1 T3 · BUG-3: il badge "3" al primo avvio era correlato a toast
-  // errore generici del backend offline (gia' fixati in T1: client.ts ora
-  // non emette toast su network error puro). In piu' filtriamo qui per
-  // contare SOLO toast error/warning come "notifiche unread": un toast
-  // info "Tema scuro applicato" non deve far apparire il bell rosso.
-  // alpha.30: placeholder. Verra' sostituito da notificationsStore dedicato
-  // quando arrivera' la persistenza side-bar.
-  const unreadCount = useToastStore((s) =>
-    s.toasts.filter((t) => t.level === "error" || t.level === "warning").length,
+  // v1.7-polish-pass2 T2: bell counter ora legge da notificationsStore
+  // dedicato (no piu' useToastStore filtrato). Le notifiche persistono
+  // anche dopo che il toast e' sparito (3-6s), quindi il badge ora ha
+  // semantica corretta "non lette" invece di "toast attualmente in stack".
+  const unreadCount = useNotificationsStore((s) =>
+    s.items.filter((n) => !n.read).length,
   );
   // v1.6 S0 · B17: chip job attivo sempre visibile in topbar quando un'analisi
   // sta girando, cosi' l'utente vede progresso live senza dover aprire la
@@ -325,7 +323,12 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         <Tooltip content="Notifiche">
           <button
             type="button"
-            onClick={() => toast("info", "Centro notifiche in arrivo (sheet).")}
+            onClick={() => {
+              // v1.7-polish-pass2: click bell -> mark-all-read. Sheet centro
+              // notifiche resta TODO (placeholder toast informativo).
+              useNotificationsStore.getState().markAllRead();
+              toast("info", "Centro notifiche in arrivo (sheet).");
+            }}
             className="hidden md:flex relative w-8 h-8 rounded-md items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink flex-shrink-0"
             aria-label="Notifiche"
             data-testid="topbar-bell"

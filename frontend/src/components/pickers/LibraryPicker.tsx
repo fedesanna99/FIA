@@ -13,6 +13,7 @@
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { useModalBackButton } from "../../hooks/useModalBackButton";
+import { toast } from "../../store/toastStore";
 import { cn } from "../ui/cn";
 
 
@@ -242,9 +243,7 @@ function CustomItemPlaceholder() {
     <button
       type="button"
       onClick={() => {
-        void import("../../store/toastStore").then(({ toast }) =>
-          toast("info", "Editor custom in arrivo nello Sprint 2."),
-        );
+        toast("info", "Editor custom in arrivo nello Sprint 2.");
       }}
       className="text-[12px] text-ink-info hover:underline"
     >

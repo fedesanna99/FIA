@@ -7,6 +7,7 @@ import { useJobsStore, JOB_KIND_LABELS, type JobKind } from "../store/jobsStore"
 import { modelHash } from "../utils/geometry";
 import { translateApiError } from "../lib/apiErrors";
 import { toast } from "../store/toastStore";
+import { notify } from "../store/notificationsStore";
 
 export function useRunAnalysis() {
   const model = useModelStore((s) => s.model);
@@ -49,6 +50,8 @@ export function useRunAnalysis() {
       setModelHashAtAnalysis(modelHash(model));
       useJobsStore.getState().finish(jobId, { success: true });
       toast("success", `Analisi ${analysisType} completata`);
+      // v1.7-polish-pass2 T2: notifica persistente nel bell badge.
+      notify("success", `Analisi ${analysisType} completata`, "Risultati disponibili in Inspect");
     } catch (e: any) {
       // v1.6 S0 · B05 + B17: errore tradotto in IT, job marcato error.
       const { title, description } = translateApiError(e?.response?.data ?? e);
@@ -57,6 +60,7 @@ export function useRunAnalysis() {
         success: false,
         errorMessage: description ?? title,
       });
+      notify("error", `Errore analisi ${analysisType}`, description ?? title);
     } finally {
       setRunning(false);
       try { ws.close(); } catch { /* ignore */ }

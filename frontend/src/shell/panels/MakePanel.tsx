@@ -19,6 +19,7 @@ import {
 import { useUIStore } from "../../store/uiStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
+import { useRightRailStore } from "../../store/rightRailStore";
 import { useModelStore } from "../../store/modelStore";
 import { ModelTree } from "../../components/panels/ModelTree";
 import { EmptyState } from "../../components/ui/EmptyState";
@@ -211,9 +212,7 @@ export function MakePanel() {
               icon={IconArrowsLeftRight}
               label="Apri Export (rail destro · Tools)"
               onClick={() => {
-                void import("../../store/rightRailStore").then((m) =>
-                  m.useRightRailStore.getState().open("tools"),
-                );
+                useRightRailStore.getState().open("tools");
               }}
               testId="make-open-tools-export"
             />
