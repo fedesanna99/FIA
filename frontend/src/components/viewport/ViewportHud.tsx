@@ -42,9 +42,8 @@ export function ViewportHud() {
   const activeBaseLayers = [showGrid, showLoads, showConstraints, showNodeLabels].filter(Boolean).length;
   const renderLabel = viewportMode === "wireframe" ? "Wire" : viewportMode === "transparent" ? "Transp" : "Solid";
   const cameraLabel = projection === "orthographic" ? "Orto" : "Persp";
-  // materials non è ancora nel tipo FEAModel: read difensivo
-  const materials = (model as unknown as { materials?: { name?: string }[] }).materials;
-  const material = materials?.[0]?.name ?? "—";
+  // v1.7-polish T3: ora `materials?` esiste in FEAModel — cast unsafe rimosso.
+  const material = model.materials?.[0]?.name ?? "—";
 
   return (
     <div className="absolute top-3.5 left-3.5 right-3.5 z-10 flex flex-wrap gap-2 pointer-events-none">

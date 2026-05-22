@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { TooltipProvider } from "@radix-ui/react-tooltip";
 
-import { Breadcrumb } from "./Breadcrumb";
 import { GlobalSearch } from "./GlobalSearch";
 import { AICopilotButton } from "./AICopilotButton";
 import { CollabAvatars } from "./CollabAvatars";
@@ -29,31 +28,8 @@ beforeEach(() => {
 });
 
 
-describe("Breadcrumb", () => {
-  it("renders 'Nessun modello' placeholder when no model loaded", () => {
-    render(wrap(<Breadcrumb />));
-    expect(screen.getByTestId("topbar-breadcrumb")).toBeInTheDocument();
-    expect(screen.getByText(/Nessun modello/i)).toBeInTheDocument();
-  });
-
-  it("renders model name when loaded", () => {
-    useModelStore.setState({
-      model: { id: "x", name: "Demo portal", elements: [], nodes: [] },
-    } as any);
-    render(wrap(<Breadcrumb />));
-    expect(screen.getByTestId("breadcrumb-model")).toHaveTextContent("Demo portal");
-  });
-
-  it("workspace label reflects current workspace", () => {
-    useWorkspaceStore.setState({
-      workspace: "analysis",
-    } as any);
-    render(wrap(<Breadcrumb />));
-    // alpha.20: label workflow-oriented "Solve" sostituisce "Analisi"
-    expect(screen.getByTestId("breadcrumb-workspace")).toHaveTextContent("Solve");
-  });
-});
-
+// v1.7-polish T1: rimossa suite "Breadcrumb" insieme al componente
+// `topbar/Breadcrumb.tsx` (legacy non referenziato da nessun import).
 
 describe("GlobalSearch", () => {
   it("renders desktop button with Ctrl+K hint", () => {

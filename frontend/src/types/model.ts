@@ -84,4 +84,12 @@ export interface FEAModel {
   elements: Element[];
   loads: Load[];
   constraints: Constraint[];
+  /**
+   * v1.7-polish T3: libreria materiali del modello.
+   * Opzionale per retrocompatibilità con modelli serializzati prima
+   * dell'introduzione del campo. Quando assente, il consumer mostra
+   * placeholder neutro (es. "—" in ViewportHud) — vedi follow-up
+   * alpha.30 Task 3 (rimuove cast `as unknown` precedente).
+   */
+  materials?: { id?: string; name?: string; color?: string }[];
 }

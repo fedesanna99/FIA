@@ -14,7 +14,7 @@
  * Riferimento visuale: mockup `fea_pro_progressive_disclosure_v1.html`
  * sezione 03 "Hub invece di toolbar densa".
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { IconTool } from "@tabler/icons-react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
@@ -30,7 +30,11 @@ import { ImportPanel } from "../../components/panels/ImportPanel";
 import { ExportServerPanel } from "../../components/panels/ExportServerPanel";
 import { AccelerogramsPanel } from "../../components/panels/AccelerogramsPanel";
 import { ComparePanel } from "../../components/panels/ComparePanel";
-import { AICopilotPanel } from "../../components/panels/AICopilotPanel";
+// v1.7-polish T2: AICopilotPanel lazy-loaded (chunk ~50kB con icons).
+// Caricato solo quando l'utente apre il sub-view "ai-copilot" da ToolsPanel.
+const AICopilotPanel = lazy(() =>
+  import("../../components/panels/AICopilotPanel").then((m) => ({ default: m.AICopilotPanel })),
+);
 import { CollabPanel } from "../../components/panels/CollabPanel";
 
 
@@ -111,7 +115,11 @@ export function ToolsPanel() {
             {view === "auto-detect" && <AutoDetectView />}
             {view === "accelerograms" && <AccelerogramsPanel />}
             {view === "compare" && <ComparePanel />}
-            {view === "ai-copilot" && <AICopilotPanel />}
+            {view === "ai-copilot" && (
+              <Suspense fallback={<div className="p-4 text-xs text-ink-muted">Caricamento AI Copilot…</div>}>
+                <AICopilotPanel />
+              </Suspense>
+            )}
             {view === "collab" && <CollabPanel />}
             {view === "cost-preview" && <CostPreviewView />}
           </div>

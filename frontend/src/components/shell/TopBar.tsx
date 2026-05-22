@@ -11,7 +11,7 @@
  * Mantiene tutta la logica precedente: TanStack Query, Auth verify
  * al mount, run analysis, dialog modali.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useState, lazy, Suspense } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getQuota } from "../../api/billing";
 import {
@@ -33,7 +33,10 @@ import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useJobsStore } from "../../store/jobsStore";
 import { NewModelDialog } from "../dialogs/NewModelDialog";
 import { EditModelDialog } from "../dialogs/EditModelDialog";
-import { AccountDialog } from "../dialogs/AccountDialog";
+// v1.7-polish T2: AccountDialog lazy-loaded (raramente aperto, ~30kB).
+const AccountDialog = lazy(() =>
+  import("../dialogs/AccountDialog").then((m) => ({ default: m.AccountDialog })),
+);
 import { LocationPickerDialog } from "../dialogs/LocationPickerDialog";
 import { AuthDialog } from "../dialogs/AuthDialog";
 import { useClimateStore } from "../../store/climateStore";
@@ -348,7 +351,11 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         }}
       />
       <EditModelDialog open={editOpen} onClose={() => setEditOpen(false)} />
-      <AccountDialog open={accountOpen} onClose={() => setAccountOpen(false)} />
+      {accountOpen && (
+        <Suspense fallback={null}>
+          <AccountDialog open={accountOpen} onClose={() => setAccountOpen(false)} />
+        </Suspense>
+      )}
       <LocationPickerDialog
         open={locationOpen}
         onClose={() => setLocationOpen(false)}
