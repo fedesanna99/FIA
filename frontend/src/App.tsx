@@ -27,6 +27,7 @@ import { useCallback, useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "./components/ui/cn";
 import { TopBar } from "./components/shell/TopBar";
+import { MissionBar } from "./components/shell/MissionBar";
 import { LeftRail } from "./components/shell/LeftRail";
 import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
 import { RightRail } from "./components/shell/RightRail";
@@ -413,6 +414,9 @@ export default function App() {
       {!isFocusMode && (
         <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
       )}
+      {/* v1.8 T3: MissionBar (stato modello + prossimo passo).
+          Si nasconde da sola se model = null (Home gestisce empty). */}
+      {!isFocusMode && <MissionBar />}
       <div className="flex flex-1 min-h-0 relative">
         {showRails && <LeftRail />}
         {/* LeftSlidePanel ankorato a sinistra (toggle via leftRailStore).
