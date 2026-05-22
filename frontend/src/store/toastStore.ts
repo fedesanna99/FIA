@@ -17,13 +17,35 @@ interface ToastState {
 
 let counter = 0;
 
+/**
+ * v1.5.2 Task 38: durata auto-dismiss tone-aware. Gli errori restano piu'
+ * a lungo (6s) per dare tempo di leggere, le info/success spariscono prima.
+ */
+const DEFAULT_TTL: Record<ToastLevel, number> = {
+  info:    4000,
+  success: 3500,
+  warning: 5000,
+  error:   6000,
+};
+
+/** Massimo numero di toast visibili contemporaneamente: i piu' vecchi vengono dismissati. */
+const STACK_LIMIT = 3;
+
+
 export const useToastStore = create<ToastState>((set, get) => ({
   toasts: [],
-  push: (level, message, ttlMs = 4000) => {
+  push: (level, message, ttlMs) => {
     const id = ++counter;
-    set((s) => ({ toasts: [...s.toasts, { id, level, message, ttlMs }] }));
-    if (ttlMs > 0) {
-      setTimeout(() => get().dismiss(id), ttlMs);
+    const duration = ttlMs ?? DEFAULT_TTL[level];
+    set((s) => {
+      const next = [...s.toasts, { id, level, message, ttlMs: duration }];
+      // v1.5.2 Task 38: stack limit — droppa i piu' vecchi per non
+      // sommergere lo schermo con catene di errori HTTP.
+      while (next.length > STACK_LIMIT) next.shift();
+      return { toasts: next };
+    });
+    if (duration > 0 && Number.isFinite(duration)) {
+      setTimeout(() => get().dismiss(id), duration);
     }
   },
   dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
