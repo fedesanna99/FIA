@@ -1,5 +1,138 @@
 # Changelog FEA Pro
 
+## v1.6.0-sprint0 — Bug fix bloccanti test ingegnere (10 task P0) — 2026-05-22
+
+Sprint 0 di v1.6 — pure fix, **zero nuove feature**. Obiettivo: chiudere
+i 10 bug P0 emersi al primo test reale con un ingegnere strutturista.
+Pattern operativo: 1000 piccoli passi atomici, quality gates + sync
+dopo ogni commit, `sincronizza test con tutto` (push test:test + test:main
+su origin).
+
+### Task 1 — B01 'Da template' → TemplateGalleryDialog (`cd5f1ee`)
+- NEW `dialogs/TemplateGalleryDialog.tsx`: modal grid 1/2/3 col con card
+  per i 9 modelli precaricati backend (id "ex_*"). Per card: nome +
+  descrizione + counts (nodi/elem/loads/vincoli).
+- Dashboard "Da template" + "Esempi" dispatchano `feapro:open-template-
+  gallery` invece di "feapro:open-new-model" (NewModelDialog).
+- "Modelli recenti" separa visivamente utente (no "ex_*") da
+  "📚 Esempi didattici" con divider + link "Vedi tutti".
+- Palette: nuovo `open-template-gallery` actionKind + voce.
+
+### Task 2 — B02 click-outside palette (`572a9b9`)
+- Backdrop CommandPalette era un `::before` pseudo-element CSS (NON
+  DOM-cliccabile). L'utente che cliccava il backdrop scuro restava
+  intrappolato.
+- Fix: sostituito con `<div>` reale `onClick={() => setOpen(false)}`
+  + container interno `onClick={(e) => e.stopPropagation()}`.
+- NEW `CommandPalette.test.tsx` (4 test) + polyfill
+  `Element.prototype.scrollIntoView` in setupTests (cmdk lo richiede,
+  jsdom non lo ha).
+
+### Task 3 — B03 LeftRail disabled senza modello (`c46ab3c`)
+- LeftRail Make/Solve/Verify e RightRail Inspect/View ora opacity-30% +
+  cursor-not-allowed + aria-disabled quando `modelStore.model === null`.
+- Tooltip "Apri o crea un modello per iniziare". RightRail Tools resta
+  abilitato (Validation NAFEMS non richiede modello).
+- 3 nuovi test (aria-disabled, click no-op, palette/help OK).
+
+### Task 4 — B05 HTTP 422 in italiano (`8840647`)
+- NEW `lib/apiErrors.ts` con `translateApiError`/`translateAxiosError`.
+- 10 traduzioni: missing_constraints, singular_matrix, missing_material,
+  missing_section, no_loads, invalid_solver_params, convergence_failed,
+  quota_exceeded, model_not_found, validation_failed.
+- Gestione 4 forme payload: structured kind, FastAPI validation array,
+  detail string, Error instance + safe fallback (mai `[object Object]`).
+- `api/client.ts` interceptor usa la traduzione.
+- 16 nuovi test.
+
+### Task 5 — B07 audit hub pattern desktop = mobile (`7aa0a55`)
+- Audit verificato: il pattern hub-first (PanelHub) introdotto in v1.5.2
+  Task 39 e' gia' applicato in modo uniforme su desktop e mobile.
+  Quando `currentLeftTab === null` tutti i 3 macro-panel renderizzano
+  l'hub di card; click su card → drill-in.
+- Nessuna modifica codice di produzione. Aggiunto 2 test non-regressione
+  in `MakePanel.test.tsx`.
+
+### Task 6 — B08 mobile back chiude modal (`2d7fc62`)
+- NEW `hooks/useModalBackButton.ts`: pattern History API
+  (`history.pushState({modal:true})` al mount, `popstate` listener
+  chiama `onClose`).
+- Applicato a 4 modal critici: CommandPalette, WizardShell (copre
+  ImportWizard + SismicaTHWizard), TemplateGalleryDialog, HelpSheet.
+- 5 nuovi test (mount push, popstate callback, isOpen=false skip,
+  cleanup, toggle ricorsivo).
+
+### Task 7 — B13 SectionPicker + MaterialPicker (`874d9eb`)
+- NEW `components/pickers/LibraryPicker.tsx` (generico) +
+  `SectionPicker.tsx` + `MaterialPicker.tsx` (adapter).
+- Modal 760×var con 2 colonne: famiglia (sx, w-40) + lista filtrabile
+  (search + meta + badge dim). useModalBackButton integrato.
+- 15 famiglie sezioni (IPE/HEA/HEB/HEM/UPN/Rettangolari/Circolari/
+  SHS/RHS/CHS/Shell/Cavi/Laminati/RC/Legno). 6 famiglie materiali
+  (Acciai/Calcestruzzo/Legno/Alluminio/Cavi/Compositi).
+- Meta-line con conversione unita': cm²/cm⁴ sezioni, GPa/MPa materiali.
+- ElementDialog: `<select>` HTML → bottoni "Cambia..." che aprono picker.
+- Bottone "+ Crea custom" toast "Sprint 2" placeholder.
+
+### Task 8 — B15 viewport auto-fit camera (`30f0b0f`)
+- Viewport3D `<Canvas>` key include `model?.id` → remount quando si
+  carica un modello diverso → camera ri-inizializza con bounds nuovi.
+- NEW `viewport/cameraUtils.ts`: `modelBoundsFromNodes` (clamp maxDim=1)
+  + `fitCameraToModel(camera, controls, nodes, duration)` con ease-out
+  cubic per fit programmatico.
+- 4 nuovi test.
+
+### Task 9 — B16 toggle Deformata disabled (`deec983`)
+- ViewPanel: toggle Deformata + Colormap disabled `!staticResults`.
+  Iso-superfici disabled `!isosurfaceData`.
+- Toggle component esteso con `disabled` + `disabledHint` (chip mono
+  inline "esegui analisi statica").
+- Slider scala deformata visibile solo quando `hasStatic + showDeformed`.
+- Empty state banner blu "Esegui un'analisi per attivare gli overlay"
+  con shortcut F5.
+
+### Task 10 — B17 jobsStore + chip topbar (`8827612`)
+- NEW `store/jobsStore.ts`: registro Jobs (start/updateProgress/finish/
+  cancel/clear) con activeJob = ultimo running. 8 JobKind con label IT.
+- TopBar: chip blu sempre visibile quando `activeJob !== null` —
+  Loader2 spin + label + percent font-mono. Tooltip dettagli.
+- useAnalysis.ts: ogni run pusha un Job, WS progress aggiorna
+  store, finish marca success/error (con error message tradotto).
+- 8 nuovi test.
+
+### Quality gates v1.6.0-sprint0
+- tsc --noEmit exit 0 dopo ogni commit
+- vitest: **376/376 passed** (+42 vs v1.5.2: 4 palette + 3 rail + 16
+  apiErrors + 5 modal-back + 2 panel-hub + 4 camera + 8 jobs)
+- npm run build OK su tutti i commit (~1.20 MB / gzip 354 kB)
+- Sync ogni commit: `origin/test` + `origin/main` (single remote)
+
+### Commit Sprint 0 (in ordine)
+| Commit | Bug |
+|---|---|
+| `cd5f1ee` | B01 TemplateGalleryDialog |
+| `572a9b9` | B02 palette backdrop |
+| `c46ab3c` | B03 rail disabled |
+| `8840647` | B05 errori IT |
+| `7aa0a55` | B07 audit hub |
+| `2d7fc62` | B08 mobile back |
+| `874d9eb` | B13 library picker |
+| `30f0b0f` | B15 viewport refit |
+| `deec983` | B16 deformata disabled |
+| `8827612` | B17 jobsStore + chip |
+
+### Workflow target (per ingegnere)
+Dopo questi 10 fix, l'ingegnere deve poter completare in <20 min:
+1. Dashboard → "Da template" → galleria → "Telaio portale 2D"
+2. Click su elemento → modifica → "Cambia sezione" → picker → "HEB 240"
+3. Aggiungi carico, vincoli
+4. F5 → chip topbar "Statica 50%" → UI reattiva
+5. Inspect Deformata (toggle auto-abilitato) → vedi spostamenti
+6. Esporta PDF
+
+Se 1-6 funziona: chiamare l'ingegnere per il secondo test reale.
+
+
 ## v1.5.2 — Cleanup legacy + progressive disclosure interna — 2026-05-21
 
 Chiusura `CLAUDE_CODE_BRIEF_v1_5_2.md` con 6 task atomici. Filosofia:
