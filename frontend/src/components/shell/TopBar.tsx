@@ -146,8 +146,11 @@ export function TopBar({ models, activeId, onSelect }: Props) {
     onError: (e) => toast("error", `Errore eliminazione: ${(e as Error).message}`),
   });
 
+  // v1.7 T6: respiro mobile — padding 12px e gap 8px anche su <sm
+  // (prima px-2/gap-1.5). Elementi non-essenziali gia' nascosti via
+  // hidden sm:inline / hidden md:flex.
   return (
-    <header className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-1.5 sm:gap-2 px-2 sm:px-3 min-w-0 overflow-hidden">
+    <header className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-2 px-3 min-w-0 overflow-hidden">
       {/* Logo + version */}
       <div className="flex items-center gap-2 pr-2 border-r border-border h-7 flex-shrink-0">
         <div className="w-6 h-6 rounded bg-accent/15 border border-accent/40 flex items-center justify-center">

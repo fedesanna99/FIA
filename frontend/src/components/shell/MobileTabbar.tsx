@@ -36,32 +36,36 @@ export function MobileTabbar() {
 
   return (
     <nav
-      className="fixed bottom-0 left-0 right-0 z-40 bg-bg-panel border-t border-border px-2 py-1 flex items-center justify-around safe-area-bottom safe-area-x"
+      // v1.7 T6: height fissa h-14 (56px) + safe-area-bottom rispettato.
+      // Tabbar coerente con hub-card style (tono info per stato attivo).
+      className="fixed bottom-0 left-0 right-0 z-40 bg-bg-panel border-t border-border safe-area-bottom safe-area-x"
       data-testid="mobile-tabbar"
       aria-label="Navigazione mobile"
     >
-      {TABS.map((tab) => {
-        const Icon = tab.icon;
-        // "model" e' attivo quando NESSUN tab e' aperto (viewport visibile).
-        const isActive = tab.id === "model" ? current === null || current === "model" : current === tab.id;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => setTab(tab.id === "model" ? null : tab.id)}
-            data-testid={`mobile-tab-${tab.id}`}
-            aria-pressed={isActive}
-            className={`flex flex-col items-center gap-0.5 py-1.5 px-2 rounded transition flex-1 ${
-              isActive ? "text-ink-info bg-bg-info" : "text-ink-muted hover:text-ink"
-            }`}
-          >
-            <Icon className="w-4 h-4" />
-            <span className={`text-[9px] ${isActive ? "font-semibold" : ""}`}>
-              {tab.label}
-            </span>
-          </button>
-        );
-      })}
+      <div className="flex items-stretch h-14 px-2">
+        {TABS.map((tab) => {
+          const Icon = tab.icon;
+          // "model" e' attivo quando NESSUN tab e' aperto (viewport visibile).
+          const isActive = tab.id === "model" ? current === null || current === "model" : current === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setTab(tab.id === "model" ? null : tab.id)}
+              data-testid={`mobile-tab-${tab.id}`}
+              aria-pressed={isActive}
+              className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-md mx-0.5 transition-colors ${
+                isActive
+                  ? "text-ink-info bg-bg-info/40 font-semibold"
+                  : "text-ink-muted hover:text-ink hover:bg-bg-hover"
+              }`}
+            >
+              <Icon className="w-4 h-4" />
+              <span className="text-[10px]">{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
     </nav>
   );
 }
