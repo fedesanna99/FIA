@@ -10,7 +10,7 @@ import {
 } from "@tabler/icons-react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
-import { PanelChrome, type PanelTab } from "./PanelChrome";
+import { PanelChrome } from "./PanelChrome";
 import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
 import { VerificationPanel } from "../../components/panels/VerificationPanel";
 import { EC2Panel } from "../../components/panels/EC2Panel";
@@ -19,13 +19,8 @@ import { EC8Panel } from "../../components/panels/EC8Panel";
 import { NTCCombinationsPanel } from "../../components/panels/NTCCombinationsPanel";
 
 
-const TABS: PanelTab[] = [
-  { id: "ec2",   label: "EC2" },
-  { id: "ec3",   label: "EC3" },
-  { id: "ec5",   label: "EC5" },
-  { id: "ec8",   label: "EC8" },
-  { id: "ntc18", label: "NTC18" },
-];
+// v1.8 (post-T6): TABS rimosso — Verify drill-in usa solo PanelBreadcrumb
+// come navigation (coerenza con InspectPanel + Make/SolvePanel).
 
 
 // v1.5.2 Task 39: hub-first per Verify. 5 card, una per normativa.
@@ -84,9 +79,6 @@ export function VerifyPanel() {
       title="Verify"
       Icon={IconShieldCheck}
       subtitle="Verifiche normative"
-      tabs={TABS}
-      activeTab={tab}
-      onTabChange={setTab}
       onClose={closeLeft}
       testId="panel-verify"
     >

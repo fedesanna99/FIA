@@ -57,12 +57,13 @@ describe("SolvePanel (Sprint 5 G10 / alpha.25)", () => {
     expect(screen.getByTestId("panel-solve-close")).toBeInTheDocument();
   });
 
-  it("renders all 4 tabs (Lineari/Dinamica/Sismica/Non-lin.)", () => {
+  // v1.8 (post-T6): tab orizzontali rimosse. Navigation via hub-card click.
+  it("drill-in NON mostra la tab bar orizzontale (coerenza con Inspect)", () => {
     renderPanel();
-    expect(screen.getByTestId("panel-solve-tab-lineari")).toBeInTheDocument();
-    expect(screen.getByTestId("panel-solve-tab-dinamica")).toBeInTheDocument();
-    expect(screen.getByTestId("panel-solve-tab-sismica")).toBeInTheDocument();
-    expect(screen.getByTestId("panel-solve-tab-nonlin")).toBeInTheDocument();
+    expect(screen.queryByTestId("panel-solve-tab-lineari")).toBeNull();
+    expect(screen.queryByTestId("panel-solve-tab-dinamica")).toBeNull();
+    expect(screen.queryByTestId("panel-solve-tab-sismica")).toBeNull();
+    expect(screen.queryByTestId("panel-solve-tab-nonlin")).toBeNull();
   });
 
   it("default tab 'lineari' shows 3 analysis options", () => {
@@ -105,11 +106,9 @@ describe("SolvePanel (Sprint 5 G10 / alpha.25)", () => {
     expect(useWorkspaceStore.getState().currentLeftPanel).toBeNull();
   });
 
-  it("switching to Dinamica tab also shows CostPreviewCard", () => {
+  it("drill-in Dinamica mostra CostPreviewCard (via setLeftTab)", () => {
+    useWorkspaceStore.setState({ currentLeftTab: "dinamica" } as any);
     renderPanel();
-    fireEvent.click(screen.getByTestId("panel-solve-tab-dinamica"));
-    expect(useWorkspaceStore.getState().currentLeftTab).toBe("dinamica");
-    // CostPreviewCard sempre visibile
     expect(screen.getByTestId("cost-preview-card")).toBeInTheDocument();
   });
 });

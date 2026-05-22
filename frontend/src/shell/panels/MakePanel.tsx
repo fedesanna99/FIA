@@ -22,18 +22,14 @@ import { useLeftRailStore } from "../../store/leftRailStore";
 import { useModelStore } from "../../store/modelStore";
 import { ModelTree } from "../../components/panels/ModelTree";
 import { EmptyState } from "../../components/ui/EmptyState";
-import { PanelChrome, type PanelTab } from "./PanelChrome";
+import { PanelChrome } from "./PanelChrome";
 import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
 import { Box, Layers as LayersIcon, ArrowDownToLine, Anchor, ArrowRightLeft as Swap } from "lucide-react";
 
 
-const TABS: PanelTab[] = [
-  { id: "geometria", label: "Geometria" },
-  { id: "mesh",      label: "Mesh" },
-  { id: "carichi",   label: "Carichi" },
-  { id: "vincoli",   label: "Vincoli" },
-  { id: "io",        label: "I/O" },
-];
+// v1.8 (post-T6): rimosso TABS array — Make drill-in usa solo
+// PanelBreadcrumb come navigation, coerente con InspectPanel (v1.7 T2).
+// Tab bar orizzontale eliminata per evitare ridondanza con breadcrumb.
 
 
 // v1.5.2 Task 39: hub-first navigation per Make. 4 card primarie + 1
@@ -103,9 +99,6 @@ export function MakePanel() {
       title="Make"
       Icon={IconShape3}
       subtitle={model ? "Modello attivo" : "—"}
-      tabs={TABS}
-      activeTab={tab}
-      onTabChange={setTab}
       onClose={closeLeft}
       testId="panel-make"
     >

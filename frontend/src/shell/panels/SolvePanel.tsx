@@ -26,7 +26,7 @@ import { useAnalysisStore } from "../../store/analysisStore";
 import { useModelStore } from "../../store/modelStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
 import { CostPreviewCard } from "./CostPreviewCard";
-import { PanelChrome, type PanelTab } from "./PanelChrome";
+import { PanelChrome } from "./PanelChrome";
 import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
 // Pannelli legacy che wrappiamo:
 import { NonlinearPanel } from "../../components/panels/NonlinearPanel";
@@ -35,12 +35,8 @@ import { PushoverPanel } from "../../components/panels/PushoverPanel";
 import { SeismicTHPanel } from "../../components/panels/SeismicTHPanel";
 
 
-const TABS: PanelTab[] = [
-  { id: "lineari",  label: "Lineari" },
-  { id: "dinamica", label: "Dinamica" },
-  { id: "sismica",  label: "Sismica" },
-  { id: "nonlin",   label: "Non-lin." },
-];
+// v1.8 (post-T6): TABS rimosso — Solve drill-in usa solo PanelBreadcrumb
+// come navigation (coerenza con InspectPanel + MakePanel).
 
 
 // v1.5.2 Task 39: hub-first navigation. La prima vista quando si apre
@@ -132,9 +128,6 @@ export function SolvePanel() {
       title="Solve"
       Icon={IconBolt}
       subtitle={isRunning ? "Esec." : "Pronto"}
-      tabs={TABS}
-      activeTab={tab}
-      onTabChange={setTab}
       onClose={closeLeft}
       testId="panel-solve"
     >

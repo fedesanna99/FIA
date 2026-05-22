@@ -53,51 +53,45 @@ describe("MakePanel (Sprint 5 G9 / alpha.24)", () => {
     expect(screen.getByTestId("panel-make-close")).toBeInTheDocument();
   });
 
-  it("renders all 5 tabs (Geometria/Mesh/Carichi/Vincoli/I/O)", () => {
-    renderPanel();
-    expect(screen.getByTestId("panel-make-tab-geometria")).toBeInTheDocument();
-    expect(screen.getByTestId("panel-make-tab-mesh")).toBeInTheDocument();
-    expect(screen.getByTestId("panel-make-tab-carichi")).toBeInTheDocument();
-    expect(screen.getByTestId("panel-make-tab-vincoli")).toBeInTheDocument();
-    expect(screen.getByTestId("panel-make-tab-io")).toBeInTheDocument();
-  });
+  // v1.8 (post-T6): tab orizzontali rimosse dal drill-in. Navigation tra
+  // sub-view ora avviene via hub-card → click. I test "tab bar" diventano
+  // test "drill-in via setLeftTab" (lo stato che la hub-card setta).
 
-  it("default tab is 'geometria' showing empty state when no model", () => {
+  it("drill-in geometria mostra empty state quando no model", () => {
     renderPanel();
     expect(screen.getByText(/Nessun modello caricato/i)).toBeInTheDocument();
   });
 
-  it("click on Mesh tab switches and shows mesh wizard button", () => {
+  it("drill-in mesh mostra mesh wizard button", () => {
+    useWorkspaceStore.setState({ currentLeftTab: "mesh" } as any);
     renderPanel();
-    fireEvent.click(screen.getByTestId("panel-make-tab-mesh"));
-    expect(useWorkspaceStore.getState().currentLeftTab).toBe("mesh");
     expect(screen.getByTestId("make-open-mesh-wizard")).toBeInTheDocument();
   });
 
-  it("click on Carichi tab shows Add load button (disabled if no model)", () => {
+  it("drill-in carichi mostra Add load button (disabled senza model)", () => {
+    useWorkspaceStore.setState({ currentLeftTab: "carichi" } as any);
     renderPanel();
-    fireEvent.click(screen.getByTestId("panel-make-tab-carichi"));
     const btn = screen.getByTestId("make-add-load") as HTMLButtonElement;
     expect(btn).toBeInTheDocument();
-    expect(btn.disabled).toBe(true); // no model
+    expect(btn.disabled).toBe(true);
   });
 
-  it("Add load button enabled when model exists", () => {
+  it("Add load abilitato quando il modello esiste", () => {
     useModelStore.setState({
       model: { id: "x", name: "Test", nodes: [], elements: [], loads: [], constraints: [] },
     } as any);
+    useWorkspaceStore.setState({ currentLeftTab: "carichi" } as any);
     renderPanel();
-    fireEvent.click(screen.getByTestId("panel-make-tab-carichi"));
     const btn = screen.getByTestId("make-add-load") as HTMLButtonElement;
     expect(btn.disabled).toBe(false);
   });
 
-  it("Click Add load opens 'load' dialog via uiStore", () => {
+  it("Click Add load apre dialog 'load' via uiStore", () => {
     useModelStore.setState({
       model: { id: "x", name: "Test", nodes: [], elements: [], loads: [], constraints: [] },
     } as any);
+    useWorkspaceStore.setState({ currentLeftTab: "carichi" } as any);
     renderPanel();
-    fireEvent.click(screen.getByTestId("panel-make-tab-carichi"));
     fireEvent.click(screen.getByTestId("make-add-load"));
     expect(useUIStore.getState().openDialog).toBe("load");
   });
@@ -108,13 +102,13 @@ describe("MakePanel (Sprint 5 G9 / alpha.24)", () => {
     expect(useWorkspaceStore.getState().currentLeftPanel).toBeNull();
   });
 
-  it("aria-selected on active tab", () => {
+  // v1.8 post-T6: regression guard — NESSUNA tab bar orizzontale in drill-in.
+  it("drill-in NON mostra la tab bar orizzontale (coerenza con Inspect)", () => {
     useWorkspaceStore.setState({ currentLeftTab: "vincoli" } as any);
     renderPanel();
-    expect(screen.getByTestId("panel-make-tab-vincoli"))
-      .toHaveAttribute("aria-selected", "true");
-    expect(screen.getByTestId("panel-make-tab-geometria"))
-      .toHaveAttribute("aria-selected", "false");
+    expect(screen.queryByTestId("panel-make-tab-geometria")).toBeNull();
+    expect(screen.queryByTestId("panel-make-tab-mesh")).toBeNull();
+    expect(screen.queryByTestId("panel-make-tab-vincoli")).toBeNull();
   });
 
   // v1.6 S0 · B07: hub-first navigation desktop = mobile
