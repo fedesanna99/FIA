@@ -19,6 +19,7 @@ import {
   Undo2,
   Redo2,
   Bell,
+  Loader2,
 } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { modelsApi } from "../../api/client";
@@ -27,6 +28,7 @@ import { useRunAnalysis } from "../../hooks/useAnalysis";
 import { useModelStore } from "../../store/modelStore";
 import { useModelHistory } from "../../store/historyStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
+import { useJobsStore } from "../../store/jobsStore";
 import { NewModelDialog } from "../dialogs/NewModelDialog";
 import { EditModelDialog } from "../dialogs/EditModelDialog";
 import { AccountDialog } from "../dialogs/AccountDialog";
@@ -74,6 +76,10 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   // (che auto-decade con ttlMs). Verra' sostituito da un notificationsStore
   // dedicato quando arriverà la persistenza side-bar.
   const unreadCount = useToastStore((s) => s.toasts.length);
+  // v1.6 S0 · B17: chip job attivo sempre visibile in topbar quando un'analisi
+  // sta girando, cosi' l'utente vede progresso live senza dover aprire la
+  // statusbar. Subscribe a activeJob da jobsStore.
+  const activeJob = useJobsStore((s) => s.activeJob);
   // alpha.31 Task 19: Run topbar visibile solo se il SolvePanel non e' aperto.
   // Quando SolvePanel e' aperto, l'utente usa il Run dentro il pannello (anch'esso verde).
   const isSolveOpen = useWorkspaceStore((s) => s.currentLeftPanel === "solve");
@@ -192,6 +198,34 @@ export function TopBar({ models, activeId, onSelect }: Props) {
             </Button>
           </Tooltip>
         </div>
+      )}
+
+      {/* v1.6 S0 · B17: chip job attivo. Visibile sempre quando c'e'
+          un'analisi in corso, mostra label + progress%. Permette
+          all'utente di vedere che la UI NON e' bloccata (e' solo il
+          solver che lavora in background). */}
+      {activeJob && (
+        <Tooltip
+          content={
+            <div>
+              <div className="font-semibold">{activeJob.label}</div>
+              <div className="text-[11px] text-ink-muted mt-0.5">
+                {(activeJob.progress * 100).toFixed(0)}% completato
+              </div>
+            </div>
+          }
+        >
+          <div
+            className="flex items-center gap-2 bg-bg-info text-ink-info rounded-md px-2.5 py-1 text-[11px] font-medium border border-info/30 mx-1 flex-shrink-0"
+            data-testid="topbar-active-job"
+          >
+            <Loader2 className="w-3 h-3 animate-spin" />
+            <span className="hidden sm:inline">{activeJob.label}</span>
+            <span className="font-mono text-[10px] opacity-80">
+              {(activeJob.progress * 100).toFixed(0)}%
+            </span>
+          </div>
+        </Tooltip>
       )}
 
       <div className="flex-1 min-w-0" />
