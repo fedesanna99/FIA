@@ -81,6 +81,12 @@ describe("paletteItems registry", () => {
     expect(payloads).toEqual(expect.arrayContaining(["static", "modal", "dynamic"]));
   });
 
+  it("view preset items cover engineer/cad/review/performance", () => {
+    const items = PALETTE_ITEMS.filter((i) => i.actionKind === "view-preset");
+    const payloads = items.map((i) => i.payload);
+    expect(payloads).toEqual(expect.arrayContaining(["engineer", "cad", "review", "performance"]));
+  });
+
   it("items with `needsModel` true exist (commands richiedono modello)", () => {
     const withModel = PALETTE_ITEMS.filter((i) => i.needsModel);
     expect(withModel.length).toBeGreaterThan(0);

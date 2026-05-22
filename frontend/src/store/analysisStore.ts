@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { AnalysisType } from "../types/results";
 
 export type ViewportMode = "wireframe" | "solid" | "transparent";
+export type ViewPreset = "custom" | "engineer" | "cad" | "review" | "performance";
 
 interface AnalysisState {
   analysisType: AnalysisType;
@@ -27,6 +28,10 @@ interface AnalysisState {
 
   viewportMode: ViewportMode;
   setViewportMode: (m: ViewportMode) => void;
+  useViewportEngine: boolean;
+  toggleViewportEngine: () => void;
+  activeViewPreset: ViewPreset;
+  applyViewPreset: (p: Exclude<ViewPreset, "custom">) => void;
   projection: "perspective" | "orthographic";
   setProjection: (p: "perspective" | "orthographic") => void;
   showGrid: boolean;
@@ -78,17 +83,72 @@ export const useAnalysisStore = create<AnalysisState>((set) => ({
   setProgress: (p, msg = "") => set({ progress: p, progressMessage: msg }),
 
   viewportMode: "solid",
-  setViewportMode: (m) => set({ viewportMode: m }),
+  setViewportMode: (m) => set({ viewportMode: m, activeViewPreset: "custom" }),
+  useViewportEngine: false,
+  toggleViewportEngine: () => set((s) => ({
+    useViewportEngine: !s.useViewportEngine,
+    activeViewPreset: "custom",
+  })),
+  activeViewPreset: "engineer",
+  applyViewPreset: (p) => set(() => {
+    switch (p) {
+      case "cad":
+        return {
+          activeViewPreset: p,
+          viewportMode: "wireframe",
+          projection: "orthographic",
+          useViewportEngine: false,
+          showGrid: true,
+          showLoads: false,
+          showConstraints: false,
+          showNodeLabels: true,
+        };
+      case "review":
+        return {
+          activeViewPreset: p,
+          viewportMode: "transparent",
+          projection: "perspective",
+          useViewportEngine: false,
+          showGrid: false,
+          showLoads: true,
+          showConstraints: true,
+          showNodeLabels: false,
+        };
+      case "performance":
+        return {
+          activeViewPreset: p,
+          viewportMode: "solid",
+          projection: "orthographic",
+          useViewportEngine: true,
+          showGrid: false,
+          showLoads: false,
+          showConstraints: false,
+          showNodeLabels: false,
+        };
+      case "engineer":
+      default:
+        return {
+          activeViewPreset: p,
+          viewportMode: "solid",
+          projection: "perspective",
+          useViewportEngine: false,
+          showGrid: true,
+          showLoads: true,
+          showConstraints: true,
+          showNodeLabels: false,
+        };
+    }
+  }),
   projection: "perspective",
-  setProjection: (p) => set({ projection: p }),
+  setProjection: (p) => set({ projection: p, activeViewPreset: "custom" }),
   showGrid: true,
-  toggleGrid: () => set((s) => ({ showGrid: !s.showGrid })),
+  toggleGrid: () => set((s) => ({ showGrid: !s.showGrid, activeViewPreset: "custom" })),
   showLoads: true,
-  toggleLoads: () => set((s) => ({ showLoads: !s.showLoads })),
+  toggleLoads: () => set((s) => ({ showLoads: !s.showLoads, activeViewPreset: "custom" })),
   showConstraints: true,
-  toggleConstraints: () => set((s) => ({ showConstraints: !s.showConstraints })),
+  toggleConstraints: () => set((s) => ({ showConstraints: !s.showConstraints, activeViewPreset: "custom" })),
   showNodeLabels: false,
-  toggleNodeLabels: () => set((s) => ({ showNodeLabels: !s.showNodeLabels })),
+  toggleNodeLabels: () => set((s) => ({ showNodeLabels: !s.showNodeLabels, activeViewPreset: "custom" })),
   showDiagrams: false,
   toggleDiagrams: () => set((s) => ({ showDiagrams: !s.showDiagrams })),
   diagramComponent: "M",

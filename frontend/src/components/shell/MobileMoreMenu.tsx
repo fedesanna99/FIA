@@ -5,7 +5,7 @@
  *  - Verifiche (apre VerifyPanel)
  *  - Tools (apre ToolsPanel)
  *  - Cerca comandi (apre palette)
- *  - AI Copilot (placeholder Sprint 5 — accesso simmetrico a desktop)
+ *  - AI Copilot (Tools sub-view, accesso simmetrico a desktop)
  *  - Tema (toggle dark/light)
  *  - Account & quota
  *  - Modalita' focus
@@ -15,12 +15,11 @@
  * Bell restano accessibili indirettamente via toast stack in basso.
  */
 import {
-  ShieldCheck, Wrench, Search, Sun, Moon, User, Maximize, Sparkles,
+  ShieldCheck, Layers, Wrench, Search, Sun, Moon, User, Maximize, Sparkles,
   type LucideIcon, ChevronRight,
 } from "lucide-react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useThemeStore } from "../../store/themeStore";
-import { toast } from "../../store/toastStore";
 
 
 interface MenuRow {
@@ -53,8 +52,19 @@ export function MobileMoreMenu() {
     window.dispatchEvent(new CustomEvent("feapro:mobile-open-verify"));
   };
 
+  const goView = () => {
+    window.dispatchEvent(new CustomEvent("feapro:open-view-panel"));
+  };
+
   const goTools = () => {
     window.dispatchEvent(new CustomEvent("feapro:mobile-open-tools"));
+  };
+
+  const goAiCopilot = () => {
+    goTools();
+    window.setTimeout(() => {
+      window.dispatchEvent(new CustomEvent("feapro:tools-view", { detail: { view: "ai-copilot" } }));
+    }, 0);
   };
 
   const goAccount = () => {
@@ -75,6 +85,13 @@ export function MobileMoreMenu() {
       onClick: goVerify,
     },
     {
+      id: "view",
+      label: "View",
+      sub: "Preset viewport · engine · layer",
+      icon: Layers,
+      onClick: goView,
+    },
+    {
       id: "tools",
       label: "Strumenti",
       sub: "Export · validazione · cost preview",
@@ -91,9 +108,9 @@ export function MobileMoreMenu() {
     {
       id: "ai-copilot",
       label: "AI Copilot",
-      sub: "Debug FEM · spiegazione errori (soon)",
+      sub: "Chat sul modello attivo",
       icon: Sparkles,
-      onClick: () => toast("info", "AI Copilot disponibile da v1.5 (Sprint 5)."),
+      onClick: goAiCopilot,
     },
     {
       id: "theme",

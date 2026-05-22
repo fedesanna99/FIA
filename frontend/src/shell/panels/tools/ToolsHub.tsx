@@ -1,18 +1,10 @@
-/**
- * ToolsHub (v1.5 Task 28).
- *
- * Vista principale del Tools panel: 4 card grandi colorate (info/success/
- * purple/coral). Click su una card → drill-in nella sub-view dedicata.
- *
- * Sostituisce la lista piatta di 5 voci in 2 sezioni di alpha.31 con un
- * pattern "hub navigation" piu' leggibile e meno affastellato.
- */
-import { Ruler, Download, ShieldCheck, Receipt, ChevronRight, type LucideIcon } from "lucide-react";
+import {
+  Bot, Bug, ChevronRight, Download, FileInput, GitCompareArrows, Receipt,
+  Ruler, ShieldCheck, Users, Waves, type LucideIcon,
+} from "lucide-react";
 import type { ToolsView } from "../ToolsPanel";
 
-
 type Tone = "info" | "success" | "purple" | "coral";
-
 
 interface Hub {
   id: Exclude<ToolsView, "hub">;
@@ -22,28 +14,76 @@ interface Hub {
   tone: Tone;
 }
 
-
 const HUBS: Hub[] = [
   {
     id: "measure-snapshot",
     label: "Misure e snapshot",
-    sub: "Distanze · angoli · congela stato",
+    sub: "Distanze, angoli, congela stato",
     icon: Ruler,
     tone: "info",
   },
   {
+    id: "import",
+    label: "Import",
+    sub: "DXF, IFC, JSON con wizard",
+    icon: FileInput,
+    tone: "info",
+  },
+  {
     id: "export",
-    label: "Esporta",
-    sub: "Report PDF · Excel multi-sheet · CSV dati",
+    label: "Export rapido",
+    sub: "PDF client, JSON, CSV risultati",
+    icon: Download,
+    tone: "success",
+  },
+  {
+    id: "server-export",
+    label: "Export server",
+    sub: "PDF reportlab, XLSX, DXF, IFC4",
     icon: Download,
     tone: "success",
   },
   {
     id: "validation",
     label: "Validazione",
-    sub: "Benchmark NAFEMS · diagnosi modello",
+    sub: "Benchmark NAFEMS e report solver",
     icon: ShieldCheck,
     tone: "purple",
+  },
+  {
+    id: "auto-detect",
+    label: "Auto-detect",
+    sub: "Duplicati, nodi coincidenti, carichi orfani",
+    icon: Bug,
+    tone: "purple",
+  },
+  {
+    id: "accelerograms",
+    label: "Accelerogrammi",
+    sub: "Catalogo PEER/ESM e sintetici",
+    icon: Waves,
+    tone: "info",
+  },
+  {
+    id: "compare",
+    label: "Compare A/B",
+    sub: "Diff strutturale e risultati",
+    icon: GitCompareArrows,
+    tone: "coral",
+  },
+  {
+    id: "ai-copilot",
+    label: "AI Copilot",
+    sub: "Domande sul modello attivo",
+    icon: Bot,
+    tone: "purple",
+  },
+  {
+    id: "collab",
+    label: "Collab",
+    sub: "Presence, sessione e log live",
+    icon: Users,
+    tone: "coral",
   },
   {
     id: "cost-preview",
@@ -54,14 +94,12 @@ const HUBS: Hub[] = [
   },
 ];
 
-
 const TONE_STYLE: Record<Tone, string> = {
-  info:    "bg-bg-info text-ink-info",
+  info: "bg-bg-info text-ink-info",
   success: "bg-bg-success text-ink-success",
-  purple:  "bg-bg-purple text-ink-purple",
-  coral:   "bg-bg-coral text-ink-coral",
+  purple: "bg-bg-purple text-ink-purple",
+  coral: "bg-bg-coral text-ink-coral",
 };
-
 
 export function ToolsHub({ onSelect }: { onSelect: (v: Exclude<ToolsView, "hub">) => void }) {
   return (

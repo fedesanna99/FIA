@@ -31,13 +31,15 @@ const DEFAULT_TTL: Record<ToastLevel, number> = {
 /** Massimo numero di toast visibili contemporaneamente: i piu' vecchi vengono dismissati. */
 const STACK_LIMIT = 3;
 
-
 export const useToastStore = create<ToastState>((set, get) => ({
   toasts: [],
   push: (level, message, ttlMs) => {
     const id = ++counter;
     const duration = ttlMs ?? DEFAULT_TTL[level];
     set((s) => {
+      if (s.toasts.some((t) => t.level === level && t.message === message)) {
+        return s;
+      }
       const next = [...s.toasts, { id, level, message, ttlMs: duration }];
       // v1.5.2 Task 38: stack limit — droppa i piu' vecchi per non
       // sommergere lo schermo con catene di errori HTTP.

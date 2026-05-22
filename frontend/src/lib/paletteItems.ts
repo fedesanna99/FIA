@@ -48,6 +48,7 @@ import type { ThemeMode } from "../store/themeStore";
 export type PaletteActionKind =
   | "workspace"      // payload: Workspace
   | "right-panel"    // payload: RightSection
+  | "tools-view"     // payload: Tools sub-view id
   | "dialog"         // payload: DialogKind
   | "theme"          // payload: ThemeMode
   | "run-analysis"   // payload: "static" | "modal" | "dynamic"
@@ -67,6 +68,7 @@ export type PaletteActionKind =
   | "apply-material" // payload: { materialId } — applica materiale alla selezione/all
   | "apply-section"  // payload: { sectionId }  — applica sezione alla selezione/all
   | "toggle-view"    // payload: { flag } — toggle overlay viewport (deformed/colormap/...)
+  | "view-preset"    // payload: "engineer" | "cad" | "review" | "performance"
   | "quick-export"   // payload: { format, scope? } — shortcut export rapido
   // v1.5 follow-up: navigazione contestuale dinamica
   | "goto-node"      // payload: { nodeId } — seleziona nodo + apre Inspect
@@ -119,6 +121,11 @@ const PANELS: PaletteItem[] = [
   { id: "rp-view",    label: "Pannello · View (overlay)", aliases: ["layer", "deformata", "stress"], section: "panels", group: "Rail destro", icon: Layers,  actionKind: "right-panel", payload: "view" },
   { id: "rp-tools",   label: "Pannello · Tools (strumenti)", aliases: ["compare", "snapshot", "misure", "io", "import", "export", "collab"], section: "panels", group: "Rail destro", icon: Wrench,  actionKind: "right-panel", payload: "tools" },
   { id: "rp-history", label: "Pannello · History (snapshot)", aliases: ["timeline", "undo"], section: "panels", group: "Rail destro", icon: History, actionKind: "right-panel", payload: "history" },
+  { id: "tools-autodetect", label: "Tools · Auto-detect modello", description: "Diagnostica duplicati, nodi coincidenti, sezioni mancanti", aliases: ["auto detect", "diagnostica", "problemi modello"], section: "panels", group: "Tools", icon: ShieldCheck, actionKind: "tools-view", payload: "auto-detect", needsModel: true },
+  { id: "tools-compare", label: "Tools · Compare A/B", description: "Confronta due modelli o risultati", aliases: ["compare", "diff", "a b"], section: "panels", group: "Tools", icon: GitCompareArrows, actionKind: "tools-view", payload: "compare" },
+  { id: "tools-accelerograms", label: "Tools · Accelerogrammi", description: "Catalogo PEER/ESM e generatore sintetico", aliases: ["accelerogrammi", "peer", "esm", "sintetico"], section: "panels", group: "Tools", icon: Waves, actionKind: "tools-view", payload: "accelerograms" },
+  { id: "tools-ai", label: "Tools · AI Copilot", description: "Chat sul modello attivo", aliases: ["ai", "copilot", "gemini"], section: "panels", group: "Tools", icon: Sparkles, actionKind: "tools-view", payload: "ai-copilot", needsModel: true },
+  { id: "tools-server-export", label: "Tools · Export server", description: "PDF reportlab, XLSX, DXF e IFC4", aliases: ["reportlab", "xlsx", "ifc", "dxf"], section: "panels", group: "Tools", icon: FileDown, actionKind: "tools-view", payload: "server-export", needsModel: true },
 ];
 
 
@@ -194,7 +201,7 @@ const HELP: PaletteItem[] = [
   { id: "help-overview",    label: "Documentazione · Overview workspace",            aliases: ["docs", "tutorial"], section: "help", group: "Documentazione", icon: HelpCircle, actionKind: "openHelp" },
   { id: "help-shortcuts",   label: "Documentazione · Tutte le shortcut", aliases: ["scorciatoie", "tastiera"], section: "help", group: "Documentazione", icon: Keyboard, actionKind: "dialog", payload: "help" },
   { id: "help-validation",  label: "Apri report di validazione NAFEMS",  aliases: ["benchmark", "verifica"], section: "help", group: "Documentazione", icon: FileText, actionKind: "external-link", payload: { url: "/api/validation/report" } },
-  { id: "help-ai-copilot",  label: "AI Copilot · Debug FEM (Sprint 5)",  aliases: ["ai", "copilot", "gemini"], section: "help", group: "AI", icon: Sparkles, actionKind: "togglePalette", soon: true },
+  { id: "help-ai-copilot",  label: "Apri AI Copilot",  aliases: ["ai", "copilot", "gemini"], section: "help", group: "AI", icon: Sparkles, actionKind: "tools-view", payload: "ai-copilot", needsModel: true },
   { id: "help-api-docs",    label: "Apri OpenAPI docs (Swagger)",        aliases: ["api", "swagger"], section: "help", group: "Sviluppatore", icon: Globe, actionKind: "external-link", payload: { url: "/docs" } },
 ];
 
@@ -275,6 +282,10 @@ const WIZARDS_EXTRA: PaletteItem[] = [
 //   - analysisStore: showGrid, showLoads, showConstraints, showNodeLabels,
 //                    showDiagrams, showPrincipals, viewportMode (per wireframe)
 const VIEW_TOGGLES: PaletteItem[] = [
+  { id: "view-preset-engineer", label: "Vista preset · Tecnica",      description: "Solid + layer ingegneristici", aliases: ["tecnica", "engineer", "default view"], section: "commands", group: "Vista · Preset", icon: Eye, actionKind: "view-preset", payload: "engineer" },
+  { id: "view-preset-cad",      label: "Vista preset · CAD",          description: "Wireframe + camera ortografica", aliases: ["cad", "wire", "ortografica"], section: "commands", group: "Vista · Preset", icon: Eye, actionKind: "view-preset", payload: "cad" },
+  { id: "view-preset-review",   label: "Vista preset · Review",       description: "Trasparente + layer puliti", aliases: ["review", "trasparente", "controllo"], section: "commands", group: "Vista · Preset", icon: Eye, actionKind: "view-preset", payload: "review" },
+  { id: "view-preset-perf",     label: "Vista preset · Performance",  description: "Engine nuovo + layer alleggeriti", aliases: ["performance", "perf", "engine", "gpu"], section: "commands", group: "Vista · Preset", icon: Eye, actionKind: "view-preset", payload: "performance" },
   { id: "view-deformed",    label: "Mostra/nascondi deformata",        aliases: ["deformata", "deformed"],            section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showDeformed" } },
   { id: "view-colormap",    label: "Mostra/nascondi colormap Von Mises", aliases: ["colormap", "stress", "von mises"], section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showStressColormap" } },
   { id: "view-diagrams",    label: "Mostra/nascondi diagrammi N/V/M",    aliases: ["diagrammi", "moment", "shear"],   section: "commands", group: "Vista · Overlay", icon: Eye, actionKind: "toggle-view", payload: { flag: "showDiagrams" } },

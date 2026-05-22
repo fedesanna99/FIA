@@ -9,6 +9,8 @@ import { useThemeStore } from "../../store/themeStore";
 import { modelBounds } from "../../utils/geometry";
 import { NodeRenderer } from "./NodeRenderer";
 import { ElementRenderer } from "./ElementRenderer";
+import { EngineNodeRenderer } from "./EngineNodeRenderer";
+import { EngineElementRenderer } from "./EngineElementRenderer";
 import { LoadRenderer } from "./LoadRenderer";
 import { BCRenderer } from "./BCRenderer";
 import { DeformedShape } from "./DeformedShape";
@@ -29,7 +31,7 @@ import { ScaleIndicator } from "./ScaleIndicator";
 
 export function Viewport3D() {
   const model = useModelStore((s) => s.model);
-  const { showGrid, viewportMode, projection } = useAnalysisStore();
+  const { showGrid, viewportMode, projection, useViewportEngine } = useAnalysisStore();
   const { staticResults, modalResults, dynamicResults, showDeformed, showStressColormap } = useResultsStore();
   const theme = useThemeStore((s) => s.resolved);
 
@@ -82,8 +84,17 @@ export function Viewport3D() {
           {model && (
             <>
               <ClickPlane />
-              <ElementRenderer mode={viewportMode} colormap={showStressColormap} />
-              <NodeRenderer />
+              {useViewportEngine ? (
+                <>
+                  <EngineElementRenderer mode={viewportMode} colormap={showStressColormap} />
+                  <EngineNodeRenderer />
+                </>
+              ) : (
+                <>
+                  <ElementRenderer mode={viewportMode} colormap={showStressColormap} />
+                  <NodeRenderer />
+                </>
+              )}
               <LoadRenderer />
               <BCRenderer />
               {showDeformed && staticResults && <DeformedShape />}

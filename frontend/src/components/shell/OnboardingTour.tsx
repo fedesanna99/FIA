@@ -252,13 +252,21 @@ const STEPS: Step[] = [
   },
 ];
 
-export function OnboardingTour() {
+interface OnboardingTourProps {
+  disabled?: boolean;
+}
+
+export function OnboardingTour({ disabled = false }: OnboardingTourProps) {
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
 
   // Check primo accesso
   useEffect(() => {
+    if (disabled) {
+      setOpen(false);
+      return;
+    }
     try {
       if (!localStorage.getItem(STORAGE_KEY)) {
         setOpen(true);
@@ -266,6 +274,12 @@ export function OnboardingTour() {
     } catch {
       // localStorage non disponibile, skip
     }
+  }, [disabled]);
+
+  useEffect(() => {
+    const close = () => setOpen(false);
+    window.addEventListener("feapro:close-onboarding", close);
+    return () => window.removeEventListener("feapro:close-onboarding", close);
   }, []);
 
   // Cambia workspace quando lo step lo richiede (preview live).

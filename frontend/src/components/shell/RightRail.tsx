@@ -109,7 +109,7 @@ export function RightRail() {
         <RailButton
           key={it.key}
           item={it}
-          disabled={noModel && (it.key === "inspect" || it.key === "view")}
+          disabled={noModel && it.key === "inspect"}
         />
       ))}
 

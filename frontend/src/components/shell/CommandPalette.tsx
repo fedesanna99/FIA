@@ -19,6 +19,7 @@ import { useRightRailStore } from "../../store/rightRailStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
 import { useUIStore } from "../../store/uiStore";
 import { useAnalysisStore } from "../../store/analysisStore";
+import type { ViewPreset } from "../../store/analysisStore";
 import { useModelStore } from "../../store/modelStore";
 import { useResultsStore } from "../../store/resultsStore";
 import { useThemeStore } from "../../store/themeStore";
@@ -94,6 +95,14 @@ export function CommandPalette() {
       case "right-panel":
         setOpenSection(item.payload as Parameters<typeof setOpenSection>[0]);
         break;
+      case "tools-view": {
+        const view = item.payload as string;
+        setOpenSection("tools");
+        window.setTimeout(() => {
+          window.dispatchEvent(new CustomEvent("feapro:tools-view", { detail: { view } }));
+        }, 0);
+        break;
+      }
       case "dialog":
         setDialog(item.payload as Parameters<typeof setDialog>[0]);
         break;
@@ -221,6 +230,13 @@ export function CommandPalette() {
           default:
             toast("info", `Toggle "${flag}" non riconosciuto.`);
         }
+        break;
+      }
+      case "view-preset": {
+        const preset = item.payload as Exclude<ViewPreset, "custom">;
+        useAnalysisStore.getState().applyViewPreset(preset);
+        useRightRailStore.getState().open("view");
+        toast("info", `Vista preset: ${preset}`, 1500);
         break;
       }
       case "quick-export": {

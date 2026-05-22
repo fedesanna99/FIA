@@ -23,7 +23,7 @@
  *   - Viewport 3D occupa lo spazio principale tra i due rail.
  *   - Default theme = "light" per esposizione palette warm-neutral.
  */
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { cn } from "./components/ui/cn";
 import { TopBar } from "./components/shell/TopBar";
@@ -57,12 +57,14 @@ import { SolvePanel } from "./shell/panels/SolvePanel";
 import { VerifyPanel } from "./shell/panels/VerifyPanel";
 import { InspectPanel } from "./shell/panels/InspectPanel";
 import { ToolsPanel } from "./shell/panels/ToolsPanel";
+import { ViewPanel } from "./shell/panels/ViewPanel";
 import { useModelList, useLoadModel } from "./hooks/useModel";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useIsMobile } from "./hooks/useIsMobile";
 import { useUIStore } from "./store/uiStore";
 import { useWorkspaceStore } from "./store/workspaceStore";
 import { useLeftRailStore } from "./store/leftRailStore";
+import { useRightRailStore } from "./store/rightRailStore";
 import { useThemeStore } from "./store/themeStore";
 import { useWizardStore } from "./store/wizardStore";
 
@@ -83,10 +85,16 @@ function enterFocusMode() {
   });
 }
 
+function pwaSafeAreaEnabled() {
+  if (typeof window === "undefined") return true;
+  return window.localStorage.getItem("feapro-pwa-safe-area") !== "off";
+}
 
 export default function App() {
-  const { data: models } = useModelList();
+  const modelsQuery = useModelList();
+  const models = modelsQuery.data;
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [usePwaSafeArea, setUsePwaSafeArea] = useState(pwaSafeAreaEnabled);
   // v1.5 Task 29: stato wizard import (listener su 2 eventi globali
   // dispatchati da Dashboard/palette per aprire il wizard 4-step).
   const [importWizardOpen, setImportWizardOpen] = useState(false);
@@ -115,25 +123,64 @@ export default function App() {
   const isMobile = useIsMobile();
   const currentMobileTab = useWorkspaceStore((s) => s.currentMobileTab);
   const setMobileTab = useWorkspaceStore((s) => s.setMobileTab);
-  // v1.5 Task 30: stato per il "more" sub-target su mobile (verify/tools)
-  const [mobileMoreSub, setMobileMoreSub] = useState<"verify" | "tools" | null>(null);
+  // v1.5 Task 30: stato per il "more" sub-target su mobile.
+  const [mobileMoreSub, setMobileMoreSub] = useState<"verify" | "tools" | "view" | null>(null);
 
   useKeyboardShortcuts((kind) => setDialog(kind));
+
+  const openViewPanel = useCallback(() => {
+    window.dispatchEvent(new Event("feapro:close-onboarding"));
+    useWorkspaceStore.getState().exitEmptyState();
+    if (isMobile) {
+      useWorkspaceStore.getState().setMobileTab("more");
+      setMobileMoreSub("view");
+      return;
+    }
+    useRightRailStore.getState().open("view");
+  }, [isMobile]);
 
   // Inizializza tema (dark/light/system) — applica data-theme e listener system
   useEffect(() => {
     return useThemeStore.getState().init();
   }, []);
 
-  // v1.5 Task 30: listener per drill-in di MobileMoreMenu (verify/tools)
+  useEffect(() => {
+    const syncPwaShell = () => setUsePwaSafeArea(pwaSafeAreaEnabled());
+    window.addEventListener("storage", syncPwaShell);
+    window.addEventListener("feapro:pwa-safe-area-changed", syncPwaShell);
+    return () => {
+      window.removeEventListener("storage", syncPwaShell);
+      window.removeEventListener("feapro:pwa-safe-area-changed", syncPwaShell);
+    };
+  }, []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const shouldOpenView =
+      params.get("openView") === "1" ||
+      params.get("panel") === "view" ||
+      params.get("view") === "fresh";
+    if (!shouldOpenView) return;
+    openViewPanel();
+  }, [openViewPanel]);
+
+  useEffect(() => {
+    window.addEventListener("feapro:open-view-panel", openViewPanel);
+    return () => window.removeEventListener("feapro:open-view-panel", openViewPanel);
+  }, [openViewPanel]);
+
+  // v1.5 Task 30: listener per drill-in di MobileMoreMenu.
   useEffect(() => {
     const openVerify = () => setMobileMoreSub("verify");
     const openTools = () => setMobileMoreSub("tools");
+    const openView = () => setMobileMoreSub("view");
     window.addEventListener("feapro:mobile-open-verify", openVerify);
     window.addEventListener("feapro:mobile-open-tools", openTools);
+    window.addEventListener("feapro:mobile-open-view", openView);
     return () => {
       window.removeEventListener("feapro:mobile-open-verify", openVerify);
       window.removeEventListener("feapro:mobile-open-tools", openTools);
+      window.removeEventListener("feapro:mobile-open-view", openView);
     };
   }, []);
 
@@ -318,9 +365,8 @@ export default function App() {
       useLeftRailStore.getState().close();
       useWorkspaceStore.getState().closeLeftPanel();
       useWorkspaceStore.getState().closeRightPanel();
-      void import("./store/rightRailStore").then((m) =>
-        m.useRightRailStore.getState().close(),
-      );
+      const rightRail = useRightRailStore.getState();
+      if (rightRail.openSection !== "view") rightRail.close();
     }
   }, [activeId]);
 
@@ -336,16 +382,26 @@ export default function App() {
     solve:   { title: "Solve",     content: <SolvePanel /> },
     results: { title: "Risultati", content: <InspectPanel /> },
     more: {
-      title: mobileMoreSub === "verify" ? "Verifiche" : mobileMoreSub === "tools" ? "Strumenti" : "Altro",
+      title:
+        mobileMoreSub === "verify" ? "Verifiche" :
+        mobileMoreSub === "tools" ? "Strumenti" :
+        mobileMoreSub === "view" ? "View" :
+        "Altro",
       content:
         mobileMoreSub === "verify" ? <VerifyPanel /> :
         mobileMoreSub === "tools" ? <ToolsPanel /> :
+        mobileMoreSub === "view" ? <ViewPanel /> :
         <MobileMoreMenu />,
     },
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-bg text-ink overflow-hidden font-sans">
+    <div
+      className={cn(
+        usePwaSafeArea ? "app-shell" : "app-shell-legacy",
+        "flex flex-col bg-bg text-ink overflow-hidden font-sans",
+      )}
+    >
       {!isFocusMode && (
         <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
       )}
@@ -372,7 +428,13 @@ export default function App() {
             </>
           ) : (
             <>
-              <Dashboard models={models ?? []} onSelect={setActiveId} />
+              <Dashboard
+                models={models ?? []}
+                modelsUnavailable={modelsQuery.isError}
+                modelsRefreshing={modelsQuery.isFetching}
+                onRetryModels={() => void modelsQuery.refetch()}
+                onSelect={setActiveId}
+              />
               <DropZone onImported={(id) => setActiveId(id)} />
             </>
           )}
@@ -418,7 +480,7 @@ export default function App() {
       <Toaster />
       <CommandPalette />
       <HelpSheet />
-      <OnboardingTour />
+      <OnboardingTour disabled={!activeId || modelsQuery.isError || modelsQuery.isFetching} />
       <ClimateContextBadge />
       <HelpDialog open={openDialog === "help"} onClose={() => setDialog(null)} />
       {/* Dialog globali entity-CRUD (alpha.31 hotfix): prima erano in EditorBar

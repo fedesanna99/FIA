@@ -14,7 +14,7 @@
  * Riferimento visuale: mockup `fea_pro_progressive_disclosure_v1.html`
  * sezione 03 "Hub invece di toolbar densa".
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowLeft, ChevronRight } from "lucide-react";
 import { IconTool } from "@tabler/icons-react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
@@ -25,22 +25,47 @@ import { MeasureSnapshotView } from "./tools/MeasureSnapshotView";
 import { ExportView } from "./tools/ExportView";
 import { ValidationView } from "./tools/ValidationView";
 import { CostPreviewView } from "./tools/CostPreviewView";
+import { AutoDetectView } from "./tools/AutoDetectView";
+import { ImportPanel } from "../../components/panels/ImportPanel";
+import { ExportServerPanel } from "../../components/panels/ExportServerPanel";
+import { AccelerogramsPanel } from "../../components/panels/AccelerogramsPanel";
+import { ComparePanel } from "../../components/panels/ComparePanel";
+import { AICopilotPanel } from "../../components/panels/AICopilotPanel";
+import { CollabPanel } from "../../components/panels/CollabPanel";
 
 
 export type ToolsView =
   | "hub"
   | "measure-snapshot"
+  | "import"
   | "export"
+  | "server-export"
   | "validation"
+  | "auto-detect"
+  | "accelerograms"
+  | "compare"
+  | "ai-copilot"
+  | "collab"
   | "cost-preview";
 
 
 const SUBVIEW_LABELS: Record<Exclude<ToolsView, "hub">, string> = {
   "measure-snapshot": "Misure e snapshot",
-  "export":           "Esporta",
+  "import":           "Import",
+  "export":           "Export rapido",
+  "server-export":    "Export server",
   "validation":       "Validazione",
+  "auto-detect":      "Auto-detect",
+  "accelerograms":    "Accelerogrammi",
+  "compare":          "Compare A/B",
+  "ai-copilot":       "AI Copilot",
+  "collab":           "Collab",
   "cost-preview":     "Cost preview",
 };
+
+function isToolsSubview(value: unknown): value is Exclude<ToolsView, "hub"> {
+  return typeof value === "string" && value in SUBVIEW_LABELS;
+}
 
 
 export function ToolsPanel() {
@@ -53,6 +78,15 @@ export function ToolsPanel() {
     closeRail();
     setView("hub");
   };
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const next = (event as CustomEvent<{ view?: unknown }>).detail?.view;
+      if (isToolsSubview(next)) setView(next);
+    };
+    window.addEventListener("feapro:tools-view", handler);
+    return () => window.removeEventListener("feapro:tools-view", handler);
+  }, []);
 
   return (
     <PanelChrome
@@ -70,8 +104,15 @@ export function ToolsPanel() {
           <ToolsBreadcrumb view={view} onBack={() => setView("hub")} />
           <div className="flex-1 min-h-0 overflow-hidden">
             {view === "measure-snapshot" && <MeasureSnapshotView />}
+            {view === "import" && <ImportPanel />}
             {view === "export" && <ExportView />}
+            {view === "server-export" && <ExportServerPanel />}
             {view === "validation" && <ValidationView />}
+            {view === "auto-detect" && <AutoDetectView />}
+            {view === "accelerograms" && <AccelerogramsPanel />}
+            {view === "compare" && <ComparePanel />}
+            {view === "ai-copilot" && <AICopilotPanel />}
+            {view === "collab" && <CollabPanel />}
             {view === "cost-preview" && <CostPreviewView />}
           </div>
         </div>

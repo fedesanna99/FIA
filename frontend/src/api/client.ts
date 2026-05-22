@@ -35,6 +35,8 @@ api.interceptors.response.use(
   (r) => r,
   (err) => {
     const status = err?.response?.status;
+    const url = String(err?.config?.url ?? "");
+    const method = String(err?.config?.method ?? "get").toLowerCase();
     // 401 su endpoint authenticated: il token e' scaduto/invalido. Pulisci
     // lo store cosi' la UI redirige a login. Tocca farlo qui per evitare
     // di mostrare toast 401 ripetuti.
@@ -56,7 +58,7 @@ api.interceptors.response.use(
         /* ignore */
       }
     }
-    if (status && status >= 400) {
+    if (status && status >= 400 && shouldToastHttpError(method, url)) {
       // v1.6 S0 · B05: traduzione errori in italiano umano. Prima il toast
       // mostrava `HTTP 422: [object Object]` quando il body era strutturato.
       // Ora translateAxiosError mappa i kind backend riconosciuti
@@ -67,6 +69,22 @@ api.interceptors.response.use(
     return Promise.reject(err);
   },
 );
+
+function shouldToastHttpError(method: string, url: string): boolean {
+  if (method !== "get") return true;
+
+  // Dashboard bootstrap: questi fallimenti sono gia' comunicati dal banner
+  // "Backend/database non disponibile". Evita stack di toast generici quando
+  // si lavora volutamente senza database/API.
+  if (url === "/api/models/" || url === "/api/models") return false;
+  if (/^\/api\/quotas\/[^/]+$/.test(url)) return false;
+  if (url === "/api/health") return false;
+  if (url === "/api/materials") return false;
+  if (url === "/api/sections") return false;
+  if (url === "/api/io/accelerograms") return false;
+
+  return true;
+}
 
 export interface ValidationIssue {
   level: "info" | "warning" | "error";

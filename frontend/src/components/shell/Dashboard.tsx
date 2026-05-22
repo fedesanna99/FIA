@@ -14,7 +14,7 @@
  * sorgenti.
  */
 import { useQuery } from "@tanstack/react-query";
-import { Plus, FileUp, Layers, FlaskConical, type LucideIcon } from "lucide-react";
+import { Plus, FileUp, Layers, FlaskConical, RefreshCcw, SlidersHorizontal, WifiOff, type LucideIcon } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { getQuota } from "../../api/billing";
 import { useAuthStore } from "../../store/authStore";
@@ -22,10 +22,19 @@ import { useAnalysisStore } from "../../store/analysisStore";
 
 interface Props {
   models: FEAModel[];
+  modelsUnavailable?: boolean;
+  modelsRefreshing?: boolean;
+  onRetryModels?: () => void;
   onSelect: (id: string) => void;
 }
 
-export function Dashboard({ models, onSelect }: Props) {
+export function Dashboard({
+  models,
+  modelsUnavailable = false,
+  modelsRefreshing = false,
+  onRetryModels,
+  onSelect,
+}: Props) {
   const isRunning = useAnalysisStore((s) => s.isRunning);
   const authUser = useAuthStore((s) => s.user);
   const userId = authUser?.id ?? "demo_user";
@@ -65,8 +74,43 @@ export function Dashboard({ models, onSelect }: Props) {
             {models.length} {models.length === 1 ? "modello" : "modelli"} · {nJobs} job in corso
           </p>
         </div>
-        <QuotaCard used={used} total={totalCap} tier={quota?.tier ?? "free"} />
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new CustomEvent("feapro:open-view-panel"))}
+            className="h-9 px-3 rounded-md border border-border bg-bg-panel text-ink-muted hover:text-ink hover:bg-bg-hover text-[11px] font-mono flex items-center gap-1.5 shadow-pop transition-colors"
+            data-testid="dashboard-open-view"
+            title="Apri cockpit View"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            View
+          </button>
+          <QuotaCard used={used} total={totalCap} tier={quota?.tier ?? "free"} />
+        </div>
       </div>
+
+      {modelsUnavailable && (
+        <div className="max-w-5xl mx-auto mb-4 border border-warn/35 bg-bg-warn text-ink-warn rounded-lg px-3.5 py-2.5 flex items-center gap-2.5 text-sm">
+          <WifiOff className="w-4 h-4 flex-shrink-0" />
+          <div className="min-w-0 flex-1">
+            <span className="font-medium">Backend/database non disponibile.</span>{" "}
+            <span className="text-ink-muted">
+              La UI resta navigabile, ma modelli, template e salvataggi richiedono le API.
+            </span>
+          </div>
+          {onRetryModels && (
+            <button
+              type="button"
+              onClick={onRetryModels}
+              disabled={modelsRefreshing}
+              className="h-7 px-2 rounded-md border border-warn/30 bg-bg-panel/60 text-[11px] font-medium text-ink hover:bg-bg-panel disabled:opacity-50 disabled:cursor-wait flex items-center gap-1.5 flex-shrink-0"
+            >
+              <RefreshCcw className={`w-3 h-3 ${modelsRefreshing ? "animate-spin" : ""}`} />
+              Riprova
+            </button>
+          )}
+        </div>
+      )}
 
       {/* Quick actions */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7 max-w-5xl mx-auto">
@@ -76,6 +120,7 @@ export function Dashboard({ models, onSelect }: Props) {
           sub="Da zero · Ctrl+N"
           primary
           onClick={() => window.dispatchEvent(new Event("feapro:open-new-model"))}
+          disabled={modelsUnavailable}
           testId="dashboard-action-new"
         />
         <ActionBtn
@@ -83,6 +128,7 @@ export function Dashboard({ models, onSelect }: Props) {
           label="Da template"
           sub="9 preset didattici"
           onClick={openTemplateGallery}
+          disabled={modelsUnavailable}
           testId="dashboard-action-template"
         />
         <ActionBtn
@@ -92,6 +138,7 @@ export function Dashboard({ models, onSelect }: Props) {
           onClick={() =>
             window.dispatchEvent(new CustomEvent("feapro:open-import-wizard"))
           }
+          disabled={modelsUnavailable}
           testId="dashboard-action-import"
         />
         <ActionBtn
@@ -99,6 +146,7 @@ export function Dashboard({ models, onSelect }: Props) {
           label="Esempi"
           sub="Modelli demo"
           onClick={openTemplateGallery}
+          disabled={modelsUnavailable}
           testId="dashboard-action-examples"
         />
       </div>
@@ -106,7 +154,11 @@ export function Dashboard({ models, onSelect }: Props) {
       {/* Jobs + Modelli */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-7 max-w-5xl mx-auto">
         <JobsSection isRunning={isRunning} />
-        <ModelsSection models={models} onSelect={onSelect} />
+        <ModelsSection
+          models={models}
+          modelsUnavailable={modelsUnavailable}
+          onSelect={onSelect}
+        />
       </div>
     </div>
   );
@@ -145,6 +197,7 @@ function ActionBtn({
   sub,
   primary,
   onClick,
+  disabled,
   testId,
 }: {
   icon: LucideIcon;
@@ -152,16 +205,21 @@ function ActionBtn({
   sub: string;
   primary?: boolean;
   onClick?: () => void;
+  disabled?: boolean;
   testId?: string;
 }) {
   return (
     <button
       type="button"
-      onClick={onClick}
+      onClick={disabled ? undefined : onClick}
+      disabled={disabled}
       data-testid={testId}
+      title={disabled ? "Richiede backend/database disponibile" : undefined}
       className={[
         "flex items-start gap-3 p-3.5 rounded-lg border transition-colors text-left",
-        primary
+        disabled
+          ? "bg-bg-panel/60 border-border text-ink-dim opacity-60 cursor-not-allowed"
+          : primary
           ? "bg-accent text-white border-accent-hover/30 hover:bg-accent-hover shadow-pop"
           : "bg-bg-panel border-border hover:bg-bg-hover hover:border-accent/30 text-ink",
       ].join(" ")}
@@ -169,14 +227,14 @@ function ActionBtn({
       <div
         className={[
           "w-9 h-9 rounded-md flex items-center justify-center flex-shrink-0",
-          primary ? "bg-white/20" : "bg-bg-info text-info",
+          disabled ? "bg-bg-hover text-ink-dim" : primary ? "bg-white/20" : "bg-bg-info text-info",
         ].join(" ")}
       >
         <Icon className="w-4 h-4" />
       </div>
       <div className="min-w-0">
         <div className="font-semibold text-sm">{label}</div>
-        <div className={`text-[11px] font-mono mt-0.5 ${primary ? "text-white/80" : "text-ink-dim"}`}>
+        <div className={`text-[11px] font-mono mt-0.5 ${primary && !disabled ? "text-white/80" : "text-ink-dim"}`}>
           {sub}
         </div>
       </div>
@@ -204,9 +262,11 @@ function JobsSection({ isRunning }: { isRunning: boolean }) {
 
 function ModelsSection({
   models,
+  modelsUnavailable,
   onSelect,
 }: {
   models: FEAModel[];
+  modelsUnavailable: boolean;
   onSelect: (id: string) => void;
 }) {
   // v1.6 S0 B01: separa modelli utente (NON id "ex_*") da esempi
@@ -222,7 +282,11 @@ function ModelsSection({
       <div className="text-[11px] uppercase tracking-wider text-ink-dim font-semibold mb-3">
         Modelli recenti
       </div>
-      {recent.length === 0 ? (
+      {modelsUnavailable ? (
+        <div className="text-sm text-ink-dim">
+          Lista non caricabile finche' il backend non risponde.
+        </div>
+      ) : recent.length === 0 ? (
         <div className="text-sm text-ink-dim">
           Nessun modello ancora. Clicca "Nuovo modello" per iniziare.
         </div>
