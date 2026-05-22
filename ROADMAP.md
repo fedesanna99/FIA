@@ -3,15 +3,57 @@
 > Visione evolutiva. Per il backlog tecnico granulare e i carry-over di v1.0.0 vedi `BACKLOG.md`.
 > Per la specifica del redesign UI vedi `UI_REDESIGN_SPEC.md`.
 
-**Stato corrente**: `v1.6.1-polish` — Sprint 0 (10 bug P0) chiuso + viewport-engine GPU
-con InstancedMesh testato (53 test) + audit visivo Legacy↔Engine + smoke E2E Playwright
-(4 scenari). Live su https://fea-pro.fly.dev/.
+**Stato corrente**: `v1.8.4-a11y` — 4 sprint di polish UI/UX dopo v1.7
+(ui-coerence) e v1.8.0 (product-alignment Studio Pro / Percorsi).
+460 vitest verdi, deploy live su https://fea-pro.fly.dev/.
 
 ---
 
 ## Storia recente
 
-### v1.6.1-polish (2026-05-22, in chiusura)
+### v1.8.4-a11y (2026-05-23)
+- T1 Focus-visible rings su CTA hero (`accent` / `percorsi`).
+- T2 MobileTabbar: `aria-current="page"` + aria-label dinamico + focus rings.
+- T3 JobsSection empty state: CTA `Apri Solve →` quando esiste un modello.
+- T4 Skip link a11y `Vai al contenuto` → `#main-content` (WCAG 2.4.1).
+
+### v1.8.3-microaffordance (2026-05-23)
+- T1 Hover lift su CTA Studio Pro / Percorsi (`-translate-y-0.5 + shadow-lg`).
+- T2 EmptyModelOverlay hint `Ctrl + K` palette (desktop only).
+- T3 Save status chip animate-slide-down (no più sbocciare brusco).
+- T4 `ResultsOverviewCard` Max σ tonale vs soglia S235 (visivo, non normativo).
+
+### v1.8.2-pass2 (2026-05-23)
+- T1 StatusBar arricchita: counts modello `N · E · DoF · 3D · SI`.
+- T2 TopBar tier badge tooltip JSX con crediti X/Y + progress bar tonale.
+- T3 Skeleton loading sidebar destra durante `isRunning`.
+
+### v1.8.1-polish (2026-05-22)
+- P0 Mojibake `ViewportHud` (`Â·` → `·`, `â€"` → `—`).
+- P1 Sidebar destra densa: `AnalysisSummaryCard` + `ResultsOverviewCard`.
+- P2 Tier badge dinamico via `/api/quotas/:userId` (4 stili tonali).
+- P3 `MissionBar` rule engine già coperto da v1.8 T3 (8 test).
+- P4 Capture Playwright stato live (mobile + desktop).
+
+### v1.8.0-product-alignment (2026-05-22)
+- T0 Token CSS `--c-percorsi` emerald (2° asse semantico Studio Pro / Percorsi).
+- T1 CTA doppia Studio Pro (blu) + Percorsi (emerald) su Dashboard.
+- T2 `PercorsiPlaceholderDialog` informativo (placeholder fino a v1.9).
+- T3 `MissionBar` minima + rule engine deterministico `computeHint`.
+- T4 `ModelInfoCard` always-on sidebar destra desktop.
+- T5 LeftRail sezioni categoriali con label uppercase.
+- T6 Tier badge Pro hardcoded + edit nome modello inline (poi dinamico in v1.8.1).
+- Hotfix: mobile panel full-width + rimozione tab bar drill-in Make/Solve/Verify.
+
+### v1.7.0-ui-coerence (2026-05-22)
+- T1 Hub-icon palette tokens (info/success/purple/coral/warn/gray).
+- T2 Mobile PanelHub coerente Make/Solve/Verify/Inspect (single pattern).
+- T3 Drill-in pattern: breadcrumb + cost preview + Esegui verde gradient.
+- T4 `ElementDialog` + Section/Material picker no-overflow mobile.
+- T5 Dismiss UX: no crocette modal, solo backdrop + ESC + swipe-back.
+- T6 TopBar + bottom tabbar coerenti.
+
+### v1.6.1-polish (2026-05-22)
 - Toast errore al boot offline coperti da banner + whitelist `/api/auth/me`,
   `/api/jobs`, `/api/billing/quota`. Network error puri non emettono toast (T1).
 - "View" button anomalo rimosso dalla Dashboard (T2). Accesso unico via

@@ -182,6 +182,15 @@ body {
                ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   overflow: hidden;
+  /* v1.8.5 T3: previene rubber-band scrolling iOS che fa "rimbalzare"
+     l'intera app quando si raggiunge top/bottom. Su Safari, senza
+     `overscroll-behavior: contain` lo swipe oltre il bordo trascina
+     anche il fondo della pagina rendendo lo shell instabile durante
+     l'uso dei mobile panel slide-in. */
+  overscroll-behavior: contain;
+  /* Disable double-tap-to-zoom su iOS Safari per evitare ritardi 300ms
+     su click rapidi (LeftRail, MobileTabbar, hub-card). */
+  touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
