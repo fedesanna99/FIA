@@ -19,7 +19,6 @@ import type { FEAModel } from "../../types/model";
 import { getQuota } from "../../api/billing";
 import { useAuthStore } from "../../store/authStore";
 import { useAnalysisStore } from "../../store/analysisStore";
-import { toast } from "../../store/toastStore";
 
 interface Props {
   models: FEAModel[];
@@ -43,16 +42,12 @@ export function Dashboard({ models, onSelect }: Props) {
   // l'alpha.31 hotfix aveva introdotto sono stati rimossi: la logica
   // vive nel wizard (DXF/IFC/JSON nativo/Template).
 
-  const handleExamples = () => {
-    if (models.length > 0) {
-      onSelect(models[0].id);
-    } else {
-      toast(
-        "info",
-        "Nessun modello disponibile. Crea un nuovo modello o importa un JSON.",
-      );
-    }
-  };
+  // v1.6 S0 B01: "Esempi" e "Da template" ora puntano allo stesso entry
+  // point — la galleria template dedicata che mostra i 9 modelli precaricati
+  // dal backend (ex_*). Le card del Dashboard non aprono piu' il
+  // NewModelDialog vuoto come fallback.
+  const openTemplateGallery = () =>
+    window.dispatchEvent(new Event("feapro:open-template-gallery"));
 
   const totalCap = (quota?.cap_credits ?? 100) + (quota?.bonus_credits ?? 0);
   const used = quota?.used_credits ?? 0;
@@ -86,8 +81,9 @@ export function Dashboard({ models, onSelect }: Props) {
         <ActionBtn
           icon={Layers}
           label="Da template"
-          sub="8 preset"
-          onClick={() => window.dispatchEvent(new Event("feapro:open-new-model"))}
+          sub="9 preset didattici"
+          onClick={openTemplateGallery}
+          testId="dashboard-action-template"
         />
         <ActionBtn
           icon={FileUp}
@@ -102,7 +98,8 @@ export function Dashboard({ models, onSelect }: Props) {
           icon={FlaskConical}
           label="Esempi"
           sub="Modelli demo"
-          onClick={handleExamples}
+          onClick={openTemplateGallery}
+          testId="dashboard-action-examples"
         />
       </div>
 
@@ -212,7 +209,14 @@ function ModelsSection({
   models: FEAModel[];
   onSelect: (id: string) => void;
 }) {
-  const recent = models.slice(0, 5);
+  // v1.6 S0 B01: separa modelli utente (NON id "ex_*") da esempi
+  // didattici (id "ex_*"). Cosi' la sezione "Modelli recenti" mostra
+  // davvero i modelli che l'utente ha creato/importato, non i preset.
+  const userModels  = models.filter((m) => !m.id.startsWith("ex_"));
+  const exampleModels = models.filter((m) => m.id.startsWith("ex_"));
+  const recent = userModels.slice(0, 5);
+  const examples = exampleModels.slice(0, 5);
+
   return (
     <div className="bg-bg-panel border border-border rounded-lg p-4 shadow-pop">
       <div className="text-[11px] uppercase tracking-wider text-ink-dim font-semibold mb-3">
@@ -225,20 +229,52 @@ function ModelsSection({
       ) : (
         <div className="space-y-0.5">
           {recent.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              onClick={() => onSelect(m.id)}
-              className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md hover:bg-bg-hover text-left transition-colors"
-            >
-              <span className="text-sm text-ink truncate">{m.name}</span>
-              <span className="text-[11px] font-mono text-ink-dim flex-shrink-0">
-                {m.nodes?.length ?? 0} N · {m.elements?.length ?? 0} EL
-              </span>
-            </button>
+            <ModelRow key={m.id} model={m} onSelect={onSelect} />
           ))}
         </div>
       )}
+
+      {/* Esempi didattici — sezione separata visivamente */}
+      {examples.length > 0 && (
+        <>
+          <div className="border-t border-border mt-4 pt-3" />
+          <div className="text-[11px] uppercase tracking-wider text-ink-dim font-semibold mb-2 flex items-center gap-1.5">
+            <span>📚 Esempi didattici</span>
+            <span className="text-ink-muted font-normal">· {exampleModels.length} totali</span>
+          </div>
+          <div className="space-y-0.5">
+            {examples.map((m) => (
+              <ModelRow key={m.id} model={m} onSelect={onSelect} />
+            ))}
+            {exampleModels.length > 5 && (
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}
+                className="w-full text-left text-[11px] text-ink-info hover:underline px-2.5 py-1"
+              >
+                Vedi tutti i {exampleModels.length} template →
+              </button>
+            )}
+          </div>
+        </>
+      )}
     </div>
+  );
+}
+
+
+function ModelRow({ model, onSelect }: { model: FEAModel; onSelect: (id: string) => void }) {
+  return (
+    <button
+      key={model.id}
+      type="button"
+      onClick={() => onSelect(model.id)}
+      className="w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-md hover:bg-bg-hover text-left transition-colors"
+    >
+      <span className="text-sm text-ink truncate">{model.name}</span>
+      <span className="text-[11px] font-mono text-ink-dim flex-shrink-0">
+        {model.nodes?.length ?? 0} N · {model.elements?.length ?? 0} EL
+      </span>
+    </button>
   );
 }

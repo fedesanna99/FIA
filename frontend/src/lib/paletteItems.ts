@@ -62,6 +62,7 @@ export type PaletteActionKind =
   | "focus-toggle"   // v1.5 Task 33: toggle modalita' focus (Shift+Space / F)
   | "open-import-wizard" // v1.5 Task 29: apre ImportWizard 4-step (payload?: { source })
   | "open-wizard"    // v1.5 Task 34 follow-up: hub generico via wizardStore (payload: { wizard, ... })
+  | "open-template-gallery" // v1.6 S0 B01: apre TemplateGalleryDialog
   // v1.5 Task 34: nuovi actionKind per voci catalogo
   | "apply-material" // payload: { materialId } — applica materiale alla selezione/all
   | "apply-section"  // payload: { sectionId }  — applica sezione alla selezione/all
@@ -125,6 +126,7 @@ const PANELS: PaletteItem[] = [
 const COMMANDS: PaletteItem[] = [
   // Modeling
   { id: "new-model",        label: "Crea nuovo modello", aliases: ["new", "nuovo"], section: "commands", group: "Modeling", icon: Plus,    actionKind: "dialog", payload: "new" },
+  { id: "open-template-gallery", label: "Apri galleria template",  description: "9 modelli didattici precaricati", aliases: ["template", "esempi", "examples", "gallery", "galleria"], section: "commands", group: "Modeling", icon: Boxes, actionKind: "open-template-gallery" },
   { id: "open-mesh-wizard", label: "Apri wizard mesh",   aliases: ["mesh", "wizard"], section: "commands", group: "Modeling", icon: Layers, actionKind: "dialog", payload: "mesh", needsModel: true },
   { id: "add-node",         label: "Aggiungi nodo",      aliases: ["nodo", "node", "N"], section: "commands", group: "Modeling", icon: MousePointerClick, shortcut: "N", actionKind: "dialog", payload: "node", needsModel: true },
   { id: "add-element",      label: "Aggiungi elemento",  aliases: ["element", "beam", "shell", "E"], section: "commands", group: "Modeling", icon: Boxes, shortcut: "E", actionKind: "dialog", payload: "element", needsModel: true },

@@ -48,6 +48,7 @@ import { ConstraintDialog } from "./components/dialogs/ConstraintDialog";
 import { MeshWizardDialog } from "./components/dialogs/MeshWizardDialog";
 import { ImportWizard } from "./components/dialogs/wizards/ImportWizard";
 import { SismicaTHWizard } from "./components/dialogs/wizards/SismicaTHWizard";
+import { TemplateGalleryDialog } from "./components/dialogs/TemplateGalleryDialog";
 import { MobileTabbar } from "./components/shell/MobileTabbar";
 import { MobilePanel } from "./components/shell/MobilePanel";
 import { MobileMoreMenu } from "./components/shell/MobileMoreMenu";
@@ -92,6 +93,8 @@ export default function App() {
   const [importWizardSource, setImportWizardSource] = useState<
     "dxf" | "ifc" | "json" | "template" | undefined
   >(undefined);
+  // v1.6 S0 B01: TemplateGalleryDialog state (aperto da Dashboard / palette).
+  const [templateGalleryOpen, setTemplateGalleryOpen] = useState(false);
   useLoadModel(activeId);
   // v1.5 Task 34 follow-up: leggo wizardStore.active per renderizzare il
   // SismicaTHWizard singleton al root.
@@ -161,9 +164,13 @@ export default function App() {
     };
     window.addEventListener("feapro:open-import-wizard", openImport);
     window.addEventListener("feapro:model-imported", onImported);
+    // v1.6 S0 B01: listener globale per la TemplateGalleryDialog.
+    const openTemplate = () => setTemplateGalleryOpen(true);
+    window.addEventListener("feapro:open-template-gallery", openTemplate);
     return () => {
       window.removeEventListener("feapro:open-import-wizard", openImport);
       window.removeEventListener("feapro:model-imported", onImported);
+      window.removeEventListener("feapro:open-template-gallery", openTemplate);
     };
   }, []);
 
@@ -456,6 +463,13 @@ export default function App() {
       <SismicaTHWizard
         open={wizardActive === "sismica-th"}
         onClose={() => useWizardStore.getState().close()}
+      />
+      {/* v1.6 S0 B01: galleria template dei modelli precaricati backend. */}
+      <TemplateGalleryDialog
+        open={templateGalleryOpen}
+        onClose={() => setTemplateGalleryOpen(false)}
+        models={models ?? []}
+        onSelect={(id) => setActiveId(id)}
       />
     </div>
   );

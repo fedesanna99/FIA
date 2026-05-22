@@ -130,6 +130,11 @@ export function CommandPalette() {
       case "logout":
         authLogout();
         break;
+      case "open-template-gallery":
+        // v1.6 S0 B01: galleria dei modelli precaricati (event globale,
+        // mount in App.tsx).
+        window.dispatchEvent(new Event("feapro:open-template-gallery"));
+        break;
       case "open-wizard": {
         // v1.5 Task 34 follow-up: hub generico via wizardStore.
         // Il dispatcher in App.tsx instrada al meccanismo concreto
