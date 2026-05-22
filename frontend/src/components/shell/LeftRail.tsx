@@ -123,15 +123,17 @@ export function LeftRail() {
 
   return (
     <nav
-      className="w-12 flex-shrink-0 border-r border-border bg-bg-panel flex flex-col py-2 gap-1 items-center"
+      className="w-12 flex-shrink-0 border-r border-border bg-bg-panel flex flex-col py-2 gap-0.5 items-center"
       aria-label="Workspace navigation"
       data-testid="left-rail"
     >
-      {/* Voci principali (Make / Solve / Verify) — workflow fasi */}
+      {/* v1.8 T5: sezioni categoriali label-uppercase coerenti con mockup
+          01/08. Su rail stretto 48px usiamo micro-label 7px tracking-widest
+          centrate per separare i gruppi semantici. */}
+      <SectionLabel text="FASI" />
       {ITEMS.map((it) => <RailButton key={it.key} item={it} disabled={noModel} />)}
 
-      <div className="my-1 w-7 border-t border-border" aria-hidden />
-
+      <SectionLabel text="CMD" />
       {/* Command palette */}
       <Tooltip side="right" content={<>Comandi <kbd className="text-[10px] ml-1.5 bg-bg-hover px-1 rounded border border-border">Ctrl K</kbd></>}>
         <button
@@ -147,6 +149,7 @@ export function LeftRail() {
 
       <div className="flex-1" />
 
+      <SectionLabel text="UI" />
       {/* Theme toggle (dark/light/system) */}
       <ThemeToggle compact />
 
@@ -163,5 +166,22 @@ export function LeftRail() {
         </button>
       </Tooltip>
     </nav>
+  );
+}
+
+
+/**
+ * SectionLabel (v1.8 T5) — micro-label uppercase 7px per separare gruppi
+ * semantici nella LeftRail w-12. Coerente con sezioni del mockup 01/08
+ * (WORKSPACES, MAKE, RESULTS, ecc) ridotte alla larghezza disponibile.
+ */
+function SectionLabel({ text }: { text: string }) {
+  return (
+    <div
+      className="text-[7px] uppercase tracking-[0.15em] text-ink-faint font-mono font-semibold mt-1.5 mb-0.5 select-none"
+      aria-hidden
+    >
+      {text}
+    </div>
   );
 }
