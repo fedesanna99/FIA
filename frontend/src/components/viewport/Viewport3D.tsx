@@ -65,7 +65,10 @@ export function Viewport3D() {
   return (
     <div className="absolute inset-0">
       <Canvas
-        key={`${projection}-${theme}`}
+        // v1.6 S0 · B15: includere model?.id nel key forza remount del Canvas
+        // quando si carica un modello diverso → la camera si ri-inizializza
+        // con i bounds corretti del nuovo modello (auto-fit al primo render).
+        key={`${projection}-${theme}-${model?.id ?? "empty"}`}
         orthographic={projection === "orthographic"}
         camera={cameraConfig}
         gl={{ antialias: true, alpha: false }}
