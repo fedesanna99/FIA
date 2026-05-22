@@ -13,6 +13,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { useWorkspaceStore, type Workspace } from "../../store/workspaceStore";
 import { HELP_CONTENT } from "../../help/content";
+import { useModalBackButton } from "../../hooks/useModalBackButton";
 import { cn } from "../ui/cn";
 
 export function HelpSheet() {
@@ -20,6 +21,9 @@ export function HelpSheet() {
   const setOpen = useWorkspaceStore((s) => s.setHelp);
   const workspace = useWorkspaceStore((s) => s.workspace);
   const [section, setSection] = useState<Workspace>(workspace);
+
+  // v1.6 S0 · B08: back hardware mobile chiude la sheet.
+  useModalBackButton(open, () => setOpen(false));
 
   // Aggiorna la sezione quando l'utente cambia workspace mentre la sheet è aperta
   useEffect(() => {

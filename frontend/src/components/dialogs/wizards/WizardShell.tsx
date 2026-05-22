@@ -17,6 +17,7 @@
  */
 import { Fragment, type ReactNode } from "react";
 import { X, ChevronRight, ArrowRight, Play, type LucideIcon } from "lucide-react";
+import { useModalBackButton } from "../../../hooks/useModalBackButton";
 
 
 export interface WizardCrumb {
@@ -56,6 +57,9 @@ export function WizardShell({
   nextLabel = "Avanti", submitLabel = "Esegui", canProceed = true, isSubmitting = false,
   children, maxWidth = 640,
 }: WizardShellProps) {
+  // v1.6 S0 · B08: back hardware mobile chiude il wizard. Va prima del
+  // early-return cosi' il hook si registra/deregistra coerentemente.
+  useModalBackButton(open, onClose);
   if (!open) return null;
   const isLast = currentStep === steps.length - 1;
 

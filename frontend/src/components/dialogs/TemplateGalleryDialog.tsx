@@ -12,6 +12,7 @@
  */
 import { Boxes, X } from "lucide-react";
 import type { FEAModel } from "../../types/model";
+import { useModalBackButton } from "../../hooks/useModalBackButton";
 
 
 /** Descrizioni umane per i 9 template (chiave: id backend "ex_*"). */
@@ -48,6 +49,8 @@ interface Props {
 
 
 export function TemplateGalleryDialog({ open, onClose, models, onSelect }: Props) {
+  // v1.6 S0 · B08: back hardware mobile chiude la galleria.
+  useModalBackButton(open, onClose);
   if (!open) return null;
 
   const templates = models.filter((m) => m.id.startsWith("ex_"));

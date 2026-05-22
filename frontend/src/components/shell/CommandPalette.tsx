@@ -24,6 +24,7 @@ import { useResultsStore } from "../../store/resultsStore";
 import { useThemeStore } from "../../store/themeStore";
 import { useAuthStore } from "../../store/authStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
+import { useModalBackButton } from "../../hooks/useModalBackButton";
 import { useNavigationCommands } from "../../hooks/useNavigationCommands";
 import { useSelectionStore } from "../../store/selectionStore";
 import { useWizardStore, type WizardKind } from "../../store/wizardStore";
@@ -56,6 +57,10 @@ export function CommandPalette() {
 
   // v1.5 follow-up: voci dinamiche goto-node/element generate dal modello attivo
   const navItems = useNavigationCommands();
+
+  // v1.6 S0 · B08: il back hardware mobile chiude la palette invece di
+  // navigare via dalla pagina.
+  useModalBackButton(open, () => setOpen(false));
 
   // Ctrl+K / Cmd+K toggle (mantieni shortcut esistenti)
   useEffect(() => {
