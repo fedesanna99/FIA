@@ -22,6 +22,10 @@ export default {
           warn:     "rgb(var(--c-bg-warn) / <alpha-value>)",
           coral:    "rgb(var(--c-bg-coral) / <alpha-value>)",
           purple:   "rgb(var(--c-bg-purple) / <alpha-value>)",
+          // v1.7 T1: 6° tono "gray" per hub-card neutre (alias di
+          // bg-hover, semantica "non-categorizzato"). Allinea
+          // mockup_reference.html.
+          gray:     "rgb(var(--c-bg-hover) / <alpha-value>)",
         },
         border: {
           DEFAULT: "rgb(var(--c-border) / <alpha-value>)",
@@ -39,6 +43,8 @@ export default {
           warn:    "rgb(var(--c-warn) / <alpha-value>)",
           coral:   "rgb(var(--c-coral) / <alpha-value>)",
           purple:  "rgb(var(--c-purple) / <alpha-value>)",
+          // v1.7 T1: 6° tono "gray" (alias di ink-dim, hub-card neutre).
+          gray:    "rgb(var(--c-ink-dim) / <alpha-value>)",
         },
         accent: {
           DEFAULT: "rgb(var(--c-accent) / <alpha-value>)",

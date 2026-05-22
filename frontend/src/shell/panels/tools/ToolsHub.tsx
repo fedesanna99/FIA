@@ -1,17 +1,22 @@
+/**
+ * ToolsHub — entrypoint hub Tools panel.
+ *
+ * v1.7 T1: refactor per usare PanelHub component + HubTone centralizzato
+ * (no piu' duplicazione di TONE_STYLE locale). 6 toni disponibili.
+ */
 import {
-  Bot, Bug, ChevronRight, Download, FileInput, GitCompareArrows, Receipt,
-  Ruler, ShieldCheck, Users, Waves, type LucideIcon,
+  Bot, Bug, Download, FileInput, GitCompareArrows, Receipt,
+  Ruler, ShieldCheck, Users, Waves,
 } from "lucide-react";
 import type { ToolsView } from "../ToolsPanel";
-
-type Tone = "info" | "success" | "purple" | "coral";
+import { PanelHub, type HubCard, type HubTone } from "../../../components/shell/panels/PanelHubNav";
 
 interface Hub {
   id: Exclude<ToolsView, "hub">;
   label: string;
   sub: string;
-  icon: LucideIcon;
-  tone: Tone;
+  icon: HubCard["icon"];
+  tone: HubTone;
 }
 
 const HUBS: Hub[] = [
@@ -94,37 +99,19 @@ const HUBS: Hub[] = [
   },
 ];
 
-const TONE_STYLE: Record<Tone, string> = {
-  info: "bg-bg-info text-ink-info",
-  success: "bg-bg-success text-ink-success",
-  purple: "bg-bg-purple text-ink-purple",
-  coral: "bg-bg-coral text-ink-coral",
-};
-
 export function ToolsHub({ onSelect }: { onSelect: (v: Exclude<ToolsView, "hub">) => void }) {
+  const cards: HubCard[] = HUBS.map((h) => ({
+    id: h.id,
+    label: h.label,
+    sub: h.sub,
+    icon: h.icon,
+    tone: h.tone,
+  }));
   return (
-    <div className="p-3 space-y-2 overflow-y-auto">
-      {HUBS.map((hub) => {
-        const Icon = hub.icon;
-        return (
-          <button
-            key={hub.id}
-            type="button"
-            onClick={() => onSelect(hub.id)}
-            data-testid={`tools-hub-${hub.id}`}
-            className="w-full bg-bg-panel border border-border hover:border-accent/40 rounded-lg p-3.5 flex items-start gap-3 text-left transition group"
-          >
-            <div className={`w-9 h-9 rounded-lg ${TONE_STYLE[hub.tone]} flex items-center justify-center shrink-0`}>
-              <Icon className="w-4 h-4" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm text-ink">{hub.label}</div>
-              <div className="text-[11px] text-ink-muted leading-snug mt-0.5">{hub.sub}</div>
-            </div>
-            <ChevronRight className="w-4 h-4 text-ink-muted mt-2 group-hover:text-ink-info shrink-0" />
-          </button>
-        );
-      })}
-    </div>
+    <PanelHub
+      cards={cards}
+      onSelect={(id) => onSelect(id as Exclude<ToolsView, "hub">)}
+      testId="tools-hub"
+    />
   );
 }

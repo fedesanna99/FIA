@@ -1,22 +1,26 @@
 /**
- * PanelHubNav (v1.5.2 Task 39) — primitivi riusabili per progressive
- * disclosure dentro i pannelli (Solve, Verify, Make, futuri).
+ * PanelHubNav (v1.5.2 Task 39, v1.7 T1) — primitivi riusabili per
+ * progressive disclosure dentro i pannelli (Solve, Verify, Make, Tools,
+ * futuri).
  *
  * Pattern (stesso del Tools hub del Task 28):
  *   - PanelHub: lista di card grandi tono-colorate (info/success/purple/
- *     coral/warn) con icona + label + sub-text + chevron drill-in.
+ *     coral/warn/gray) con icona + label + sub-text + chevron drill-in.
  *     Click su una card chiama onSelect(id).
  *   - PanelBreadcrumb: header sticky "← Root › Current" che riporta
  *     l'utente all'hub root (onBack).
  *
  * Tonalita' allineate ai design token CSS (bg-bg-info, text-ink-info,
- * shadow-pop). 5 toni disponibili: info / success / purple / coral / warn.
+ * shadow-pop). 6 toni disponibili: info / success / purple / coral / warn / gray.
+ *
+ * v1.7 T1: aggiunto tono "gray" come 6° tono neutro per hub-card non
+ * categorizzate (allinea mockup_reference.html sezione 03/04).
  */
 import { ArrowLeft, ChevronRight, type LucideIcon } from "lucide-react";
 import { cn } from "../../ui/cn";
 
 
-export type HubTone = "info" | "success" | "purple" | "coral" | "warn";
+export type HubTone = "info" | "success" | "purple" | "coral" | "warn" | "gray";
 
 
 export interface HubCard {
@@ -38,6 +42,7 @@ const TONE_STYLE: Record<HubTone, string> = {
   purple:  "bg-bg-purple text-ink-purple",
   coral:   "bg-bg-coral text-ink-coral",
   warn:    "bg-bg-warn text-ink-warn",
+  gray:    "bg-bg-gray text-ink-gray",
 };
 
 
