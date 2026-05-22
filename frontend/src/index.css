@@ -334,3 +334,8 @@ textarea:focus-visible {
   border-radius: 3px;
   padding: 1px 5px;
 }
+
+/* v1.5.2 Task 36: safe-area padding for fixed bottom mobile tabbar */
+.safe-area-bottom {
+  padding-bottom: max(6px, env(safe-area-inset-bottom));
+}

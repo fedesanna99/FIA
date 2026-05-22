@@ -36,7 +36,7 @@ export function MobileTabbar() {
 
   return (
     <nav
-      className="bg-bg-panel border-t border-border px-2 py-1 flex items-center justify-around flex-shrink-0"
+      className="fixed bottom-0 left-0 right-0 z-40 bg-bg-panel border-t border-border px-2 py-1 flex items-center justify-around safe-area-bottom"
       data-testid="mobile-tabbar"
       aria-label="Navigazione mobile"
     >

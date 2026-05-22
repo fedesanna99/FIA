@@ -25,6 +25,7 @@
  */
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { cn } from "./components/ui/cn";
 import { TopBar } from "./components/shell/TopBar";
 import { LeftRail } from "./components/shell/LeftRail";
 import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
@@ -346,7 +347,15 @@ export default function App() {
         {/* LeftSlidePanel ankorato a sinistra (toggle via leftRailStore).
             In focus mode il rail e' nascosto + il panel e' chiuso. */}
         {showRails && <LeftSlidePanel />}
-        <main className="flex-1 relative min-w-0 bg-bg-viewport">
+        <main
+          className={cn(
+            "flex-1 relative min-w-0 bg-bg-viewport",
+            // v1.5.2 Task 36: compensa la MobileTabbar `position: fixed`
+            // (h ~56px + safe-area-bottom) cosi' il contenuto non scorre
+            // sotto la tabbar su mobile.
+            isMobile && !isFocusMode && "pb-14",
+          )}
+        >
           {/* alpha.30: Dashboard mockup-aligned quando nessun modello e' attivo.
               Quando l'utente seleziona/crea un modello, passa al Viewport3D. */}
           {activeId ? (
