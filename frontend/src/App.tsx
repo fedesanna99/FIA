@@ -214,10 +214,23 @@ export default function App() {
     // v1.6 S0 B01: listener globale per la TemplateGalleryDialog.
     const openTemplate = () => setTemplateGalleryOpen(true);
     window.addEventListener("feapro:open-template-gallery", openTemplate);
+    // v1.8 T1: CTA "Percorsi" e' placeholder fino al Demo Slice v1.9.
+    // Mostra toast informativo invece di aprire una pagina/dialog vuota.
+    const openPercorsi = () => {
+      import("./store/toastStore").then(({ toast }) => {
+        toast(
+          "info",
+          "Percorsi · disponibili da v1.9 (Demo Slice 'Verifica telaio 2D')",
+          5000,
+        );
+      });
+    };
+    window.addEventListener("feapro:open-percorsi", openPercorsi);
     return () => {
       window.removeEventListener("feapro:open-import-wizard", openImport);
       window.removeEventListener("feapro:model-imported", onImported);
       window.removeEventListener("feapro:open-template-gallery", openTemplate);
+      window.removeEventListener("feapro:open-percorsi", openPercorsi);
     };
   }, []);
 

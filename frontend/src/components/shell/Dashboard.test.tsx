@@ -80,6 +80,31 @@ describe("Dashboard offline/database state", () => {
     expect(onSelect).toHaveBeenCalledWith("m1");
   });
 
+  // v1.8 T1: CTA doppia Studio Pro / Percorsi
+  it("mostra CTA doppia Studio Pro + Percorsi (v1.8 T1)", () => {
+    render(<Dashboard models={[]} onSelect={() => {}} />, { wrapper });
+    expect(screen.getByTestId("home-cta-studio-pro")).toBeInTheDocument();
+    expect(screen.getByTestId("home-cta-percorsi")).toBeInTheDocument();
+    // Asse semantico: testi descrittivi presenti.
+    expect(screen.getByText(/Modalita' esperto|Modalità esperto/i)).toBeInTheDocument();
+    expect(screen.getByText(/Workflow guidato/i)).toBeInTheDocument();
+  });
+
+  it("CTA Percorsi dispatcha evento feapro:open-percorsi", () => {
+    const listener = vi.fn();
+    window.addEventListener("feapro:open-percorsi", listener);
+    render(<Dashboard models={[]} onSelect={() => {}} />, { wrapper });
+    fireEvent.click(screen.getByTestId("home-cta-percorsi"));
+    expect(listener).toHaveBeenCalledTimes(1);
+    window.removeEventListener("feapro:open-percorsi", listener);
+  });
+
+  it("CTA Studio Pro/Percorsi disabilitate quando modelsUnavailable", () => {
+    render(<Dashboard models={[]} modelsUnavailable onSelect={() => {}} />, { wrapper });
+    expect(screen.getByTestId("home-cta-studio-pro")).toBeDisabled();
+    expect(screen.getByTestId("home-cta-percorsi")).toBeDisabled();
+  });
+
   // v1.6.1 T2 · BUG-2
   it("non espone un bottone 'View' inline accanto a QuotaCard", () => {
     render(<Dashboard models={[model]} onSelect={() => {}} />, { wrapper });

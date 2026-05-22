@@ -103,13 +103,50 @@ export function Dashboard({
         </div>
       )}
 
-      {/* Quick actions */}
+      {/* v1.8 T1: CTA doppia Studio Pro / Percorsi — asse semantico
+          del prodotto. Studio Pro (accent blu) = controllo esperto,
+          apre subito il dialog Nuovo modello. Percorsi (emerald, token
+          v1.8 step 0) = workflow guidato, placeholder fino a v1.9. */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5 max-w-5xl mx-auto">
+        <button
+          type="button"
+          onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-new-model"))}
+          disabled={modelsUnavailable}
+          data-testid="home-cta-studio-pro"
+          className="text-left bg-accent text-white border border-accent-hover/30 rounded-lg p-5 shadow-pop hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <div className="text-[10px] uppercase tracking-wider font-mono opacity-80 mb-1">
+            Modalita' esperto
+          </div>
+          <div className="text-lg font-semibold mb-1">Studio Pro</div>
+          <div className="text-xs opacity-90">
+            Tutti gli strumenti, controllo completo. Per ingegneri che sanno cosa fare.
+          </div>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-percorsi"))}
+          disabled={modelsUnavailable}
+          data-testid="home-cta-percorsi"
+          className="text-left bg-percorsi text-white border border-percorsi/30 rounded-lg p-5 shadow-pop hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <div className="text-[10px] uppercase tracking-wider font-mono opacity-80 mb-1">
+            Workflow guidato
+          </div>
+          <div className="text-lg font-semibold mb-1">Percorsi</div>
+          <div className="text-xs opacity-90">
+            Step-by-step verso il risultato. Per esperti che vogliono un assistente, per principianti che vogliono imparare.
+          </div>
+        </button>
+      </div>
+
+      {/* Quick actions (azioni secondarie sotto la CTA doppia) */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-7 max-w-5xl mx-auto">
         <ActionBtn
           icon={Plus}
           label="Nuovo modello"
           sub="Da zero · Ctrl+N"
-          primary
           onClick={() => window.dispatchEvent(new Event("feapro:open-new-model"))}
           disabled={modelsUnavailable}
           testId="dashboard-action-new"
