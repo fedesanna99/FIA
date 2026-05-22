@@ -1,5 +1,104 @@
 # Changelog FEA Pro
 
+## v1.5.2 — Cleanup legacy + progressive disclosure interna — 2026-05-21
+
+Chiusura `CLAUDE_CODE_BRIEF_v1_5_2.md` con 6 task atomici. Filosofia:
+"rimuovere il rumore legacy residuo + applicare progressive disclosure
+DENTRO i pannelli, non solo sulla shell".
+
+### Task 35 — Rimozione pannelli legacy (`ef6761b`)
+- **LeftRail**: rimosse voci secondary "Risultati (legacy)" + "I/O (legacy)".
+  Resta solo Make/Solve/Verify (3 fasi workflow).
+- **workspaceStore.Workspace**: tipo ristretto a `"model" | "analysis" |
+  "verify" | "docs"`. DEFAULT_TAB allineato.
+- **LeftSlidePanel**: rimossi TITLES.results/io + switch case legacy.
+  Semplificato a 3 macro-panel + early-return per "docs".
+- **Breadcrumb / help/content.ts**: chiavi legacy rimosse.
+- **OnboardingTour**: step "results" e "io-collab" ora puntano a
+  workspace validi e descrivono il flow nuovo (rail destro Inspect/Tools,
+  wizard import).
+- **App.tsx**: shortcut 4-5 (results/io) rimossi, restano 1-3.
+- **CommandPalette**: case "run-analysis" apre RightRail.inspect; case
+  "openExport" apre RightRail.tools; voci ws-results/ws-io rimosse.
+- **File rinominati `.deprecated.tsx`** (esclusi via tsconfig):
+  WorkspacePanel, {Results,IO}Workspace, {Inspect,Tools}PanelContent,
+  PropertiesPanel, ResultsPanel.
+
+### Task 36 — Mobile tabbar fixed bottom (`60eed9b`)
+- **MobileTabbar.tsx**: classe `fixed bottom-0 left-0 right-0 z-40
+  safe-area-bottom` (era flex-shrink-0 inline). Ora resta sempre visibile.
+- **index.css**: nuova classe `.safe-area-bottom` con
+  `env(safe-area-inset-bottom)` per iPhone notch / Android gesture bar.
+- **App.tsx**: `<main>` ha ora `pb-14` quando isMobile && !isFocusMode.
+
+### Task 37 — Click-outside audit (`a1a2ff2`)
+Audit dei 4 pattern modali — tutti gia' implementati correttamente:
+- Radix Dialog: pointerDownOutside di default
+- Custom Dialog: backdrop onClick + container stopPropagation
+- WizardShell: stesso pattern Custom Dialog
+- HelpSheet: backdrop con setOpen(false)
+- AvatarMenu: Radix DropdownMenu dismiss by default
+
+Nessuna modifica al codice di produzione. Aggiunto 5-test spec di
+non-regressione per il Custom Dialog (`Dialog.test.tsx`).
+
+### Task 38 — Toast auto-dismiss tone-aware + stack limit (`180d97a`)
+- **toastStore**: `DEFAULT_TTL` per ToastLevel (success 3.5s · info 4s ·
+  warning 5s · error 6s). Errori restano piu' a lungo per dare tempo di
+  leggere.
+- **STACK_LIMIT = 3**: i toast piu' vecchi vengono droppati quando il
+  4° arriva. Evita che catene di errori HTTP (422 ripetuti su typing live)
+  sommergano lo schermo.
+- 5 nuovi vitest (durate per tone, stack limit, fake timer auto-dismiss).
+
+### Task 39 — Progressive disclosure interna ⭐ (`79d62d7`)
+Il task chiave del brief — applica hub-first navigation a 3 macro-panel.
+
+- **NEW `components/shell/panels/PanelHubNav.tsx`** — primitivi riusabili:
+  - `PanelHub`: griglia card tono-colorate (info/success/purple/coral/
+    warn) con icona + label + sub + chevron drill-in. Soon-badge supportato.
+  - `PanelBreadcrumb`: header sticky "← Root › Current" + onBack.
+- **SolvePanel**: 4 card hub (Lineari/Dinamica/Sismica/Non-lineari).
+  Click card → setTab(id) + breadcrumb back.
+- **VerifyPanel**: 5 card hub (EC2/EC3/EC5/EC8/NTC18) — una per normativa.
+- **MakePanel**: 5 card hub (Geometria/Mesh/Carichi/Vincoli/I-O).
+  L'I/O card warn-tone spiega Wizard import + Tools export.
+- **shell/types.ts**: `setLeftTab` accetta `string | null` per consentire
+  il back-to-hub.
+
+Quando currentLeftTab === null l'utente vede l'hub; quando ha un tab
+valido vede PanelChrome con i tab orizzontali tradizionali + breadcrumb.
+
+### Task 40 — Cleanup testi orfani (`aec5b40`)
+- MakePanel · tab Carichi: "Loads nella TopBar" → "Ctrl+K · Location o
+  AvatarMenu → Loads location".
+- OnboardingTour step 6 (climate-loads) e step 9 (focus-mode): aggiornati
+  per puntare all'AvatarMenu invece dei vecchi bottoni TopBar.
+
+### Quality gates v1.5.2
+- tsc --noEmit exit 0 dopo ogni commit
+- vitest: 334/334 passed (+10 vs v1.5.1: 5 Dialog + 5 Toaster)
+- npm run build OK su tutti i commit (~1.20 MB / gzip ~354 kB)
+- Sync: ogni commit pushato su `origin/test` + `origin/main`
+
+### Sintesi commit v1.5.2
+| Commit | Task |
+|---|---|
+| `ef6761b` | 35 — Rimozione pannelli legacy |
+| `60eed9b` | 36 — Mobile tabbar fixed bottom |
+| `a1a2ff2` | 37 — Click-outside audit + spec |
+| `180d97a` | 38 — Toast tone-aware + stack limit |
+| `79d62d7` | 39 — PanelHub + 3-panel disclosure |
+| `aec5b40` | 40 — Cleanup testi orfani |
+
+### Follow-up (deferred)
+- Form progressive con "Parametri avanzati ▾" collassati nei sub-form
+  (NonlinearPanel, ArcLengthPanel, ecc.) — richiede refactor invasivo,
+  deferred a v1.6.
+- Deploy Fly.io del bundle v1.5.2 (richiede autorizzazione esplicita).
+- Screenshot UI per ognuno dei 3 hub (Solve/Verify/Make).
+
+
 ## v1.5.1 — Brief v1.5 follow-up (palette dinamica + wizard hub + mobile TopBar) — 2026-05-21
 
 Chiude le deviazioni documentate in `docs/v1.5-postmortem.md` sezione
