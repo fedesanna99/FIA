@@ -37,6 +37,13 @@ api.interceptors.response.use(
     const status = err?.response?.status;
     const url = String(err?.config?.url ?? "");
     const method = String(err?.config?.method ?? "get").toLowerCase();
+    // v1.6.1 T1 · BUG-1: network error puro (backend irraggiungibile, DNS,
+    // CORS preflight fallito). Gia' coperto dal banner "Backend/database
+    // non disponibile" nella Dashboard. Niente toast per non sommergere
+    // l'utente all'avvio con 3 errori generici sovrapposti.
+    if (!err.response) {
+      return Promise.reject(err);
+    }
     // 401 su endpoint authenticated: il token e' scaduto/invalido. Pulisci
     // lo store cosi' la UI redirige a login. Tocca farlo qui per evitare
     // di mostrare toast 401 ripetuti.
@@ -82,6 +89,13 @@ function shouldToastHttpError(method: string, url: string): boolean {
   if (url === "/api/materials") return false;
   if (url === "/api/sections") return false;
   if (url === "/api/io/accelerograms") return false;
+  // v1.6.1 T1 · BUG-1: estensione whitelist per endpoint di boot/polling
+  // che hanno UI dedicata (login flow, jobs chip, quota card) e non
+  // devono generare toast generici a freddo.
+  if (url === "/api/auth/me") return false;
+  if (url === "/api/jobs" || url === "/api/jobs/") return false;
+  if (/^\/api\/jobs\/[^/]+$/.test(url)) return false;
+  if (/^\/api\/billing\/quota(\/.*)?$/.test(url)) return false;
 
   return true;
 }
