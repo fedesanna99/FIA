@@ -113,7 +113,7 @@ export function Dashboard({
           onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-new-model"))}
           disabled={modelsUnavailable}
           data-testid="home-cta-studio-pro"
-          className="text-left bg-accent text-white border border-accent-hover/30 rounded-lg p-5 shadow-pop hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-left bg-accent text-white border border-accent-hover/30 rounded-lg p-5 shadow-pop hover:bg-accent-hover hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
         >
           <div className="text-[10px] uppercase tracking-wider font-mono opacity-80 mb-1">
             Modalita' esperto
@@ -129,7 +129,7 @@ export function Dashboard({
           onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-percorsi"))}
           disabled={modelsUnavailable}
           data-testid="home-cta-percorsi"
-          className="text-left bg-percorsi text-white border border-percorsi/30 rounded-lg p-5 shadow-pop hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          className="text-left bg-percorsi text-white border border-percorsi/30 rounded-lg p-5 shadow-pop hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
         >
           <div className="text-[10px] uppercase tracking-wider font-mono opacity-80 mb-1">
             Workflow guidato

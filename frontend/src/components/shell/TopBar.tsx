@@ -201,9 +201,14 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         </Tooltip>
       )}
 
-      {/* Save status chip — visibile quando il modello e' stato salvato */}
+      {/* Save status chip — visibile quando il modello e' stato salvato.
+          v1.8.3 T3: animazione fadein soft via animate-fade-in (definito in
+          tailwind keyframes) per evitare comparsa brusca. */}
       {lastSavedAt && (
-        <div className="hidden md:flex items-center gap-1 text-[11px] bg-bg-success border border-success/30 text-success px-2 py-0.5 rounded-sm flex-shrink-0">
+        <div
+          className="hidden md:flex items-center gap-1 text-[11px] bg-bg-success border border-success/30 text-success px-2 py-0.5 rounded-sm flex-shrink-0 animate-slide-down"
+          data-testid="topbar-save-chip"
+        >
           <Check className="w-3 h-3" />
           Salvato {lastSavedAt.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" })}
         </div>

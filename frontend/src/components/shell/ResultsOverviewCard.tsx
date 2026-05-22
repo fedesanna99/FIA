@@ -42,6 +42,19 @@ export function ResultsOverviewCard() {
   const maxDispMm = staticRes.max_displacement * 1000;
   const maxStressMPa = staticRes.max_stress / 1e6;
 
+  // v1.8.3 T4: tonale "safety hint" per Max σ. Soglia statica 235 MPa
+  // (S235 standard) puramente VISIVA — non normativa, non sostituisce
+  // verifica strutturale reale. Aiuta solo a riconoscere a colpo d'occhio
+  // se l'analisi corrente è "tranquilla" (verde), "vicina al limite"
+  // (giallo) o "oltre" (rosso). Title tooltip lo chiarisce.
+  const SAFETY_THRESHOLD_MPA = 235;
+  const safetyRatio = maxStressMPa / SAFETY_THRESHOLD_MPA;
+  const stressTone =
+    safetyRatio >= 1.0 ? "text-ink-coral" :
+    safetyRatio >= 0.7 ? "text-ink-warn" :
+    "text-ink-success";
+  const stressHint = `σ / 235 MPa = ${safetyRatio.toFixed(2)} (riferimento S235, solo visivo)`;
+
   return (
     <div className="border-b border-border p-3 space-y-1.5 bg-bg-panel" data-testid="results-overview-card">
       <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
@@ -55,9 +68,9 @@ export function ResultsOverviewCard() {
             <span className="text-ink-muted font-normal ml-0.5">mm</span>
           </div>
         </div>
-        <div>
+        <div title={stressHint}>
           <div className="text-ink-muted text-[9px] uppercase tracking-wider">Max σ</div>
-          <div className="text-ink font-mono font-semibold">
+          <div className={`font-mono font-semibold ${stressTone}`} data-testid="results-overview-stress">
             {maxStressMPa.toFixed(1)}
             <span className="text-ink-muted font-normal ml-0.5">MPa</span>
           </div>

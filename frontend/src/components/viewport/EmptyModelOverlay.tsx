@@ -71,6 +71,19 @@ export function EmptyModelOverlay() {
             Carica template
           </button>
         </div>
+        {/* v1.8.3 T2: hint shortcut sotto le CTA (affordance keyboard).
+            Solo desktop (sm+), su mobile poco utile. */}
+        <div className="hidden sm:flex items-center justify-center gap-1.5 mt-3 text-[10px] text-ink-muted">
+          <span>oppure premi</span>
+          <kbd className="font-mono bg-bg-hover border border-border rounded px-1 py-0.5 text-[9px]">
+            Ctrl
+          </kbd>
+          <span>+</span>
+          <kbd className="font-mono bg-bg-hover border border-border rounded px-1 py-0.5 text-[9px]">
+            K
+          </kbd>
+          <span>per cercare azioni</span>
+        </div>
       </div>
     </div>
   );
