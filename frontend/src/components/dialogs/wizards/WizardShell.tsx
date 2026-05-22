@@ -16,7 +16,7 @@
  *   - Altri wizard futuri (pushover, arc-length, report, ...)
  */
 import { Fragment, type ReactNode } from "react";
-import { X, ChevronRight, ArrowRight, Play, type LucideIcon } from "lucide-react";
+import { ChevronRight, ArrowRight, Play, type LucideIcon } from "lucide-react";
 import { useModalBackButton } from "../../../hooks/useModalBackButton";
 
 
@@ -94,15 +94,8 @@ export function WizardShell({
                 );
               })}
             </div>
-            <button
-              type="button"
-              onClick={onClose}
-              className="text-ink-muted hover:text-ink transition-colors"
-              aria-label="Chiudi wizard"
-              data-testid="wizard-close"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
+            {/* v1.7 T5: no crocetta X. Wizard chiudibile da ESC,
+                backdrop click, swipe-back mobile. */}
           </div>
 
           {/* Step indicator (dot + connecting line) */}

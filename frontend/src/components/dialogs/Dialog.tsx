@@ -31,13 +31,10 @@ export function Dialog({ open, onClose, title, children, footer, width = 420 }: 
         style={{ maxWidth: width }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-4 py-2.5 border-b border-border flex items-center justify-between">
+        {/* v1.7 T5: no crocetta X. Dismiss via ESC, click-outside, swipe-back.
+            Vedi mockup_reference.html sezione 02 "Dismiss". */}
+        <div className="px-4 py-2.5 border-b border-border">
           <h2 className="text-sm font-semibold">{title}</h2>
-          <button
-            className="text-ink-dim hover:text-ink text-lg leading-none"
-            onClick={onClose}
-            aria-label="Chiudi"
-          >×</button>
         </div>
         <div className="p-4 max-h-[70vh] overflow-auto">{children}</div>
         {footer && (

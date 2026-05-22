@@ -11,7 +11,7 @@
  * "+N su Y" footer. Click su riga → onChange(id) + onClose().
  */
 import { useMemo, useState } from "react";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { useModalBackButton } from "../../hooks/useModalBackButton";
 import { cn } from "../ui/cn";
 
@@ -109,18 +109,9 @@ export function LibraryPicker<T extends LibraryItem>({
         className="bg-bg-panel border border-border rounded-lg shadow-dialog w-[calc(100vw-24px)] max-w-[760px] max-h-[calc(100vh-48px)] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <header className="px-4 py-3 border-b border-border flex items-center justify-between flex-shrink-0">
+        {/* Header (v1.7 T5: no crocetta X — dismiss via ESC, backdrop, swipe). */}
+        <header className="px-4 py-3 border-b border-border flex-shrink-0">
           <h2 className="text-sm font-semibold text-ink">{title}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-ink-muted hover:text-ink p-1 rounded hover:bg-bg-hover"
-            aria-label="Chiudi picker"
-            data-testid={`${testId}-close`}
-          >
-            <X className="w-4 h-4" />
-          </button>
         </header>
 
         {/* Body responsive: stack su mobile, 2-cols su md+ (v1.7 T4) */}

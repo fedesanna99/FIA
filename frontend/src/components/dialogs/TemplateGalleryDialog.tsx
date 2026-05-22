@@ -10,7 +10,7 @@
  * Sorgente dati: lo store backend espone i template come modelli con id
  * "ex_*" (vedi seed_examples). Filtriamo l'array `models` passato.
  */
-import { Boxes, X } from "lucide-react";
+import { Boxes } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { useModalBackButton } from "../../hooks/useModalBackButton";
 
@@ -79,15 +79,7 @@ export function TemplateGalleryDialog({ open, onClose, models, onSelect }: Props
               </p>
             </div>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-ink-muted hover:text-ink p-1 rounded hover:bg-bg-hover"
-            aria-label="Chiudi galleria"
-            data-testid="template-gallery-close"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          {/* v1.7 T5: niente crocetta X. Dismiss via ESC, backdrop, swipe-back. */}
         </header>
 
         <div className="p-4 overflow-y-auto flex-1">

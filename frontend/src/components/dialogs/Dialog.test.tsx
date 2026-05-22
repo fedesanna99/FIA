@@ -55,15 +55,16 @@ describe("dialogs/Dialog (custom)", () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it("X close button calls onClose", () => {
+  // v1.7 T5: niente crocetta X — dismiss UX solo via ESC / click-outside /
+  // swipe-back. Vedi mockup_reference.html sezione 02.
+  it("does NOT render a close X button (v1.7 T5 dismiss UX)", () => {
     const onClose = vi.fn();
     render(
       <Dialog open onClose={onClose} title="Test">
         <p>Body</p>
       </Dialog>,
     );
-    fireEvent.click(screen.getByLabelText("Chiudi"));
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(screen.queryByLabelText(/chiudi/i)).toBeNull();
   });
 
   it("does not render when open=false", () => {
