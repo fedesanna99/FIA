@@ -49,6 +49,7 @@ import { MeshWizardDialog } from "./components/dialogs/MeshWizardDialog";
 import { ImportWizard } from "./components/dialogs/wizards/ImportWizard";
 import { SismicaTHWizard } from "./components/dialogs/wizards/SismicaTHWizard";
 import { TemplateGalleryDialog } from "./components/dialogs/TemplateGalleryDialog";
+import { PercorsiPlaceholderDialog } from "./components/dialogs/PercorsiPlaceholderDialog";
 import { MobileTabbar } from "./components/shell/MobileTabbar";
 import { MobilePanel } from "./components/shell/MobilePanel";
 import { MobileMoreMenu } from "./components/shell/MobileMoreMenu";
@@ -103,6 +104,8 @@ export default function App() {
   >(undefined);
   // v1.6 S0 B01: TemplateGalleryDialog state (aperto da Dashboard / palette).
   const [templateGalleryOpen, setTemplateGalleryOpen] = useState(false);
+  // v1.8 T2: placeholder Percorsi (apre da CTA Home, palette, futuro).
+  const [percorsiPlaceholderOpen, setPercorsiPlaceholderOpen] = useState(false);
   useLoadModel(activeId);
   // v1.5 Task 34 follow-up: leggo wizardStore.active per renderizzare il
   // SismicaTHWizard singleton al root.
@@ -214,17 +217,9 @@ export default function App() {
     // v1.6 S0 B01: listener globale per la TemplateGalleryDialog.
     const openTemplate = () => setTemplateGalleryOpen(true);
     window.addEventListener("feapro:open-template-gallery", openTemplate);
-    // v1.8 T1: CTA "Percorsi" e' placeholder fino al Demo Slice v1.9.
-    // Mostra toast informativo invece di aprire una pagina/dialog vuota.
-    const openPercorsi = () => {
-      import("./store/toastStore").then(({ toast }) => {
-        toast(
-          "info",
-          "Percorsi · disponibili da v1.9 (Demo Slice 'Verifica telaio 2D')",
-          5000,
-        );
-      });
-    };
+    // v1.8 T2: CTA "Percorsi" apre PercorsiPlaceholderDialog
+    // (3 claim del prodotto + escape hatch a Studio Pro).
+    const openPercorsi = () => setPercorsiPlaceholderOpen(true);
     window.addEventListener("feapro:open-percorsi", openPercorsi);
     return () => {
       window.removeEventListener("feapro:open-import-wizard", openImport);
@@ -545,6 +540,11 @@ export default function App() {
         onClose={() => setTemplateGalleryOpen(false)}
         models={models ?? []}
         onSelect={(id) => setActiveId(id)}
+      />
+      {/* v1.8 T2: placeholder Percorsi (asse semantico prodotto). */}
+      <PercorsiPlaceholderDialog
+        open={percorsiPlaceholderOpen}
+        onClose={() => setPercorsiPlaceholderOpen(false)}
       />
     </div>
   );
