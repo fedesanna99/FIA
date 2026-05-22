@@ -6,6 +6,8 @@ import { useModelStore } from "../../store/modelStore";
 import { toast } from "../../store/toastStore";
 import type { ElementType } from "../../types/model";
 import { TipBubble } from "../ui/TipBubble";
+import { SectionPicker } from "../pickers/SectionPicker";
+import { MaterialPicker } from "../pickers/MaterialPicker";
 
 const ELEMENT_OPTIONS: { value: ElementType; label: string; nodeCount: number }[] = [
   { value: "beam2d",        label: "Beam 2D",                  nodeCount: 2 },
@@ -79,8 +81,14 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
     }
   }, [open, editing, nextId, selectedNodes]);
 
-  const { data: materials } = useQuery({ queryKey: ["materials"], queryFn: () => materialsApi.list() });
-  const { data: sections } = useQuery({ queryKey: ["sections"], queryFn: () => materialsApi.listSections() });
+  const { data: materials } = useQuery({ queryKey: ["materials"], queryFn: () => materialsApi.list(), staleTime: Infinity });
+  const { data: sections } = useQuery({ queryKey: ["sections"], queryFn: () => materialsApi.listSections(), staleTime: Infinity });
+
+  // v1.6 S0 · B13: picker dialog state (sostituiscono i <select> hard-coded).
+  const [matPickerOpen, setMatPickerOpen] = useState(false);
+  const [secPickerOpen, setSecPickerOpen] = useState(false);
+  const selectedMaterial = materials?.find((m) => m.id === materialId);
+  const selectedSection = sections?.find((s) => s.id === sectionId);
 
   const expected = ELEMENT_OPTIONS.find((o) => o.value === type)?.nodeCount ?? 2;
 
@@ -166,21 +174,36 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
             </button>
           )}
         </div>
+        {/* v1.6 S0 · B13: i dropdown <select> diventano bottoni "Cambia..." */}
+        {/* che aprono SectionPicker/MaterialPicker — modal 2-colonne con */}
+        {/* search + famiglie + meta. Lista completa libreria backend. */}
         <div>
           <label className="label block mb-1">Materiale</label>
-          <select className="input" value={materialId} onChange={(e) => setMaterialId(e.target.value)}>
-            {materials?.map((m) => (
-              <option key={m.id} value={m.id}>{m.name}</option>
-            ))}
-          </select>
+          <button
+            type="button"
+            onClick={() => setMatPickerOpen(true)}
+            data-testid="element-material-pick"
+            className="w-full input text-left flex items-center justify-between hover:border-accent transition-colors"
+          >
+            <span className="truncate">
+              {selectedMaterial?.name ?? <span className="text-ink-muted">Scegli materiale...</span>}
+            </span>
+            <span className="text-[10px] text-ink-muted ml-2 flex-shrink-0">cambia</span>
+          </button>
         </div>
         <div>
           <label className="label block mb-1">Sezione</label>
-          <select className="input" value={sectionId} onChange={(e) => setSectionId(e.target.value)}>
-            {sections?.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+          <button
+            type="button"
+            onClick={() => setSecPickerOpen(true)}
+            data-testid="element-section-pick"
+            className="w-full input text-left flex items-center justify-between hover:border-accent transition-colors"
+          >
+            <span className="truncate">
+              {selectedSection?.name ?? <span className="text-ink-muted">Scegli sezione...</span>}
+            </span>
+            <span className="text-[10px] text-ink-muted ml-2 flex-shrink-0">cambia</span>
+          </button>
         </div>
         {(type === "beam2d" || type === "beam3d") && (
           <div>
@@ -224,6 +247,20 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
           </div>
         )}
       </div>
+
+      {/* v1.6 S0 · B13: picker modali sopra il dialog (z-50 vs z-40). */}
+      <MaterialPicker
+        open={matPickerOpen}
+        onClose={() => setMatPickerOpen(false)}
+        value={materialId}
+        onChange={setMaterialId}
+      />
+      <SectionPicker
+        open={secPickerOpen}
+        onClose={() => setSecPickerOpen(false)}
+        value={sectionId}
+        onChange={setSectionId}
+      />
     </Dialog>
   );
 }
