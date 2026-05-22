@@ -46,7 +46,10 @@ export function PanelChrome(props: PanelChromeProps) {
     <section
       className={clsx(
         "flex-shrink-0 bg-bg-panel flex flex-col overflow-hidden min-h-0",
-        "w-[300px] lg:w-[340px] xl:w-[380px]",
+        // Hotfix mobile: full-width <md (su mobile il PanelChrome e' montato
+        // dentro MobilePanel che ha gia' absolute inset-0). Da md in su
+        // torna alle width fisse come prima.
+        "w-full md:w-[300px] lg:w-[340px] xl:w-[380px]",
         "animate-slide-right",
         side === "left" ? "border-r border-border" : "border-l border-border",
       )}
