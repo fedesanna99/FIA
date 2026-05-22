@@ -26,6 +26,8 @@ export default {
           // bg-hover, semantica "non-categorizzato"). Allinea
           // mockup_reference.html.
           gray:     "rgb(var(--c-bg-hover) / <alpha-value>)",
+          // v1.8 step 0: 2° asse semantico "Percorsi" emerald.
+          percorsi: "rgb(var(--c-bg-percorsi) / <alpha-value>)",
         },
         border: {
           DEFAULT: "rgb(var(--c-border) / <alpha-value>)",
@@ -45,6 +47,10 @@ export default {
           purple:  "rgb(var(--c-purple) / <alpha-value>)",
           // v1.7 T1: 6° tono "gray" (alias di ink-dim, hub-card neutre).
           gray:    "rgb(var(--c-ink-dim) / <alpha-value>)",
+          // v1.8 step 0: 2° asse semantico "Percorsi" emerald (light: #059669,
+          // dark: #34D399). Da UI Gap Analysis: serve come token sistematico
+          // per CTA Percorsi su Home + libreria route cards future.
+          percorsi: "rgb(var(--c-percorsi) / <alpha-value>)",
         },
         accent: {
           DEFAULT: "rgb(var(--c-accent) / <alpha-value>)",
@@ -58,6 +64,8 @@ export default {
         },
         coral:   "rgb(var(--c-coral) / <alpha-value>)",
         purple:  "rgb(var(--c-purple) / <alpha-value>)",
+        // v1.8 step 0: top-level alias per `text-percorsi`, `border-percorsi`, ecc.
+        percorsi: "rgb(var(--c-percorsi) / <alpha-value>)",
         success: "rgb(var(--c-success) / <alpha-value>)",
         warn:    "rgb(var(--c-warn) / <alpha-value>)",
         danger:  "rgb(var(--c-danger) / <alpha-value>)",

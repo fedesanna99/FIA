@@ -55,6 +55,12 @@
   --c-purple:    140 132 230;      /* #8C84E6  annotation/AI */
   --c-danger:    239  68  68;      /* #EF4444 */
   --c-info:        90 177 238;     /* #5AB1EE  alias accent */
+  /* v1.8 step 0: 2° asse semantico "Percorsi" emerald.
+     Da UI Gap Analysis: serve come token sistematico (non riusare
+     `success`). Usato per CTA Percorsi su Home + chip "Step-by-step"
+     + futura libreria route cards. Coerente con Tailwind emerald-400
+     usato in v1.7 T3 per Button variant="run". */
+  --c-percorsi:   52 211 153;      /* #34D399  emerald-400 (dark) */
 
   /* Semantic backgrounds (tint chiaro su scuro) */
   --c-bg-success:  26  48   9;     /* #1A3009 */
@@ -62,6 +68,7 @@
   --c-bg-coral:    58  24  16;     /* #3A1810 */
   --c-bg-purple:   34  32  64;     /* #222040 */
   --c-bg-info:     12  37  64;     /* #0C2540 */
+  --c-bg-percorsi: 16  53  39;     /* #103527  emerald-900 dim su dark */
 
   /* Alias diretti (CSS custom non-Tailwind) */
   --bg-page:      rgb(var(--c-bg));
@@ -87,6 +94,9 @@
   --ink-warn:     rgb(var(--c-warn));
   --ink-coral:    rgb(var(--c-coral));
   --ink-purple:   rgb(var(--c-purple));
+  --ink-percorsi: rgb(var(--c-percorsi));
+  --bg-percorsi:  rgb(var(--c-bg-percorsi));
+  --percorsi:     rgb(var(--c-percorsi));
   --success:      rgb(var(--c-success));
   --warn:         rgb(var(--c-warn));
   --danger:       rgb(var(--c-danger));
@@ -138,6 +148,8 @@
   --c-purple:     83  74 183;      /* #534AB7 */
   --c-danger:    198  40  40;      /* #C62828 */
   --c-info:       24  95 165;      /* alias accent */
+  /* v1.8 step 0: 2° asse "Percorsi" emerald-600 su light theme. */
+  --c-percorsi:    5 150 105;      /* #059669  emerald-600 (light) */
 
   /* Semantic backgrounds */
   --c-bg-success: 234 243 222;     /* #EAF3DE */
@@ -145,6 +157,7 @@
   --c-bg-coral:   250 236 231;     /* #FAECE7 */
   --c-bg-purple:  238 237 254;     /* #EEEDFE */
   --c-bg-info:    230 241 251;     /* #E6F1FB */
+  --c-bg-percorsi: 236 253 245;    /* #ECFDF5  emerald-50 */
 
   /* Shadow tokens (light: piu' soffuse, opacity ridotta) */
   --shadow-pop:  0 2px 12px -4px rgba(0,0,0,.08), 0 8px 24px -6px rgba(0,0,0,.06);
