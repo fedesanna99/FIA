@@ -3,13 +3,47 @@
 > Visione evolutiva. Per il backlog tecnico granulare e i carry-over di v1.0.0 vedi `BACKLOG.md`.
 > Per la specifica del redesign UI vedi `UI_REDESIGN_SPEC.md`.
 
-**Stato corrente**: `v1.8.4-a11y` — 4 sprint di polish UI/UX dopo v1.7
-(ui-coerence) e v1.8.0 (product-alignment Studio Pro / Percorsi).
-460 vitest verdi, deploy live su https://fea-pro.fly.dev/.
+**Stato corrente**: `v1.7.2-polish-pass2` (cronologicamente l'ultimo,
+nonostante il numero più basso — vedi §"Versioning note" sotto). Ultimi
+8 sprint UI/UX + tech-debt post v1.7.0-ui-coerence + v1.8.0-product-alignment.
+465 vitest verdi, deploy live su https://fea-pro.fly.dev/.
+
+> **Versioning note (2026-05-23)**: i tag `v1.7.1-polish-debt` e
+> `v1.7.2-polish-pass2` derivano dal **nome del piano tematico**
+> "v1.7 Polish & perf" che era nella vecchia sezione "Roadmap futura"
+> di questo file. Cronologicamente vengono *dopo* v1.8.5-mobile ma
+> il numero retrocede. Per evitare future confusioni, la "Roadmap
+> futura" è stata rinumerata da v1.9 in poi (vedi §"Roadmap futura"),
+> e i piani tematici (Connect / Pro tools / Cloud-native) non
+> coincidono più con tag semver bassi.
 
 ---
 
 ## Storia recente
+
+### v1.7.2-polish-pass2 (2026-05-23, post-v1.8.5)
+- T1 `rightRailStore` static-only: rimossi 4 dynamic import (App.tsx x2,
+  CommandPalette, MakePanel) → chiamate dirette getState().
+- T2 `notificationsStore` dedicato: nuovo store per bell badge persistente
+  + 8 test. TopBar `unreadCount` ora deriva da `items.filter(!read)`.
+  Click bell = markAllRead. `useAnalysis` wire `notify(success|error)`.
+- T3 `toastStore` static-only: rimossi 3 dynamic import (App.tsx x2,
+  LibraryPicker). Warning Vite "dynamic+static" risolti tutti.
+
+### v1.7.1-polish-debt (2026-05-23, post-v1.8.5)
+- T1 Cleanup legacy: rimossi `ExportMenu.tsx` + `topbar/Breadcrumb.tsx`
+  (0 import attivo) + suite test associata.
+- T2 Code-splitting: `AICopilotPanel` + `AccountDialog` ora lazy chunk
+  separati (17 kB raw scorporati dal main).
+- T3 `materials?: Material[]` aggiunto a FEAModel → rimosso cast
+  `as unknown` da ViewportHud.
+
+### v1.8.5-mobile (2026-05-23)
+- R0 Recupero ROADMAP.md: storia recente da v1.6.1 → v1.8.4.
+- T1 safe-area-inset audit: confermato già in place (no fix).
+- T2 MobilePanel edge-swipe gesture iOS-style (touchstart entro 40px,
+  dx≥80px e tempo<600ms → onBack).
+- T3 `body { overscroll-behavior: contain; touch-action: manipulation }`.
 
 ### v1.8.4-a11y (2026-05-23)
 - T1 Focus-visible rings su CTA hero (`accent` / `percorsi`).
@@ -137,7 +171,37 @@ Release ufficiale del solver. Backend 660/660 pytest verde, frontend 58/58 vites
 
 ## Roadmap futura
 
-### v1.5.0 — "Connect" (collab real-time)
+> **Versioning convention (2026-05-23, post-riallineamento)**: i numeri
+> di questa sezione **non si sovrappongono** con i tag già usati per la
+> storia (v1.0 → v1.8.5 + i tag retroattivi v1.7.1/v1.7.2). Si parte da
+> **v1.9.0** in avanti. I "titoli tematici" precedenti (Connect / Pro
+> tools / Polish & perf) erano stati assegnati a v1.5/v1.6/v1.7 quando
+> quei numeri erano liberi; ora che sono occupati, i piani slittano
+> avanti.
+
+### v1.9.0 — "Demo Slice GPS Strutturale"
+**Obiettivo**: prima feature reale post-polish — un percorso end-to-end
+"Studio Pro" e/o "Percorsi" che porti l'utente da modello vuoto a
+diagnosi strutturale demo-ready.
+
+| Asse | Item |
+|---|---|
+| Percorsi wizard | Almeno 1 percorso end-to-end (es. "Trave bi-appoggiata UC1") con step guidato, valori didattici. Sostituisce il placeholder mini-dialog v1.8 T2. |
+| GPS Strutturale | UC / criticità card visibili su `ResultsOverviewCard` — non solo Max σ ma indicatori normativi (S275, EC3, NTC). |
+| Trust Layer | Indicator per modelli importati o AI-generated (verde="creato dall'utente", giallo="importato", arancione="AI-generated"). |
+| Report PDF builder | Modal export con preview multi-pagina (cover, modello, risultati, criticità, conclusioni). |
+
+### v1.10.0 — "Tech debt closure"
+**Obiettivo**: chiudere i 3 debiti rimasti dalla precedente "v1.7
+Polish & perf" che richiedono refactor maggiori.
+
+| Item | Provenienza |
+|---|---|
+| History push wiring auto (`useModelHistory.push` su modelStore subscribe + debounce 500ms) | follow-up alpha.30 Task 6 |
+| `jobsStore` reale multi-job (`Map<JobId, JobState>`, sostituisce `analysisStore.isRunning` come unica source of truth) | follow-up alpha.30 Task 10 |
+| Code-splitting aggressivo: Validation page + Three.js sub-chunk (target main < 250 kB gzip) | bundle warning persistente |
+
+### v1.11.0 — "Connect" (collab real-time)
 **Obiettivo**: collaborazione live multi-utente con presence + cursors.
 
 | Asse | Item |
@@ -147,7 +211,7 @@ Release ufficiale del solver. Backend 660/660 pytest verde, frontend 58/58 vites
 | Auth | Org/workspace · invite via email · role-based permissions (viewer/editor/admin) |
 | Verifica | Test E2E 2 client su stesso modello, sync entità node-by-node |
 
-### v1.5.x — Solver completeness (carry-over BACKLOG)
+### v1.12.x — Solver completeness (carry-over BACKLOG)
 Vedi `BACKLOG.md` per dettagli:
 - **BL-1**: Newton-Raphson + Cable 2D/3D (ponti sospesi, tiranti)
 - **BL-2**: Arc-length Crisfield/Riks (post-snap-through, Williams toggle frame)
@@ -159,7 +223,7 @@ Vedi `BACKLOG.md` per dettagli:
 - **BL-8**: Adaptive mesh refinement
 - **BL-9**: Iso-surface 3D per stress/strain
 
-### v1.6.0 — "Pro tools" (workflow avanzato)
+### v1.13.0 — "Pro tools" (workflow avanzato)
 **Obiettivo**: features Pro nella tier paid.
 
 | Asse | Item |
@@ -168,19 +232,6 @@ Vedi `BACKLOG.md` per dettagli:
 | Topology optimization | SIMP method · constraint stress/displacement · post-processing iso-density con threshold |
 | Compare A/B | side-by-side viewer per 2 modelli o 2 run · diff strutturato su entità e risultati |
 | Export Pro | PDF reportlab server-side (multi-pagina con TOC) · XLSX multi-sheet con grafici embedded · DXF strutturato (CAD-compatible) |
-
-### v1.7.0 — "Polish & perf"
-**Obiettivo**: pulire i debiti tecnici accumulati negli sprint UI.
-
-| Item | Provenienza |
-|---|---|
-| History push wiring (`useModelHistory.push` auto su modelStore subscribe + debounce) | follow-up alpha.30 Task 6 |
-| `notificationsStore` dedicato (read/unread + sheet/drawer) | follow-up alpha.30 Task 8 / alpha.31 Task 17 |
-| `jobsStore` reale (lista job attivi multi-tipo, non solo analysisStore.isRunning) | follow-up alpha.30 Task 10 / alpha.31 |
-| `rightRailStore` solo statico (eliminare il dynamic import in App.tsx, ottimizza chunk) | follow-up alpha.30 |
-| Code-splitting: Validation page · Settings dialog · AICopilot lazy-loaded | bundle warning corrente (1.1 MB) |
-| Cleanup legacy: `ExportMenu.tsx`, `Breadcrumb.tsx` non più referenziati | follow-up alpha.31 |
-| `materials` campo in `FEAModel` (oggi accesso difensivo con cast unsafe) | follow-up alpha.30 Task 3 |
 
 ### v2.0.0 — "Cloud-native"
 **Obiettivo**: scalabilità multi-tenant + observability completa.
@@ -193,15 +244,26 @@ Vedi `BACKLOG.md` per dettagli:
 | API pubblica | REST + GraphQL · OpenAPI 3.1 spec · API key management · rate-limit dichiarativo per tier |
 | Mobile-first | React Native app companion (read-only: dashboard, jobs status, model viewer) |
 
+### Piani parzialmente già consegnati (storia)
+
+Il vecchio piano "v1.7.0 Polish & perf" è stato consegnato a step in 2 tag
+post-v1.8.5:
+- **`v1.7.1-polish-debt`** (2026-05-23) — cleanup legacy + code-split
+  AICopilot/AccountDialog + `materials?` field. ✔
+- **`v1.7.2-polish-pass2`** (2026-05-23) — static imports
+  rightRailStore/toastStore + `notificationsStore` dedicato. ✔
+
+Voci residue di quel piano confluite in v1.10.0 "Tech debt closure".
+
 ---
 
 ## Decisioni architetturali aperte
 
 ### A1 · jobsStore unificato vs analysisStore.isRunning
-Attualmente `analysisStore` traccia un solo job alla volta (l'analisi corrente). Quando arriverà la JobQueue persistente con job concorrenti (es. validazione NAFEMS + statica + modale in parallelo), serve uno `jobsStore` con `Map<JobId, JobState>`. **Decisione**: introduciamo lo store con Sprint v1.7 polish quando avremo > 1 job concorrente reale.
+Attualmente `analysisStore` traccia un solo job alla volta (l'analisi corrente). Quando arriverà la JobQueue persistente con job concorrenti (es. validazione NAFEMS + statica + modale in parallelo), serve uno `jobsStore` con `Map<JobId, JobState>`. **Decisione**: introduciamo lo store in **v1.10.0 "Tech debt closure"** quando avremo > 1 job concorrente reale.
 
 ### A2 · CRDT vs OT per collab
-Lo schema `FEAModel` è strutturato (nodi/elementi/loads/constraints come liste indicizzate by id). Adatto a CRDT type-aware. **Candidati**: Yjs (Y.Map/Y.Array) o Automerge 2.0. **Decisione**: pre-feasibility study in v1.5 prima dell'implementazione.
+Lo schema `FEAModel` è strutturato (nodi/elementi/loads/constraints come liste indicizzate by id). Adatto a CRDT type-aware. **Candidati**: Yjs (Y.Map/Y.Array) o Automerge 2.0. **Decisione**: pre-feasibility study in **v1.11.0 "Connect"** prima dell'implementazione.
 
 ### A3 · History push: debounce vs explicit checkpoints
 Due opzioni per popolare `useModelHistory`:
