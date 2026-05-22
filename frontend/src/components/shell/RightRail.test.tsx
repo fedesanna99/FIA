@@ -6,10 +6,18 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { RightRail } from "./RightRail";
 import { RightSlidePanel } from "./RightSlidePanel";
 import { useRightRailStore } from "../../store/rightRailStore";
+import { useModelStore } from "../../store/modelStore";
 
 
 beforeEach(() => {
   useRightRailStore.setState({ openSection: null });
+  // v1.6 S0 B03: i test esistenti assumono un modello caricato.
+  useModelStore.setState({
+    model: {
+      id: "test", name: "Test", units: "SI", is_3d: false,
+      nodes: [], elements: [], loads: [], constraints: [],
+    },
+  } as any);
   window.localStorage.clear();
 });
 

@@ -5,6 +5,7 @@ import { TooltipProvider } from "@radix-ui/react-tooltip";
 import { LeftRail } from "./LeftRail";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
+import { useModelStore } from "../../store/modelStore";
 
 
 beforeEach(() => {
@@ -16,6 +17,15 @@ beforeEach(() => {
   });
   // alpha.22: LeftRail e' ora toggle slide-in. Reset slide state.
   useLeftRailStore.setState({ openSection: null });
+  // v1.6 S0 B03: i test esistenti assumono un modello caricato (i bottoni
+  // sono enabled). Setto un modello fittizio. Il test specifico per il
+  // disabled-state e' aggiunto in fondo.
+  useModelStore.setState({
+    model: {
+      id: "test", name: "Test", units: "SI", is_3d: false,
+      nodes: [], elements: [], loads: [], constraints: [],
+    },
+  } as any);
   window.localStorage.clear();
 });
 
@@ -106,5 +116,35 @@ describe("LeftRail (v1.5.2: Make/Solve/Verify · legacy Results/IO rimossi)", ()
     expect(useWorkspaceStore.getState().helpOpen).toBe(false);
     fireEvent.click(screen.getByTestId("left-rail-help"));
     expect(useWorkspaceStore.getState().helpOpen).toBe(true);
+  });
+
+  // v1.6 S0 · B03
+  describe("disabled state quando model===null", () => {
+    beforeEach(() => {
+      useModelStore.setState({ model: null } as any);
+    });
+
+    it("Make/Solve/Verify hanno aria-disabled=true e opacity 30%", () => {
+      renderRail();
+      const make = screen.getByTestId("left-rail-model");
+      const solve = screen.getByTestId("left-rail-analysis");
+      const verify = screen.getByTestId("left-rail-verify");
+      expect(make.getAttribute("aria-disabled")).toBe("true");
+      expect(solve.getAttribute("aria-disabled")).toBe("true");
+      expect(verify.getAttribute("aria-disabled")).toBe("true");
+      expect(make.className).toMatch(/opacity-30/);
+    });
+
+    it("click su Make disabled NON apre il pannello", () => {
+      renderRail();
+      fireEvent.click(screen.getByTestId("left-rail-model"));
+      expect(useLeftRailStore.getState().openSection).toBeNull();
+    });
+
+    it("palette + theme + help restano abilitati senza modello", () => {
+      renderRail();
+      expect(screen.getByTestId("left-rail-palette")).not.toHaveAttribute("aria-disabled");
+      expect(screen.getByTestId("left-rail-help")).not.toHaveAttribute("aria-disabled");
+    });
   });
 });

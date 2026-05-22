@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useWorkspaceStore, type Workspace } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
+import { useModelStore } from "../../store/modelStore";
 import { Tooltip } from "../ui/Tooltip";
 import { ThemeToggle } from "./ThemeToggle";
 import { cn } from "../ui/cn";
@@ -41,10 +42,11 @@ const ITEMS: RailItem[] = [
   { key: "verify",   label: "Verify",   description: "EC2/3/5/8 · NTC · fatica · convergenza", icon: ShieldCheck, shortcut: "3" },
 ];
 
-function RailButton({ item }: { item: RailItem }) {
+function RailButton({ item, disabled }: { item: RailItem; disabled: boolean }) {
   // alpha.22: il rail e' ora TOGGLE slide-in. workspace store rimane
   // sincronizzato con la sezione attiva (per breadcrumb + palette + tab),
   // ma e' il leftRailStore.openSection a guidare la visibilita' del panel.
+  // v1.6 S0 · B03: disabled quando model===null (nessun modello attivo).
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
   const openSection = useLeftRailStore((s) => s.openSection);
   const toggle = useLeftRailStore((s) => s.toggle);
@@ -52,6 +54,7 @@ function RailButton({ item }: { item: RailItem }) {
   const active = openSection === item.key;
 
   function handleClick() {
+    if (disabled) return;
     // Sincronizza sempre il workspace store (per components che lo leggono)
     setWorkspace(item.key);
     // Toggle slide-in panel
@@ -62,37 +65,47 @@ function RailButton({ item }: { item: RailItem }) {
     <Tooltip
       side="right"
       content={
-        <div>
-          <div className="font-semibold flex items-center gap-2">
-            {item.label}
-            {item.shortcut && (
-              <kbd className="text-[10px] bg-bg-hover px-1 rounded border border-border">
-                {item.shortcut}
-              </kbd>
-            )}
+        disabled ? (
+          <div className="text-[11px]">
+            Apri o crea un modello per iniziare
           </div>
-          <div className="text-ink-muted text-[11px] mt-0.5">{item.description}</div>
-        </div>
+        ) : (
+          <div>
+            <div className="font-semibold flex items-center gap-2">
+              {item.label}
+              {item.shortcut && (
+                <kbd className="text-[10px] bg-bg-hover px-1 rounded border border-border">
+                  {item.shortcut}
+                </kbd>
+              )}
+            </div>
+            <div className="text-ink-muted text-[11px] mt-0.5">{item.description}</div>
+          </div>
+        )
       }
     >
       <button
         type="button"
         onClick={handleClick}
+        disabled={disabled}
         aria-label={item.label}
         aria-current={active ? "page" : undefined}
         aria-expanded={active}
+        aria-disabled={disabled}
         data-testid={`left-rail-${item.key}`}
         className={cn(
           "relative w-9 h-9 rounded-md flex items-center justify-center",
           "transition-colors duration-fast outline-none",
           "focus-visible:ring-2 focus-visible:ring-accent/60",
-          active
-            ? "bg-accent-subtle text-accent"
-            : "text-ink-muted hover:bg-bg-hover hover:text-ink",
+          disabled
+            ? "opacity-30 cursor-not-allowed text-ink-muted"
+            : active
+              ? "bg-accent-subtle text-accent"
+              : "text-ink-muted hover:bg-bg-hover hover:text-ink",
         )}
       >
         <Icon className="h-4 w-4" strokeWidth={1.8} />
-        {active && (
+        {active && !disabled && (
           <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r bg-accent" aria-hidden />
         )}
       </button>
@@ -103,6 +116,10 @@ function RailButton({ item }: { item: RailItem }) {
 
 export function LeftRail() {
   const togglePalette = useWorkspaceStore((s) => s.togglePalette);
+  // v1.6 S0 · B03: senza modello attivo, le 3 fasi workflow (Make/Solve/
+  // Verify) non hanno senso → opacity 30% + cursor not-allowed + tooltip
+  // dedicato. Theme + palette + help restano sempre attivi.
+  const noModel = useModelStore((s) => s.model === null);
 
   return (
     <nav
@@ -111,7 +128,7 @@ export function LeftRail() {
       data-testid="left-rail"
     >
       {/* Voci principali (Make / Solve / Verify) — workflow fasi */}
-      {ITEMS.map((it) => <RailButton key={it.key} item={it} />)}
+      {ITEMS.map((it) => <RailButton key={it.key} item={it} disabled={noModel} />)}
 
       <div className="my-1 w-7 border-t border-border" aria-hidden />
 

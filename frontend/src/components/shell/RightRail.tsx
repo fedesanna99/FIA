@@ -15,6 +15,7 @@ import {
   useRightRailStore,
   type RightSection,
 } from "../../store/rightRailStore";
+import { useModelStore } from "../../store/modelStore";
 import { Tooltip } from "../ui/Tooltip";
 import { cn } from "../ui/cn";
 
@@ -38,7 +39,7 @@ const BOTTOM_ITEMS: RailItem[] = [
 ];
 
 
-function RailButton({ item }: { item: RailItem }) {
+function RailButton({ item, disabled }: { item: RailItem; disabled: boolean }) {
   const openSection = useRightRailStore((s) => s.openSection);
   const toggle = useRightRailStore((s) => s.toggle);
   const Icon = item.icon;
@@ -48,30 +49,38 @@ function RailButton({ item }: { item: RailItem }) {
     <Tooltip
       side="left"
       content={
-        <div>
-          <div className="font-semibold">{item.label}</div>
-          <div className="text-ink-muted text-[11px] mt-0.5">{item.description}</div>
-        </div>
+        disabled ? (
+          <div className="text-[11px]">Apri o crea un modello per iniziare</div>
+        ) : (
+          <div>
+            <div className="font-semibold">{item.label}</div>
+            <div className="text-ink-muted text-[11px] mt-0.5">{item.description}</div>
+          </div>
+        )
       }
     >
       <button
         type="button"
-        onClick={() => toggle(item.key)}
+        onClick={() => !disabled && toggle(item.key)}
+        disabled={disabled}
         aria-label={item.label}
         aria-current={active ? "page" : undefined}
         aria-expanded={active}
+        aria-disabled={disabled}
         data-testid={`right-rail-${item.key}`}
         className={cn(
           "relative w-9 h-9 rounded-md flex items-center justify-center",
           "transition-colors duration-fast outline-none",
           "focus-visible:ring-2 focus-visible:ring-accent/60",
-          active
-            ? "bg-accent-subtle text-accent"
-            : "text-ink-muted hover:bg-bg-hover hover:text-ink",
+          disabled
+            ? "opacity-30 cursor-not-allowed text-ink-muted"
+            : active
+              ? "bg-accent-subtle text-accent"
+              : "text-ink-muted hover:bg-bg-hover hover:text-ink",
         )}
       >
         <Icon className="h-4 w-4" strokeWidth={1.8} />
-        {active && (
+        {active && !disabled && (
           <span
             className="absolute right-0 top-1.5 bottom-1.5 w-[2px] rounded-l bg-accent"
             aria-hidden
@@ -84,17 +93,29 @@ function RailButton({ item }: { item: RailItem }) {
 
 
 export function RightRail() {
+  // v1.6 S0 · B03: senza modello, Inspect/View vanno disabled (mostrano
+  // dati derivati). Tools resta abilitato perche' contiene Validation
+  // NAFEMS che non richiede un modello caricato. History idem (snapshot
+  // store globale).
+  const noModel = useModelStore((s) => s.model === null);
+
   return (
     <nav
       className="w-12 flex-shrink-0 border-l border-border bg-bg-panel flex flex-col py-2 gap-1 items-center"
       aria-label="Right rail (Inspect, View, Tools)"
       data-testid="right-rail"
     >
-      {TOP_ITEMS.map((it) => <RailButton key={it.key} item={it} />)}
+      {TOP_ITEMS.map((it) => (
+        <RailButton
+          key={it.key}
+          item={it}
+          disabled={noModel && (it.key === "inspect" || it.key === "view")}
+        />
+      ))}
 
       <div className="flex-1" />
 
-      {BOTTOM_ITEMS.map((it) => <RailButton key={it.key} item={it} />)}
+      {BOTTOM_ITEMS.map((it) => <RailButton key={it.key} item={it} disabled={false} />)}
     </nav>
   );
 }
