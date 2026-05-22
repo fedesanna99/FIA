@@ -28,6 +28,7 @@ import { X } from "lucide-react";
 import { cn } from "./components/ui/cn";
 import { TopBar } from "./components/shell/TopBar";
 import { MissionBar } from "./components/shell/MissionBar";
+import { ModelInfoCard } from "./components/shell/ModelInfoCard";
 import { LeftRail } from "./components/shell/LeftRail";
 import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
 import { RightRail } from "./components/shell/RightRail";
@@ -482,6 +483,17 @@ export default function App() {
         </main>
         {showRails && (
           <div className="relative flex flex-shrink-0">
+            {/* v1.8 T4: sidebar destra always-on (desktop md+).
+                Preview pattern mockup 08 "Studio Pro sidebar densa".
+                Visibile solo quando c'e' un modello attivo. */}
+            {models && activeId && (
+              <aside
+                className="hidden md:flex md:w-56 lg:w-64 border-l border-border flex-col bg-bg-panel"
+                data-testid="right-info-sidebar"
+              >
+                <ModelInfoCard />
+              </aside>
+            )}
             <RightSlidePanel />
             <RightRail />
           </div>
