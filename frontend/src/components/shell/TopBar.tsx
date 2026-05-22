@@ -356,11 +356,15 @@ export function TopBar({ models, activeId, onSelect }: Props) {
 
 
 /**
- * TopBarTierBadge (v1.8.1 P2).
+ * TopBarTierBadge (v1.8.1 P2, esteso v1.8.2 T2).
  *
  * Tier dinamico letto dall'API billing/quota tramite React Query. Si
  * auto-refresha quando la cache `billing-quota` viene invalidata
  * altrove (es. dopo upgrade tier in AccountDialog).
+ *
+ * v1.8.2 T2: tooltip ricco con credits usage + mini progress bar invece
+ * del semplice attributo `title=`. Visibile su hover (desktop) e
+ * long-press (mobile, gestito dal componente Tooltip).
  *
  * Stili per tier:
  *   - free       → bg-bg-hover / text-ink-dim   (default neutrale)
@@ -386,13 +390,59 @@ function TopBarTierBadge() {
     enterprise: "bg-bg-purple text-ink-purple border-ink-purple/30",
   };
 
+  // Credits usage calcolato dalla quota (used + bonus vs cap).
+  const used = quota?.used_credits ?? 0;
+  const bonus = quota?.bonus_credits ?? 0;
+  const cap = quota?.cap_credits ?? 0;
+  const total = used + bonus;
+  const pct = cap > 0 ? Math.min(100, Math.round((total / cap) * 100)) : 0;
+  const barColor = pct >= 90 ? "bg-coral" : pct >= 70 ? "bg-warn" : "bg-accent";
+
+  const tooltipContent = (
+    <div className="min-w-[180px] space-y-1.5">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[10px] uppercase tracking-wider text-ink-muted font-mono">
+          Piano
+        </span>
+        <span className="text-ink font-semibold capitalize">{tier}</span>
+      </div>
+      {cap > 0 && (
+        <>
+          <div className="flex items-center justify-between gap-2 text-[11px]">
+            <span className="text-ink-muted">Crediti usati</span>
+            <span className="font-mono text-ink">
+              {total}
+              <span className="text-ink-muted"> / {cap}</span>
+            </span>
+          </div>
+          <div className="h-1 bg-bg-hover rounded-full overflow-hidden">
+            <div
+              className={`h-full ${barColor} transition-all`}
+              style={{ width: `${pct}%` }}
+              data-testid="topbar-tier-quota-bar"
+            />
+          </div>
+          <div className="text-[10px] text-ink-muted">
+            {quota?.month ? `Mese ${quota.month}` : ""}
+          </div>
+        </>
+      )}
+      {tier === "free" && (
+        <div className="text-[10px] text-ink-muted pt-1 border-t border-border">
+          Upgrade per crediti illimitati →
+        </div>
+      )}
+    </div>
+  );
+
   return (
-    <span
-      className={`hidden sm:inline text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border leading-none capitalize ${styleByTier[tier]}`}
-      data-testid="topbar-tier-badge"
-      title={`Tier corrente: ${tier}`}
-    >
-      {tier}
-    </span>
+    <Tooltip content={tooltipContent}>
+      <span
+        className={`hidden sm:inline text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border leading-none capitalize cursor-help ${styleByTier[tier]}`}
+        data-testid="topbar-tier-badge"
+      >
+        {tier}
+      </span>
+    </Tooltip>
   );
 }

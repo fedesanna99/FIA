@@ -74,12 +74,16 @@ export function StatusBar() {
 
       {/* 2. Entita' modello (aggregate, solo se modello attivo) */}
       {model && (
-        <span className="font-mono flex-shrink-0 hidden sm:inline">
+        <span className="font-mono flex-shrink-0 hidden sm:inline" data-testid="statusbar-counts">
           N: <span className="text-ink">{nNodes}</span>
           {" · "}
           E: <span className="text-ink">{nElems}</span>
           {" · "}
           DoF: <span className="text-ink">{nDofs}</span>
+          {" · "}
+          <span className="text-ink">{model.is_3d ? "3D" : "2D"}</span>
+          {" · "}
+          <span className="text-ink">{model.units}</span>
         </span>
       )}
 

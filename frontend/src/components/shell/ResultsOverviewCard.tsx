@@ -1,17 +1,42 @@
 /**
- * ResultsOverviewCard (v1.8.1 P1).
+ * ResultsOverviewCard (v1.8.1 P1, esteso v1.8.2 T3).
  *
  * Card 3 della sidebar densa destra (mockup 08). Mostra metriche
  * sintetiche dei risultati: max displacement, max stress, link
  * "Genera report" per export PDF.
  *
- * Si nasconde quando staticResults = null. Estensibile per
+ * Si nasconde quando staticResults = null E nessun job sta girando.
+ * v1.8.2 T3: skeleton durante solve. Estensibile per
  * UC/criticita' (v1.9 Demo Slice GPS Strutturale).
  */
 import { useResultsStore } from "../../store/resultsStore";
+import { useAnalysisStore } from "../../store/analysisStore";
 
 export function ResultsOverviewCard() {
   const staticRes = useResultsStore((s) => s.staticResults);
+  const isRunning = useAnalysisStore((s) => s.isRunning);
+
+  // v1.8.2 T3: skeleton mentre solve sta girando.
+  if (!staticRes && isRunning) {
+    return (
+      <div className="border-b border-border p-3 space-y-1.5 bg-bg-panel" data-testid="results-overview-card-skeleton">
+        <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
+          Results overview
+        </div>
+        <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
+          <div className="space-y-1">
+            <div className="h-2 bg-bg-hover rounded animate-pulse w-1/2" />
+            <div className="h-3 bg-bg-hover rounded animate-pulse w-3/4" />
+          </div>
+          <div className="space-y-1">
+            <div className="h-2 bg-bg-hover rounded animate-pulse w-1/2" />
+            <div className="h-3 bg-bg-hover rounded animate-pulse w-3/4" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!staticRes) return null;
 
   const maxDispMm = staticRes.max_displacement * 1000;
