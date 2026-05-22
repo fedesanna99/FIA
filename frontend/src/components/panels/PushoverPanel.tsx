@@ -85,7 +85,7 @@ export function PushoverPanel() {
           </Field>
         </div>
         <Button
-          variant="primary" size="sm"
+          variant="run" size="sm"
           iconLeft={<Play className="h-3.5 w-3.5" />}
           disabled={!model || job.isPending}
           loading={job.isPending}

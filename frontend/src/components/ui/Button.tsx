@@ -34,12 +34,15 @@ const VARIANT: Record<ButtonVariant, string> = {
     "bg-danger text-white hover:bg-danger/90 border border-danger/40",
   success:
     "bg-success text-white hover:bg-success/90 border border-success/40",
+  // v1.7 T3: gradient emerald coerente con mockup_reference.html sezione 04
+  // (Solve drill-in bottone Esegui verde). Usa la palette Tailwind emerald
+  // standard invece di hex hardcoded.
   run:
-    "text-white border border-[#138855] " +
+    "text-white border border-emerald-700 " +
     "shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_1px_2px_rgba(0,0,0,0.1)] " +
-    "bg-gradient-to-b from-[#1da97a] to-[#189465] " +
-    "hover:from-[#22b885] hover:to-[#1da970] " +
-    "active:from-[#168559] active:to-[#147a52]",
+    "bg-gradient-to-b from-emerald-500 to-emerald-600 " +
+    "hover:from-emerald-600 hover:to-emerald-700 " +
+    "active:from-emerald-700 active:to-emerald-800",
 };
 
 const SIZE: Record<ButtonSize, string> = {
