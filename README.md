@@ -1,15 +1,36 @@
-# FEA Pro v1.0.0
+# FEA Pro
 
-Applicazione web di analisi strutturale agli elementi finiti, ispirata a LUSAS / SAP2000.
-
-![Stato](https://img.shields.io/badge/Backend-660%2F660%20pytest-brightgreen) ![Stato](https://img.shields.io/badge/Frontend-58%2F58%20vitest-brightgreen) ![Cov](https://img.shields.io/badge/coverage-92%25-brightgreen) ![TS](https://img.shields.io/badge/TypeScript-clean-blue)
-
-> Release ufficiale **v1.0.0** del 2026-05-19 dopo le 25 fasi del piano.
-> Carry-over tecnici non bloccanti tracciati in **[BACKLOG.md](BACKLOG.md)** (9 voci).
+> Piattaforma FEM proprietaria, browser-first e cloud-aware, per modellare,
+> analizzare, verificare, capire e documentare strutture.
 >
-> **⚠️ Audit UX**: il backend espone ~45 funzionalità, l'attuale UI ne raggiunge
-> circa il 55%. Specifica completa per redesign UI/UX moderno e responsive in
-> **[UI_REDESIGN_SPEC.md](UI_REDESIGN_SPEC.md)** (8 milestone M0-M8, ~12 giorni).
+> **Stato attuale**: `v1.6.1-polish` (post Sprint 0 + viewport-engine GPU + smoke E2E)
+> **Storia release**: vedi [CHANGELOG.md](CHANGELOG.md)
+> **Direzione prodotto**: vedi [ROADMAP.md](ROADMAP.md)
+
+![Backend](https://img.shields.io/badge/Backend-660%2B%20pytest-brightgreen)
+![Frontend](https://img.shields.io/badge/Frontend-447%20vitest-brightgreen)
+![E2E](https://img.shields.io/badge/Playwright-4%20smoke-blue)
+![NAFEMS](https://img.shields.io/badge/NAFEMS-LE1%2FLE2%2FLE10%20PASS-brightgreen)
+![TS](https://img.shields.io/badge/TypeScript-clean-blue)
+
+## Filosofia
+
+- **Algoritmo > AI** — cuore tecnico verificabile, deterministico, niente black box.
+- Studio Pro per controllo esperto, Percorsi guidati per scenari ricorrenti.
+- Una sola verita' tecnica, tante lenti operative.
+- Niente sicurezza dietro paywall.
+
+## Stato attuale
+
+| Area | Numeri |
+|---|---|
+| Backend | 660+ pytest verdi · NAFEMS LE1/LE2/LE10 PASS |
+| Frontend | 447 vitest verdi · build ~1.20 MB / gzip 358 kB |
+| Viewport | InstancedMesh GPU + 5 moduli pure-logic 100% testati (T4) |
+| E2E | 4 smoke Playwright (empty/workflow/palette/errori IT) |
+| Deploy | Live su https://fea-pro.fly.dev (Fly free, region `fra`) |
+
+Carry-over tecnici tracciati in **[BACKLOG.md](BACKLOG.md)** (9 voci).
 
 ## Capacità
 

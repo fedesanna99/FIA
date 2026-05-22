@@ -1,5 +1,104 @@
 # Changelog FEA Pro
 
+## v1.6.1-polish — Polish demo + viewport-engine test coverage + smoke E2E — 2026-05-22
+
+Sprint orientato a **stabilita' prima di tutto**. Niente nuove feature.
+Chiude i bug residui di v1.6.0-sprint0 visibili negli screenshot WIP,
+copre con test la viewport-engine GPU non documentata, e produce uno
+smoke E2E Playwright per validare la demo. Branch `test`,
+`sincronizza test con tutto` dopo ogni commit.
+
+### Step 0 — baseline viewport-engine + WIP polish (`61fe822`)
+Commit di consolidamento del WIP della chat parallela post Sprint 0:
+- NEW `frontend/src/viewport-engine/`: 5 moduli pure-logic (nodeInstances,
+  lineElementInstances, surfaceElementGeometry, solidElementGeometry,
+  viewportEngineStats).
+- NEW `EngineNodeRenderer` + `EngineElementRenderer` (InstancedMesh).
+- analysisStore: `useViewportEngine` flag + `activeViewPreset`
+  ('engineer'|'cad'|'review'|'performance'|'custom') + `applyViewPreset`.
+- ViewPanel revisitato + chip Engine inline nello HUD viewport.
+- ToolsPanel: 6 nuove sub-view (import/server-export/auto-detect/
+  accelerograms/compare/ai-copilot/collab) + listener `feapro:tools-view`.
+- AICopilotButton: non piu' placeholder, apre `tools.ai-copilot`.
+- Dashboard: banner `Backend/database non disponibile` + retry, quick
+  actions disabled quando `modelsUnavailable`.
+- PWA shell minima: `manifest.webmanifest` + meta `theme-color` (sync
+  con dark/light) + viewport-fit cover + safe-area-x utility.
+- toastStore: dedup toast identici ravvicinati.
+- 385/385 vitest verdi.
+
+### Task 1 — BUG-1 toast offline whitelist + early-return network error (`71cdbc8`)
+- `api/client.ts`: early `return Promise.reject(err)` su `!err.response`
+  (network error puro → coperto dal banner Dashboard, niente toast).
+- Whitelist `shouldToastHttpError` estesa: `/api/auth/me`, `/api/jobs`,
+  `/api/jobs/`, `/api/jobs/{id}`, `/api/billing/quota`, `/api/billing/
+  quota/{user}`.
+- NEW `api/client.test.ts`: 5 test sull'interceptor (network err, 401
+  auth/me, 500 jobs, 503 quota, 422 italiano con kind `missing_constraints`).
+
+### Task 2 — BUG-2 'View' button inline rimosso (`c1965b6`)
+- Dashboard: rimosso il bottone `dashboard-open-view` accanto a QuotaCard
+  (era confusione UX: ViewPanel ha gia' 2 punti di accesso, RightRail +
+  chip preset HUD).
+- Dashboard.test.tsx: test di non-regressione "no View button inline".
+
+### Task 3 — BUG-3 bell counter filtra error|warning (`786e32a`)
+- TopBar: `unreadCount` ora filtra `level === "error" | "warning"`. Un
+  toast info come "Tema scuro applicato" non fa piu' apparire il bell.
+- Una volta sistemato T1 (3 toast errore al boot), il badge resta 0
+  anche con info/success transitori.
+
+### Task 4 — BUG-5 test viewport-engine (`98fd207`)
+- 5 nuovi test file affianco ai moduli, 53 unit test totali:
+  - `nodeInstances.test.ts` (10): index, color priority (selected >
+    hovered > normal), matrix composition.
+  - `lineElementInstances.test.ts` (12): classification 6 tipi,
+    endpoints, matrix orient, length=0 edge case.
+  - `surfaceElementGeometry.test.ts` (15): tri3/shell_q4/shell_q4_mitc,
+    vertex IDs, triangulation (tri3=1 tri, q4=2 tri), edge pairs.
+  - `solidElementGeometry.test.ts` (12): H8 (6 facce/12 edge), T4 (4
+    facce/6 edge), triangulateSolidFace.
+  - `viewportEngineStats.test.ts` (6): counter per tipologia,
+    compressionRatio > 100x su 1000 nodi + 500 beam.
+
+### Task 5 — audit Legacy vs Engine + parity guard (`40dfa82`)
+- NEW `docs/viewport-engine-audit.md`: diff statico Legacy vs Engine
+  GPU sui 4 file renderer, parita' interazione, differenze visive
+  intenzionali (emissive flat in Engine, no glow selezione, ecc),
+  componenti condivisi (LoadRenderer/BCRenderer/DeformedShape
+  indipendenti dal toggle), rischi R1-R4 + mitigazioni.
+- Decisione: Legacy = default, Engine = opt-in via toggle/preset Perf.
+- Parity guard test in `viewportEngineStats.test.ts`: modello demo
+  telaio (beam+truss+shell+solid) → 0 unsupportedElements.
+
+### Task 6 — smoke E2E Playwright (`b4f7d5c`)
+- NEW `frontend/playwright.config.ts` + `frontend/e2e/smoke-engineer-
+  workflow.spec.ts`: 4 scenari deterministici (empty state / workflow
+  base / palette UX / errori 422 italiani). Screenshot on-failure.
+- NEW `docs/playwright-setup.md`: procedura install (~150 MB) +
+  esecuzione locale/prod/CI + troubleshooting.
+- `frontend/package.json` scripts: `e2e`, `e2e:headed`, `e2e:debug`.
+- I file e2e/ sono fuori da `tsconfig.include` quindi non rompono tsc
+  anche senza @playwright/test installato.
+
+### Task 7 — docs allineate (questo commit)
+- README header → `v1.6.1-polish` + counters reali (447 vitest, 4 E2E).
+- ROADMAP `Stato corrente` → v1.6.1-polish + storia recente
+  (v1.6.1-polish, v1.6.0-sprint0, v1.5.2).
+- Questa sezione CHANGELOG.
+
+### Task 8 — Demo Quality Pass + closure (prossimo commit)
+- Walkthrough manuale + `docs/v1_6_1_polish_report.md` finale.
+- Tag `v1.6.1-polish` + deploy Fly.io (autorizzato).
+
+### Quality gates v1.6.1-polish
+- pnpm tsc --noEmit: **0 errori**
+- pnpm test --run: **447 vitest verdi** (era 376 al closure Sprint 0)
+- pnpm build: success (gzip 358 kB)
+- Playwright config + 4 spec presenti (esecuzione richiede installer)
+
+---
+
 ## v1.6.0-sprint0 — Bug fix bloccanti test ingegnere (10 task P0) — 2026-05-22
 
 Sprint 0 di v1.6 — pure fix, **zero nuove feature**. Obiettivo: chiudere
