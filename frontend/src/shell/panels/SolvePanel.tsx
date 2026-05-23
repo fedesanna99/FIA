@@ -171,7 +171,7 @@ export function SolvePanel() {
               <span className="flex-1">
                 {isRunning ? "In esecuzione…" : `Esegui ${LINEAR_OPTIONS.find((o) => o.id === selectedLinear)?.label.toLowerCase() ?? ""}`}
               </span>
-              <kbd className="bg-black/15 border-white/20 text-white text-[10px] px-1.5 py-0.5 rounded font-mono">F5</kbd>
+              <kbd className="bg-black/15 border border-white/20 text-white text-[10px] px-1.5 py-0.5 font-mono uppercase tracking-wide-1 font-medium">F5</kbd>
             </Button>
           </Section>
         </div>
@@ -181,7 +181,7 @@ export function SolvePanel() {
       {tab === "dinamica" && (
         <div className="flex flex-col">
           <Section title="Dinamica Time-History">
-            <p className="text-[11px] text-ink-muted leading-relaxed mb-2">
+            <p className="text-[11px] text-ink-3 leading-relaxed mb-2">
               Newmark β-γ con damping Rayleigh. Pushover incrementale con
               cerniere plastiche (NTC §7.3.4.1).
             </p>
@@ -198,7 +198,7 @@ export function SolvePanel() {
       {tab === "sismica" && (
         <div className="flex flex-col">
           <Section title="Sismica Time-History">
-            <p className="text-[11px] text-ink-muted leading-relaxed mb-2">
+            <p className="text-[11px] text-ink-3 leading-relaxed mb-2">
               Multi-componente X/Y/Z con accelerogrammi PEER o sintetici.
             </p>
             <CostPreviewCard analysisId="seismic" />
@@ -214,7 +214,7 @@ export function SolvePanel() {
       {tab === "nonlin" && (
         <div className="flex flex-col">
           <Section title="Non-lineari geometrici">
-            <p className="text-[11px] text-ink-muted leading-relaxed mb-2">
+            <p className="text-[11px] text-ink-3 leading-relaxed mb-2">
               Newton-Raphson incrementale + Arc-Length Crisfield per
               snap-through / cavi compressione-only.
             </p>
@@ -236,7 +236,7 @@ export function SolvePanel() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="text-[10px] uppercase tracking-wider text-ink-muted font-semibold px-3 pt-3 pb-1.5">
+      <h3 className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold px-3 pt-3 pb-2">
         {title}
       </h3>
       <div className="px-2 pb-1.5">{children}</div>
@@ -259,15 +259,17 @@ function AnalysisRow({
       onClick={onClick}
       data-testid={`solve-option-${opt.id}`}
       className={clsx(
-        "w-full flex items-center gap-2.5 px-2.5 py-2 rounded text-xs transition-colors",
-        active ? "bg-accent-subtle text-accent" : "text-ink hover:bg-bg-hover",
+        "w-full flex items-center gap-2.5 px-2.5 py-2 text-sm transition-colors border-l-2",
+        active
+          ? "bg-accent-subtle text-accent border-accent"
+          : "text-ink hover:bg-bg-hover border-transparent",
       )}
       aria-pressed={active}
     >
-      <Icon size={15} className={active ? "text-accent" : "text-ink-muted"} />
+      <Icon size={15} className={active ? "text-accent" : "text-ink-3"} />
       <div className="flex-1 text-left min-w-0">
         <div className="font-medium truncate">{opt.label}</div>
-        <div className="text-[10px] text-ink-muted truncate">{opt.description}</div>
+        <div className="font-mono text-[10px] text-ink-3 truncate mt-0.5">{opt.description}</div>
       </div>
     </button>
   );

@@ -77,25 +77,24 @@ export function CostPreviewCard({ analysisId }: Props) {
 
   return (
     <div
-      className="mx-3 my-2.5 p-3 rounded-md border text-xs relative overflow-hidden"
+      className="mx-3 my-2.5 p-3 border text-sm relative overflow-hidden"
       style={{
-        // Gradient blu-viola (mockup v1.3 flagship)
+        // Gradient blu-viola flagship mantenuto (mockup v1.3)
         background: "linear-gradient(135deg, rgb(var(--c-bg-info)) 0%, rgb(var(--c-bg-purple)) 100%)",
-        borderColor: "rgba(24,95,165,0.20)",
+        borderColor: "rgba(24,95,165,0.25)",
         color: "var(--ink-info)",
       }}
       data-testid="cost-preview-card"
     >
-      {/* Loading shimmer overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-white/5 pointer-events-none feapro-pulse" aria-hidden />
+        <div className="absolute inset-0 bg-white/10 pointer-events-none animate-pulse" aria-hidden />
       )}
 
       <header className="flex items-center justify-between mb-2.5">
-        <span className="text-[10px] uppercase tracking-wider font-semibold opacity-85">
+        <span className="font-mono text-[10px] uppercase tracking-wide-2 font-semibold opacity-90">
           Stima costo pre-run
         </span>
-        <span className="bg-black/10 px-1.5 py-0.5 rounded-full text-[10px] font-mono">
+        <span className="bg-black/15 border border-black/10 px-1.5 py-0.5 font-mono text-[10px] uppercase tracking-wide-1 font-semibold tabular-nums">
           ETA ~{estimate.eta_s.toFixed(0)}s
         </span>
       </header>
@@ -104,22 +103,22 @@ export function CostPreviewCard({ analysisId }: Props) {
       <Row label="CPU·min" value={estimate.cpu_min.toFixed(2)} />
       <Row label="N. DoF" value={estimate.n_dof.toLocaleString("it")} />
 
-      <div className="h-px my-2" style={{ background: "rgba(24,95,165,0.20)" }} aria-hidden />
+      <div className="h-px my-2" style={{ background: "rgba(24,95,165,0.30)" }} aria-hidden />
 
-      <div className="flex items-baseline justify-between text-sm font-semibold">
-        <span>Crediti</span>
+      <div className="flex items-baseline justify-between font-semibold">
+        <span className="font-mono text-[10px] uppercase tracking-wide-2">Crediti</span>
         <span>
-          <span className="text-lg font-bold font-mono">
+          <span className="text-xl font-bold font-mono tabular-nums">
             {estimate.credits.toFixed(2)}
           </span>
-          <span className="text-[10px] opacity-70 ml-1.5">
+          <span className="font-mono text-[10px] uppercase tracking-wide-1 opacity-70 ml-1.5">
             ≈ €{(estimate.credits * 0.1).toFixed(2)}
           </span>
         </span>
       </div>
 
       {estimate.explanation && (
-        <p className="mt-2 text-[10px] opacity-70 leading-relaxed line-clamp-2">
+        <p className="mt-2 text-[11px] opacity-75 leading-relaxed line-clamp-2 border-t border-black/10 pt-1.5">
           {estimate.explanation}
         </p>
       )}
@@ -130,9 +129,9 @@ export function CostPreviewCard({ analysisId }: Props) {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between py-0.5 text-[11px]">
-      <span className="opacity-85">{label}</span>
-      <strong className="font-mono font-semibold">{value}</strong>
+    <div className="flex justify-between py-0.5 text-[12px]">
+      <span className="opacity-85 font-mono text-[10px] uppercase tracking-wide-1 font-semibold">{label}</span>
+      <strong className="font-mono font-semibold tabular-nums">{value}</strong>
     </div>
   );
 }

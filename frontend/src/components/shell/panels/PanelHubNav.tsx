@@ -70,33 +70,35 @@ export function PanelHub({
             disabled={card.disabled}
             data-testid={`hub-card-${card.id}`}
             className={cn(
-              "w-full bg-bg-surface border border-border rounded-lg p-3.5 flex items-start gap-3 text-left transition group",
+              "w-full bg-bg-elevated border border-border p-3.5 flex items-start gap-3 text-left transition-colors group focus-visible:outline-none focus-visible:border-accent",
               card.disabled
                 ? "opacity-50 cursor-not-allowed"
-                : "hover:border-ink-info/40 hover:shadow-pop cursor-pointer",
+                : "hover:border-accent/50 hover:bg-bg-hover cursor-pointer",
             )}
           >
             <div
               className={cn(
-                "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
+                "w-10 h-10 border border-border-light flex items-center justify-center flex-shrink-0",
                 TONE_STYLE[card.tone],
               )}
             >
               <Icon className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="font-semibold text-sm flex items-center gap-1.5">
+              <div className="font-display font-semibold text-[15px] tracking-tight-1 text-ink flex items-center gap-1.5">
                 <span className="truncate">{card.label}</span>
                 {card.soonBadge && (
-                  <span className="chip chip-purple text-[9px]">soon</span>
+                  <span className="font-mono text-[9px] uppercase tracking-wide-1 bg-bg-purple text-purple border border-purple/30 px-1 py-0.5 font-semibold">
+                    soon
+                  </span>
                 )}
               </div>
-              <div className="text-[11px] text-ink-muted leading-snug mt-0.5">
+              <div className="text-[11px] text-ink-3 leading-snug mt-1">
                 {card.sub}
               </div>
             </div>
             {!card.disabled && (
-              <ChevronRight className="w-4 h-4 text-ink-muted mt-2 group-hover:text-ink-info flex-shrink-0" />
+              <ChevronRight className="w-4 h-4 text-ink-3 mt-2 group-hover:text-accent flex-shrink-0 transition-colors" />
             )}
           </button>
         );
@@ -119,19 +121,19 @@ export function PanelBreadcrumb({
 }) {
   return (
     <div
-      className="px-3.5 py-2.5 border-b border-border flex items-center gap-1.5 text-[11px] flex-shrink-0"
+      className="px-3.5 py-2 border-b border-border flex items-center gap-2 font-mono text-[10px] uppercase tracking-wide-1 flex-shrink-0 bg-bg-panel"
       data-testid={testId ?? "panel-breadcrumb"}
     >
       <button
         type="button"
         onClick={onBack}
-        className="text-ink-muted hover:text-ink flex items-center gap-1 transition-colors"
+        className="text-ink-3 hover:text-accent inline-flex items-center gap-1 transition-colors font-semibold"
         data-testid="panel-breadcrumb-back"
       >
         <ArrowLeft className="w-3 h-3" /> {root}
       </button>
-      <ChevronRight className="w-2.5 h-2.5 text-ink-dim" />
-      <span className="font-semibold text-ink truncate">{current}</span>
+      <ChevronRight className="w-2.5 h-2.5 text-ink-4" />
+      <span className="font-semibold text-ink-2 truncate normal-case tracking-normal">{current}</span>
     </div>
   );
 }

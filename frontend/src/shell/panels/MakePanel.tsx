@@ -133,7 +133,7 @@ export function MakePanel() {
       {tab === "mesh" && (
         <div className="p-3 space-y-3">
           <Section title="Mesh wizard">
-            <p className="text-[11px] text-ink-muted leading-relaxed mb-2">
+            <p className="text-[11px] text-ink-3 leading-relaxed mb-2">
               Genera mesh strutturate: linea (beam/truss), rettangolo
               (shell Q4/T3), box (solido H8), parametrica
               (L/T/cerchio/anello via Delaunay).
@@ -161,11 +161,12 @@ export function MakePanel() {
               shortcut="L"
               testId="make-add-load"
             />
-            <p className="text-[11px] text-ink-muted mt-2 leading-relaxed">
+            <p className="text-[12px] text-ink-2 mt-2.5 leading-relaxed">
               Per Climate Loads (vento / neve / sismica): apri la palette{" "}
-              <span className="kbd">Ctrl K</span> e cerca{" "}
-              <span className="kbd">Location</span> · oppure dall'AvatarMenu →
-              "Loads location".
+              <kbd className="font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">⌘ K</kbd>{" "}
+              e cerca{" "}
+              <kbd className="font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">Location</kbd>
+              {" "}· oppure dall'AvatarMenu → "Loads location".
             </p>
           </Section>
         </div>
@@ -183,7 +184,7 @@ export function MakePanel() {
               shortcut="C"
               testId="make-add-constraint"
             />
-            <p className="text-[11px] text-ink-muted mt-2 leading-relaxed">
+            <p className="text-[11px] text-ink-3 mt-2 leading-relaxed">
               Supporti: fissi, mobili, molla (winkler/compression-only).
             </p>
           </Section>
@@ -194,7 +195,7 @@ export function MakePanel() {
       {tab === "io" && (
         <div className="p-3 space-y-3">
           <Section title="Import / Export">
-            <p className="text-[11px] text-ink-muted leading-relaxed mb-2">
+            <p className="text-[11px] text-ink-3 leading-relaxed mb-2">
               Import: DXF, IFC, JSON (wizard 4-step). Export: PDF, XLSX, CSV,
               JSON (rail destro · Tools).
             </p>
@@ -228,7 +229,7 @@ export function MakePanel() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h3 className="text-[10px] uppercase tracking-wider text-ink-muted font-semibold px-3 pt-3 pb-1.5">
+      <h3 className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold px-3 pt-3 pb-2">
         {title}
       </h3>
       <div className="px-3 pb-1.5">{children}</div>
@@ -239,16 +240,16 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function CountsRow({ counts }: { counts: { nodes: number; elements: number; loads: number; constraints: number } }) {
   return (
-    <div className="grid grid-cols-4 gap-1.5 text-center mb-2">
+    <div className="grid grid-cols-4 gap-1 text-center mb-2">
       {[
         { label: "Nodi",    value: counts.nodes },
         { label: "Elem.",   value: counts.elements },
         { label: "Carichi", value: counts.loads },
         { label: "Vincoli", value: counts.constraints },
       ].map((c) => (
-        <div key={c.label} className="bg-bg-hover rounded px-1.5 py-1 border border-border">
-          <div className="text-base font-mono font-semibold text-ink leading-none">{c.value}</div>
-          <div className="text-[9px] text-ink-muted uppercase tracking-wider mt-0.5">{c.label}</div>
+        <div key={c.label} className="bg-bg-panel border border-border px-1.5 py-1.5">
+          <div className="font-mono text-base font-semibold text-ink leading-none tabular-nums">{c.value}</div>
+          <div className="font-mono text-[9px] text-ink-3 uppercase tracking-wide-2 mt-1 font-semibold">{c.label}</div>
         </div>
       ))}
     </div>
@@ -272,11 +273,15 @@ function PrimaryButton({
       onClick={onClick}
       disabled={disabled}
       data-testid={testId}
-      className="w-full flex items-center gap-2 px-2.5 py-2 rounded text-xs font-medium bg-accent-subtle text-accent hover:bg-accent/15 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+      className="w-full inline-flex items-center gap-2 px-3 py-2 text-sm font-medium bg-accent text-white border border-accent hover:bg-accent-hover transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
     >
       <Icon size={14} />
       <span className="flex-1 text-left">{label}</span>
-      {shortcut && <kbd className="kbd text-[10px]">{shortcut}</kbd>}
+      {shortcut && (
+        <kbd className="font-mono text-[10px] uppercase tracking-wide-1 bg-white/20 border border-white/30 text-white px-1 py-0.5 font-medium">
+          {shortcut}
+        </kbd>
+      )}
     </button>
   );
 }
@@ -295,9 +300,9 @@ function SecondaryButton({
       type="button"
       onClick={onClick}
       data-testid={testId}
-      className="w-full flex items-center gap-2 px-2.5 py-2 rounded text-xs font-medium border border-border text-ink hover:bg-bg-hover transition-colors"
+      className="w-full inline-flex items-center gap-2 px-3 py-2 text-sm font-medium border border-border-light text-ink-2 hover:text-ink hover:bg-bg-hover hover:border-accent/40 transition-colors"
     >
-      <Icon size={14} className="text-ink-muted" />
+      <Icon size={14} className="text-ink-3" />
       <span className="flex-1 text-left">{label}</span>
     </button>
   );
