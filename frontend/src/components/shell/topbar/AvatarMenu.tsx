@@ -49,7 +49,7 @@ const THEME_ICON = { light: Moon, dark: Monitor, system: Sun } as const;
 const THEME_LABEL = { light: "Light", dark: "Dark", system: "System" } as const;
 
 const ITEM_CLS =
-  "flex items-center gap-2 px-3 py-1.5 text-sm text-ink hover:bg-bg-hover focus:bg-bg-hover focus:outline-none cursor-pointer";
+  "flex items-center gap-2.5 px-3 py-2 text-sm text-ink hover:bg-bg-hover focus:bg-bg-hover focus:outline-none cursor-pointer transition-colors";
 
 function enterFocusMode() {
   useLeftRailStore.getState().close();
@@ -134,11 +134,11 @@ export function AvatarMenu() {
         <DropdownMenu.Content
           align="end"
           sideOffset={6}
-          className="min-w-[240px] bg-bg-panel border border-border rounded-md shadow-pop z-50 overflow-hidden animate-fade-in"
+          className="min-w-[260px] bg-bg-elevated border border-border-light shadow-dialog z-50 overflow-hidden animate-slide-down"
         >
-          <div className="px-3 py-2 border-b border-border">
-            <div className="text-[11px] text-ink-muted">Connesso come</div>
-            <div className="font-semibold text-sm truncate">{user.email}</div>
+          <div className="px-3 py-2.5 border-b border-border bg-bg-panel">
+            <div className="font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 font-semibold">Connesso come</div>
+            <div className="font-semibold text-sm truncate text-ink mt-0.5">{user.email}</div>
           </div>
 
           <div className="py-1">
@@ -146,30 +146,31 @@ export function AvatarMenu() {
               onSelect={(e) => { e.preventDefault(); enterFocusMode(); }}
               className={ITEM_CLS}
             >
-              <Eye className="w-3.5 h-3.5 text-ink-muted" />
+              <Eye className="w-3.5 h-3.5 text-ink-3" />
               Modalità focus
-              <kbd className="ml-auto text-[10px] text-ink-dim font-mono">⇧ Space</kbd>
+              <kbd className="ml-auto font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">⇧ Space</kbd>
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => window.dispatchEvent(new Event("feapro:open-account"))}
               className={ITEM_CLS}
             >
-              <User className="w-3.5 h-3.5 text-ink-muted" />
+              <User className="w-3.5 h-3.5 text-ink-3" />
               Account &amp; quota
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={() => window.dispatchEvent(new Event("feapro:open-location"))}
               className={ITEM_CLS}
             >
-              <MapPin className="w-3.5 h-3.5 text-ink-muted" />
+              <MapPin className="w-3.5 h-3.5 text-ink-3" />
               Loads location
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={(e) => { e.preventDefault(); cycleTheme(); }}
               className={ITEM_CLS}
             >
-              <ThemeIcon className="w-3.5 h-3.5 text-ink-muted" />
-              Tema: <span className="font-mono text-[11px] text-ink-muted ml-auto">{THEME_LABEL[themeMode]}</span>
+              <ThemeIcon className="w-3.5 h-3.5 text-ink-3" />
+              Tema
+              <span className="ml-auto font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">{THEME_LABEL[themeMode]}</span>
             </DropdownMenu.Item>
           </div>
 
@@ -180,21 +181,21 @@ export function AvatarMenu() {
               onSelect={(e) => { e.preventDefault(); doExportJson(); }}
               className={ITEM_CLS}
             >
-              <FileJson className="w-3.5 h-3.5 text-ink-muted" />
+              <FileJson className="w-3.5 h-3.5 text-ink-3" />
               Esporta JSON
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={(e) => { e.preventDefault(); doExportCsv(); }}
               className={ITEM_CLS}
             >
-              <FileSpreadsheet className="w-3.5 h-3.5 text-ink-muted" />
+              <FileSpreadsheet className="w-3.5 h-3.5 text-ink-3" />
               Esporta CSV
             </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={(e) => { e.preventDefault(); doExportPdf(); }}
               className={ITEM_CLS}
             >
-              <FileText className="w-3.5 h-3.5 text-ink-muted" />
+              <FileText className="w-3.5 h-3.5 text-ink-3" />
               Esporta report PDF
             </DropdownMenu.Item>
           </div>
@@ -206,7 +207,7 @@ export function AvatarMenu() {
               onSelect={(e) => { e.preventDefault(); useUIStore.getState().setOpenDialog("help"); }}
               className={ITEM_CLS}
             >
-              <HelpCircle className="w-3.5 h-3.5 text-ink-muted" />
+              <HelpCircle className="w-3.5 h-3.5 text-ink-3" />
               Aiuto e shortcut
             </DropdownMenu.Item>
             <DropdownMenu.Item

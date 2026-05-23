@@ -154,17 +154,14 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   // hidden sm:inline / hidden md:flex.
   return (
     <header className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-2 px-3 min-w-0 overflow-hidden">
-      {/* Logo + version + tier badge (v1.8 T6) */}
-      <div className="flex items-center gap-2 pr-2 border-r border-border h-7 flex-shrink-0">
-        <div className="w-6 h-6 rounded bg-accent/15 border border-accent/40 flex items-center justify-center">
-          <span className="text-accent text-xs font-bold">F</span>
+      {/* Logo + version + tier badge (Precision v2.0) */}
+      <div className="flex items-center gap-2 pr-3 border-r border-border h-7 flex-shrink-0">
+        <div className="w-6 h-6 bg-accent/10 border border-accent/40 flex items-center justify-center">
+          <span className="text-accent text-xs font-bold font-display">F</span>
         </div>
-        <span className="font-semibold text-sm text-ink hidden sm:inline font-display">FEA Pro</span>
-        {/* v1.8.1 P2: tier badge ora wire al billing API via React Query
-            (gia' fetchato da Dashboard per QuotaCard). Si auto-refresha. */}
+        <span className="font-display font-semibold text-sm text-ink hidden sm:inline tracking-tight-1">FEA Pro</span>
         <TopBarTierBadge />
-
-        <span className="text-[10px] font-mono text-ink-dim hidden md:inline">{APP_VERSION}</span>
+        <span className="font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 hidden md:inline">{APP_VERSION}</span>
       </div>
 
       {/* Model menu — single entry point per Duplica/Modifica/Switch/New/Delete.
@@ -195,7 +192,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
             onClick={() => setEditOpen(true)}
             data-testid="topbar-edit-model"
             aria-label="Modifica modello"
-            className="h-7 w-7 rounded-md flex items-center justify-center text-ink-muted hover:text-ink hover:bg-bg-hover transition-colors flex-shrink-0"
+            className="h-7 w-7 flex items-center justify-center text-ink-3 hover:text-ink hover:bg-bg-hover transition-colors flex-shrink-0"
           >
             <Pencil className="w-3.5 h-3.5" strokeWidth={1.8} />
           </button>
@@ -207,7 +204,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           tailwind keyframes) per evitare comparsa brusca. */}
       {lastSavedAt && (
         <div
-          className="hidden md:flex items-center gap-1 text-[11px] bg-bg-success border border-success/30 text-success px-2 py-0.5 rounded-sm flex-shrink-0 animate-slide-down"
+          className="hidden md:inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wide-1 bg-bg-success border border-success/30 text-success px-2 py-1 flex-shrink-0 animate-slide-down font-semibold"
           data-testid="topbar-save-chip"
         >
           <Check className="w-3 h-3" />
@@ -251,12 +248,12 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           }
         >
           <div
-            className="flex items-center gap-2 bg-bg-info text-ink-info rounded-md px-2.5 py-1 text-[11px] font-medium border border-info/30 mx-1 flex-shrink-0"
+            className="inline-flex items-center gap-2 bg-bg-info text-accent px-2.5 py-1 text-[11px] font-medium border border-accent/30 mx-1 flex-shrink-0"
             data-testid="topbar-active-job"
           >
             <Loader2 className="w-3 h-3 animate-spin" />
             <span className="hidden sm:inline">{activeJob.label}</span>
-            <span className="font-mono text-[10px] opacity-80">
+            <span className="font-mono text-[10px] tabular-nums opacity-80">
               {(activeJob.progress * 100).toFixed(0)}%
             </span>
           </div>
@@ -280,7 +277,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
                 if (prev) useModelStore.getState().setModel(prev as FEAModel);
               }}
               disabled={!canUndo}
-              className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-7 h-7 flex items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               aria-label="Annulla"
             >
               <Undo2 className="w-4 h-4" />
@@ -294,7 +291,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
                 if (next) useModelStore.getState().setModel(next as FEAModel);
               }}
               disabled={!canRedo}
-              className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed"
+              className="w-7 h-7 flex items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               aria-label="Ripeti"
             >
               <Redo2 className="w-4 h-4" />
@@ -329,12 +326,12 @@ export function TopBar({ models, activeId, onSelect }: Props) {
               useNotificationsStore.getState().markAllRead();
               toast("info", "Centro notifiche in arrivo (sheet).");
             }}
-            className="hidden md:flex relative w-8 h-8 rounded-md items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink flex-shrink-0"
+            className="hidden md:flex relative w-8 h-8 items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink flex-shrink-0 transition-colors"
             aria-label="Notifiche"
             data-testid="topbar-bell"
           >
             <Bell className="w-4 h-4" />
-            <span className="absolute top-0.5 right-0.5 bg-coral text-white rounded-full text-[9px] font-semibold px-1 py-0.5 border-2 border-bg-panel min-w-[16px] leading-none text-center">
+            <span className="absolute top-1 right-1 bg-coral text-white rounded-full font-mono text-[9px] font-bold px-1 leading-tight border border-bg-panel min-w-[14px] h-[14px] flex items-center justify-center tabular-nums">
               {unreadCount}
             </span>
           </button>

@@ -37,14 +37,14 @@ export function AICopilotButton() {
           }, 0);
         }}
         className={[
-          "flex items-center gap-1.5 h-7 px-2 rounded-md",
-          "text-ink-purple hover:bg-bg-purple transition-colors",
+          "inline-flex items-center gap-1.5 h-7 px-2.5",
+          "text-purple hover:bg-bg-purple hover:text-purple transition-colors",
           "border border-transparent hover:border-purple/30",
-          "focus:outline-none focus:ring-2 focus:ring-purple/60",
+          "focus:outline-none focus:border-purple",
         ].join(" ")}
       >
         <Sparkles className="h-3.5 w-3.5" strokeWidth={1.8} />
-        <span className="hidden md:inline text-xs font-medium">AI</span>
+        <span className="hidden md:inline font-mono text-[10px] uppercase tracking-wide-1 font-semibold">AI</span>
       </button>
     </Tooltip>
   );

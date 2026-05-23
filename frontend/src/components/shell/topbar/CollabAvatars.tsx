@@ -72,8 +72,8 @@ export function CollabAvatars() {
           key={u.id}
           content={
             <div>
-              <div className="font-semibold">{u.name}</div>
-              <div className="text-ink-muted text-[11px] mt-0.5">{u.activity}</div>
+              <div className="font-semibold text-ink">{u.name}</div>
+              <div className="text-ink-3 text-[11px] mt-0.5 font-mono">{u.activity}</div>
             </div>
           }
         >

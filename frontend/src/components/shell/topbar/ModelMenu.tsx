@@ -65,41 +65,41 @@ export function ModelMenu({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          className="flex items-center gap-1.5 px-2 py-1 rounded-md hover:bg-bg-hover text-sm text-ink font-medium min-w-0 max-w-[260px] flex-shrink"
+          className="inline-flex items-center gap-2 px-2.5 py-1 border border-border-light hover:border-accent/40 hover:bg-bg-hover text-sm text-ink font-medium min-w-0 max-w-[280px] flex-shrink transition-colors"
           data-testid="topbar-model-menu"
           aria-label="Menu modello"
         >
-          <FolderOpen className="w-3.5 h-3.5 text-ink-dim flex-shrink-0" strokeWidth={1.8} />
+          <FolderOpen className="w-3.5 h-3.5 text-ink-3 flex-shrink-0" strokeWidth={1.8} />
           <span className="truncate">
-            {modelName ?? <span className="text-ink-dim">Nessun modello</span>}
+            {modelName ?? <span className="text-ink-3">Nessun modello</span>}
           </span>
-          <ChevronDown className="w-3 h-3 text-ink-muted flex-shrink-0" />
+          <ChevronDown className="w-3 h-3 text-ink-3 flex-shrink-0" />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="min-w-[220px]">
+      <DropdownMenuContent align="start" className="min-w-[240px]">
         <DropdownMenuItem
           onSelect={(e) => { e.preventDefault(); onDuplicate(); }}
           disabled={!hasModel || isDuplicating}
         >
-          <Copy className="w-4 h-4 text-ink-muted" />
+          <Copy className="w-4 h-4 text-ink-3" />
           Duplica
         </DropdownMenuItem>
         <DropdownMenuItem
           onSelect={(e) => { e.preventDefault(); onEdit(); }}
           disabled={!hasModel}
         >
-          <Pencil className="w-4 h-4 text-ink-muted" />
+          <Pencil className="w-4 h-4 text-ink-3" />
           Modifica proprietà
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onSwitch(); }}>
-          <Folders className="w-4 h-4 text-ink-muted" />
+          <Folders className="w-4 h-4 text-ink-3" />
           Apri altro modello
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onNew(); }}>
-          <Plus className="w-4 h-4 text-ink-muted" />
+          <Plus className="w-4 h-4 text-ink-3" />
           Nuovo modello
-          <kbd className="ml-auto text-[10px] text-ink-dim font-mono">Ctrl+N</kbd>
+          <kbd className="ml-auto font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">⌘ N</kbd>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
