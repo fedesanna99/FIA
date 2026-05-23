@@ -46,13 +46,19 @@ export function ViewportHud() {
   const material = model.materials?.[0]?.name ?? "—";
 
   return (
-    <div className="absolute top-3.5 left-3.5 right-3.5 z-toolbar flex flex-wrap gap-2 pointer-events-none">
-      <Chip icon={<Box className="w-3 h-3" />}>{model.name}</Chip>
-      <Chip icon={<Layers className="w-3 h-3" />}>
+    <div className="absolute top-3.5 left-3.5 right-3.5 z-toolbar flex flex-wrap items-start gap-2 pointer-events-none">
+      <Chip icon={<Box className="w-3 h-3" />} className="max-w-[220px]" title={model.name}>
+        {model.name}
+      </Chip>
+      <Chip
+        icon={<Layers className="w-3 h-3" />}
+        className="max-w-[260px]"
+        title={`${nNodes} nodi · ${nElems} elem · ${material}`}
+      >
         {nNodes} nodi · {nElems} elem · {material}
       </Chip>
       <button
-        className="pointer-events-auto max-w-[220px] bg-bg-panel border border-border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-2 hover:text-ink hover:bg-bg-hover shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        className="pointer-events-auto max-w-[220px] min-w-0 bg-bg-panel border border-border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-2 hover:text-ink hover:bg-bg-hover shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
         onClick={() => window.dispatchEvent(new CustomEvent("feapro:open-view-panel"))}
         title="Apri cockpit View"
         data-testid="viewport-hud-open-view"
@@ -63,7 +69,7 @@ export function ViewportHud() {
         </span>
       </button>
       <button
-        className={`pointer-events-auto bg-bg-panel border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+        className={`pointer-events-auto flex-shrink-0 bg-bg-panel border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
           useViewportEngine
             ? "border-accent text-accent"
             : "border-border text-ink-2 hover:text-ink hover:bg-bg-hover"
@@ -73,7 +79,7 @@ export function ViewportHud() {
           ? `ViewportEngine attivo (${stats.compressionRatio.toFixed(1)}x)`
           : "Attiva ViewportEngine GPU-first"}
       >
-        <Gauge className="w-3 h-3" />
+        <Gauge className="w-3 h-3 flex-shrink-0" />
         Engine
       </button>
       {/* alpha.31 Task 20: "Auto-save" chip rimosso — ridondante con il
@@ -82,11 +88,24 @@ export function ViewportHud() {
   );
 }
 
-function Chip({ icon, children }: { icon?: ReactNode; children: ReactNode }) {
+function Chip({
+  icon,
+  children,
+  className = "",
+  title,
+}: {
+  icon?: ReactNode;
+  children: ReactNode;
+  className?: string;
+  title?: string;
+}) {
   return (
-    <div className="bg-bg-panel border border-border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-2 shadow-pop font-mono">
-      {icon}
-      {children}
+    <div
+      className={`bg-bg-panel border border-border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-2 shadow-pop font-mono min-w-0 ${className}`}
+      title={title}
+    >
+      {icon ? <span className="flex-shrink-0">{icon}</span> : null}
+      <span className="truncate">{children}</span>
     </div>
   );
 }
