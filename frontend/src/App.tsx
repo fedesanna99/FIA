@@ -416,6 +416,23 @@ export default function App() {
         return;
       }
 
+      // === PRIORITA' 5b: Ctrl+Z / Cmd+Z → Undo (v2.3.0) =======================
+      // Ctrl+Shift+Z = Redo, Ctrl+Y = Redo (Windows convention).
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === "z") {
+        e.preventDefault();
+        if (e.shiftKey) {
+          useModelStore.getState().redo();
+        } else {
+          useModelStore.getState().undo();
+        }
+        return;
+      }
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === "y") {
+        e.preventDefault();
+        useModelStore.getState().redo();
+        return;
+      }
+
       // === PRIORITA' 6: numeri 1-3 → navigazione workspace ====================
       // v1.5.2 Task 35: "results" (4) e "io" (5) rimossi col legacy. I
       // risultati vivono nel rail destro Inspect (accessibile via palette).

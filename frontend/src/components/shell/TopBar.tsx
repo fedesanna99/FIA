@@ -72,11 +72,10 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   const run = useRunAnalysis();
   const model = useModelStore((s) => s.model);
   const lastSavedAt = useModelStore((s) => s.lastSavedAt);
-  // alpha.30: undo/redo reattivi via historyStore. Il wiring del push
-  // automatico al modelStore verra' aggiunto in un task successivo: per
-  // ora i bottoni restano disabled finche' canUndo/canRedo non diventano
-  // veri (l'API e' pronta lato store).
-  const canUndo = useModelHistory((s) => s.past.length > 0);
+  // v2.3.0: undo/redo wired al modelStore. La history si popola
+  // automaticamente a ogni mutation (add/update/remove di
+  // nodi/elementi/loads/constraints). I bottoni si abilitano da soli.
+  const canUndo = useModelHistory((s) => s.past.length > 1);
   const canRedo = useModelHistory((s) => s.future.length > 0);
   // v1.7-polish-pass2 T2: bell counter ora legge da notificationsStore
   // dedicato (no piu' useToastStore filtrato). Le notifiche persistono
@@ -263,10 +262,8 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           <Tooltip content="Annulla · Ctrl+Z">
             <button
               type="button"
-              onClick={() => {
-                const prev = useModelHistory.getState().undo();
-                if (prev) useModelStore.getState().setModel(prev as FEAModel);
-              }}
+              data-testid="topbar-undo"
+              onClick={() => { useModelStore.getState().undo(); }}
               disabled={!canUndo}
               className="w-7 h-7 flex items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               aria-label="Annulla"
@@ -277,10 +274,8 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           <Tooltip content="Ripeti · Ctrl+Shift+Z">
             <button
               type="button"
-              onClick={() => {
-                const next = useModelHistory.getState().redo();
-                if (next) useModelStore.getState().setModel(next as FEAModel);
-              }}
+              data-testid="topbar-redo"
+              onClick={() => { useModelStore.getState().redo(); }}
               disabled={!canRedo}
               className="w-7 h-7 flex items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
               aria-label="Ripeti"

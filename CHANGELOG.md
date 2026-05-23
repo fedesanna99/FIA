@@ -1,5 +1,63 @@
 # Changelog FEA Pro
 
+## v2.3.0-compare-undo — Multi-model compare polish + Undo/Redo wiring — 2026-05-23
+
+Due feature attese dal backlog post-audit, consegnate insieme.
+
+### #1 — Multi-model compare polish (`ComparePanel`)
+- Card "Anteprima A vs B" sempre visibile non appena due modelli sono
+  scelti (anche prima del run): conta nodi/elementi/carichi/vincoli e
+  mostra Δ relativo (+/= colorato success/danger/muted).
+- Auto-fetch dei due modelli interi via React Query (`useQuery
+  ["model", modelId]`) per popolare i conteggi senza richiedere
+  necessariamente il run `/api/models/compare`.
+- Validation inline (modello uguale → hint `text-warn`) invece di
+  toast d'errore intrusivo.
+- Empty state per `node_deltas` vuoto quando i due modelli sono
+  identici lato risultati.
+
+### #2 — Undo/Redo store-level (FEAModel mutations)
+- `modelStore`: ogni mutation (`addNode/updateNode/removeNode`,
+  `addElement/updateElement/removeElement`, `addLoad/updateLoad/
+  removeLoad`, `addConstraint/updateConstraint/removeConstraint`)
+  spinge automaticamente uno snapshot del modello in
+  `useModelHistory`.
+- `setModel(m)` resetta history a `[m]` come baseline; un secondo
+  `setModel(null)` la svuota.
+- Nuovi metodi `undo()` / `redo()` su `useModelStore` che
+  ripristinano il modello mantenendo selezione corrente.
+- `historyStore.canUndo`: ora richiede `past.length > 1` (baseline +
+  almeno una mutation), per evitare che il pulsante undo appaia
+  attivo subito dopo il load.
+- `App.tsx`: keyboard shortcut globali `Ctrl/Cmd+Z` (undo),
+  `Ctrl/Cmd+Shift+Z` e `Ctrl/Cmd+Y` (redo). Skip su input/textarea
+  per non interferire con i text field.
+- `TopBar.tsx`: undo/redo button ora delegano a
+  `useModelStore.undo()` / `.redo()` (prima chiamavano direttamente
+  `useModelHistory.undo()` + `setModel`).
+- Test: 9 nuovi vitest (`store/modelStore.test.ts`) coprono il
+  wiring, isolamento history fra modelli diversi, `addNode`,
+  `removeElement`, undo/redo trip-roundtrip, future invalidation
+  dopo nuova mutation.
+
+### Quality gates
+- Build: verde (`tsc -b && vite build`, 16.69s).
+- Vitest: **573/573 PASS** (era 564, +9 nuovi test modelStore).
+- Bundle: nessun nuovo chunk pesante; ComparePanel resta nel main
+  bundle ma è già lazy via ToolsPanel sub-view.
+
+### Files toccati
+- `frontend/src/lib/version.ts` → `v2.3` / `v2.3.0-compare-undo`
+- `frontend/src/store/historyStore.ts` (canUndo `> 1`)
+- `frontend/src/store/modelStore.ts` (auto-push + undo/redo methods)
+- `frontend/src/store/modelStore.test.ts` (nuovo, 9 test)
+- `frontend/src/components/panels/ComparePanel.tsx` (refactor)
+- `frontend/src/components/shell/TopBar.tsx` (semplif. undo/redo)
+- `frontend/src/App.tsx` (kbd shortcut Ctrl+Z/Y)
+- `CHANGELOG.md`
+
+---
+
 ## v2.2.2-audit-deep — Hardening prod + cleanup + bundle split + docs — 2026-05-23
 
 Sessione di **audit-deep dopo la chiusura del backlog**: 5 priorità

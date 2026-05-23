@@ -37,7 +37,11 @@ export function createHistoryStore<T>(limit = 50) {
     future: [],
     limit,
 
-    canUndo: () => get().past.length > 0,
+    // canUndo richiede ALMENO due snapshot in past: lo snapshot 0 e' la
+    // baseline (modello caricato), quindi undo ha senso solo se ci sono
+    // mutations sopra. Senza questa guardia il pulsante undo apparirebbe
+    // attivo anche per il modello appena caricato.
+    canUndo: () => get().past.length > 1,
     canRedo: () => get().future.length > 0,
 
     push: (snapshot) =>
