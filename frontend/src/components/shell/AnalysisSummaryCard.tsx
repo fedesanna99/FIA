@@ -43,20 +43,20 @@ export function AnalysisSummaryCard() {
 
   return (
     <div className="border-b border-border p-3 space-y-1.5 bg-bg-panel" data-testid="analysis-summary-card">
-      <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
+      <div className="font-mono text-[10px] uppercase tracking-wide-3 text-ink-3 font-semibold">
         Analysis summary
       </div>
       <div className="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
-        <span className="text-ink-muted">Solve time</span>
-        <span className="text-ink font-mono text-right">
+        <span className="text-ink-2">Solve time</span>
+        <span className="text-ink font-mono text-right tabular-nums">
           {staticRes.solve_time_ms.toFixed(0)} ms
         </span>
-        <span className="text-ink-muted">DOF approx</span>
-        <span className="text-ink font-mono text-right">
+        <span className="text-ink-2">DOF approx</span>
+        <span className="text-ink font-mono text-right tabular-nums">
           {nDof.toLocaleString("it")}
         </span>
-        <span className="text-ink-muted">Status</span>
-        <span className="text-ink-success font-mono text-right">OK</span>
+        <span className="text-ink-2">Status</span>
+        <span className="text-success font-mono text-right uppercase tracking-wide-3 text-[10px]">OK</span>
       </div>
       <button
         type="button"

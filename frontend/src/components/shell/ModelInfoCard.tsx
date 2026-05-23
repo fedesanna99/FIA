@@ -52,31 +52,31 @@ export function ModelInfoCard() {
       data-testid="model-info-card"
     >
       <div className="flex items-center justify-between gap-2">
-        <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
+        <div className="font-mono text-[10px] uppercase tracking-wide-3 text-ink-3 font-semibold">
           Model information
         </div>
-        {/* v1.9.0 T3: Trust Layer badge */}
+        {/* v1.9.0 T3 / v2.0 Precision: Trust Layer badge */}
         <span
           title={trust.hint}
-          className={`text-[9px] font-mono font-semibold px-1.5 py-0.5 rounded border leading-none ${trust.cls}`}
+          className={`text-[9px] font-mono font-semibold px-1.5 py-0.5 border leading-none ${trust.cls}`}
           data-testid={`trust-badge-${origin}`}
         >
           {trust.label}
         </span>
       </div>
       <div
-        className="text-sm font-semibold text-ink truncate"
+        className="font-display text-md font-semibold text-ink truncate tracking-tight-1"
         title={model.name}
         data-testid="model-info-name"
       >
         {model.name}
       </div>
-      <div className="text-[11px] text-ink-muted leading-snug" data-testid="model-info-counts">
+      <div className="text-[11px] text-ink-2 leading-snug font-mono" data-testid="model-info-counts">
         {model.nodes.length} nodi · {model.elements.length} elementi
         <br />
         {model.constraints.length} vincoli · {model.loads.length} carichi
       </div>
-      <div className="text-[10px] text-ink-dim font-mono">
+      <div className="text-[10px] text-ink-3 font-mono tracking-wide-1">
         {model.is_3d ? "3D" : "2D"} · {model.units}
       </div>
     </div>

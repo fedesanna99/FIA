@@ -79,16 +79,16 @@ export function MissionBar() {
 
   return (
     <div
-      className="h-8 flex-shrink-0 border-b border-border bg-bg-page/80 backdrop-blur-sm px-3 flex items-center gap-2 text-[11px] overflow-hidden"
+      className="h-8 flex-shrink-0 border-b border-border bg-bg-panel/80 backdrop-blur-sm px-3 flex items-center gap-2 text-[11px] overflow-hidden"
       data-testid="mission-bar"
     >
       <span
-        className={`px-1.5 py-0.5 rounded font-mono uppercase tracking-wider text-[9px] font-semibold border ${toneClass} flex-shrink-0`}
+        className={`px-1.5 py-0.5 font-mono uppercase tracking-wide-3 text-[9px] font-semibold border ${toneClass} flex-shrink-0`}
         data-testid="mission-bar-status"
       >
         {hint.label}
       </span>
-      <span className="text-ink-muted flex-shrink-0">Prossimo passo:</span>
+      <span className="font-mono uppercase tracking-wide-3 text-[9px] text-ink-3 flex-shrink-0">Prossimo passo</span>
       <span className="text-ink font-medium truncate" data-testid="mission-bar-hint">
         {hint.text}
       </span>
