@@ -21,6 +21,14 @@ jobs:
         working-directory: backend
     steps:
       - uses: actions/checkout@v4
+      - name: Install system libs for gmsh / OpenGL
+        # gmsh (mesh kernel) richiede libGLU + libGL anche su runner
+        # headless: senza queste librerie tutti gli import falliscono con
+        # OSError libGLU.so.1 (v2.3.2 CI fix).
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            libglu1-mesa libgl1 libxrender1 libxcursor1 libxft2 libxinerama1
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
