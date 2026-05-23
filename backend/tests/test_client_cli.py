@@ -19,6 +19,13 @@ import storage
 from client import FEAProClient, FEAProError
 from client.cli import main as cli_main
 
+# v2.3.2 fix CI: catalogo accelerogrammi gitignored, skip se mancante.
+_CATALOG_FILE = Path(__file__).resolve().parent.parent / "data" / "accelerograms" / "synth_kt_5hz.AT2"
+needs_catalog = pytest.mark.skipif(
+    not _CATALOG_FILE.exists(),
+    reason="Accelerogram catalog mancante (data/ gitignored)",
+)
+
 
 @pytest.fixture
 def feapro_client():
@@ -96,6 +103,7 @@ class TestClientCRUD:
         finally:
             feapro_client.delete_model(m["id"])
 
+    @needs_catalog
     def test_list_accelerograms(self, feapro_client: FEAProClient):
         items = feapro_client.list_accelerograms()
         assert isinstance(items, list)

@@ -14,6 +14,13 @@ from fastapi.testclient import TestClient
 from main import app
 import storage
 
+# v2.3.2 fix CI: catalogo accelerogrammi gitignored, skip se mancante.
+_CATALOG_FILE = Path(__file__).resolve().parent.parent / "data" / "accelerograms" / "synth_kt_5hz.AT2"
+needs_catalog = pytest.mark.skipif(
+    not _CATALOG_FILE.exists(),
+    reason="Accelerogram catalog mancante (data/ gitignored)",
+)
+
 
 @pytest.fixture
 def client():
@@ -164,6 +171,7 @@ def test_ai_workflow_with_mock(client: TestClient, monkeypatch):
         storage.delete_model(m["id"])
 
 
+@needs_catalog
 def test_accelerograms_catalog_listed(client: TestClient):
     r = client.get("/api/io/accelerograms")
     assert r.status_code == 200

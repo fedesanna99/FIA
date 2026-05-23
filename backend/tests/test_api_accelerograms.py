@@ -1,10 +1,21 @@
 """
 Test API endpoint /api/io/accelerograms.
 """
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
 from main import app
+
+# v2.3.2 fix CI: il catalogo accelerogrammi legge da
+# backend/data/accelerograms/ che è gitignored. Skipping quando i
+# fixture file non sono presenti (es. su runner CI fresh).
+_CATALOG_FILE = Path(__file__).resolve().parent.parent / "data" / "accelerograms" / "synth_kt_5hz.AT2"
+needs_catalog = pytest.mark.skipif(
+    not _CATALOG_FILE.exists(),
+    reason="Accelerogram catalog mancante (data/ gitignored)",
+)
 
 
 @pytest.fixture
@@ -13,6 +24,7 @@ def client():
 
 
 class TestCatalog:
+    @needs_catalog
     def test_list_returns_items(self, client: TestClient):
         r = client.get("/api/io/accelerograms")
         assert r.status_code == 200
@@ -23,6 +35,7 @@ class TestCatalog:
         names = [i["name"] for i in data["items"]]
         assert any("synth_kt" in n.lower() for n in names)
 
+    @needs_catalog
     def test_get_existing(self, client: TestClient):
         r = client.get("/api/io/accelerograms/synth_kt_5hz.AT2")
         assert r.status_code == 200
