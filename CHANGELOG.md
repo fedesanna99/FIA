@@ -1,5 +1,44 @@
 # Changelog FEA Pro
 
+## v2.3.2-persist-ci — Snapshot persistence + CI hardening — 2026-05-23
+
+Due fix di robustezza richiesti dopo v2.3.1.
+
+### #1 — Snapshot persistence (localStorage)
+- `snapshotStore` ora usa `zustand/middleware` → `persist` con key
+  `feapro-snapshots`, version 1, partialize `{ snapshots, _counter }`.
+- Il counter id è migrato da modulo-level a state (così sopravvive
+  rehydrate senza collisioni).
+- Effetto utente: gli snapshot non vengono persi al refresh / chiusura
+  tab. La promessa "crea snapshot per confrontarli dopo" ora vale
+  anche fra sessioni.
+- Test: 4 nuovi vitest (scrittura su localStorage, rename persiste,
+  clearAll svuota anche counter persistito, monotonia counter).
+
+### #2 — CI GitHub Actions estesa
+- `.github/workflows/ci.yml` ora triggera anche su `feature/**` e
+  `test` (prima solo main/master).
+- Aggiunta `concurrency` con `cancel-in-progress` per evitare run
+  paralleli sullo stesso branch.
+- `npm install` → `npm ci` (build riproducibile dal lockfile).
+- Cache npm ora punta correttamente a `frontend/package-lock.json`.
+- Typecheck unificato a `tsc -b --pretty false` (stesso comando del
+  build locale).
+
+### Quality gates
+- Build: verde 16.84s.
+- Vitest: **584/584 PASS** (era 580, +4 nuovi persistence).
+- Version → `v2.3.2-persist-ci`.
+
+### Files toccati
+- `frontend/src/store/snapshotStore.ts` (persist middleware)
+- `frontend/src/store/snapshotStore.test.ts` (+4 test)
+- `frontend/src/lib/version.ts`
+- `.github/workflows/ci.yml`
+- `CHANGELOG.md`
+
+---
+
 ## v2.3.1-snapshot-diff — Snapshot named + inline diff — 2026-05-23
 
 Feature di chiusura backlog: gestione completa snapshot.

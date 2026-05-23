@@ -1,10 +1,16 @@
 name: CI
 
+# v2.3.2: triggera anche su feature/** e test cosi' vediamo CI prima del
+# merge in main. Cancella run vecchi quando il branch riceve nuovi push.
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, test, "feature/**"]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, test]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   backend-tests:
@@ -28,7 +34,7 @@ jobs:
         run: pytest --tb=short --cov-fail-under=70
 
   frontend-build:
-    name: Frontend (typecheck + build)
+    name: Frontend (typecheck + vitest + build)
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -39,11 +45,11 @@ jobs:
         with:
           node-version: "20"
           cache: npm
-          cache-dependency-path: frontend/package.json
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
-      - name: TypeScript typecheck
-        run: npx tsc --noEmit
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install dependencies (npm ci)
+        run: npm ci --no-audit --no-fund
+      - name: TypeScript typecheck (tsc -b)
+        run: npx tsc -b --pretty false
       - name: Vitest unit tests
         run: npm test
       - name: Build (Vite)

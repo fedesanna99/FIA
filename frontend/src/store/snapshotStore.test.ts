@@ -6,6 +6,9 @@ import { useSnapshotStore } from "./snapshotStore";
 
 describe("snapshotStore (v2.3.1)", () => {
   beforeEach(() => {
+    // v2.3.2: pulizia anche di localStorage cosi' i test sulla persistenza
+    // partono da uno slate vuoto e non leakano fra test.
+    localStorage.removeItem("feapro-snapshots");
     useSnapshotStore.getState().clearAll();
   });
 
@@ -67,5 +70,44 @@ describe("snapshotStore (v2.3.1)", () => {
     useSnapshotStore.getState().takeSnapshot("B", "m1", "M", "h", null, null);
     useSnapshotStore.getState().clearAll();
     expect(useSnapshotStore.getState().snapshots.length).toBe(0);
+  });
+
+  // v2.3.2 — persistence localStorage
+  it("takeSnapshot scrive su localStorage (key feapro-snapshots)", () => {
+    useSnapshotStore.getState().takeSnapshot("Persist me", "m1", "M", "h", null, null);
+    const raw = localStorage.getItem("feapro-snapshots");
+    expect(raw).not.toBeNull();
+    const parsed = JSON.parse(raw!);
+    expect(parsed.version).toBe(1);
+    expect(parsed.state.snapshots.length).toBe(1);
+    expect(parsed.state.snapshots[0].label).toBe("Persist me");
+    expect(parsed.state._counter).toBeGreaterThan(0);
+  });
+
+  it("renameSnapshot persiste su localStorage", () => {
+    useSnapshotStore.getState().takeSnapshot("Old", "m1", "M", "h", null, null);
+    const id = useSnapshotStore.getState().snapshots[0].id;
+    useSnapshotStore.getState().renameSnapshot(id, "Renamed");
+    const parsed = JSON.parse(localStorage.getItem("feapro-snapshots")!);
+    expect(parsed.state.snapshots[0].label).toBe("Renamed");
+  });
+
+  it("clearAll svuota anche il counter persistito", () => {
+    useSnapshotStore.getState().takeSnapshot("A", "m1", "M", "h", null, null);
+    useSnapshotStore.getState().takeSnapshot("B", "m1", "M", "h", null, null);
+    useSnapshotStore.getState().clearAll();
+    const parsed = JSON.parse(localStorage.getItem("feapro-snapshots")!);
+    expect(parsed.state.snapshots).toEqual([]);
+    expect(parsed.state._counter).toBe(0);
+  });
+
+  it("counter cresce in modo monotono fra takeSnapshot successivi", () => {
+    useSnapshotStore.getState().takeSnapshot("A", "m1", "M", "h", null, null);
+    useSnapshotStore.getState().takeSnapshot("B", "m1", "M", "h", null, null);
+    useSnapshotStore.getState().takeSnapshot("C", "m1", "M", "h", null, null);
+    const ids = useSnapshotStore.getState().snapshots.map((s) => s.id);
+    expect(ids).toEqual([ids[0], ids[0] + 1, ids[0] + 2]);
+    // Tutti unici
+    expect(new Set(ids).size).toBe(3);
   });
 });
