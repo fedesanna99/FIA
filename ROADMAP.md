@@ -3,10 +3,10 @@
 > Visione evolutiva. Per il backlog tecnico granulare e i carry-over di v1.0.0 vedi `BACKLOG.md`.
 > Per la specifica del redesign UI vedi `UI_REDESIGN_SPEC.md`.
 
-**Stato corrente**: `v1.7.2-polish-pass2` (cronologicamente l'ultimo,
-nonostante il numero più basso — vedi §"Versioning note" sotto). Ultimi
-8 sprint UI/UX + tech-debt post v1.7.0-ui-coerence + v1.8.0-product-alignment.
-465 vitest verdi, deploy live su https://fea-pro.fly.dev/.
+**Stato corrente**: `v2.3.2-persist-ci` (snapshot persistence localStorage +
+CI extended feature/**). Post v2.3.0 (multi-model compare + undo/redo store-level)
+e v2.3.1 (snapshot rename inline + diff Δ%). 584 vitest verdi, 660+ pytest verdi,
+deploy live su https://fea-pro.fly.dev/.
 
 > **Versioning note (2026-05-23)**: i tag `v1.7.1-polish-debt` e
 > `v1.7.2-polish-pass2` derivano dal **nome del piano tematico**
@@ -20,6 +20,36 @@ nonostante il numero più basso — vedi §"Versioning note" sotto). Ultimi
 ---
 
 ## Storia recente
+
+### v2.3.0 → v2.3.2 — Compare + Undo + Persistenza
+**Stato**: ✅ Chiuso (2026-05-23)
+- v2.3.0 (`v2.3.0-compare-undo`): ComparePanel A vs B con auto-fetch React Query +
+  Undo/Redo store-level (Ctrl/Cmd+Z e Ctrl/Cmd+Y su ogni mutation modelStore) +
+  `useModelHistory` singleton con snapshot push automatico.
+- v2.3.1 (`v2.3.1-snapshot-diff`): rename snapshot inline (doppio click sul nome) +
+  panel "Confronta" con delta% su `max_u`, `max_σ`, `f₁`.
+- v2.3.2 (`v2.3.2-persist-ci`): snapshotStore persistito su localStorage via
+  zustand `persist` middleware + CI workflow esteso su `feature/**` con
+  `npm ci` e concurrency `cancel-in-progress`.
+
+### v2.0 → v2.2 — Audit ingegneristico end-to-end
+**Stato**: ✅ Chiuso
+- 9 bug audit ingegneristico (B1-B9) chiusi
+- AuthGate full-screen + bootstrap idempotente + 401 auto-logout
+- CORS lockdown via env-var (no più `*`)
+- Cleanup dead code: 9 file, 1139 LOC rimosse
+- Lazy-load 7 dialog/wizard pesanti (main bundle −65 kB)
+- Touch target mobile WCAG 2.5.5
+- v2.2.2-audit-deep: auth gate + nav dedup + audit ingegneristico chiuso
+
+### v1.9 — Demo Slice Percorsi (chiuso, ~v2.0)
+**Stato**: ✅ Implementato in fase v1.9/v2.0
+- PercorsoStepper 6-step (Trave bi-appoggiata UC1)
+- TrustLayerBadge ("Preliminary/Draft" enforcement)
+- Studio Pro / Percorsi come due lenti su stesso modello
+- Galleria template 9 modelli precaricati
+- PercorsiBeamWizard end-to-end
+- Report PDF builder (modal export multi-pagina)
 
 ### v1.7.2-polish-pass2 (2026-05-23, post-v1.8.5)
 - T1 `rightRailStore` static-only: rimossi 4 dynamic import (App.tsx x2,
@@ -171,89 +201,59 @@ Release ufficiale del solver. Backend 660/660 pytest verde, frontend 58/58 vites
 
 ## Roadmap futura
 
-> **Versioning convention (2026-05-23, post-riallineamento)**: i numeri
-> di questa sezione **non si sovrappongono** con i tag già usati per la
-> storia (v1.0 → v1.8.5 + i tag retroattivi v1.7.1/v1.7.2). Si parte da
-> **v1.9.0** in avanti. I "titoli tematici" precedenti (Connect / Pro
-> tools / Polish & perf) erano stati assegnati a v1.5/v1.6/v1.7 quando
-> quei numeri erano liberi; ora che sono occupati, i piani slittano
-> avanti.
+> **Versioning convention (2026-05-23, post v2.3.3-docs-sync)**: la
+> "Roadmap futura" parte da **v2.4.x** in avanti. Piani v1.9 → v2.3 sono
+> tutti chiusi e spostati in "Storia recente" sopra.
 
-### v1.9.0 — "Demo Slice GPS Strutturale"
-**Obiettivo**: prima feature reale post-polish — un percorso end-to-end
-"Studio Pro" e/o "Percorsi" che porti l'utente da modello vuoto a
-diagnosi strutturale demo-ready.
+### v2.4.x — Tech debt closure
+**Obiettivo**: chiudere i debiti tecnici puntuali emersi durante v2.3.x.
 
-| Asse | Item |
-|---|---|
-| Percorsi wizard | Almeno 1 percorso end-to-end (es. "Trave bi-appoggiata UC1") con step guidato, valori didattici. Sostituisce il placeholder mini-dialog v1.8 T2. |
-| GPS Strutturale | UC / criticità card visibili su `ResultsOverviewCard` — non solo Max σ ma indicatori normativi (S275, EC3, NTC). |
-| Trust Layer | Indicator per modelli importati o AI-generated (verde="creato dall'utente", giallo="importato", arancione="AI-generated"). |
-| Report PDF builder | Modal export con preview multi-pagina (cover, modello, risultati, criticità, conclusioni). |
+- **BL-9**: jsPDF CVE bump (~10 min) — vedi `BACKLOG.md`
+- `jobsStore` unificato (alpha.30 follow-up) — `Map<JobId, JobState>` come
+  unica source of truth, sostituisce `analysisStore.isRunning`
+- History push wiring (alpha.30 Task 6 follow-up) — restanti store da
+  collegare a `useModelHistory.push`
+- `notificationsStore` dedicato (alpha.30 Task 8 follow-up) — separare da
+  toastStore (già parzialmente fatto in v1.7.2)
+- `rightRailStore` solo statico (alpha.30 follow-up)
+- Cleanup legacy `ExportMenu.tsx`, `Breadcrumb.tsx` (se ancora presenti)
+- `materials` field in `FEAModel` (alpha.30 Task 3 follow-up — accesso
+  oggi è difensivo in ViewportHud)
+- Test Williams toggle frame specifico per arc-length (BL-2 follow-up)
 
-### v1.10.0 — "Tech debt closure"
-**Obiettivo**: chiudere i 3 debiti rimasti dalla precedente "v1.7
-Polish & perf" che richiedono refactor maggiori.
+### v2.5.x — Quality checkpoint
+**Obiettivo**: test funzionali completi sull'app v2.3.2.
 
-| Item | Provenienza |
-|---|---|
-| History push wiring auto (`useModelHistory.push` su modelStore subscribe + debounce 500ms) | follow-up alpha.30 Task 6 |
-| `jobsStore` reale multi-job (`Map<JobId, JobState>`, sostituisce `analysisStore.isRunning` come unica source of truth) | follow-up alpha.30 Task 10 |
-| Code-splitting aggressivo: Validation page + Three.js sub-chunk (target main < 250 kB gzip) | bundle warning persistente |
+- L1 audit dead clicks (Playwright crawler su tutta la SPA)
+- L2 audit funzionale per area (~10 happy path + 5 edge case)
+- Report bug consolidato + fix sprint dedicato
+- Lighthouse Performance baseline desktop + mobile
+- Audit security headers (HSTS / CSP / X-Frame-Options / X-Content-Type-Options)
+- Audit rate-limit auth endpoint (oggi 0 — vedi audit interno)
 
-### v1.11.0 — "Connect" (collab real-time)
-**Obiettivo**: collaborazione live multi-utente con presence + cursors.
+### v2.6.x — Decisione di prodotto
+**Obiettivo**: a valle del checkpoint qualità, scelta esplicita tra:
 
-| Asse | Item |
-|---|---|
-| F (backend collab) | WebSocket session manager · room broadcast · CRDT per modello condiviso (yjs server) |
-| U (frontend collab) | `useCollabStore` zustand con `activeUsers` reale · CollabAvatars stack popolato real-time · cursors 3D nel viewport · presence indicators sui modelli |
-| Auth | Org/workspace · invite via email · role-based permissions (viewer/editor/admin) |
-| Verifica | Test E2E 2 client su stesso modello, sync entità node-by-node |
+- **Strada A · Redesign UI/UX con Claude Design** (pacchetto già pronto in
+  `.codex-temp/claude-design-pack/`, ora rimosso ma referenziato in
+  `docs/redesign-architetti/`)
+- **Strada B · Cloud-native + monetization v2.0** (Stripe, Postgres
+  managed, multi-tenant, OpenTelemetry, API pubblica)
+- **Strada C · Feature normative italiane** (connection EC3-1-8, NTC18
+  cap.8 dettaglio, armature DWG, EC4/EC6/EC7/EC9 oggi mancanti)
 
-### v1.12.x — Solver completeness (carry-over BACKLOG)
-Vedi `BACKLOG.md` per dettagli:
-- **BL-1**: Newton-Raphson + Cable 2D/3D (ponti sospesi, tiranti)
-- **BL-2**: Arc-length Crisfield/Riks (post-snap-through, Williams toggle frame)
-- **BL-3**: Elementi Tet4 / T10 (solidi tetraedrici)
-- **BL-4**: Shell layered (composite plies)
-- **BL-5**: Contact unilateral (terreno, gap)
-- **BL-6**: NAFEMS battery completa (LE1-LE11)
-- **BL-7**: Time-history modal superposition
-- **BL-8**: Adaptive mesh refinement
-- **BL-9**: Iso-surface 3D per stress/strain
+La scelta dipende da feedback utenti reali post v2.3.2 e dai risultati
+del quality checkpoint v2.5.x.
 
-### v1.13.0 — "Pro tools" (workflow avanzato)
-**Obiettivo**: features Pro nella tier paid.
+### v3.0 → futuro
+**Obiettivo**: posizionamento competitivo "cloud + pay-per-use + made-for-Italy".
 
-| Asse | Item |
-|---|---|
-| BIM viewer | IFC4 import + overlay sul modello FEA · estrazione automatica geometria + materiali da IFC · sync bi-direzionale |
-| Topology optimization | SIMP method · constraint stress/displacement · post-processing iso-density con threshold |
-| Compare A/B | side-by-side viewer per 2 modelli o 2 run · diff strutturato su entità e risultati |
-| Export Pro | PDF reportlab server-side (multi-pagina con TOC) · XLSX multi-sheet con grafici embedded · DXF strutturato (CAD-compatible) |
-
-### v2.0.0 — "Cloud-native"
-**Obiettivo**: scalabilità multi-tenant + observability completa.
-
-| Asse | Item |
-|---|---|
-| Infra | Multi-region Fly · Postgres managed · object storage S3-compatible per modelli grandi · CDN per assets |
-| Observability | OpenTelemetry tracing · Sentry frontend + backend · Grafana dashboards solver latency / quota usage / WS connessioni |
-| Billing | Stripe integration · tier free/pro/enterprise · usage-based per crediti · invoice automatici |
-| API pubblica | REST + GraphQL · OpenAPI 3.1 spec · API key management · rate-limit dichiarativo per tier |
-| Mobile-first | React Native app companion (read-only: dashboard, jobs status, model viewer) |
-
-### Piani parzialmente già consegnati (storia)
-
-Il vecchio piano "v1.7.0 Polish & perf" è stato consegnato a step in 2 tag
-post-v1.8.5:
-- **`v1.7.1-polish-debt`** (2026-05-23) — cleanup legacy + code-split
-  AICopilot/AccountDialog + `materials?` field. ✔
-- **`v1.7.2-polish-pass2`** (2026-05-23) — static imports
-  rightRailStore/toastStore + `notificationsStore` dedicato. ✔
-
-Voci residue di quel piano confluite in v1.10.0 "Tech debt closure".
+Vedi `docs/STRATEGIC_CONTEXT.md` (se presente) per:
+- Analisi competitor (ProSap, SAP2000, IDEA StatiCa, AEC Collection)
+- Posizionamento mercato (quadrante vuoto: "cloud + pay-per-use + made-for-Italy")
+- Gap normativi prioritari per il mercato italiano
+- BIM viewer (IFC4 import + overlay), topology optimization, multi-region Fly,
+  Postgres managed + S3-compatible storage, mobile companion read-only.
 
 ---
 
@@ -284,17 +284,22 @@ Lo shell desktop-first attuale ha breakpoints `sm 768 / md 1024 / lg 1280 / xl 1
 
 ---
 
-## KPI tracking (suggeriti)
+## KPI tracking
 
-| Metrica | Target v1.5 | Strumento |
+| Metrica | Valore reale v2.3.2 | Target |
 |---|---|---|
-| Lighthouse Performance | ≥ 80 | CI weekly |
-| Bundle main gzip | ≤ 250 kB | Vite build report |
-| Backend P95 solver static | ≤ 2 s per 1k DoF | OTel histograms |
-| WebSocket presence latency | ≤ 100 ms in-region | Custom probe |
-| Test coverage backend | ≥ 92% (mantenuto) | pytest-cov |
-| Test coverage frontend | ≥ 80% | vitest --coverage |
-| Onboarding completion rate | ≥ 60% nuovi utenti | Analytics |
+| Backend pytest | 660+ verdi | ≥ 700 entro v2.5 |
+| Frontend vitest | 584 verdi | ≥ 650 entro v2.5 |
+| E2E Playwright | 10/10 step PASS in 7.2s | mantieni 100% |
+| Errore numerico statica | δ < 6% | ≤ 5% |
+| Errore numerico modale | f₁ < 0.04% | mantieni |
+| Bundle main gzip | ~380 kB | ≤ 350 kB entro v2.5 |
+| Lighthouse Performance | (da misurare) | ≥ 80 |
+| Backend coverage | 92% | ≥ 92% mantieni |
+| Frontend coverage | (da misurare) | ≥ 80% |
+| Backend P95 solver static | (da misurare) | ≤ 2 s per 1k DoF |
+| Test coverage frontend | (da misurare) | ≥ 80% |
+| Onboarding completion rate | (analytics non ancora wired) | ≥ 60% nuovi utenti |
 
 ---
 
