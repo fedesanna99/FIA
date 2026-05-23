@@ -79,6 +79,14 @@ const PercorsiBeamWizard = lazy(() =>
 const ReportExportDialog = lazy(() =>
   import("./components/dialogs/ReportExportDialog").then((m) => ({ default: m.ReportExportDialog })),
 );
+// v2.2.4 feature: PushoverWizard + NonlinearWizard veri 3-step (sostituiscono
+// le scorciatoie open-panel di v2.2.0 B8).
+const PushoverWizard = lazy(() =>
+  import("./components/dialogs/wizards/PushoverWizard").then((m) => ({ default: m.PushoverWizard })),
+);
+const NonlinearWizard = lazy(() =>
+  import("./components/dialogs/wizards/NonlinearWizard").then((m) => ({ default: m.NonlinearWizard })),
+);
 import { MobileTabbar } from "./components/shell/MobileTabbar";
 import { MobilePanel } from "./components/shell/MobilePanel";
 import { MobileMoreMenu } from "./components/shell/MobileMoreMenu";
@@ -160,6 +168,9 @@ export default function App() {
   const [percorsiPlaceholderOpen, setPercorsiPlaceholderOpen] = useState(false);
   // v1.9.0 T4: modal export PDF (apre da bottone ResultsOverviewCard).
   const [reportExportOpen, setReportExportOpen] = useState(false);
+  // v2.2.4 feature: pushover/nonlinear wizard veri 3-step.
+  const [pushoverWizardOpen, setPushoverWizardOpen] = useState(false);
+  const [nonlinearWizardOpen, setNonlinearWizardOpen] = useState(false);
   useLoadModel(activeId);
   // v1.5 Task 34 follow-up: leggo wizardStore.active per renderizzare il
   // SismicaTHWizard singleton al root.
@@ -325,17 +336,15 @@ export default function App() {
           // Wizard mounted at root reads wizardStore.active — niente close.
           oneShot = false;
           break;
-        // v2.2.0 audit-fix B8: invece di toast "in arrivo" portiamo l'utente
-        // direttamente sul panel esistente che gestisce ogni solver.
+        // v2.2.4 feature: veri wizard 3-step (sostituiscono gli shortcut
+        // open-panel di v2.2.0 B8).
         case "pushover":
-          // PushoverPanel vive dentro SolvePanel · tab "dinamica"
-          useWorkspaceStore.getState().openLeftPanel("solve", "dinamica");
-          useLeftRailStore.getState().open("analysis");
+          setPushoverWizardOpen(true);
+          oneShot = false;
           break;
         case "nonlinear":
-          // NonlinearPanel + ArcLengthPanel vivono in SolvePanel · tab "nonlin"
-          useWorkspaceStore.getState().openLeftPanel("solve", "nonlin");
-          useLeftRailStore.getState().open("analysis");
+          setNonlinearWizardOpen(true);
+          oneShot = false;
           break;
         case "report":
           // ReportExportDialog è già montato in App: dispatcher event globale.
@@ -668,6 +677,21 @@ export default function App() {
         <ReportExportDialog
           open={reportExportOpen}
           onClose={() => setReportExportOpen(false)}
+        />
+        {/* v2.2.4 feature: Pushover + Nonlinear wizard 3-step. */}
+        <PushoverWizard
+          open={pushoverWizardOpen}
+          onClose={() => {
+            setPushoverWizardOpen(false);
+            useWizardStore.getState().close();
+          }}
+        />
+        <NonlinearWizard
+          open={nonlinearWizardOpen}
+          onClose={() => {
+            setNonlinearWizardOpen(false);
+            useWizardStore.getState().close();
+          }}
         />
         {/* v2.0 Precision PR15 T8: full-screen demo del 6-step Percorso. */}
         <PercorsoFullScreenDemo />

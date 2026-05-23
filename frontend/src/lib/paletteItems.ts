@@ -270,10 +270,10 @@ const WIZARDS_EXTRA: PaletteItem[] = [
   { id: "wiz-new-model",  label: "Apri wizard nuovo modello",         aliases: ["nuovo", "new", "model", "wizard"], section: "commands", group: "Wizard", icon: Plus,     actionKind: "open-wizard", payload: { wizard: "new-model" } },
   { id: "wiz-mesh",       label: "Apri wizard mesh",                  aliases: ["mesh", "wizard", "discretizzazione"], section: "commands", group: "Wizard", icon: Layers,   actionKind: "open-wizard", payload: { wizard: "mesh" }, needsModel: true },
   { id: "wiz-sismica-th", label: "Apri wizard sismica time-history",  aliases: ["sismica", "th", "wizard", "newmark"], section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "sismica-th" }, needsModel: true },
-  // v2.2.0 audit-fix B8: i tre wizard "soon" diventano scorciatoie verso
-  // panel/dialog esistenti che già funzionano (no nuovo wizard 3-step da costruire).
-  { id: "wiz-pushover",   label: "Apri pushover (Solve · Dinamica)",   aliases: ["pushover", "wizard"],                 section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "pushover" },  needsModel: true },
-  { id: "wiz-nonlinear",  label: "Apri nonlinear (Solve · Non-lin)",   aliases: ["nonlinear", "arc length", "riks"],    section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "nonlinear" }, needsModel: true },
+  // v2.2.4 feature: pushover/nonlinear sono ora veri wizard 3-step (era
+  // shortcut open-panel in v2.2.0 B8). Report resta shortcut a ReportExportDialog.
+  { id: "wiz-pushover",   label: "Apri wizard pushover (3-step)",      aliases: ["pushover", "wizard", "ntc"],          section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "pushover" },  needsModel: true },
+  { id: "wiz-nonlinear",  label: "Apri wizard non-lineare (3-step)",   aliases: ["nonlinear", "arc length", "riks", "newton"], section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "nonlinear" }, needsModel: true },
   { id: "wiz-report",     label: "Apri report export PDF",             aliases: ["report", "pdf", "wizard"],            section: "commands", group: "Wizard", icon: FileText, actionKind: "open-wizard", payload: { wizard: "report" },    needsModel: true },
 ];
 
