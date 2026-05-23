@@ -1,16 +1,10 @@
 /**
- * TemplateGalleryDialog (v1.6 Sprint 0 · B01) — galleria dei modelli
- * esempio precaricati dal backend (`backend/examples.py`).
+ * TemplateGalleryDialog (Precision v2.0 PR17 T3) — galleria template Precision.
  *
- * Sostituisce il vecchio behavior della Dashboard card "Da template" che
- * apriva (erroneamente) il NewModelDialog vuoto. Ora vengono mostrate
- * le ~9 strutture didattiche con counts nodi/elementi + descrizione +
- * bottone "Apri".
- *
- * Sorgente dati: lo store backend espone i template come modelli con id
- * "ex_*" (vedi seed_examples). Filtriamo l'array `models` passato.
+ * 9 modelli didattici precaricati con thumbnail + meta + descrizione.
+ * Linguaggio Precision: hairline borders, mono labels, sharp radius.
  */
-import { Boxes } from "lucide-react";
+import { Boxes, ArrowRight } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { useModalBackButton } from "../../hooks/useModalBackButton";
 
@@ -49,7 +43,6 @@ interface Props {
 
 
 export function TemplateGalleryDialog({ open, onClose, models, onSelect }: Props) {
-  // v1.6 S0 · B08: back hardware mobile chiude la galleria.
   useModalBackButton(open, onClose);
   if (!open) return null;
 
@@ -57,39 +50,50 @@ export function TemplateGalleryDialog({ open, onClose, models, onSelect }: Props
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-dialog flex items-center justify-center bg-black/40 animate-fade-in"
       onClick={onClose}
-      role="dialog"
-      aria-label="Galleria template"
+      role="presentation"
       data-testid="template-gallery"
     >
       <div
-        className="bg-bg-panel border border-border rounded-lg shadow-dialog w-[calc(100vw-24px)] max-w-[780px] max-h-[calc(100vh-48px)] flex flex-col overflow-hidden"
+        className="bg-bg-elevated border border-border-light shadow-dialog w-[calc(100vw-24px)] max-w-[820px] max-h-[calc(100vh-48px)] flex flex-col overflow-hidden animate-slide-up"
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="template-gallery-title"
       >
+        {/* Header Precision: icon + title font-display + sub mono */}
         <header className="px-5 py-3.5 border-b border-border flex items-center justify-between flex-shrink-0">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-md bg-bg-info text-ink-info flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 bg-bg-info text-accent border border-border-light flex items-center justify-center flex-shrink-0">
               <Boxes className="w-4 h-4" />
             </div>
-            <div>
-              <h2 className="text-sm font-semibold text-ink">Galleria template</h2>
-              <p className="text-[11px] text-ink-muted">
+            <div className="min-w-0">
+              <h2 id="template-gallery-title" className="font-display text-lg font-semibold tracking-tight-1 text-ink">
+                Galleria template
+              </h2>
+              <p className="font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mt-0.5">
                 {templates.length} modelli didattici precaricati
               </p>
             </div>
           </div>
-          {/* v1.7 T5: niente crocetta X. Dismiss via ESC, backdrop, swipe-back. */}
         </header>
 
-        <div className="p-4 overflow-y-auto flex-1">
+        {/* Body grid */}
+        <div className="p-4 overflow-y-auto flex-1 bg-bg-panel">
           {templates.length === 0 ? (
-            <div className="text-center py-12 text-[12px] text-ink-muted">
-              Nessun template caricato. Riavvia il backend per il seed degli
-              esempi (<code className="font-mono">seed_examples()</code>).
+            <div className="text-center py-16">
+              <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-2">
+                Nessun template
+              </div>
+              <p className="text-sm text-ink-2 max-w-[44ch] mx-auto leading-relaxed">
+                Riavvia il backend per il seed degli esempi (
+                <code className="font-mono bg-bg-hover px-1.5 py-0.5 text-ink">seed_examples()</code>
+                ).
+              </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
               {templates.map((t) => (
                 <TemplateCard
                   key={t.id}
@@ -105,14 +109,15 @@ export function TemplateGalleryDialog({ open, onClose, models, onSelect }: Props
           )}
         </div>
 
-        <footer className="border-t border-border px-5 py-3 flex items-center justify-between flex-shrink-0">
-          <span className="text-[11px] text-ink-muted">
+        {/* Footer */}
+        <footer className="border-t border-border px-5 py-3 flex items-center justify-between flex-shrink-0 bg-bg-elevated">
+          <span className="text-[11px] text-ink-3">
             I template sono modelli leggibili e modificabili come qualunque altro.
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="text-[12px] text-ink-muted hover:text-ink px-2 py-1 rounded hover:bg-bg-hover"
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover"
           >
             Annulla
           </button>
@@ -142,26 +147,29 @@ function TemplateCard({
       type="button"
       onClick={onOpen}
       data-testid={`template-card-${model.id}`}
-      className="text-left bg-bg-surface border border-border hover:border-ink-info/40 hover:shadow-pop rounded-lg p-3.5 transition group flex flex-col gap-2"
+      className="group text-left bg-bg-elevated border border-border hover:border-accent/50 p-3.5 transition-colors flex flex-col gap-2 focus-visible:outline-none focus-visible:border-accent"
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-sm text-ink leading-snug">{model.name}</h3>
+        <h3 className="font-display text-[15px] font-semibold tracking-tight-1 text-ink leading-snug">
+          {model.name}
+        </h3>
       </div>
       {description && (
-        <p className="text-[11px] text-ink-muted leading-snug">{description}</p>
+        <p className="text-[12px] text-ink-2 leading-snug">{description}</p>
       )}
-      <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-mono text-ink-dim mt-1">
-        <span className="bg-bg-page border border-border rounded px-1.5 py-0.5">{nNodes} nodi</span>
-        <span className="bg-bg-page border border-border rounded px-1.5 py-0.5">{nElem} elem</span>
+      <div className="flex flex-wrap items-center gap-1 font-mono text-[10px] text-ink-3 mt-1">
+        <span className="bg-bg-panel border border-border px-1.5 py-0.5">{nNodes} N</span>
+        <span className="bg-bg-panel border border-border px-1.5 py-0.5">{nElem} E</span>
         {nLoads > 0 && (
-          <span className="bg-bg-page border border-border rounded px-1.5 py-0.5">{nLoads} loads</span>
+          <span className="bg-bg-panel border border-border px-1.5 py-0.5">{nLoads} L</span>
         )}
         {nConstr > 0 && (
-          <span className="bg-bg-page border border-border rounded px-1.5 py-0.5">{nConstr} vincoli</span>
+          <span className="bg-bg-panel border border-border px-1.5 py-0.5">{nConstr} V</span>
         )}
       </div>
-      <div className="mt-1 text-[11px] text-ink-info group-hover:text-ink-info font-medium">
-        Apri →
+      <div className="mt-1 inline-flex items-center gap-1 text-[12px] text-accent font-medium group-hover:gap-2 transition-all">
+        Apri template
+        <ArrowRight className="w-3 h-3" />
       </div>
     </button>
   );

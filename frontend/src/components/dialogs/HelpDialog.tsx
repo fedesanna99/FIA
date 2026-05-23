@@ -1,3 +1,9 @@
+/**
+ * HelpDialog (Precision v2.0 PR17 T3) — guida rapida Precision-aligned.
+ *
+ * Lista scorciatoie + features per area. Linguaggio Precision: section
+ * eyebrow mono, kbd pill hairline border, accent cyan per bullet.
+ */
 import { Dialog } from "./Dialog";
 
 interface Props {
@@ -11,10 +17,11 @@ const SHORTCUTS: { keys: string; description: string }[] = [
   { keys: "L", description: "Aggiungi carico" },
   { keys: "C", description: "Aggiungi vincolo" },
   { keys: "M", description: "Wizard mesh" },
-  { keys: "Del / Backspace", description: "Elimina selezione" },
+  { keys: "Del", description: "Elimina selezione" },
   { keys: "Esc", description: "Deseleziona tutto" },
-  { keys: "F5 / Ctrl+Enter", description: "Esegui analisi corrente" },
-  { keys: "Shift + Click", description: "Aggiungi alla selezione" },
+  { keys: "F5", description: "Esegui analisi" },
+  { keys: "⌘ K", description: "Command palette" },
+  { keys: "⇧ Click", description: "Aggiungi a selezione" },
 ];
 
 const FEATURES: { area: string; items: string[] }[] = [
@@ -22,9 +29,9 @@ const FEATURES: { area: string; items: string[] }[] = [
     area: "Modellazione",
     items: [
       "Trascina un file .json nel viewport per importare un modello",
-      "Click ⎘ Duplica per partire da un esempio",
-      "Click ✎ Modifica per cambiare nome/unità del modello",
-      "Hover su nodo o elemento → tooltip flottante con info e risultati",
+      "Click Duplica per partire da un esempio precaricato",
+      "Click Modifica per cambiare nome/unità del modello",
+      "Hover nodo/elemento → tooltip flottante con info e risultati",
     ],
   },
   {
@@ -41,29 +48,32 @@ const FEATURES: { area: string; items: string[] }[] = [
     area: "Visualizzazione",
     items: [
       "Deformata · Forme modali animate · Risposta dinamica nel tempo",
-      "Stress colormap (Jet) · Diagrammi N/V/M · Vettori σ₁/σ₂ principali",
+      "Stress colormap (Jet) · Diagrammi N/V/M · Vettori σ₁/σ₂",
       "Timeline HUD per scrubbing della risposta dinamica",
     ],
   },
   {
     area: "Export",
-    items: ["JSON modello+risultati · CSV tabelle · DXF geometria · 📄 Report PDF"],
+    items: ["JSON modello+risultati · CSV tabelle · DXF geometria · Report PDF"],
   },
 ];
 
 export function HelpDialog({ open, onClose }: Props) {
   return (
-    <Dialog open={open} onClose={onClose} title="FEA Pro — guida rapida" width={580}>
-      <div className="space-y-4 text-xs">
+    <Dialog open={open} onClose={onClose} title="FEA Pro — guida rapida" width={620}>
+      <div className="space-y-5">
+        {/* Shortcuts section */}
         <section>
-          <div className="text-[10px] uppercase tracking-wider text-ink-muted mb-2">Scorciatoie tastiera</div>
-          <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+          <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-3">
+            Scorciatoie tastiera
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5 gap-y-1.5">
             {SHORTCUTS.map((s) => (
-              <div key={s.keys} className="flex items-center gap-2">
-                <kbd className="bg-bg border border-border rounded px-1.5 py-0.5 numeric text-[10px] min-w-[90px] text-center">
+              <div key={s.keys} className="flex items-center gap-2.5">
+                <kbd className="font-mono text-[10px] bg-bg-panel border border-border-light text-ink px-1.5 py-0.5 min-w-[64px] text-center font-medium">
                   {s.keys}
                 </kbd>
-                <span className="text-ink-muted">{s.description}</span>
+                <span className="text-sm text-ink-2">{s.description}</span>
               </div>
             ))}
           </div>
@@ -71,11 +81,13 @@ export function HelpDialog({ open, onClose }: Props) {
 
         {FEATURES.map((f) => (
           <section key={f.area}>
-            <div className="text-[10px] uppercase tracking-wider text-ink-muted mb-1">{f.area}</div>
-            <ul className="space-y-0.5 text-ink-muted">
+            <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-2">
+              {f.area}
+            </div>
+            <ul className="space-y-1 text-sm text-ink-2 leading-relaxed">
               {f.items.map((i) => (
-                <li key={i} className="flex gap-2">
-                  <span className="text-accent-primary">·</span>
+                <li key={i} className="flex gap-2.5">
+                  <span className="text-accent flex-shrink-0 mt-0.5">·</span>
                   <span>{i}</span>
                 </li>
               ))}
@@ -83,9 +95,9 @@ export function HelpDialog({ open, onClose }: Props) {
           </section>
         ))}
 
-        <div className="border-t border-border pt-2 text-ink-dim text-[10px]">
-          API docs: <span className="numeric">http://localhost:8000/docs</span> ·{" "}
-          Repo: <span className="numeric">fea-pro</span>
+        <div className="border-t border-border pt-3 font-mono text-[10px] uppercase tracking-wide-1 text-ink-3">
+          API docs: <span className="text-ink-2 normal-case tracking-normal">localhost:8000/docs</span> · Repo:{" "}
+          <span className="text-ink-2 normal-case tracking-normal">fea-pro</span>
         </div>
       </div>
     </Dialog>
