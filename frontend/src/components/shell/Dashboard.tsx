@@ -68,10 +68,11 @@ export function Dashboard({
       {/* Hero */}
       <div className="flex items-end justify-between mb-7 max-w-5xl mx-auto gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-ink">
+          {/* v2.0 Precision PR3a: hero font-display + tight tracking + lg/4xl */}
+          <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight-3 text-ink leading-none">
             Buongiorno{authUser ? `, ${authUser.email.split("@")[0]}` : ""}
           </h1>
-          <p className="text-sm text-ink-muted mt-1">
+          <p className="font-mono text-sm text-ink-3 mt-2 tracking-wide-1">
             {models.length} {models.length === 1 ? "modello" : "modelli"} · {nJobs} job in corso
           </p>
         </div>
