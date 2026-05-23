@@ -20,6 +20,7 @@ import { getQuota } from "../../api/billing";
 import { useAuthStore } from "../../store/authStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
+import { ModelsTable, type ModelTableRow } from "./ModelsTable";
 
 interface Props {
   models: FEAModel[];
@@ -383,53 +384,67 @@ function ModelsSection({
   // davvero i modelli che l'utente ha creato/importato, non i preset.
   const userModels  = models.filter((m) => !m.id.startsWith("ex_"));
   const exampleModels = models.filter((m) => m.id.startsWith("ex_"));
-  const recent = userModels.slice(0, 5);
-  const examples = exampleModels.slice(0, 5);
+
+  // v2.0 Precision PR15 T1: mapping FEAModel -> ModelTableRow per la
+  // ModelsTable Claude Design. Stato derivato euristicamente:
+  //  - "draft" se model senza nodi
+  //  - "ok" altrimenti
+  // ucMax sara' popolato da resultsStore in futuro (oggi tutti undefined).
+  const recentRows: ModelTableRow[] = userModels.slice(0, 8).map((m) => ({
+    id: m.id,
+    name: m.name,
+    kind: m.is_3d ? "3D" : "2D",
+    nodes: m.nodes?.length ?? 0,
+    elements: m.elements?.length ?? 0,
+    status: (m.nodes?.length ?? 0) === 0 ? "draft" : "ok",
+    modifiedAt: m.description ?? "—",
+    ownerName: undefined,
+  }));
 
   return (
-    <div className="bg-bg-panel border border-border rounded-lg p-4 shadow-pop">
-      <div className="text-[11px] uppercase tracking-wider text-ink-dim font-semibold mb-3">
+    <div className="bg-bg-panel border border-border" data-testid="dashboard-models-section">
+      <div className="px-3 py-2 font-mono text-[10px] uppercase tracking-wide-3 text-ink-3 font-semibold border-b border-border">
         Modelli recenti
       </div>
       {modelsUnavailable ? (
-        <div className="text-sm text-ink-dim">
+        <div className="text-sm text-ink-3 px-3 py-4">
           Lista non caricabile finche' il backend non risponde.
         </div>
-      ) : recent.length === 0 ? (
-        <div className="text-sm text-ink-dim">
-          Nessun modello ancora. Clicca "Nuovo modello" per iniziare.
+      ) : recentRows.length === 0 ? (
+        <div className="text-sm text-ink-3 px-3 py-4">
+          Nessun modello ancora. Clicca "Apri Studio Pro" o "Scegli un percorso" per iniziare.
         </div>
       ) : (
-        <div className="space-y-0.5">
-          {recent.map((m) => (
-            <ModelRow key={m.id} model={m} onSelect={onSelect} />
-          ))}
-        </div>
+        <ModelsTable
+          rows={recentRows}
+          onSelect={onSelect}
+          onCreate={() => window.dispatchEvent(new Event("feapro:open-new-model"))}
+          className="border-0"
+        />
       )}
 
-      {/* Esempi didattici — sezione separata visivamente */}
-      {examples.length > 0 && (
-        <>
-          <div className="border-t border-border mt-4 pt-3" />
-          <div className="text-[11px] uppercase tracking-wider text-ink-dim font-semibold mb-2 flex items-center gap-1.5">
-            <span>📚 Esempi didattici</span>
-            <span className="text-ink-muted font-normal">· {exampleModels.length} totali</span>
+      {/* Esempi didattici — sezione separata visivamente sotto la tabella */}
+      {exampleModels.length > 0 && (
+        <div className="border-t border-border px-3 py-3">
+          <div className="font-mono text-[10px] uppercase tracking-wide-3 text-ink-3 font-semibold mb-2 flex items-center gap-1.5">
+            Esempi didattici
+            <span className="text-ink-4 font-normal">· {exampleModels.length} totali</span>
           </div>
           <div className="space-y-0.5">
-            {examples.map((m) => (
+            {exampleModels.slice(0, 5).map((m) => (
               <ModelRow key={m.id} model={m} onSelect={onSelect} />
             ))}
             {exampleModels.length > 5 && (
               <button
                 type="button"
                 onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}
-                className="w-full text-left text-[11px] text-ink-info hover:underline px-2.5 py-1"
+                className="w-full text-left text-[11px] text-accent hover:underline px-2.5 py-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
               >
                 Vedi tutti i {exampleModels.length} template →
               </button>
             )}
           </div>
-        </>
+        </div>
       )}
     </div>
   );

@@ -31,6 +31,7 @@ import { MissionBar } from "./components/shell/MissionBar";
 import { ModelInfoCard } from "./components/shell/ModelInfoCard";
 import { AnalysisSummaryCard } from "./components/shell/AnalysisSummaryCard";
 import { ResultsOverviewCard } from "./components/shell/ResultsOverviewCard";
+import { ResultsInsightAuto } from "./components/shell/ResultsInsightAuto";
 import { LeftRail } from "./components/shell/LeftRail";
 import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
 import { RightRail } from "./components/shell/RightRail";
@@ -540,6 +541,7 @@ export default function App() {
                 <ModelInfoCard />
                 <AnalysisSummaryCard />
                 <ResultsOverviewCard />
+                <ResultsInsightAuto />
               </aside>
             )}
             <RightSlidePanel />

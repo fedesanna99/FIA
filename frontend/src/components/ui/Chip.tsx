@@ -8,12 +8,12 @@
  *
  * Per chip cliccabili usa `<Button size="sm" variant="ghost">`.
  */
-import type { ReactNode } from "react";
+import type { HTMLAttributes, ReactNode } from "react";
 import { cn } from "./cn";
 
 export type ChipTone = "neutral" | "info" | "success" | "warn" | "coral" | "purple" | "danger";
 
-interface Props {
+interface Props extends Omit<HTMLAttributes<HTMLSpanElement>, "children"> {
   children: ReactNode;
   tone?: ChipTone;
   /** Aggiunge un dot indicator a sinistra (per status live). */
@@ -42,9 +42,10 @@ const DOT_CLASSES: Record<ChipTone, string> = {
   danger:  "bg-danger",
 };
 
-export function Chip({ children, tone = "neutral", dot, icon, className }: Props) {
+export function Chip({ children, tone = "neutral", dot, icon, className, ...rest }: Props) {
   return (
     <span
+      {...rest}
       className={cn(
         "inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-medium border whitespace-nowrap",
         TONE_CLASSES[tone],

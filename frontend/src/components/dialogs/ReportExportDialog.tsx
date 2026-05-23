@@ -19,6 +19,7 @@ import { useResultsStore } from "../../store/resultsStore";
 import { generateReport } from "../../utils/reportPdf";
 import { notify } from "../../store/notificationsStore";
 import { toast } from "../../store/toastStore";
+import { TrustLayerBadge } from "../shell/TrustLayerBadge";
 
 interface Props {
   open: boolean;
@@ -104,8 +105,12 @@ export function ReportExportDialog({ open, onClose }: Props) {
   return (
     <Dialog open={open} onClose={onClose} title="Genera report PDF" width={520}>
       <div className="space-y-3" data-testid="report-export-dialog">
-        <div className="flex items-start gap-2.5 bg-bg-info border border-ink-info/30 rounded-md p-2.5">
-          <FileText className="w-4 h-4 text-ink-info flex-shrink-0 mt-0.5" />
+        {/* v2.0 Precision PR15 T2: TrustLayerBadge banner sopra le sezioni —
+            il report è SEMPRE DRAFT finché il professionista non firma. */}
+        <TrustLayerBadge variant="banner" />
+
+        <div className="flex items-start gap-2.5 bg-bg-info border border-ink-info/30 p-2.5">
+          <FileText className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
           <div className="text-[11px] text-ink leading-snug">
             Il report include solo le sezioni selezionate. La generazione è
             client-side (jsPDF) — nessun upload al server.
