@@ -76,7 +76,7 @@ export function ModelInfoCard() {
         <br />
         {model.constraints.length} vincoli · {model.loads.length} carichi
       </div>
-      <div className="text-[10px] text-ink-3 font-mono tracking-wide-1">
+      <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold pt-1 border-t border-border">
         {model.is_3d ? "3D" : "2D"} · {model.units}
       </div>
     </div>

@@ -23,7 +23,7 @@ export function AnalysisSummaryCard() {
   if (!staticRes && isRunning && model) {
     return (
       <div className="border-b border-border p-3 space-y-1.5 bg-bg-panel" data-testid="analysis-summary-card-skeleton">
-        <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
+        <div className="text-[10px] uppercase tracking-wider text-ink-3 font-mono font-semibold">
           Analysis summary
         </div>
         <div className="space-y-1.5">
@@ -61,10 +61,11 @@ export function AnalysisSummaryCard() {
       <button
         type="button"
         onClick={() => useRightRailStore.getState().open("inspect")}
-        className="w-full text-[11px] text-ink-info hover:underline text-left pt-1"
+        className="w-full inline-flex items-center justify-between gap-1 text-[11px] text-accent hover:underline font-medium pt-2 mt-1 border-t border-border"
         data-testid="analysis-summary-open-inspect"
       >
-        Apri Inspect →
+        <span>Apri Inspect</span>
+        <span aria-hidden>→</span>
       </button>
     </div>
   );

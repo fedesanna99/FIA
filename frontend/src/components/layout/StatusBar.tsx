@@ -1,21 +1,8 @@
 /**
- * StatusBar (alpha.31 — Progressive Disclosure Task 27).
+ * StatusBar (Precision v2.0 PR18 batch C) — barra inferiore minimal.
  *
- * Layout finale snellito: 4 voci essenziali sempre visibili (mockup v1.3):
- *   [● Pronto/Nessun modello]  [N · E · DoF]  ──spacer──
- *   [job live se isRunning]  [● Online]  [? · vX.Y]
- *
- * Voci RIMOSSE rispetto ad alpha.19:
- *   - Max u, Max σ, Equilibrio, Solver time, f₁ → vivono nei panel
- *     Results / Inspect, non servono in statusbar
- *   - CreditsBadge → ridondante con la QuotaCard in Dashboard
- *
- * Voci CONSERVATE:
- *   - status (Pronto / Nessun modello / Esec.)
- *   - entita' aggregate N · E · DoF (font-mono inline)
- *   - job live inline (solo se isRunning)
- *   - WSStatus (online/offline)
- *   - Help + APP_VERSION
+ * Layout: [dot status]  [N · E · DoF]  ── [job live]  [WS]  [Help · vX]
+ * Tutto font-mono uppercase tracking-wide-1 per coerenza con eyebrow Precision.
  */
 import { useEffect, useMemo, useState } from "react";
 import { Loader2, HelpCircle } from "lucide-react";
@@ -38,7 +25,6 @@ export function StatusBar() {
   const { isRunning, progress, progressMessage, analysisType } = useAnalysisStore();
   const setDialog = useUIStore((s) => s.setOpenDialog);
 
-  // ETA per il job live (linear extrapolation come alpha.30)
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [nowTick, setNowTick] = useState(Date.now());
   useEffect(() => {
@@ -62,52 +48,52 @@ export function StatusBar() {
   const nDofs = nNodes * 6;
 
   const statusText = isRunning ? "Esec." : model ? "Pronto" : "Nessun modello";
-  const statusColor = isRunning ? "bg-warn" : model ? "bg-success" : "bg-ink-dim";
+  const statusColor = isRunning ? "bg-warn" : model ? "bg-success" : "bg-ink-3";
 
   return (
-    <div className="h-7 flex items-center px-3 border-t border-border bg-bg-panel text-[11px] text-ink-muted gap-3 overflow-hidden flex-shrink-0">
+    <div className="h-7 flex items-center px-3 border-t border-border bg-bg-panel font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 gap-3 overflow-hidden flex-shrink-0">
       {/* 1. Stato modello/runtime */}
-      <div className="flex items-center gap-1.5 flex-shrink-0" data-testid="statusbar-status">
+      <div className="inline-flex items-center gap-1.5 flex-shrink-0 font-semibold" data-testid="statusbar-status">
         <span className={`w-1.5 h-1.5 rounded-full ${statusColor}`} />
         {statusText}
       </div>
 
       {/* 2. Entita' modello (aggregate, solo se modello attivo) */}
       {model && (
-        <span className="font-mono flex-shrink-0 hidden sm:inline" data-testid="statusbar-counts">
-          N: <span className="text-ink">{nNodes}</span>
+        <span className="flex-shrink-0 hidden sm:inline" data-testid="statusbar-counts">
+          N: <span className="text-ink-2 tabular-nums">{nNodes}</span>
           {" · "}
-          E: <span className="text-ink">{nElems}</span>
+          E: <span className="text-ink-2 tabular-nums">{nElems}</span>
           {" · "}
-          DoF: <span className="text-ink">{nDofs}</span>
+          DoF: <span className="text-ink-2 tabular-nums">{nDofs}</span>
           {" · "}
-          <span className="text-ink">{model.is_3d ? "3D" : "2D"}</span>
+          <span className="text-ink-2">{model.is_3d ? "3D" : "2D"}</span>
           {" · "}
-          <span className="text-ink">{model.units}</span>
+          <span className="text-ink-2">{model.units}</span>
         </span>
       )}
 
       <div className="flex-1 min-w-0" />
 
-      {/* Job live inline pillola (preservato alpha.30) */}
+      {/* Job live inline pillola Precision */}
       {isRunning && (
         <div
-          className="flex items-center gap-2 bg-bg-info border border-accent/20 text-ink-info px-2 py-0.5 rounded-md text-[11px] flex-shrink-0"
+          className="inline-flex items-center gap-2 bg-bg-info border border-accent/30 text-accent px-2 py-0.5 flex-shrink-0 normal-case tracking-normal"
           data-testid="statusbar-progress"
           title={progressMessage}
         >
           <Loader2 className="w-3 h-3 animate-spin flex-shrink-0" />
-          <span className="font-medium capitalize hidden sm:inline">{analysisType}</span>
-          <div className="w-16 sm:w-20 h-1 bg-accent/15 rounded-sm overflow-hidden flex-shrink-0">
+          <span className="font-medium capitalize hidden sm:inline text-[11px]">{analysisType}</span>
+          <div className="w-16 sm:w-20 h-1 bg-accent/15 overflow-hidden flex-shrink-0">
             <div
               className="h-full bg-accent transition-all"
               style={{ width: `${Math.round(progress * 100)}%` }}
               data-testid="statusbar-progress-bar"
             />
           </div>
-          <span className="font-mono flex-shrink-0">
+          <span className="font-mono flex-shrink-0 text-[10px] uppercase tracking-wide-1 tabular-nums">
             {Math.round(progress * 100)}%
-            <span className="hidden md:inline"> · {etaText}</span>
+            <span className="hidden md:inline normal-case tracking-normal"> · {etaText}</span>
           </span>
         </div>
       )}
@@ -118,7 +104,7 @@ export function StatusBar() {
       {/* 4. Help + version */}
       <button
         type="button"
-        className="flex items-center gap-1 text-ink-dim hover:text-ink transition-colors flex-shrink-0"
+        className="inline-flex items-center gap-1 text-ink-3 hover:text-ink transition-colors flex-shrink-0 font-semibold"
         onClick={() => setDialog("help")}
         title="Mostra cheat-sheet shortcut"
         data-testid="statusbar-help"

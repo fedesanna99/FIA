@@ -74,22 +74,24 @@ export function MissionBar() {
 
   const toneClass =
     hint.status === "solved"
-      ? "bg-bg-success text-ink-success border-success/30"
-      : "bg-bg-warn text-ink-warn border-warn/30";
+      ? "bg-bg-success text-success border-success/40"
+      : "bg-bg-warn text-warn border-warn/40";
 
   return (
     <div
-      className="h-8 flex-shrink-0 border-b border-border bg-bg-panel/80 backdrop-blur-sm px-3 flex items-center gap-2 text-[11px] overflow-hidden"
+      className="h-9 flex-shrink-0 border-b border-border bg-bg-panel px-3 flex items-center gap-2.5 text-[12px] overflow-hidden"
       data-testid="mission-bar"
     >
       <span
-        className={`px-1.5 py-0.5 font-mono uppercase tracking-wide-3 text-[9px] font-semibold border ${toneClass} flex-shrink-0`}
+        className={`px-1.5 py-0.5 font-mono uppercase tracking-wide-2 text-[10px] font-semibold border ${toneClass} flex-shrink-0`}
         data-testid="mission-bar-status"
       >
         {hint.label}
       </span>
-      <span className="font-mono uppercase tracking-wide-3 text-[9px] text-ink-3 flex-shrink-0">Prossimo passo</span>
-      <span className="text-ink font-medium truncate" data-testid="mission-bar-hint">
+      <span className="font-mono uppercase tracking-wide-2 text-[10px] text-ink-3 flex-shrink-0 font-semibold">
+        Prossimo passo
+      </span>
+      <span className="text-ink-2 truncate" data-testid="mission-bar-hint">
         {hint.text}
       </span>
     </div>

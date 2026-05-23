@@ -21,7 +21,7 @@ export function ResultsOverviewCard() {
   if (!staticRes && isRunning) {
     return (
       <div className="border-b border-border p-3 space-y-1.5 bg-bg-panel" data-testid="results-overview-card-skeleton">
-        <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
+        <div className="text-[10px] uppercase tracking-wider text-ink-3 font-mono font-semibold">
           Results overview
         </div>
         <div className="grid grid-cols-2 gap-x-2 gap-y-1.5">
@@ -126,7 +126,7 @@ export function ResultsOverviewCard() {
               className="flex items-center gap-2 text-[10px]"
               data-testid={`gps-check-${c.id}`}
             >
-              <span className="text-ink-muted flex-shrink-0 w-[60px]">{c.label}</span>
+              <span className="text-ink-3 flex-shrink-0 w-[60px]">{c.label}</span>
               <span className="font-mono text-ink flex-1">{c.ratio.toFixed(2)}</span>
               <span className={`font-mono font-semibold px-1.5 py-px rounded border leading-none ${toneClasses[tone]}`}>
                 {toneLabel[tone]}
@@ -134,17 +134,18 @@ export function ResultsOverviewCard() {
             </div>
           );
         })}
-        <div className="text-[9px] text-ink-muted italic pt-0.5">
+        <div className="text-[9px] text-ink-3 italic pt-0.5">
           Hint visivo · non sostituisce verifica formale
         </div>
       </div>
       <button
         type="button"
         onClick={() => window.dispatchEvent(new CustomEvent("feapro:open-export-pdf"))}
-        className="w-full text-[11px] text-ink-info hover:underline text-left pt-1"
+        className="w-full inline-flex items-center justify-between gap-1 text-[11px] text-accent hover:underline font-medium pt-2 mt-1 border-t border-border"
         data-testid="results-overview-export"
       >
-        Genera report PDF →
+        <span>Genera report PDF</span>
+        <span aria-hidden>→</span>
       </button>
     </div>
   );
