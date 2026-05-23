@@ -38,15 +38,15 @@ export function EmptyModelOverlay() {
 
   return (
     <div
-      className="absolute inset-0 z-[5] flex items-center justify-center pointer-events-none"
+      className="absolute inset-0 z-panel flex items-center justify-center pointer-events-none"
       data-testid="empty-model-overlay"
     >
-      <div className="pointer-events-auto bg-bg-panel/95 backdrop-blur-sm border border-border rounded-lg shadow-elev px-6 py-5 max-w-md mx-4 text-center">
-        <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-bg-info text-ink-info mb-3">
+      <div className="pointer-events-auto bg-bg-panel/95 backdrop-blur-sm border border-border shadow-elev px-6 py-5 max-w-md mx-4 text-center">
+        <div className="inline-flex items-center justify-center w-10 h-10 bg-accent-subtle text-accent mb-3">
           <Box className="w-5 h-5" strokeWidth={1.8} />
         </div>
-        <h3 className="text-base font-semibold text-ink mb-1">Modello vuoto</h3>
-        <p className="text-[12px] text-ink-muted leading-relaxed mb-4">
+        <h3 className="font-display text-lg font-semibold text-ink mb-1 tracking-tight-1">Modello vuoto</h3>
+        <p className="text-[12px] text-ink-2 leading-relaxed mb-4">
           Aggiungi nodi ed elementi da <strong className="text-ink">Make → Geometria</strong>.
           <br />
           Oppure carica un template precaricato o un esempio didattico.
@@ -56,7 +56,7 @@ export function EmptyModelOverlay() {
             type="button"
             onClick={openMake}
             data-testid="empty-model-open-make"
-            className="inline-flex items-center gap-1.5 bg-accent text-white text-xs font-medium px-3 py-1.5 rounded-md hover:bg-accent-hover transition-colors"
+            className="inline-flex items-center gap-1.5 bg-accent text-white text-xs font-medium px-3 py-1.5 hover:bg-accent-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
           >
             <Hammer className="w-3.5 h-3.5" strokeWidth={1.8} />
             Apri Make
@@ -65,7 +65,7 @@ export function EmptyModelOverlay() {
             type="button"
             onClick={openTemplateGallery}
             data-testid="empty-model-open-template"
-            className="inline-flex items-center gap-1.5 bg-bg-elevated text-ink border border-border text-xs font-medium px-3 py-1.5 rounded-md hover:bg-bg-hover transition-colors"
+            className="inline-flex items-center gap-1.5 bg-bg-elevated text-ink border border-border text-xs font-medium px-3 py-1.5 hover:bg-bg-hover transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
           >
             <Layers className="w-3.5 h-3.5" strokeWidth={1.8} />
             Carica template
