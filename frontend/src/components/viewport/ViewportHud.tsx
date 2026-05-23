@@ -46,13 +46,13 @@ export function ViewportHud() {
   const material = model.materials?.[0]?.name ?? "—";
 
   return (
-    <div className="absolute top-3.5 left-3.5 right-3.5 z-10 flex flex-wrap gap-2 pointer-events-none">
+    <div className="absolute top-3.5 left-3.5 right-3.5 z-toolbar flex flex-wrap gap-2 pointer-events-none">
       <Chip icon={<Box className="w-3 h-3" />}>{model.name}</Chip>
       <Chip icon={<Layers className="w-3 h-3" />}>
         {nNodes} nodi · {nElems} elem · {material}
       </Chip>
       <button
-        className="pointer-events-auto max-w-[220px] bg-bg-panel border border-border rounded-md px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-muted hover:text-ink hover:bg-bg-hover shadow-pop font-mono transition"
+        className="pointer-events-auto max-w-[220px] bg-bg-panel border border-border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-2 hover:text-ink hover:bg-bg-hover shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
         onClick={() => window.dispatchEvent(new CustomEvent("feapro:open-view-panel"))}
         title="Apri cockpit View"
         data-testid="viewport-hud-open-view"
@@ -63,10 +63,10 @@ export function ViewportHud() {
         </span>
       </button>
       <button
-        className={`pointer-events-auto bg-bg-panel border rounded-md px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] shadow-pop font-mono transition ${
+        className={`pointer-events-auto bg-bg-panel border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
           useViewportEngine
             ? "border-accent text-accent"
-            : "border-border text-ink-muted hover:text-ink hover:bg-bg-hover"
+            : "border-border text-ink-2 hover:text-ink hover:bg-bg-hover"
         }`}
         onClick={toggleViewportEngine}
         title={useViewportEngine
@@ -84,7 +84,7 @@ export function ViewportHud() {
 
 function Chip({ icon, children }: { icon?: ReactNode; children: ReactNode }) {
   return (
-    <div className="bg-bg-panel border border-border rounded-md px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-muted shadow-pop font-mono">
+    <div className="bg-bg-panel border border-border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-2 shadow-pop font-mono">
       {icon}
       {children}
     </div>
