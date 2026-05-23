@@ -23,22 +23,28 @@ export function Dialog({ open, onClose, title, children, footer, width = 420 }: 
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-dialog flex items-center justify-center bg-black/40 animate-fade-in"
       onClick={onClose}
+      role="presentation"
     >
       <div
-        className="panel rounded shadow-xl w-[calc(100vw-24px)] max-h-[calc(100vh-48px)] flex flex-col"
+        className="bg-bg-elevated border border-border-light shadow-dialog w-[calc(100vw-24px)] max-h-[calc(100vh-48px)] flex flex-col animate-slide-up"
         style={{ maxWidth: width }}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="dialog-title"
       >
         {/* v1.7 T5: no crocetta X. Dismiss via ESC, click-outside, swipe-back.
-            Vedi mockup_reference.html sezione 02 "Dismiss". */}
-        <div className="px-4 py-2.5 border-b border-border">
-          <h2 className="text-sm font-semibold">{title}</h2>
+            v2.0 PR16 T12: title font-display Precision (era text-sm). */}
+        <div className="px-5 py-3 border-b border-border">
+          <h2 id="dialog-title" className="font-display text-lg font-semibold tracking-tight-1 text-ink">
+            {title}
+          </h2>
         </div>
-        <div className="p-4 max-h-[70vh] overflow-auto">{children}</div>
+        <div className="px-5 py-4 max-h-[70vh] overflow-auto">{children}</div>
         {footer && (
-          <div className="px-4 py-2.5 border-t border-border flex items-center justify-end gap-2">
+          <div className="px-5 py-3 border-t border-border flex items-center justify-end gap-2 bg-bg-panel">
             {footer}
           </div>
         )}

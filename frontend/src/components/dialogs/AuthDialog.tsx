@@ -1,9 +1,12 @@
 /**
- * AuthDialog (alpha.14) — combo Login / Register in un solo dialog.
+ * AuthDialog (Precision v2.0 PR16 T12) — Login + Register stile Precision.
+ *
+ * Riscritto pixel-faithful con linguaggio Precision (sharp radius, hairline
+ * borders, mono labels uppercase, niente emoji nel title).
  *
  * Stato locale: tab "login" | "register", email, password, loading, error.
  * Su success: authStore.setAuth(token, user) + onClose + toast verde.
- * Su fail: mostra messaggio inline (no toast HTTP — già gestito globale).
+ * Su fail: messaggio inline (no toast HTTP — già gestito globale).
  */
 import { useState, type FormEvent } from "react";
 
@@ -78,71 +81,94 @@ export function AuthDialog({ open, onClose, initialMode = "login" }: Props) {
     <Dialog
       open={open}
       onClose={handleClose}
-      title={mode === "login" ? "🔐 Accedi" : "✨ Crea account"}
-      width={400}
+      title={mode === "login" ? "Accedi" : "Crea account"}
+      width={420}
       footer={
         <>
           <button
             type="button"
-            className="btn-secondary text-xs"
             onClick={handleClose}
-          >Annulla</button>
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
+          >
+            Annulla
+          </button>
           <button
             type="submit"
             form="auth-form"
-            className="btn-primary text-xs"
             disabled={loading}
             data-testid="auth-submit"
+            className="inline-flex items-center gap-1.5 bg-accent text-white border border-accent px-4 py-1.5 text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-wait focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-1"
           >
+            {loading && (
+              <span className="inline-block w-3 h-3 border-[1.5px] border-white/40 border-t-white animate-spin" />
+            )}
             {loading ? "..." : mode === "login" ? "Accedi" : "Crea account"}
           </button>
         </>
       }
     >
-      <form id="auth-form" onSubmit={handleSubmit} className="space-y-3">
-        {/* Tab switcher */}
-        <div className="flex gap-1 p-0.5 bg-bg-2 rounded text-xs" role="tablist">
+      <form id="auth-form" onSubmit={handleSubmit} className="space-y-4">
+        {/* Tab switcher — Precision: uppercase mono, hairline border, no rounded */}
+        <div
+          className="flex gap-0 border border-border bg-bg-panel p-0.5"
+          role="tablist"
+          data-testid="auth-tabs"
+        >
           <button
             type="button"
-            className={`flex-1 px-2 py-1 rounded transition-colors ${
-              mode === "login" ? "bg-accent text-white" : "text-ink-dim hover:text-ink"
-            }`}
+            className={[
+              "flex-1 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wide-2 font-semibold transition-colors",
+              mode === "login"
+                ? "bg-accent text-white"
+                : "text-ink-3 hover:text-ink hover:bg-bg-hover",
+            ].join(" ")}
             onClick={() => { setMode("login"); setError(null); }}
             role="tab"
             aria-selected={mode === "login"}
             data-testid="auth-tab-login"
-          >Login</button>
+          >
+            Login
+          </button>
           <button
             type="button"
-            className={`flex-1 px-2 py-1 rounded transition-colors ${
-              mode === "register" ? "bg-accent text-white" : "text-ink-dim hover:text-ink"
-            }`}
+            className={[
+              "flex-1 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wide-2 font-semibold transition-colors",
+              mode === "register"
+                ? "bg-accent text-white"
+                : "text-ink-3 hover:text-ink hover:bg-bg-hover",
+            ].join(" ")}
             onClick={() => { setMode("register"); setError(null); }}
             role="tab"
             aria-selected={mode === "register"}
             data-testid="auth-tab-register"
-          >Registrati</button>
+          >
+            Registrati
+          </button>
         </div>
 
+        {/* Email field — Precision: field-label mono uppercase, hairline input */}
         <label className="block">
-          <span className="text-xs text-ink-dim block mb-1">Email</span>
+          <span className="block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5">
+            Email
+          </span>
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            autoComplete={mode === "login" ? "email" : "email"}
+            autoComplete="email"
             required
-            className="input w-full text-xs"
             placeholder="utente@esempio.com"
             data-testid="auth-email"
+            className="w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink placeholder:text-ink-3 focus:border-accent focus:outline-none transition-colors"
           />
         </label>
 
+        {/* Password field */}
         <label className="block">
-          <span className="text-xs text-ink-dim block mb-1">
+          <span className="block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5">
             Password
             {mode === "register" && (
-              <span className="text-ink-muted"> (min 8 caratteri)</span>
+              <span className="text-ink-4 normal-case tracking-normal"> · min 8 caratteri</span>
             )}
           </span>
           <input
@@ -153,33 +179,47 @@ export function AuthDialog({ open, onClose, initialMode = "login" }: Props) {
             required
             minLength={mode === "register" ? 8 : 1}
             maxLength={72}
-            className="input w-full text-xs"
             data-testid="auth-password"
+            className="w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink placeholder:text-ink-3 focus:border-accent focus:outline-none transition-colors"
           />
         </label>
 
+        {/* Error banner — Precision: hairline border tonale, no rounded */}
         {error && (
           <div
-            className="text-xs text-error bg-error/10 border border-error/30 rounded p-2"
+            className="flex items-start gap-2 px-3 py-2 bg-bg-danger border border-danger/40 text-sm text-danger"
             data-testid="auth-error"
+            role="alert"
           >
-            {error}
+            <span className="font-mono text-[11px] uppercase tracking-wide-1 text-danger font-semibold flex-shrink-0">!</span>
+            <span>{error}</span>
           </div>
         )}
 
-        <div className="text-xs text-ink-muted leading-relaxed">
+        {/* Footnote — switch mode */}
+        <div className="text-xs text-ink-2 leading-relaxed pt-1 border-t border-border">
           {mode === "login" ? (
-            <>Nessun account? <button
-              type="button"
-              className="text-accent hover:underline"
-              onClick={() => { setMode("register"); setError(null); }}
-            >Crea account</button>.</>
+            <>Nessun account?{" "}
+              <button
+                type="button"
+                onClick={() => { setMode("register"); setError(null); }}
+                className="text-accent hover:underline font-medium"
+              >
+                Crea account
+              </button>
+              .
+            </>
           ) : (
-            <>Hai gia' un account? <button
-              type="button"
-              className="text-accent hover:underline"
-              onClick={() => { setMode("login"); setError(null); }}
-            >Accedi</button>.</>
+            <>Hai già un account?{" "}
+              <button
+                type="button"
+                onClick={() => { setMode("login"); setError(null); }}
+                className="text-accent hover:underline font-medium"
+              >
+                Accedi
+              </button>
+              .
+            </>
           )}
         </div>
       </form>
