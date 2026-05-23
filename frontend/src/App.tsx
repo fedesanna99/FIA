@@ -33,6 +33,8 @@ import { AnalysisSummaryCard } from "./components/shell/AnalysisSummaryCard";
 import { ResultsOverviewCard } from "./components/shell/ResultsOverviewCard";
 import { ResultsInsightAuto } from "./components/shell/ResultsInsightAuto";
 import { PercorsoFullScreenDemo } from "./components/shell/PercorsoFullScreenDemo";
+import { ModelliBrowser } from "./components/shell/ModelliBrowser";
+import { ViewportCanvasTabs } from "./components/shell/ViewportCanvasTabs";
 import { LeftRail } from "./components/shell/LeftRail";
 import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
 import { RightRail } from "./components/shell/RightRail";
@@ -480,7 +482,17 @@ export default function App() {
               Quando l'utente seleziona/crea un modello, passa al Viewport3D. */}
           {activeId ? (
             <>
-              <Viewport3D />
+              {/* v2.0 Precision PR16 T3: B1 canvas tabs sopra viewport
+                  (Modello / Carichi & BCs / Mesh / Risultati / Checks) */}
+              <div className="absolute top-0 left-0 right-0 z-10">
+                <ViewportCanvasTabs
+                  nodes={(models ?? []).find((m) => m.id === activeId)?.nodes?.length}
+                  elements={(models ?? []).find((m) => m.id === activeId)?.elements?.length}
+                />
+              </div>
+              <div className="absolute inset-0 pt-[36px]">
+                <Viewport3D />
+              </div>
               <DropZone onImported={(id) => setActiveId(id)} />
               {/* v2.0 Precision PR11: overlay LoadingScreen ricco durante
                   analisi. Phase derivata da progress (vedi phaseFromProgress
@@ -628,6 +640,9 @@ export default function App() {
           (PercorsoStep template) attivabile via custom event
           feapro:open-percorso-fullscreen. */}
       <PercorsoFullScreenDemo />
+      {/* v2.0 Precision PR16 T2: A2 Modelli browser full-screen overlay
+          attivabile via custom event feapro:open-models-list. */}
+      <ModelliBrowser />
     </div>
   );
 }

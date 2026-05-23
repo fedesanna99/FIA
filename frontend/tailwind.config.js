@@ -165,6 +165,13 @@ export default {
         "precision-pulse":         { "0%, 100%": { opacity: "1" }, "50%": { opacity: "0.4" } },
         "precision-shimmer":       { "0%": { transform: "translateX(-100%)" }, "100%": { transform: "translateX(100%)" } },
         "precision-indeterminate": { "0%": { left: "-40%", right: "100%" }, "60%": { left: "100%", right: "-10%" }, "100%": { left: "100%", right: "-10%" } },
+        // PR16 T10 — Precision tick (row-arrival fade) e sweep (SVG stroke)
+        "precision-tick":  { from: { opacity: "0", transform: "translateY(2px)" },
+                             to:   { opacity: "1", transform: "translateY(0)" } },
+        "precision-sweep": { "0%":   { strokeDashoffset: "100", opacity: "0.3" },
+                             "40%":  { strokeDashoffset: "0",   opacity: "1" },
+                             "60%":  { strokeDashoffset: "0",   opacity: "1" },
+                             "100%": { strokeDashoffset: "-100", opacity: "0.3" } },
       },
       animation: {
         "fade-in":     "fade-in 120ms cubic-bezier(0.2, 0, 0, 1)",
@@ -176,6 +183,9 @@ export default {
         "pulse":         "precision-pulse 1.2s ease-in-out infinite",
         "shimmer":       "precision-shimmer 1.4s linear infinite",
         "indeterminate": "precision-indeterminate 1.6s cubic-bezier(.4,0,.2,1) infinite",
+        // PR16 T10
+        "tick":          "precision-tick 0.18s ease-out",
+        "sweep":         "precision-sweep 2s cubic-bezier(.4,0,.2,1) infinite",
       },
     },
   },
