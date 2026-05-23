@@ -3,168 +3,180 @@
 @tailwind utilities;
 
 /*
- * FEA Pro — Design tokens v1.3 (Sprint 4 / Asse G)
+ * FEA Pro — Design tokens · Precision direction · v2.0
  * ─────────────────────────────────────────────────────────────────────────
- * Le CSS variables hanno tre nature complementari:
+ * Rifatto dal handoff `REDESIGN ARCHITETTI.zip` (2026-05-23).
  *
- *   1. `--c-*` triple "R G B" → consumate da Tailwind via opacity modifier
- *      (es. `bg-accent/20` espande in `rgb(var(--c-accent) / 0.2)`).
- *   2. Alias semantici (`--bg`, `--ink`, `--accent`, ...) per CSS custom.
- *   3. Token v1.3 mockup-aligned (`--bg-page`, `--bg-surface`, `--ink-1..4`,
- *      `--ink-info/success/warn/coral/purple`, `--shadow-pop/elev`, `--r-*`)
- *      per il nuovo layout 6-rail (alpha.16+).
+ * Light è ora default (era dark). Dark via [data-theme="dark"] su <html>.
+ * Geometria sharp (radius 0). Hairline-only borders. Cyan singolo come
+ * accento (Studio Pro e Percorsi si distinguono per layout, non colore).
  *
- * Le palette light/dark ricalcano la palette del mockup v1.3:
- *   - Light: warm neutral (`#f7f7f5`) + accent blu info (`#185fa5`)
- *   - Dark:  surface scuro (`#1f1f22`) + accent blu chiaro (`#5ab1ee`)
+ * Format `--c-*` triple "R G B" preservato per compat Tailwind opacity
+ * modifier (`bg-accent/20` espande in `rgb(var(--c-accent) / 0.2)`).
  */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
-/* ── Tokens dark (default) ──────────────────────────────────────────────── */
+/* ── 1 · LIGHT (canonical · Precision v2.0) ─────────────────────────────── */
 :root,
-:root[data-theme="dark"] {
-  color-scheme: dark;
-
-  /* Base surfaces (warm dark, allineato mockup #161618 → #2a2a2e) */
-  --c-bg:          22  22  24;     /* #161618  page */
-  --c-bg-panel:    31  31  34;     /* #1F1F22  surface */
-  --c-bg-elevated: 42  42  46;     /* #2A2A2E  hover/elevated */
-  --c-bg-hover:    42  42  46;     /* #2A2A2E  alias */
-  --c-bg-viewport: 19  19  22;     /* #131316  viewport */
-  --c-bg-active:   26  58  95;     /* #1A3A5F  selected */
-
-  /* Borders */
-  --c-border:        58  58  62;   /* #3A3A3E */
-  --c-border-light:  74  74  80;   /* #4A4A50 */
-  --c-border-strong: 95  98 110;   /* #5F626E */
-
-  /* Ink (4 livelli mockup: ink-1=primary text … ink-4=disabled) */
-  --c-ink:        230 230 232;     /* #E6E6E8  ink-1 */
-  --c-ink-muted:  170 168 162;     /* #AAA8A2  ink-2 */
-  --c-ink-dim:    120 119 113;     /* #787771  ink-3 */
-  --c-ink-faint:   90  88  82;     /* #5A5852  ink-4 */
-
-  /* Accent (info blu, sempre principale) */
-  --c-accent:        90 177 238;   /* #5AB1EE */
-  --c-accent-hover: 124 192 245;   /* #7CC0F5 */
-  --c-accent-subtle: 12  37  64;   /* #0C2540 */
-
-  /* Semantic (mockup: 5 famiglie info/success/warn/coral/purple) */
-  --c-success:    132 196  70;     /* #84C446  success ink */
-  --c-warn:       228 156  56;     /* #E49C38 */
-  --c-coral:      217  93  53;     /* #D95D35  collab/load */
-  --c-purple:    140 132 230;      /* #8C84E6  annotation/AI */
-  --c-danger:    239  68  68;      /* #EF4444 */
-  --c-info:        90 177 238;     /* #5AB1EE  alias accent */
-  /* v1.8 step 0: 2° asse semantico "Percorsi" emerald.
-     Da UI Gap Analysis: serve come token sistematico (non riusare
-     `success`). Usato per CTA Percorsi su Home + chip "Step-by-step"
-     + futura libreria route cards. Coerente con Tailwind emerald-400
-     usato in v1.7 T3 per Button variant="run". */
-  --c-percorsi:   52 211 153;      /* #34D399  emerald-400 (dark) */
-
-  /* Semantic backgrounds (tint chiaro su scuro) */
-  --c-bg-success:  26  48   9;     /* #1A3009 */
-  --c-bg-warn:     58  40   6;     /* #3A2806 */
-  --c-bg-coral:    58  24  16;     /* #3A1810 */
-  --c-bg-purple:   34  32  64;     /* #222040 */
-  --c-bg-info:     12  37  64;     /* #0C2540 */
-  --c-bg-percorsi: 16  53  39;     /* #103527  emerald-900 dim su dark */
-
-  /* Alias diretti (CSS custom non-Tailwind) */
-  --bg-page:      rgb(var(--c-bg));
-  --bg-surface:   rgb(var(--c-bg-panel));
-  --bg-viewport:  rgb(var(--c-bg-viewport));
-  --bg-hover:     rgb(var(--c-bg-hover));
-  --bg-active:    rgb(var(--c-bg-active));
-  --bg:           rgb(var(--c-bg));
-  --bg-panel:     rgb(var(--c-bg-panel));
-  --bg-elevated:  rgb(var(--c-bg-elevated));
-  --border:       rgb(var(--c-border));
-  --border-strong: rgb(var(--c-border-strong));
-  --ink:          rgb(var(--c-ink));
-  --ink-1:        rgb(var(--c-ink));
-  --ink-2:        rgb(var(--c-ink-muted));
-  --ink-3:        rgb(var(--c-ink-dim));
-  --ink-4:        rgb(var(--c-ink-faint));
-  --ink-muted:    rgb(var(--c-ink-muted));
-  --ink-dim:      rgb(var(--c-ink-dim));
-  --accent:       rgb(var(--c-accent));
-  --ink-info:     rgb(var(--c-accent));
-  --ink-success:  rgb(var(--c-success));
-  --ink-warn:     rgb(var(--c-warn));
-  --ink-coral:    rgb(var(--c-coral));
-  --ink-purple:   rgb(var(--c-purple));
-  --ink-percorsi: rgb(var(--c-percorsi));
-  --bg-percorsi:  rgb(var(--c-bg-percorsi));
-  --percorsi:     rgb(var(--c-percorsi));
-  --success:      rgb(var(--c-success));
-  --warn:         rgb(var(--c-warn));
-  --danger:       rgb(var(--c-danger));
-
-  /* Shadow tokens (mockup v1.3) */
-  --shadow-pop:  0 2px 12px -4px rgba(0,0,0,.55), 0 8px 24px -6px rgba(0,0,0,.4);
-  --shadow-elev: 0 8px 24px -10px rgba(0,0,0,.65), 0 2px 6px -1px rgba(0,0,0,.3);
-  --shadow-dialog: 0 24px 64px -12px rgba(0,0,0,.85);
-
-  /* Border-radius scale (mockup r-sm 4 / md 6 / lg 10 / xl 14) */
-  --r-sm: 4px;
-  --r-md: 6px;
-  --r-lg: 10px;
-  --r-xl: 14px;
-}
-
-/* ── Tokens light ───────────────────────────────────────────────────────── */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  /* Base surfaces (warm neutral mockup #f7f7f5 / #ffffff / #fafaf8) */
-  --c-bg:          247 247 245;    /* #F7F7F5 page */
-  --c-bg-panel:    255 255 255;    /* #FFFFFF surface */
-  --c-bg-elevated: 255 255 255;
-  --c-bg-hover:    241 239 232;    /* #F1EFE8 */
-  --c-bg-viewport: 250 250 248;    /* #FAFAF8 */
-  --c-bg-active:   230 241 251;    /* #E6F1FB */
+  /* Surfaces — 5 elevations */
+  --c-bg:           250 250 250;   /* #FAFAFA · page */
+  --c-bg-panel:     255 255 255;   /* #FFFFFF · sidebar, topbar, panels */
+  --c-bg-elevated:  255 255 255;   /* #FFFFFF · dialogs, dropdowns */
+  --c-bg-hover:     244 245 247;   /* #F4F5F7 · hover state */
+  --c-bg-viewport:  244 245 247;   /* #F4F5F7 · 3D canvas bg */
+  --c-bg-active:    230 241 251;   /* #E6F1FB · selected row */
 
-  /* Borders */
-  --c-border:        228 226 219;   /* rgba(0,0,0,0.08) over warm bg */
-  --c-border-light:  210 207 198;
-  --c-border-strong: 180 178 169;   /* #B4B2A9  ink-4 light */
+  /* Borders — 3 strengths */
+  --c-border:         229 230 232; /* #E5E6E8 */
+  --c-border-light:   212 214 218; /* #D4D6DA */
+  --c-border-strong:  168 172 179; /* #A8ACB3 */
 
-  /* Ink */
-  --c-ink:         26  26  26;     /* #1A1A1A ink-1 */
-  --c-ink-muted:   95  94  90;     /* #5F5E5A ink-2 */
-  --c-ink-dim:    136 135 128;     /* #888780 ink-3 */
-  --c-ink-faint:  180 178 169;     /* #B4B2A9 ink-4 */
+  /* Ink — 4 levels */
+  --c-ink:        21  22  26;       /* #15161A */
+  --c-ink-muted:  74  79  87;       /* #4A4F57 */
+  --c-ink-dim:    123 128 138;      /* #7B808A */
+  --c-ink-faint:  176 181 189;      /* #B0B5BD */
 
-  /* Accent (info blu mockup) */
-  --c-accent:        24  95 165;   /* #185FA5 */
-  --c-accent-hover:  18  72 130;
-  --c-accent-subtle: 230 241 251;  /* #E6F1FB */
+  /* Accent — cyan singolo (Precision: NO doppio asse) */
+  --c-accent:         8 145 178;    /* #0891B2 */
+  --c-accent-hover:  14 116 144;    /* #0E7490 */
+  --c-accent-subtle: 236 254 255;   /* #ECFEFF */
 
-  /* Semantic */
-  --c-success:    59 109  17;      /* #3B6D11 */
-  --c-warn:      133  79  11;      /* #854F0B */
-  --c-coral:     153  60  29;      /* #993C1D */
-  --c-purple:     83  74 183;      /* #534AB7 */
-  --c-danger:    198  40  40;      /* #C62828 */
-  --c-info:       24  95 165;      /* alias accent */
-  /* v1.8 step 0: 2° asse "Percorsi" emerald-600 su light theme. */
-  --c-percorsi:    5 150 105;      /* #059669  emerald-600 (light) */
+  /* Semantic ink — 5 famiglie */
+  --c-success:    101 163  13;      /* #65A30D */
+  --c-warn:       180  83   9;      /* #B45309 */
+  --c-coral:      194  65  12;      /* #C2410C */
+  --c-purple:      83  74 183;      /* #534AB7 */
+  --c-danger:     220  38  38;      /* #DC2626 */
+  --c-info:         8 145 178;      /* alias di accent */
+  /* DEPRECATED v2.0: `--c-percorsi` ora aliasa accent cyan. Verra' rimosso
+     in PR3a quando le CTA Percorsi useranno direttamente bg-accent. */
+  --c-percorsi:     8 145 178;      /* alias di accent */
 
-  /* Semantic backgrounds */
-  --c-bg-success: 234 243 222;     /* #EAF3DE */
-  --c-bg-warn:    250 238 218;     /* #FAEEDA */
-  --c-bg-coral:   250 236 231;     /* #FAECE7 */
-  --c-bg-purple:  238 237 254;     /* #EEEDFE */
-  --c-bg-info:    230 241 251;     /* #E6F1FB */
-  --c-bg-percorsi: 236 253 245;    /* #ECFDF5  emerald-50 */
+  /* Semantic surface tints */
+  --c-bg-success:  234 243 222;     /* #EAF3DE */
+  --c-bg-warn:     250 238 218;     /* #FAEEDA */
+  --c-bg-coral:    250 236 231;     /* #FAECE7 */
+  --c-bg-purple:   238 237 254;     /* #EEEDFE */
+  --c-bg-info:     230 241 251;     /* #E6F1FB */
+  --c-bg-danger:   254 232 232;     /* #FEE8E8 */
+  --c-bg-percorsi: 236 254 255;     /* #ECFEFF · alias accent-subtle */
 
-  /* Shadow tokens (light: piu' soffuse, opacity ridotta) */
-  --shadow-pop:  0 2px 12px -4px rgba(0,0,0,.08), 0 8px 24px -6px rgba(0,0,0,.06);
-  --shadow-elev: 0 8px 24px -10px rgba(0,0,0,.12), 0 2px 6px -1px rgba(0,0,0,.04);
-  --shadow-dialog: 0 24px 64px -12px rgba(0,0,0,.18);
+  /* Shadows — hairline-only philosophy (nessun multi-layer gradient) */
+  --shadow-pop:    0 0 0 1px rgba(0,0,0,.06);
+  --shadow-elev:   0 0 0 1px rgba(0,0,0,.05);
+  --shadow-dialog: 0 0 0 1px rgba(0,0,0,.08);
 }
 
+/* ── 2 · DARK (opt-in via [data-theme="dark"]) ──────────────────────────── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --c-bg:           11  12  14;     /* #0B0C0E */
+  --c-bg-panel:     20  21  26;     /* #14151A */
+  --c-bg-elevated:  28  30  36;     /* #1C1E24 */
+  --c-bg-hover:     28  30  36;     /* #1C1E24 */
+  --c-bg-viewport:   8   9  11;     /* #08090B */
+  --c-bg-active:    26  58  95;     /* #1A3A5F */
+
+  --c-border:        35  37  41;    /* #232529 */
+  --c-border-light:  48  50  57;    /* #303239 */
+  --c-border-strong: 70  72  79;    /* #46484F */
+
+  --c-ink:        236 237 240;      /* #ECEDF0 */
+  --c-ink-muted:  156 161 171;      /* #9CA1AB */
+  --c-ink-dim:    107 114 128;      /* #6B7280 */
+  --c-ink-faint:   75  82  96;      /* #4B5260 */
+
+  --c-accent:        93 215 242;    /* #5DD7F2 */
+  --c-accent-hover: 136 226 245;    /* #88E2F5 */
+  --c-accent-subtle: 14  42  51;    /* #0E2A33 */
+
+  --c-success:    132 204  22;      /* #84CC16 */
+  --c-warn:       245 158  11;      /* #F59E0B */
+  --c-coral:      251 146  60;      /* #FB923C */
+  --c-purple:     167 139 250;      /* #A78BFA */
+  --c-danger:     248 113 113;      /* #F87171 */
+  --c-info:        93 215 242;
+  --c-percorsi:    93 215 242;      /* alias accent (dark) */
+
+  --c-bg-success:  26  48   9;      /* #1A3009 */
+  --c-bg-warn:     58  40   6;      /* #3A2806 */
+  --c-bg-coral:    58  24  16;      /* #3A1810 */
+  --c-bg-purple:   34  32  64;      /* #222040 */
+  --c-bg-danger:   58  16  16;      /* #3A1010 */
+  --c-bg-info:     12  37  64;      /* #0C2540 */
+  --c-bg-percorsi: 14  42  51;      /* #0E2A33 · alias accent-subtle dark */
+
+  --shadow-pop:    0 0 0 1px rgba(0,0,0,.5);
+  --shadow-elev:   0 0 0 1px rgba(0,0,0,.4);
+  --shadow-dialog: 0 0 0 1px rgba(0,0,0,.6);
+}
+
+/* ── 3 · Aliases (ready-to-use, CSS custom non-Tailwind) ─────────────────── */
+:root {
+  --bg:            rgb(var(--c-bg));
+  --bg-panel:      rgb(var(--c-bg-panel));
+  --bg-elevated:   rgb(var(--c-bg-elevated));
+  --bg-hover:      rgb(var(--c-bg-hover));
+  --bg-viewport:   rgb(var(--c-bg-viewport));
+  --bg-active:     rgb(var(--c-bg-active));
+
+  --border:        rgb(var(--c-border));
+  --border-light:  rgb(var(--c-border-light));
+  --border-strong: rgb(var(--c-border-strong));
+
+  --ink:        rgb(var(--c-ink));
+  --ink-1:      rgb(var(--c-ink));
+  --ink-2:      rgb(var(--c-ink-muted));
+  --ink-3:      rgb(var(--c-ink-dim));
+  --ink-4:      rgb(var(--c-ink-faint));
+  --ink-muted:  rgb(var(--c-ink-muted));
+  --ink-dim:    rgb(var(--c-ink-dim));
+  --ink-faint:  rgb(var(--c-ink-faint));
+
+  --accent:        rgb(var(--c-accent));
+  --accent-hover:  rgb(var(--c-accent-hover));
+  --accent-subtle: rgb(var(--c-accent-subtle));
+  --success:       rgb(var(--c-success));
+  --warn:          rgb(var(--c-warn));
+  --coral:         rgb(var(--c-coral));
+  --purple:        rgb(var(--c-purple));
+  --danger:        rgb(var(--c-danger));
+  --info:          rgb(var(--c-info));
+
+  --bg-success:   rgb(var(--c-bg-success));
+  --bg-warn:      rgb(var(--c-bg-warn));
+  --bg-coral:     rgb(var(--c-bg-coral));
+  --bg-purple:    rgb(var(--c-bg-purple));
+  --bg-danger:    rgb(var(--c-bg-danger));
+
+  /* Radii — TUTTI 0 (Precision: sharp). `--r-full` per cerchi puri. */
+  --r-none: 0;
+  --r-sm:   0;
+  --r-md:   0;
+  --r-lg:   0;
+  --r-xl:   0;
+  --r-full: 9999px;
+
+  /* Motion */
+  --d-fast: 120ms;
+  --d-mid:  200ms;
+  --d-slow: 360ms;
+  --ease-standard:    cubic-bezier(0.2, 0, 0, 1);
+  --ease-decelerate:  cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate:  cubic-bezier(0.4, 0, 1, 1);
+
+  /* Fonts */
+  --font-sans:    "Inter", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter Tight", "Inter", -apple-system, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ── 4 · Body baseline ─────────────────────────────────────────────────── */
 html,
 body,
 #root {
@@ -172,24 +184,18 @@ body,
   min-height: 100%;
   height: 100%;
   margin: 0;
-  background: var(--bg-panel);
+  background: var(--bg);
 }
 
 body {
-  background: var(--bg-panel);
-  color: var(--ink-1);
-  font-family: "Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont,
-               ui-sans-serif, system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
   font-size: 13px;
+  line-height: 19px;
   overflow: hidden;
-  /* v1.8.5 T3: previene rubber-band scrolling iOS che fa "rimbalzare"
-     l'intera app quando si raggiunge top/bottom. Su Safari, senza
-     `overscroll-behavior: contain` lo swipe oltre il bordo trascina
-     anche il fondo della pagina rendendo lo shell instabile durante
-     l'uso dei mobile panel slide-in. */
+  /* v1.8.5 T3: previene rubber-band scrolling iOS (preservato). */
   overscroll-behavior: contain;
-  /* Disable double-tap-to-zoom su iOS Safari per evitare ritardi 300ms
-     su click rapidi (LeftRail, MobileTabbar, hub-card). */
   touch-action: manipulation;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -208,13 +214,13 @@ body {
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
-  background: var(--bg-panel);
+  background: var(--bg);
 }
 
 .app-shell-legacy {
   width: 100vw;
   height: 100vh;
-  background: var(--bg-panel);
+  background: var(--bg);
 }
 
 ::-webkit-scrollbar {
@@ -226,13 +232,12 @@ body {
 }
 ::-webkit-scrollbar-thumb {
   background: rgb(var(--c-border-light));
-  border-radius: 5px;
 }
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-strong);
 }
 
-/* ── prefers-reduced-motion (a11y M8) ───────────────────────────────────── */
+/* ── prefers-reduced-motion (a11y) ─────────────────────────────────────── */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -244,7 +249,7 @@ body {
   }
 }
 
-/* ── Focus visibile globale (a11y M8) ───────────────────────────────────── */
+/* ── Focus visibile globale (a11y) ─────────────────────────────────────── */
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
@@ -258,21 +263,56 @@ textarea:focus-visible {
   outline-offset: 1px;
 }
 
-.numeric {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+/* ── Typography helpers (Precision) ────────────────────────────────────── */
+h1, .h1 { font-family: var(--font-display); font-size: 30px; line-height: 34px; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); margin: 0; }
+h2, .h2 { font-family: var(--font-display); font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em;  color: var(--ink); margin: 0; }
+h3, .h3 { font-family: var(--font-display); font-size: 18px; line-height: 24px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink); margin: 0; }
+h4, .h4 { font-size: 16px; line-height: 22px; font-weight: 600; color: var(--ink); margin: 0; }
+h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); margin: 0; }
+
+.numeric, code, kbd, samp, pre {
+  font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
 }
 
-/* ── Pulse animation (mockup .dot live indicator) ───────────────────────── */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* ── Pulse animation (preservata per dot/status indicators) ────────────── */
 @keyframes feapro-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.45; }
 }
 .feapro-pulse {
-  animation: feapro-pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: feapro-pulse 1.6s var(--ease-standard) infinite;
+}
+
+/* ── Precision Keyframes (additivi vs Tailwind) ────────────────────────── */
+@keyframes precision-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes precision-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+@keyframes precision-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+@keyframes precision-indeterminate {
+  0%   { left: -40%; right: 100%; }
+  60%  { left: 100%; right: -10%; }
+  100% { left: 100%; right: -10%; }
 }
 
 @layer components {
+  /* Legacy helpers preservati ma con radius 0 (Precision sharp). */
   .panel {
     @apply bg-bg-panel border border-border;
   }
@@ -280,19 +320,19 @@ textarea:focus-visible {
     @apply px-3 py-2 border-b border-border text-xs font-semibold uppercase tracking-wider text-ink-muted;
   }
   .btn {
-    @apply px-3 py-1.5 text-xs font-medium rounded border border-border hover:bg-bg-hover hover:border-border-light transition;
+    @apply px-3 py-1.5 text-xs font-medium border border-border hover:bg-bg-hover hover:border-border-light transition;
   }
   .btn-primary {
-    @apply bg-accent-primary/15 border-accent-primary/40 text-accent-primary hover:bg-accent-primary/25;
+    @apply bg-accent text-white border-accent-hover/30 hover:bg-accent-hover;
   }
   .btn-success {
-    @apply bg-accent-success/15 border-accent-success/40 text-accent-success hover:bg-accent-success/25;
+    @apply bg-success text-white border-success/40 hover:opacity-90;
   }
   .btn-danger {
-    @apply bg-accent-danger/15 border-accent-danger/40 text-accent-danger hover:bg-accent-danger/25;
+    @apply bg-danger text-white border-danger/40 hover:opacity-90;
   }
   .input {
-    @apply bg-bg border border-border rounded px-2 py-1 text-xs numeric focus:border-accent-primary outline-none w-full;
+    @apply bg-bg border border-border px-2 py-1 text-xs numeric focus:border-accent outline-none w-full;
   }
   .label {
     @apply text-xs text-ink-muted uppercase tracking-wide;
@@ -301,26 +341,26 @@ textarea:focus-visible {
     @apply flex items-center justify-between px-3 py-1.5 hover:bg-bg-hover cursor-pointer text-xs;
   }
 
-  /* ── Chip / Badge (mockup) ────────────────────────────────────────────── */
+  /* Chip (Precision: hairline border + bg tint per tono) */
   .chip {
-    @apply inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-medium rounded-sm border;
+    @apply inline-flex items-center gap-1 px-1.5 py-0.5 text-[11px] font-medium border;
     background: var(--bg-hover);
     color: var(--ink-2);
     border-color: var(--border);
   }
-  .chip-info    { background: rgb(var(--c-bg-info));    color: var(--ink-info);   border-color: rgb(var(--c-bg-info)); }
-  .chip-success { background: rgb(var(--c-bg-success)); color: var(--ink-success); border-color: rgb(var(--c-bg-success)); }
-  .chip-warn    { background: rgb(var(--c-bg-warn));    color: var(--ink-warn);    border-color: rgb(var(--c-bg-warn)); }
-  .chip-coral   { background: rgb(var(--c-bg-coral));   color: var(--ink-coral);   border-color: rgb(var(--c-bg-coral)); }
-  .chip-purple  { background: rgb(var(--c-bg-purple));  color: var(--ink-purple);  border-color: rgb(var(--c-bg-purple)); }
+  .chip-info    { background: rgb(var(--c-bg-info));    color: var(--accent); border-color: rgb(var(--c-bg-info)); }
+  .chip-success { background: rgb(var(--c-bg-success)); color: var(--success); border-color: rgb(var(--c-bg-success)); }
+  .chip-warn    { background: rgb(var(--c-bg-warn));    color: var(--warn);    border-color: rgb(var(--c-bg-warn)); }
+  .chip-coral   { background: rgb(var(--c-bg-coral));   color: var(--coral);   border-color: rgb(var(--c-bg-coral)); }
+  .chip-purple  { background: rgb(var(--c-bg-purple));  color: var(--purple);  border-color: rgb(var(--c-bg-purple)); }
+  .chip-danger  { background: rgb(var(--c-bg-danger));  color: var(--danger);  border-color: rgb(var(--c-bg-danger)); }
 
-  /* ── Kbd (mockup .palette / topbar shortcut) ─────────────────────────── */
+  /* Kbd (Precision: nessun radius, hairline shadow inset) */
   .kbd {
-    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-family: var(--font-mono);
     font-size: 10px;
     background: var(--bg-hover);
     border: 1px solid var(--border);
-    border-radius: 3px;
     padding: 1px 5px;
     color: var(--ink-2);
     box-shadow: inset 0 -1px 0 var(--border);
@@ -331,28 +371,26 @@ textarea:focus-visible {
 .prose-help {
   font-size: 12px;
   line-height: 1.55;
-  color: rgb(var(--ink, 220 220 220) / 1);
+  color: var(--ink);
 }
 .prose-help h1 { font-size: 16px; font-weight: 700; margin: 0 0 0.6em; color: var(--ink); }
 .prose-help h2 { font-size: 13px; font-weight: 600; margin: 1em 0 0.4em; color: var(--ink); text-transform: uppercase; letter-spacing: 0.04em; }
 .prose-help h3 { font-size: 12px; font-weight: 600; margin: 0.8em 0 0.3em; color: var(--ink); }
-.prose-help p  { margin: 0.4em 0; color: var(--ink-muted, #c8c8c8); }
+.prose-help p  { margin: 0.4em 0; color: var(--ink-muted); }
 .prose-help ul { margin: 0.4em 0; padding-left: 1.2em; list-style: disc; }
 .prose-help ol { margin: 0.4em 0; padding-left: 1.4em; list-style: decimal; }
-.prose-help li { margin: 0.15em 0; color: var(--ink-muted, #c8c8c8); }
+.prose-help li { margin: 0.15em 0; color: var(--ink-muted); }
 .prose-help code {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 11px;
-  background: var(--bg, #18181b);
-  border: 1px solid var(--border, #2a2a30);
-  border-radius: 3px;
+  background: var(--bg);
+  border: 1px solid var(--border);
   padding: 1px 4px;
-  color: var(--ink, #ddd);
+  color: var(--ink);
 }
 .prose-help pre {
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 4px;
   padding: 8px 10px;
   margin: 0.4em 0;
   overflow-x: auto;
@@ -364,23 +402,22 @@ textarea:focus-visible {
   padding: 4px 8px;
   text-align: left;
 }
-.prose-help th { background: rgba(255,255,255,0.04); font-weight: 600; color: var(--ink); }
+.prose-help th { background: var(--bg-hover); font-weight: 600; color: var(--ink); }
 .prose-help blockquote {
-  border-left: 2px solid var(--accent, #3B82F6);
+  border-left: 2px solid var(--accent);
   padding-left: 10px;
   margin: 0.6em 0;
   color: var(--ink-muted);
   font-style: italic;
 }
-.prose-help a { color: var(--accent, #3B82F6); text-decoration: underline; text-decoration-color: rgba(59,130,246,0.4); }
+.prose-help a { color: var(--accent); text-decoration: underline; text-decoration-color: rgba(8,145,178,0.4); }
 .prose-help a:hover { text-decoration-color: var(--accent); }
 .prose-help strong { font-weight: 600; color: var(--ink); }
 .prose-help kbd {
-  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-family: var(--font-mono);
   font-size: 10px;
   background: var(--bg);
   border: 1px solid var(--border);
-  border-radius: 3px;
   padding: 1px 5px;
 }
 
@@ -388,11 +425,9 @@ textarea:focus-visible {
 .safe-area-bottom {
   padding-bottom: max(6px, env(safe-area-inset-bottom));
 }
-
 .safe-area-top {
   padding-top: env(safe-area-inset-top);
 }
-
 .safe-area-x {
   padding-right: env(safe-area-inset-right);
   padding-left: env(safe-area-inset-left);

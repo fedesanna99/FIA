@@ -32,7 +32,8 @@ function apply(resolved: ResolvedTheme) {
   if (typeof document !== "undefined") {
     document.documentElement.setAttribute("data-theme", resolved);
     document.documentElement.style.colorScheme = resolved;
-    const themeColor = resolved === "light" ? "#ffffff" : "#1f1f22";
+    // v2.0 Precision: light bg #FAFAFA, dark bg #14151A
+    const themeColor = resolved === "light" ? "#FAFAFA" : "#14151A";
     document
       .querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]')
       .forEach((meta) => {

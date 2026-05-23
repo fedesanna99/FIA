@@ -18,3 +18,12 @@ export {
 } from "./DropdownMenu";
 export { cn } from "./cn";
 export { TipBubble } from "./TipBubble";
+// Precision v2.0 PR1 atoms (Sharp · Cyan accent · Hairline borders)
+export { Chip } from "./Chip";
+export type { ChipTone } from "./Chip";
+export { Kbd } from "./Kbd";
+export { Avatar } from "./Avatar";
+export { Skeleton } from "./Skeleton";
+export { Toggle } from "./Toggle";
+export { IconButton } from "./IconButton";
+export { FormField } from "./FormField";

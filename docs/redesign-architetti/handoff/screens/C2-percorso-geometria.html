@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Percorso · Step Geometria (C2)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  .c-main { padding: 24px 28px 48px; max-width: 1280px; margin: 0 auto; }
+  .c-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .c-head-title { display: flex; align-items: baseline; gap: 12px; }
+  .c-head-title h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.2; letter-spacing: -0.02em; }
+  .c-head-back { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
+
+  /* 6-step stepper override */
+  .stp-bar.stp-6 { grid-template-columns: repeat(6, 1fr); }
+
+  /* Two-col body: form + preview */
+  .c2-form-preview {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    padding: 24px 26px;
+    min-height: 380px;
+  }
+  .c2-preview {
+    background: var(--bg-viewport);
+    border: 1px solid var(--border);
+    position: relative;
+    min-height: 360px;
+  }
+  .c2-preview-grid { position: absolute; inset: 0; background: var(--vp-grid); background-size: 24px 24px; }
+  .c2-preview-label { position: absolute; top: 10px; left: 12px; font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); letter-spacing: 0.14em; text-transform: uppercase; }
+  .c2-form-rows { display: grid; gap: 18px; }
+  .c2-form-section-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 4px; }
+</style>
+</head>
+<body data-screen-label="C2 Percorso Step Geometria">
+
+<div class="app">
+
+  <header class="app-topbar topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">F</div>
+      <span class="topbar-logo-name">FEA Pro</span>
+      <span class="topbar-version">v1.9</span>
+    </div>
+    <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Percorsi · Telaio 2D</span>
+    <div></div>
+    <button class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="topbar-search-placeholder">Cerca strumenti, modelli, impostazioni…</span>
+      <span class="kbd">⌘ K</span>
+    </button>
+    <button class="btn btn-ghost btn-sm">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      Apri in Studio Pro
+    </button>
+    <div class="topbar-credits"><b>47</b> / 100 cr</div>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="topbar-icon-dot">3</span></button>
+    <button class="topbar-avatar">GR</button>
+  </header>
+
+  <main class="app-main">
+    <div class="c-main">
+
+      <div class="c-head">
+        <div class="c-head-title">
+          <a href="C1-percorsi-galleria.html" class="c-head-back">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            PERCORSI
+          </a>
+          <span class="muted" style="font-family:var(--font-mono); font-size:11px">/</span>
+          <h1>Verifica telaio 2D</h1>
+          <span class="badge badge--ghost">DRAFT · v3</span>
+        </div>
+        <div class="muted" style="font-family:var(--font-mono); font-size:11px">
+          Auto-save · 30s fa
+        </div>
+      </div>
+
+      <div class="stp-shell">
+
+        <!-- Stepper · 6 steps -->
+        <div class="stp-bar stp-6">
+          <div class="stp-step is-current">
+            <div class="stp-step-head"><span class="stp-step-num">1</span><span class="stp-step-name">Geometria</span></div>
+            <span class="stp-step-meta">in corso</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">2</span><span class="stp-step-name">Vincoli & Carichi</span></div>
+            <span class="stp-step-meta">in attesa</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">3</span><span class="stp-step-name">Materiali & Sezioni</span></div>
+            <span class="stp-step-meta">in attesa</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">4</span><span class="stp-step-name">Esegui analisi</span></div>
+            <span class="stp-step-meta">Linear Static</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">5</span><span class="stp-step-name">Risultati</span></div>
+            <span class="stp-step-meta">UC governing</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">6</span><span class="stp-step-name">Report</span></div>
+            <span class="stp-step-meta">PDF + Trust Layer</span>
+          </div>
+        </div>
+
+        <div class="stp-body">
+          <div class="stp-content">
+            <span class="stp-eyebrow">STEP 1 · GEOMETRIA</span>
+            <h2 class="stp-title">Definisci le luci e le altezze del telaio.</h2>
+            <p style="margin:0; font-size:13px; color:var(--ink-2); line-height:1.55">
+              Telaio piano a portale. Imposta luce, altezza e numero di pilastri intermedi: lo schema risultante (nodi + beam) viene generato sulla destra. Modifica i campi e l'anteprima si aggiorna in tempo reale.
+            </p>
+
+            <div class="c2-form-preview">
+              <div class="c2-form-rows">
+
+                <div>
+                  <div class="c2-form-section-title">Schema</div>
+                  <div class="stp-form">
+                    <div class="field">
+                      <label class="field-label">Luce L (m)</label>
+                      <input class="input numeric" value="6.00" />
+                      <span class="field-help">Distanza fra i due appoggi</span>
+                    </div>
+                    <div class="field">
+                      <label class="field-label">Altezza H (m)</label>
+                      <input class="input numeric" value="3.50" />
+                      <span class="field-help">Quota della trave dal piano di terra</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="c2-form-section-title">Suddivisioni</div>
+                  <div class="stp-form">
+                    <div class="field">
+                      <label class="field-label">Pilastri intermedi</label>
+                      <input class="input numeric" value="0" />
+                      <span class="field-help">Aggiungi nodi sulla trave principale</span>
+                    </div>
+                    <div class="field">
+                      <label class="field-label">Tipo di copertura</label>
+                      <select class="input">
+                        <option>Piano</option>
+                        <option selected>A capanna · α = 8°</option>
+                        <option>A shed</option>
+                      </select>
+                      <span class="field-help">Inclinazione delle falde</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div class="c2-form-section-title">Output generato</div>
+                  <div class="row row-gap-2" style="font-family:var(--font-mono); font-size:11px; color:var(--ink-2)">
+                    <span class="chip"><span style="color:var(--ink-3)">Nodi</span>&nbsp;<b style="color:var(--ink)">7</b></span>
+                    <span class="chip"><span style="color:var(--ink-3)">Beam</span>&nbsp;<b style="color:var(--ink)">5</b></span>
+                    <span class="chip"><span style="color:var(--ink-3)">DOF</span>&nbsp;<b style="color:var(--ink)">42</b></span>
+                    <span class="chip"><span style="color:var(--ink-3)">Tipo</span>&nbsp;<b style="color:var(--ink)">Beam 2D</b></span>
+                  </div>
+                </div>
+
+              </div>
+
+              <div class="c2-preview">
+                <div class="c2-preview-grid"></div>
+                <div class="c2-preview-label">ANTEPRIMA · LIVE</div>
+                <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 360 360" preserveAspectRatio="xMidYMid meet">
+                  <g stroke="currentColor" stroke-width="1.8" fill="none" style="color:var(--ink-2)">
+                    <line x1="80" y1="300" x2="80" y2="160"/>
+                    <line x1="280" y1="300" x2="280" y2="160"/>
+                    <line x1="80" y1="160" x2="180" y2="110"/>
+                    <line x1="180" y1="110" x2="280" y2="160"/>
+                  </g>
+                  <g stroke="currentColor" stroke-width="1.4" fill="none" style="color:var(--ink-3)">
+                    <line x1="50" y1="300" x2="110" y2="300"/>
+                    <line x1="56" y1="308" x2="106" y2="308" stroke-dasharray="3 3"/>
+                    <line x1="250" y1="300" x2="310" y2="300"/>
+                    <line x1="256" y1="308" x2="306" y2="308" stroke-dasharray="3 3"/>
+                  </g>
+                  <g fill="var(--bg-panel)" stroke="var(--accent)" stroke-width="1.5">
+                    <circle cx="80" cy="300" r="4.5"/>
+                    <circle cx="80" cy="160" r="4.5"/>
+                    <circle cx="180" cy="110" r="4.5"/>
+                    <circle cx="280" cy="160" r="4.5"/>
+                    <circle cx="280" cy="300" r="4.5"/>
+                  </g>
+                  <!-- Dimensions -->
+                  <g stroke="var(--ink-3)" stroke-width="1" font-family="JetBrains Mono, monospace" font-size="10" fill="currentColor" style="color:var(--ink-3)">
+                    <line x1="80" y1="338" x2="280" y2="338"/>
+                    <line x1="80" y1="332" x2="80" y2="344"/>
+                    <line x1="280" y1="332" x2="280" y2="344"/>
+                    <text x="180" y="355" text-anchor="middle">L = 6.00 m</text>
+
+                    <line x1="40" y1="160" x2="40" y2="300"/>
+                    <line x1="34" y1="160" x2="46" y2="160"/>
+                    <line x1="34" y1="300" x2="46" y2="300"/>
+                    <text x="30" y="234" text-anchor="end">H = 3.50</text>
+                  </g>
+                </svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Side help -->
+          <div class="stp-side">
+            <span class="stp-eyebrow">PERCHÉ TE LO CHIEDIAMO</span>
+            <h4 class="stp-side-title">Lo schema resistente determina tutto il resto.</h4>
+            <p class="stp-side-text">
+              La forma del telaio definisce i percorsi delle forze. Una copertura a capanna distribuisce il peso sui pilastri laterali in modo differente da una copertura piana, e cambia il comportamento sotto vento e neve.
+            </p>
+            <p class="stp-side-text">
+              Se non sei sicuro, parti dai default — sono allineati alle tipologie più comuni nei capannoni industriali italiani.
+            </p>
+            <div class="stp-side-note">Riferimento: NTC18 §4.1 · EC0 §1.5</div>
+          </div>
+        </div>
+
+        <div class="stp-foot">
+          <div class="stp-validation">
+            <span class="stp-validation-dot"></span>
+            Geometria valida · 7 nodi · 5 beam · connessa · 0 DOF residui
+          </div>
+          <div class="stp-foot-actions">
+            <button class="btn btn-ghost" disabled style="opacity:0.5">← Indietro</button>
+            <button class="btn btn-primary">
+              Avanti · Vincoli & Carichi
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="app-status statusbar">
+    <span><span class="statusbar-dot"></span> Online · WebSocket connesso</span>
+    <span>Step <b>1</b> / 6 · Geometria</span>
+    <span>Auto-save · 30s fa</span>
+    <div class="statusbar-spacer"></div>
+    <span><b>47</b> / 100 cr</span>
+    <span>⌘ K · Cerca</span>
+    <span>v1.9.0-pa</span>
+  </footer>
+</div>
+
+<div id="tweaks-root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{ "theme": "light" }/*EDITMODE-END*/;
+function CTweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  React.useEffect(() => { document.documentElement.setAttribute('data-theme', t.theme); }, [t.theme]);
+  return (<TweaksPanel title="Tweaks"><TweakSection title="View">
+    <TweakRadio label="Tema" value={t.theme} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} onChange={v=>setTweak('theme',v)} />
+  </TweakSection></TweaksPanel>);
+}
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<CTweaks />);
+</script>
+</body>
+</html>

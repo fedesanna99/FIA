@@ -1,0 +1,253 @@
+/*
+ * FEA Pro — Design Tokens (Precision direction · v1.9)
+ * ────────────────────────────────────────────────────────────────────────
+ * Sostituisce `src/index.css` / `colors_and_type.css` esistente.
+ *
+ * Formato compatibile col codebase attuale:
+ *   --c-*   ⟶ RGB triple ("R G B") per usare con rgb(var(--c-*) / α)
+ *   --<n>   ⟶ alias ready-to-use (rgb-resolved)
+ *
+ * Light è default. Dark via [data-theme="dark"] su <html>.
+ * Geometria sharp (radius 0). Hairline-only borders.
+ * Fonts: Inter (body), Inter Tight (display), JetBrains Mono (numerici).
+ */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 1 · LIGHT (canonical)
+ * ──────────────────────────────────────────────────────────────────── */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces — 5 elevations */
+  --c-bg:           250 250 250;   /* #FAFAFA · page */
+  --c-bg-panel:     255 255 255;   /* #FFFFFF · sidebar, topbar, panels */
+  --c-bg-elevated:  255 255 255;   /* #FFFFFF · dialogs, dropdowns (use shadow) */
+  --c-bg-hover:     244 245 247;   /* #F4F5F7 · hover state */
+  --c-bg-viewport:  244 245 247;   /* #F4F5F7 · 3D canvas bg */
+  --c-bg-active:    230 241 251;   /* #E6F1FB · selected row */
+
+  /* Borders — 3 strengths */
+  --c-border:         229 230 232; /* #E5E6E8 · default hairline */
+  --c-border-light:   212 214 218; /* #D4D6DA · hover hairline */
+  --c-border-strong:  168 172 179; /* #A8ACB3 · structural divider */
+
+  /* Ink — 4 levels */
+  --c-ink:        21  22  26;       /* #15161A · primary text */
+  --c-ink-muted:  74  79  87;       /* #4A4F57 · secondary */
+  --c-ink-dim:    123 128 138;      /* #7B808A · tertiary / hints */
+  --c-ink-faint:  176 181 189;      /* #B0B5BD · disabled / micro */
+
+  /* Accent — cyan singolo (Precision: NO doppio asse) */
+  --c-accent:         8 145 178;    /* #0891B2 · primary */
+  --c-accent-hover:  14 116 144;    /* #0E7490 · hover */
+  --c-accent-subtle: 236 254 255;   /* #ECFEFF · tinted bg (selected, hub) */
+
+  /* Semantic ink — 5 famiglie */
+  --c-success:    101 163  13;      /* #65A30D · OK / pass */
+  --c-warn:       180  83   9;      /* #B45309 · warning / Trust draft */
+  --c-coral:      194  65  12;      /* #C2410C · collab / loads */
+  --c-purple:      83  74 183;      /* #534AB7 · annotations / AI (riservato) */
+  --c-danger:     220  38  38;      /* #DC2626 · errors · critical UC */
+  --c-info:         8 145 178;      /* alias di accent */
+
+  /* Semantic surface tints */
+  --c-bg-success:  234 243 222;
+  --c-bg-warn:     250 238 218;
+  --c-bg-coral:    250 236 231;
+  --c-bg-purple:   238 237 254;
+  --c-bg-danger:   254 232 232;
+
+  /* Shadows — hairline-only philosophy (nessun multi-layer gradient) */
+  --shadow-pop:    0 0 0 1px rgba(0,0,0,.06);
+  --shadow-elev:   0 0 0 1px rgba(0,0,0,.05);
+  --shadow-dialog: 0 0 0 1px rgba(0,0,0,.08);
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 2 · DARK (opt-in)
+ * ──────────────────────────────────────────────────────────────────── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --c-bg:           11  12  14;     /* #0B0C0E · page */
+  --c-bg-panel:     20  21  26;     /* #14151A · sidebar, topbar */
+  --c-bg-elevated:  28  30  36;     /* #1C1E24 · dialogs, dropdowns */
+  --c-bg-hover:     28  30  36;     /* #1C1E24 · hover */
+  --c-bg-viewport:   8   9  11;     /* #08090B · 3D canvas bg */
+  --c-bg-active:    26  58  95;     /* #1A3A5F · selected row */
+
+  --c-border:        35  37  41;    /* #232529 */
+  --c-border-light:  48  50  57;    /* #303239 */
+  --c-border-strong: 70  72  79;    /* #46484F */
+
+  --c-ink:        236 237 240;      /* #ECEDF0 */
+  --c-ink-muted:  156 161 171;      /* #9CA1AB */
+  --c-ink-dim:    107 114 128;      /* #6B7280 */
+  --c-ink-faint:   75  82  96;      /* #4B5260 */
+
+  --c-accent:        93 215 242;    /* #5DD7F2 · cyan brighter for dark bg */
+  --c-accent-hover: 136 226 245;    /* #88E2F5 */
+  --c-accent-subtle: 14  42  51;    /* #0E2A33 · dark tinted bg */
+
+  --c-success:    132 204  22;      /* #84CC16 */
+  --c-warn:       245 158  11;      /* #F59E0B */
+  --c-coral:      251 146  60;      /* #FB923C */
+  --c-purple:     167 139 250;      /* #A78BFA */
+  --c-danger:     248 113 113;      /* #F87171 */
+  --c-info:        93 215 242;
+
+  --c-bg-success:  26  48   9;
+  --c-bg-warn:     58  40   6;
+  --c-bg-coral:    58  24  16;
+  --c-bg-purple:   34  32  64;
+  --c-bg-danger:   58  16  16;
+
+  --shadow-pop:    0 0 0 1px rgba(0,0,0,.5);
+  --shadow-elev:   0 0 0 1px rgba(0,0,0,.4);
+  --shadow-dialog: 0 0 0 1px rgba(0,0,0,.6);
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 3 · Aliases (ready-to-use)
+ * ──────────────────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --bg:           rgb(var(--c-bg));
+  --bg-panel:     rgb(var(--c-bg-panel));
+  --bg-elevated:  rgb(var(--c-bg-elevated));
+  --bg-hover:     rgb(var(--c-bg-hover));
+  --bg-viewport:  rgb(var(--c-bg-viewport));
+  --bg-active:    rgb(var(--c-bg-active));
+
+  /* Borders */
+  --border:        rgb(var(--c-border));
+  --border-light:  rgb(var(--c-border-light));
+  --border-strong: rgb(var(--c-border-strong));
+
+  /* Ink */
+  --ink:        rgb(var(--c-ink));
+  --ink-1:      rgb(var(--c-ink));
+  --ink-2:      rgb(var(--c-ink-muted));
+  --ink-3:      rgb(var(--c-ink-dim));
+  --ink-4:      rgb(var(--c-ink-faint));
+  --ink-muted:  rgb(var(--c-ink-muted));
+  --ink-dim:    rgb(var(--c-ink-dim));
+  --ink-faint:  rgb(var(--c-ink-faint));
+
+  /* Accent + semantic */
+  --accent:        rgb(var(--c-accent));
+  --accent-hover:  rgb(var(--c-accent-hover));
+  --accent-subtle: rgb(var(--c-accent-subtle));
+  --success:       rgb(var(--c-success));
+  --warn:          rgb(var(--c-warn));
+  --coral:         rgb(var(--c-coral));
+  --purple:        rgb(var(--c-purple));
+  --danger:        rgb(var(--c-danger));
+  --info:          rgb(var(--c-info));
+
+  --bg-success:   rgb(var(--c-bg-success));
+  --bg-warn:      rgb(var(--c-bg-warn));
+  --bg-coral:     rgb(var(--c-bg-coral));
+  --bg-purple:    rgb(var(--c-bg-purple));
+  --bg-danger:    rgb(var(--c-bg-danger));
+
+  /* Radii — TUTTI 0 (Precision: sharp) */
+  --r-none: 0;
+  --r-sm:   0;
+  --r-md:   0;
+  --r-lg:   0;
+  --r-xl:   0;
+  --r-full: 9999px;  /* solo per cerchi puri: avatar, dot, pulse */
+
+  /* Spacing scale (px) */
+  --s-px:  1px;
+  --s-0_5: 2px;
+  --s-1:   4px;
+  --s-2:   8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-8:  32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  /* Motion */
+  --d-fast: 120ms;
+  --d-mid:  200ms;
+  --d-slow: 360ms;
+  --ease-standard:    cubic-bezier(0.2, 0, 0, 1);
+  --ease-decelerate:  cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate:  cubic-bezier(0.4, 0, 1, 1);
+
+  /* z-index */
+  --z-viewport: 0;
+  --z-panel:    10;
+  --z-toolbar:  20;
+  --z-dropdown: 30;
+  --z-popover:  35;
+  --z-dialog:   40;
+  --z-toast:    50;
+  --z-tooltip:  60;
+
+  /* Fonts */
+  --font-sans:    "Inter", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter Tight", "Inter", -apple-system, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 4 · Type scale (px-based, dense UI)
+ * ──────────────────────────────────────────────────────────────────── */
+:root {
+  --fs-xs:   11px;   --lh-xs:   15px;
+  --fs-sm:   12px;   --lh-sm:   16px;
+  --fs-base: 13px;   --lh-base: 19px;  /* body baseline */
+  --fs-md:   14px;   --lh-md:   20px;
+  --fs-lg:   16px;   --lh-lg:   22px;
+  --fs-xl:   18px;   --lh-xl:   24px;
+  --fs-2xl:  22px;   --lh-2xl:  28px;
+  --fs-3xl:  30px;   --lh-3xl:  34px;
+  --fs-4xl:  44px;   --lh-4xl:  46px;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 5 · Body baseline
+ * ──────────────────────────────────────────────────────────────────── */
+html, body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, .h1 { font-family: var(--font-display); font-size: var(--fs-3xl); line-height: var(--lh-3xl); font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }
+h2, .h2 { font-family: var(--font-display); font-size: var(--fs-2xl); line-height: var(--lh-2xl); font-weight: 600; letter-spacing: -0.02em;  color: var(--ink); }
+h3, .h3 { font-family: var(--font-display); font-size: var(--fs-xl);  line-height: var(--lh-xl);  font-weight: 600; letter-spacing: -0.015em; color: var(--ink); }
+h4, .h4 { font-size: var(--fs-lg); line-height: var(--lh-lg); font-weight: 600; color: var(--ink); }
+h5, .h5 { font-size: var(--fs-md); line-height: var(--lh-md); font-weight: 600; color: var(--ink); }
+
+p { margin: 0 0 var(--s-2); }
+
+/* Numbers / mono — usa ovunque ci siano cifre tecniche */
+.numeric, code, kbd, samp, pre {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Eyebrow utility */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}

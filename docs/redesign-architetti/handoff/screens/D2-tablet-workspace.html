@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Tablet workspace (D2)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  body { display: grid; place-items: center; padding: 32px 16px; min-height: 100vh; background: #18191D; }
+  :root[data-theme="light"] body { background: #2a2c30; }
+
+  /* Tablet bezel */
+  .tablet {
+    width: 1112px; max-width: 100%;
+    aspect-ratio: 1112 / 834;
+    background: #08090B;
+    padding: 14px;
+    box-shadow: 0 24px 80px -20px rgba(0,0,0,0.6);
+    display: flex; flex-direction: column;
+  }
+  .tablet-cam {
+    position: absolute;
+    top: 18px; left: 50%; transform: translateX(-50%);
+    width: 8px; height: 8px;
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 50%;
+  }
+  .tablet-screen {
+    flex: 1;
+    overflow: hidden;
+    background: var(--bg);
+    position: relative;
+  }
+  /* Inside-tablet adaptive grid */
+  .tab-app {
+    display: grid;
+    grid-template-columns: 56px 1fr 220px;
+    grid-template-rows: 44px 1fr 24px;
+    height: 100%; width: 100%;
+    background: var(--bg);
+  }
+  .tab-app .topbar { grid-column: 1 / -1; grid-row: 1; padding: 6px 12px; height: 44px; gap: 10px; grid-template-columns: auto auto 1fr auto auto auto; }
+  .tab-app .leftrail { grid-column: 1; grid-row: 2 / span 2; width: 56px; }
+  .tab-app .leftrail .rail-item-label { display: none; }
+  .tab-app .leftrail .rail-item { padding: 10px 4px; }
+  .tab-app .leftrail-section { padding: 8px 0 2px; text-align: center; }
+  .tab-app .app-vp { grid-column: 2; grid-row: 2; position: relative; background: var(--bg-viewport); overflow: hidden; }
+  .tab-app .app-info { grid-column: 3; grid-row: 2 / span 2; background: var(--bg-panel); border-left: 1px solid var(--border); padding: 10px; overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+  .tab-app .statusbar { grid-column: 2 / span 2; grid-row: 3; padding: 4px 12px; }
+</style>
+</head>
+<body data-screen-label="D2 Tablet Workspace">
+
+<div class="tablet">
+  <div style="display:flex; justify-content:center; padding-bottom: 6px">
+    <div style="width: 60px; height: 4px; background: #1a1a1a; border-radius: 4px"></div>
+  </div>
+  <div class="tablet-screen">
+    <div class="tab-app">
+
+      <!-- Compact TopBar -->
+      <header class="topbar">
+        <div class="topbar-logo"><div class="topbar-logo-mark">F</div><span class="topbar-logo-name" style="font-size:13px">FEA Pro</span></div>
+        <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Studio</span>
+        <button class="topbar-search">
+          <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+          <span class="topbar-search-placeholder">Cerca…</span>
+        </button>
+        <div class="topbar-credits"><b>47</b>/100</div>
+        <button class="topbar-icon-btn"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg><span class="topbar-icon-dot">3</span></button>
+        <button class="topbar-avatar">GR</button>
+      </header>
+
+      <!-- Compact LeftRail icons only -->
+      <aside class="leftrail">
+        <div class="rail-item is-active"><span class="rail-item-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><line x1="6.5" y1="17.5" x2="17.5" y2="6.5"/></svg></span></div>
+        <div class="rail-item"><span class="rail-item-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/></svg></span></div>
+        <div class="rail-item"><span class="rail-item-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18"/></svg></span></div>
+        <div class="rail-item"><span class="rail-item-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v6M12 16v6M5 12H2M22 12h-3"/></svg></span></div>
+        <div class="leftrail-section" style="font-size: 8px">━</div>
+        <div class="rail-item"><span class="rail-item-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="5 3 19 12 5 21"/></svg></span></div>
+        <div class="rail-item"><span class="rail-item-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span></div>
+      </aside>
+
+      <!-- Viewport -->
+      <section class="app-vp">
+        <div style="position: absolute; inset: 0; background: var(--vp-grid); background-size: 24px 24px"></div>
+        <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid meet">
+          <g stroke="currentColor" stroke-width="1.8" fill="none" style="color:var(--ink-2)">
+            <line x1="180" y1="420" x2="180" y2="180"/>
+            <line x1="180" y1="180" x2="400" y2="120"/>
+            <line x1="400" y1="120" x2="620" y2="180"/>
+            <line x1="620" y1="180" x2="620" y2="420"/>
+            <line x1="180" y1="300" x2="620" y2="300"/>
+          </g>
+          <g fill="var(--bg-panel)" stroke="var(--accent)" stroke-width="1.5">
+            <circle cx="180" cy="420" r="4"/><circle cx="180" cy="180" r="4"/>
+            <circle cx="400" cy="120" r="4"/><circle cx="620" cy="180" r="4"/>
+            <circle cx="620" cy="420" r="4"/>
+          </g>
+        </svg>
+        <div class="vp-hud">
+          <span class="chip"><span class="chip-dot"></span>Portal · 2D</span>
+        </div>
+        <div class="vp-gizmo" style="width:44px; height:44px">
+          <svg width="28" height="28" viewBox="0 0 28 28" stroke-width="1.2" fill="none">
+            <line x1="14" y1="14" x2="24" y2="14" stroke="#DC2626"/>
+            <line x1="14" y1="14" x2="14" y2="4" stroke="#65A30D"/>
+            <line x1="14" y1="14" x2="6" y2="22" stroke="var(--accent)"/>
+          </svg>
+        </div>
+        <div class="vp-scale">1:50</div>
+
+        <!-- Floating action bar (touch sized) -->
+        <div style="position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; gap: 4px; background: var(--bg-panel); border: 1px solid var(--border-light); padding: 4px">
+          <button class="btn btn-ghost btn-sm" style="padding: 8px 12px">Nodo</button>
+          <button class="btn btn-ghost btn-sm" style="padding: 8px 12px">Elemento</button>
+          <button class="btn btn-ghost btn-sm" style="padding: 8px 12px">Vincolo</button>
+          <button class="btn btn-ghost btn-sm" style="padding: 8px 12px">Carico</button>
+        </div>
+      </section>
+
+      <!-- Compact Info -->
+      <aside class="app-info">
+        <div class="mic" style="padding: 10px">
+          <span class="mic-eyebrow">MODELLO</span>
+          <div class="mic-name" style="font-size: 14px">Portal · 2D</div>
+          <hr/>
+          <dl class="mic-rows" style="row-gap: 4px">
+            <dt>DOF</dt><dd>42</dd>
+            <dt>El.</dt><dd>5</dd>
+            <dt>N</dt><dd>7</dd>
+          </dl>
+        </div>
+        <button class="btn btn-run" style="width: 100%; justify-content: center">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+          Esegui · 12 cr
+        </button>
+      </aside>
+
+      <footer class="statusbar">
+        <span><span class="statusbar-dot"></span> Online</span>
+        <span>5 beam · 42 DOF</span>
+        <div class="statusbar-spacer"></div>
+        <span>47 cr</span>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<div id="tweaks-root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{ "theme": "light" }/*EDITMODE-END*/;
+function CTweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  React.useEffect(() => { document.documentElement.setAttribute('data-theme', t.theme); }, [t.theme]);
+  return (<TweaksPanel title="Tweaks"><TweakSection title="View">
+    <TweakRadio label="Tema" value={t.theme} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} onChange={v=>setTweak('theme',v)} />
+  </TweakSection></TweaksPanel>);
+}
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<CTweaks />);
+</script>
+</body>
+</html>
