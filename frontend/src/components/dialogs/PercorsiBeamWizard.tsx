@@ -103,13 +103,13 @@ export function PercorsiBeamWizard({ open, onClose, onLoadTemplate }: Props) {
   return (
     <Dialog open={open} onClose={handleClose} title="Percorsi" width={560}>
       <div className="space-y-3" data-testid="percorsi-wizard">
-        {/* Step indicator */}
-        <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider font-mono text-ink-muted">
-          <span className={step >= 1 ? "text-ink-percorsi font-semibold" : ""}>1. Scegli</span>
+        {/* Step indicator (v2.0 Precision: cyan accent) */}
+        <div className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wide-3 text-ink-3">
+          <span className={step >= 1 ? "text-accent font-semibold" : ""}>1. Scegli</span>
           <ChevronRight className="w-3 h-3" />
-          <span className={step >= 2 ? "text-ink-percorsi font-semibold" : ""}>2. Riepilogo</span>
+          <span className={step >= 2 ? "text-accent font-semibold" : ""}>2. Riepilogo</span>
           <ChevronRight className="w-3 h-3" />
-          <span className={step >= 3 ? "text-ink-percorsi font-semibold" : ""}>3. Conferma</span>
+          <span className={step >= 3 ? "text-accent font-semibold" : ""}>3. Conferma</span>
         </div>
 
         {/* STEP 1 — Scegli percorso */}
@@ -125,9 +125,9 @@ export function PercorsiBeamWizard({ open, onClose, onLoadTemplate }: Props) {
                   type="button"
                   onClick={() => handlePick(p)}
                   data-testid={`percorsi-card-${p.id}`}
-                  className="w-full text-left flex items-start gap-2.5 p-3 border border-border rounded-md hover:border-percorsi/40 hover:bg-bg-percorsi/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-percorsi/60"
+                  className="w-full text-left flex items-start gap-2.5 p-3 border border-border rounded-md hover:border-accent/40 hover:bg-accent-subtle/40 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
                 >
-                  <div className="w-8 h-8 rounded-md bg-bg-percorsi text-ink-percorsi flex items-center justify-center flex-shrink-0">
+                  <div className="w-8 h-8 rounded-md bg-accent-subtle text-accent flex items-center justify-center flex-shrink-0">
                     <p.Icon className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -147,7 +147,7 @@ export function PercorsiBeamWizard({ open, onClose, onLoadTemplate }: Props) {
             <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
               Riepilogo configurazione
             </div>
-            <div className="bg-bg-percorsi/40 border border-percorsi/30 rounded-md p-3 space-y-2">
+            <div className="bg-accent-subtle/40 border border-accent/30 rounded-md p-3 space-y-2">
               <div className="text-sm font-semibold text-ink">{selected.title}</div>
               <div className="grid grid-cols-[80px_1fr] gap-x-3 gap-y-1.5 text-[11px]">
                 <span className="text-ink-muted">Geometria</span>
@@ -155,7 +155,7 @@ export function PercorsiBeamWizard({ open, onClose, onLoadTemplate }: Props) {
                 <span className="text-ink-muted">Carichi</span>
                 <span className="text-ink font-mono">{selected.loads}</span>
                 <span className="text-ink-muted">Atteso</span>
-                <span className="text-ink-percorsi font-mono">{selected.expectedOutcome}</span>
+                <span className="text-accent font-mono">{selected.expectedOutcome}</span>
               </div>
             </div>
             <div className="text-[10px] text-ink-muted leading-snug">
@@ -178,7 +178,7 @@ export function PercorsiBeamWizard({ open, onClose, onLoadTemplate }: Props) {
                 type="button"
                 onClick={() => setStep(3)}
                 data-testid="percorsi-next"
-                className="px-3 py-1.5 bg-percorsi text-white text-xs font-medium rounded-md hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-percorsi/60"
+                className="px-3 py-1.5 bg-accent text-white text-xs font-medium rounded-md hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
               >
                 Avanti
                 <ChevronRight className="inline w-3.5 h-3.5 ml-0.5" />
@@ -223,7 +223,7 @@ export function PercorsiBeamWizard({ open, onClose, onLoadTemplate }: Props) {
                 type="button"
                 onClick={handleConfirm}
                 data-testid="percorsi-confirm"
-                className="px-3 py-1.5 bg-percorsi text-white text-xs font-medium rounded-md hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-percorsi/60"
+                className="px-3 py-1.5 bg-accent text-white text-xs font-medium rounded-md hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
               >
                 Carica modello e analizza →
               </button>

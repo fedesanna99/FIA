@@ -81,9 +81,9 @@ export function ResultsOverviewCard() {
     },
   ] as const;
   const toneClasses: Record<CheckTone, string> = {
-    ok:       "bg-bg-success text-ink-success border-success/30",
-    warn:     "bg-bg-warn text-ink-warn border-warn/30",
-    critical: "bg-bg-coral text-ink-coral border-coral/30",
+    ok:       "bg-bg-success text-success border-success/30",
+    warn:     "bg-bg-warn text-warn border-warn/30",
+    critical: "bg-bg-danger text-danger border-danger/30",
   };
   const toneLabel: Record<CheckTone, string> = {
     ok: "OK",
@@ -93,28 +93,28 @@ export function ResultsOverviewCard() {
 
   return (
     <div className="border-b border-border p-3 space-y-2 bg-bg-panel" data-testid="results-overview-card">
-      <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
+      <div className="font-mono text-[10px] uppercase tracking-wide-3 text-ink-3 font-semibold">
         Results overview
       </div>
       <div className="grid grid-cols-2 gap-x-2 gap-y-1.5 text-[11px]">
         <div>
-          <div className="text-ink-muted text-[9px] uppercase tracking-wider">Max u</div>
-          <div className="text-ink font-mono font-semibold">
+          <div className="font-mono text-[9px] uppercase tracking-wide-3 text-ink-3">Max u</div>
+          <div className="text-ink font-mono font-semibold tabular-nums">
             {maxDispMm.toFixed(2)}
-            <span className="text-ink-muted font-normal ml-0.5">mm</span>
+            <span className="text-ink-3 font-normal ml-0.5">mm</span>
           </div>
         </div>
         <div title={stressHint}>
-          <div className="text-ink-muted text-[9px] uppercase tracking-wider">Max σ</div>
-          <div className={`font-mono font-semibold ${stressTone}`} data-testid="results-overview-stress">
+          <div className="font-mono text-[9px] uppercase tracking-wide-3 text-ink-3">Max σ</div>
+          <div className={`font-mono font-semibold tabular-nums ${stressTone}`} data-testid="results-overview-stress">
             {maxStressMPa.toFixed(1)}
-            <span className="text-ink-muted font-normal ml-0.5">MPa</span>
+            <span className="text-ink-3 font-normal ml-0.5">MPa</span>
           </div>
         </div>
       </div>
-      {/* v1.9.0 T2: GPS Strutturale — Stato verifiche didattiche */}
+      {/* v1.9.0 T2 / v2.0 Precision: GPS Strutturale — Stato verifiche didattiche */}
       <div className="space-y-1 pt-1.5 border-t border-border" data-testid="gps-verifiche">
-        <div className="text-[9px] uppercase tracking-wider text-ink-muted font-mono">
+        <div className="font-mono text-[9px] uppercase tracking-wide-3 text-ink-3 font-semibold">
           Stato verifiche
         </div>
         {checks.map((c) => {
