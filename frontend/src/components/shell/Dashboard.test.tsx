@@ -80,14 +80,18 @@ describe("Dashboard offline/database state", () => {
     expect(onSelect).toHaveBeenCalledWith("m1");
   });
 
-  // v1.8 T1: CTA doppia Studio Pro / Percorsi
-  it("mostra CTA doppia Studio Pro + Percorsi (v1.8 T1)", () => {
+  // v1.8 T1 / v2.0 PR13: CTA doppia Studio Pro / Percorsi (rifatta come hub
+  // panel A1 Claude Design con axis-tag + titolo 2 righe + bullets)
+  it("mostra hub doppi Studio Pro + Percorsi (v2.0 PR13)", () => {
     render(<Dashboard models={[]} onSelect={() => {}} />, { wrapper });
     expect(screen.getByTestId("home-cta-studio-pro")).toBeInTheDocument();
     expect(screen.getByTestId("home-cta-percorsi")).toBeInTheDocument();
-    // Asse semantico: testi descrittivi presenti.
-    expect(screen.getByText(/Modalita' esperto|Modalità esperto/i)).toBeInTheDocument();
-    expect(screen.getByText(/Workflow guidato/i)).toBeInTheDocument();
+    // Axis-tag presenti in tipografia Precision.
+    expect(screen.getByText(/\/ Studio Pro/)).toBeInTheDocument();
+    expect(screen.getByText(/\/ Percorsi/)).toBeInTheDocument();
+    // Titoli a 2 righe.
+    expect(screen.getByText(/Controllo totale/)).toBeInTheDocument();
+    expect(screen.getByText(/Guidato, senza/)).toBeInTheDocument();
   });
 
   it("CTA Percorsi dispatcha evento feapro:open-percorsi", () => {

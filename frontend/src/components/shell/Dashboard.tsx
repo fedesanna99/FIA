@@ -14,7 +14,7 @@
  * sorgenti.
  */
 import { useQuery } from "@tanstack/react-query";
-import { Plus, FileUp, Layers, FlaskConical, RefreshCcw, WifiOff, type LucideIcon } from "lucide-react";
+import { Plus, FileUp, Layers, FlaskConical, RefreshCcw, WifiOff, ArrowRight, type LucideIcon } from "lucide-react";
 import type { FEAModel } from "../../types/model";
 import { getQuota } from "../../api/billing";
 import { useAuthStore } from "../../store/authStore";
@@ -67,13 +67,27 @@ export function Dashboard({
     <div className="absolute inset-0 overflow-y-auto p-6 sm:p-8 bg-bg-viewport">
       {/* Hero */}
       <div className="flex items-end justify-between mb-7 max-w-5xl mx-auto gap-4 flex-wrap">
-        <div>
-          {/* v2.0 Precision PR3a: hero font-display + tight tracking + lg/4xl */}
-          <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight-3 text-ink leading-none">
-            Buongiorno{authUser ? `, ${authUser.email.split("@")[0]}` : ""}
+        <div className="space-y-4">
+          {/* v2.0 Precision PR13: hero allineato al mockup A1 Claude Design.
+              Eyebrow con dot tonale → "Nessun modello attivo" / "{N} modelli, {M} job".
+              H1 "Inizia un'analisi." (font-display 4xl tracking-tight-4).
+              Sub paragraph con il claim "Algoritmo prima, AI per accelerare". */}
+          <span
+            className="inline-flex items-center gap-2 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide-4 text-ink-3 border border-border bg-bg-panel"
+            data-testid="dashboard-hero-eyebrow"
+          >
+            <span className={`w-1.5 h-1.5 rounded-full ${models.length === 0 ? "bg-warn" : "bg-success"}`} />
+            {models.length === 0
+              ? "Nessun modello attivo"
+              : `${models.length} ${models.length === 1 ? "modello" : "modelli"} · ${nJobs} job in corso${authUser ? ` · ${authUser.email.split("@")[0]}` : ""}`}
+          </span>
+          <h1 className="font-display text-3xl md:text-4xl font-semibold tracking-tight-4 text-ink leading-[1.02]">
+            Inizia un'analisi.
           </h1>
-          <p className="font-mono text-sm text-ink-3 mt-2 tracking-wide-1">
-            {models.length} {models.length === 1 ? "modello" : "modelli"} · {nJobs} job in corso
+          <p className="text-md text-ink-2 leading-relaxed max-w-[56ch]">
+            Due modi per costruire e analizzare un modello strutturale.
+            Algoritmo prima, AI per accelerare — niente black box, tutti
+            i calcoli tracciabili a formule normative.
           </p>
         </div>
         {/* v1.6.1 T2 · BUG-2: "View" button inline rimosso. Il ViewPanel
@@ -105,41 +119,90 @@ export function Dashboard({
         </div>
       )}
 
-      {/* v1.8 T1: CTA doppia Studio Pro / Percorsi — asse semantico
-          del prodotto. v2.0 Precision: stesso accento cyan per entrambi,
-          si distinguono per layout/eyebrow (no doppio colore). */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5 max-w-5xl mx-auto">
-        <button
-          type="button"
-          onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-new-model"))}
-          disabled={modelsUnavailable}
-          data-testid="home-cta-studio-pro"
-          className="text-left bg-accent text-white border border-accent-hover/30 p-5 shadow-pop hover:bg-accent-hover hover:-translate-y-0.5 transition-all duration-fast disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+      {/* v2.0 Precision PR13: hub Studio Pro + Percorsi allineati al mockup
+          A1 Claude Design. Entrambi white panel + hairline border + axis-tag
+          in top-left (cyan per Studio Pro, ink per Percorsi). Titolo 2 righe,
+          sub paragraph, bullets mono, CTA inline con freccia. */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-7 max-w-5xl mx-auto">
+        {/* Studio Pro Hub */}
+        <div
+          className="relative bg-bg-panel border border-border p-6 pt-7 flex flex-col gap-3 min-h-[220px] hover:border-ink-3 transition-colors"
+          data-testid="home-hub-studio-pro"
         >
-          <div className="font-mono text-[10px] uppercase tracking-wide-4 opacity-80 mb-1">
-            Modalita' esperto
+          <span className="absolute top-0 left-0 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide-2 font-semibold bg-accent text-white">
+            / Studio Pro
+          </span>
+          <h2 className="font-display text-2xl font-semibold tracking-tight-3 text-ink leading-[1.1] mt-3">
+            Controllo totale<br />sul modello.
+          </h2>
+          <p className="text-md text-ink-2 leading-relaxed max-w-[36ch]">
+            Modalità expert. Tutti gli strumenti, qualsiasi ordine, senza guardrail.
+            Per chi sa già cosa fare.
+          </p>
+          <ul className="flex flex-col gap-1.5 text-[11px] font-mono text-ink-2">
+            <li className="flex items-center gap-2 before:content-[''] before:w-2 before:h-px before:bg-ink-3 before:flex-shrink-0">
+              Geometria · materiali · sezioni
+            </li>
+            <li className="flex items-center gap-2 before:content-[''] before:w-2 before:h-px before:bg-ink-3 before:flex-shrink-0">
+              Solver Lineare, Modale, Sismica, Non-lineare
+            </li>
+            <li className="flex items-center gap-2 before:content-[''] before:w-2 before:h-px before:bg-ink-3 before:flex-shrink-0">
+              Verifiche EC2 / EC3 / EC8 / NTC18
+            </li>
+          </ul>
+          <div className="mt-auto pt-2">
+            <button
+              type="button"
+              onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-new-model"))}
+              disabled={modelsUnavailable}
+              data-testid="home-cta-studio-pro"
+              className="inline-flex items-center gap-2 bg-accent text-white px-4 py-2 text-md font-medium hover:bg-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+            >
+              Apri Studio Pro
+              <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
+            </button>
           </div>
-          <div className="font-display text-lg font-semibold mb-1 tracking-tight-1">Studio Pro</div>
-          <div className="text-xs opacity-90 leading-snug">
-            Tutti gli strumenti, controllo completo. Per ingegneri che sanno cosa fare.
-          </div>
-        </button>
+        </div>
 
-        <button
-          type="button"
-          onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-percorsi"))}
-          disabled={modelsUnavailable}
-          data-testid="home-cta-percorsi"
-          className="text-left bg-bg-panel text-ink border-2 border-accent p-5 shadow-pop hover:bg-accent-subtle hover:-translate-y-0.5 transition-all duration-fast disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+        {/* Percorsi Hub */}
+        <div
+          className="relative bg-bg-panel border border-border p-6 pt-7 flex flex-col gap-3 min-h-[220px] hover:border-ink-3 transition-colors"
+          data-testid="home-hub-percorsi"
         >
-          <div className="font-mono text-[10px] uppercase tracking-wide-4 text-accent mb-1">
-            Workflow guidato
+          <span className="absolute top-0 left-0 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide-2 font-semibold bg-ink text-white">
+            / Percorsi
+          </span>
+          <h2 className="font-display text-2xl font-semibold tracking-tight-3 text-ink leading-[1.1] mt-3">
+            Guidato, senza<br />perdere controllo.
+          </h2>
+          <p className="text-md text-ink-2 leading-relaxed max-w-[36ch]">
+            Step persistenti, validation per step, sempre passabile a Studio Pro.
+            Per chi vuole una traccia chiara.
+          </p>
+          <ul className="flex flex-col gap-1.5 text-[11px] font-mono text-ink-2">
+            <li className="flex items-center gap-2 before:content-[''] before:w-2 before:h-px before:bg-ink-3 before:flex-shrink-0">
+              Verifica telaio 2D · Beam check
+            </li>
+            <li className="flex items-center gap-2 before:content-[''] before:w-2 before:h-px before:bg-ink-3 before:flex-shrink-0">
+              Smart defaults · best practice integrata
+            </li>
+            <li className="flex items-center gap-2 before:content-[''] before:w-2 before:h-px before:bg-ink-3 before:flex-shrink-0">
+              Lettura risultati assistita
+            </li>
+          </ul>
+          <div className="mt-auto pt-2">
+            <button
+              type="button"
+              onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-percorsi"))}
+              disabled={modelsUnavailable}
+              data-testid="home-cta-percorsi"
+              className="inline-flex items-center gap-2 bg-bg-elevated text-ink border border-border px-4 py-2 text-md font-medium hover:bg-bg-hover hover:border-ink-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+            >
+              Scegli un percorso
+              <ArrowRight className="w-3.5 h-3.5" strokeWidth={2} />
+            </button>
           </div>
-          <div className="font-display text-lg font-semibold mb-1 tracking-tight-1 text-ink">Percorsi</div>
-          <div className="text-xs text-ink-2 leading-snug">
-            Step-by-step verso il risultato. Per esperti che vogliono un assistente, per principianti che vogliono imparare.
-          </div>
-        </button>
+        </div>
       </div>
 
       {/* Quick actions (azioni secondarie sotto la CTA doppia) */}
