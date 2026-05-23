@@ -432,3 +432,118 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
   padding-right: env(safe-area-inset-right);
   padding-left: env(safe-area-inset-left);
 }
+
+/* ── PR17 T2 · Layer globale Precision — animazioni + sharp ─────────────── */
+/* Forza animate-fade-in/slide-up su tutti i dialog (anche quelli che non
+   passano per il wrapper Dialog.tsx) e sharp border-radius ovunque.
+   Questo permette di portare componenti legacy in Precision senza dover
+   riscrivere ogni file uno per uno. */
+
+/* Backdrop overlay di qualsiasi dialog/modal */
+[role="presentation"]:has(> [role="dialog"]),
+[role="dialog"]:not([role="dialog"] [role="dialog"]) {
+  animation: fade-in 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Dialog panel interno — slide-up al mount */
+[role="dialog"] > div:first-child,
+.dialog,
+.dialog-panel {
+  animation: slide-up 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Toast notifications + dropdown — slide-right entry */
+[role="alert"]:not([data-toast-static]),
+[role="menu"][data-state="open"] {
+  animation: slide-up 180ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Tooltip — fade rapido */
+[role="tooltip"] {
+  animation: fade-in 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Force sharp radius su elementi legacy che usano hard-coded rounded values */
+.rounded-xl,
+.rounded-2xl,
+.rounded-3xl {
+  border-radius: 0 !important;
+}
+
+/* Sharp focus ring per ogni button/input — Precision: ring offset 1px */
+button:focus-visible,
+[role="button"]:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--accent) !important;
+  outline-offset: 1px;
+}
+
+/* Transition-colors di default su button + link per smooth hover */
+button:not([data-no-transition]),
+a:not([data-no-transition]),
+[role="button"]:not([data-no-transition]) {
+  transition: background-color 120ms cubic-bezier(0.2, 0, 0, 1),
+              border-color 120ms cubic-bezier(0.2, 0, 0, 1),
+              color 120ms cubic-bezier(0.2, 0, 0, 1),
+              opacity 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Scrollbar Precision — più discreta in light */
+:root[data-theme="light"] ::-webkit-scrollbar-thumb {
+  background: rgb(var(--c-border-light));
+}
+:root[data-theme="light"] ::-webkit-scrollbar-thumb:hover {
+  background: rgb(var(--c-border-strong));
+}
+
+/* Eyebrow label generic helper */
+.precision-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* Backdrop variant: bg-black/40 con backdrop filter solo se supportato */
+.dialog-backdrop,
+[data-dialog-backdrop] {
+  background: rgba(0, 0, 0, 0.40);
+  animation: fade-in 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+/* Skeleton shimmer placeholder */
+.skeleton {
+  background: var(--bg-hover);
+  position: relative;
+  overflow: hidden;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.04) 50%, transparent 100%);
+  animation: precision-shimmer 1.4s linear infinite;
+}
+:root[data-theme="dark"] .skeleton::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.06) 50%, transparent 100%);
+}
+
+/* Responsive utility — hide mobile when desktop */
+@media (max-width: 767px) {
+  .desktop-only { display: none !important; }
+}
+@media (min-width: 768px) {
+  .mobile-only { display: none !important; }
+}
+
+/* Container query support for adaptive panels */
+@container (max-width: 640px) {
+  [data-adaptive] {
+    grid-template-columns: 1fr !important;
+  }
+}

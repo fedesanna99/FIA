@@ -91,6 +91,11 @@ export const useThemeStore = create<ThemeState>()(
     {
       name: "feapro-theme",
       partialize: (s) => ({ mode: s.mode }),
+      // PR17 T4: version bump → invalida localStorage utenti che avevano
+      // "dark" persistito. Reset a default light Precision al primo accesso
+      // dopo deploy v2.0.16. Migrate ritorna stato pulito.
+      version: 2,
+      migrate: (_persisted, _version) => ({ mode: "light" }),
     },
   ),
 );

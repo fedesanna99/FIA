@@ -1,3 +1,10 @@
+/**
+ * EditModelDialog (Precision v2.0 PR17 T3) — Precision-aligned.
+ *
+ * Modifica nome, descrizione, unità di un modello esistente.
+ * Stesso linguaggio NewModelDialog: field-label mono uppercase,
+ * input hairline border, segmented control unità.
+ */
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "./Dialog";
@@ -8,6 +15,12 @@ interface Props {
   open: boolean;
   onClose: () => void;
 }
+
+const UNIT_OPTIONS = [
+  { value: "SI" as const,   label: "SI",   sub: "m · N · Pa" },
+  { value: "kN-m" as const, label: "kN·m", sub: "m · kN · kPa" },
+  { value: "N-mm" as const, label: "N·mm", sub: "mm · N · MPa" },
+];
 
 export function EditModelDialog({ open, onClose }: Props) {
   const model = useModelStore((s) => s.model);
@@ -40,33 +53,89 @@ export function EditModelDialog({ open, onClose }: Props) {
   });
 
   return (
-    <Dialog open={open} onClose={onClose} title="Modifica modello"
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title="Modifica modello"
+      width={440}
       footer={
         <>
-          <button className="btn" onClick={onClose}>Annulla</button>
-          <button className="btn btn-primary" onClick={() => mut.mutate()} disabled={mut.isPending || !model}>
-            {mut.isPending ? "Salvo..." : "Salva"}
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover"
+          >
+            Annulla
+          </button>
+          <button
+            type="button"
+            onClick={() => mut.mutate()}
+            disabled={mut.isPending || !model || !name.trim()}
+            data-testid="edit-model-save"
+            className="inline-flex items-center gap-1.5 bg-accent text-white border border-accent px-4 py-1.5 text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-wait"
+          >
+            {mut.isPending && (
+              <span className="inline-block w-3 h-3 border-[1.5px] border-white/40 border-t-white animate-spin" />
+            )}
+            {mut.isPending ? "Salvo…" : "Salva modifiche"}
           </button>
         </>
       }
     >
-      <div className="space-y-3 text-xs">
+      <div className="space-y-4">
+        <label className="block">
+          <span className="block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5">
+            Nome modello
+          </span>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            autoFocus
+            data-testid="edit-model-name"
+            className="w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink focus:border-accent focus:outline-none transition-colors"
+          />
+        </label>
+
+        <label className="block">
+          <span className="block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5">
+            Descrizione
+          </span>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            className="w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink focus:border-accent focus:outline-none transition-colors resize-none"
+          />
+        </label>
+
         <div>
-          <label className="label block mb-1">Nome</label>
-          <input className="input" value={name} onChange={(e) => setName(e.target.value)} autoFocus />
-        </div>
-        <div>
-          <label className="label block mb-1">Descrizione</label>
-          <textarea className="input min-h-[60px]" value={description}
-                    onChange={(e) => setDescription(e.target.value)} />
-        </div>
-        <div>
-          <label className="label block mb-1">Unità di misura</label>
-          <select className="input" value={units} onChange={(e) => setUnits(e.target.value as any)}>
-            <option value="SI">SI (m, N, Pa)</option>
-            <option value="kN-m">kN-m (m, kN, kPa)</option>
-            <option value="N-mm">N-mm (mm, N, MPa)</option>
-          </select>
+          <span className="block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5">
+            Unità di misura
+          </span>
+          <div className="grid grid-cols-3 gap-0 border border-border bg-bg-panel p-0.5">
+            {UNIT_OPTIONS.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => setUnits(opt.value)}
+                className={[
+                  "flex flex-col items-center justify-center gap-0.5 py-2 text-sm font-medium transition-colors",
+                  units === opt.value
+                    ? "bg-accent text-white"
+                    : "text-ink-3 hover:text-ink hover:bg-bg-hover",
+                ].join(" ")}
+              >
+                <span>{opt.label}</span>
+                <span className={[
+                  "font-mono text-[9px] tracking-wide-1",
+                  units === opt.value ? "text-white/80" : "text-ink-4",
+                ].join(" ")}>
+                  {opt.sub}
+                </span>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </Dialog>

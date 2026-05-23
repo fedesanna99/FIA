@@ -1,5 +1,12 @@
+/**
+ * NewModelDialog (Precision v2.0 PR17 T3) — Precision-aligned.
+ *
+ * Crea un nuovo modello FEA via API. Stile precision: hairline borders,
+ * field-label mono uppercase, segmented control 2D/3D.
+ */
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Box, Square } from "lucide-react";
 import { Dialog } from "./Dialog";
 import { modelsApi } from "../../api/client";
 
@@ -28,50 +35,105 @@ export function NewModelDialog({ open, onClose, onCreated }: Props) {
     <Dialog
       open={open}
       onClose={onClose}
-      title="Nuovo modello FEA"
+      title="Nuovo modello"
+      width={440}
       footer={
         <>
-          <button className="btn" onClick={onClose} disabled={create.isPending}>Annulla</button>
           <button
-            className="btn btn-primary"
+            type="button"
+            onClick={onClose}
+            disabled={create.isPending}
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover disabled:opacity-50"
+          >
+            Annulla
+          </button>
+          <button
+            type="button"
             onClick={() => create.mutate()}
             disabled={create.isPending || !name.trim()}
+            data-testid="new-model-create"
+            className="inline-flex items-center gap-1.5 bg-accent text-white border border-accent px-4 py-1.5 text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-wait"
           >
-            {create.isPending ? "Creazione..." : "Crea"}
+            {create.isPending && (
+              <span className="inline-block w-3 h-3 border-[1.5px] border-white/40 border-t-white animate-spin" />
+            )}
+            {create.isPending ? "Creazione…" : "Crea modello"}
           </button>
         </>
       }
     >
-      <div className="space-y-3">
-        <div>
-          <label className="label block mb-1">Nome</label>
+      <div className="space-y-4">
+        {/* Field: Nome */}
+        <label className="block">
+          <span className="block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5">
+            Nome modello
+          </span>
           <input
-            className="input"
+            type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
+            data-testid="new-model-name"
+            className="w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink placeholder:text-ink-3 focus:border-accent focus:outline-none transition-colors"
           />
-        </div>
-        <div>
-          <label className="label block mb-1">Descrizione</label>
+        </label>
+
+        {/* Field: Descrizione */}
+        <label className="block">
+          <span className="block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5">
+            Descrizione <span className="text-ink-4 normal-case tracking-normal">· opzionale</span>
+          </span>
           <textarea
-            className="input min-h-[60px]"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
+            rows={3}
+            placeholder="Note didattiche o riferimenti normativi…"
+            className="w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink placeholder:text-ink-3 focus:border-accent focus:outline-none transition-colors resize-none"
           />
-        </div>
+        </label>
+
+        {/* Field: 2D/3D segmented control */}
         <div>
-          <label className="label block mb-1">Tipo</label>
-          <div className="flex gap-2">
+          <span className="block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5">
+            Dimensione
+          </span>
+          <div className="grid grid-cols-2 gap-0 border border-border bg-bg-panel p-0.5">
             <button
-              className={`btn flex-1 ${is3d ? "" : "btn-primary"}`}
+              type="button"
               onClick={() => setIs3d(false)}
-            >2D (piano XY)</button>
+              data-testid="new-model-2d"
+              className={[
+                "inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium transition-colors",
+                !is3d
+                  ? "bg-accent text-white"
+                  : "text-ink-3 hover:text-ink hover:bg-bg-hover",
+              ].join(" ")}
+            >
+              <Square className="w-3.5 h-3.5" />
+              2D <span className="font-mono text-[10px] opacity-80">· piano XY</span>
+            </button>
             <button
-              className={`btn flex-1 ${is3d ? "btn-primary" : ""}`}
+              type="button"
               onClick={() => setIs3d(true)}
-            >3D (spaziale)</button>
+              data-testid="new-model-3d"
+              className={[
+                "inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium transition-colors",
+                is3d
+                  ? "bg-accent text-white"
+                  : "text-ink-3 hover:text-ink hover:bg-bg-hover",
+              ].join(" ")}
+            >
+              <Box className="w-3.5 h-3.5" />
+              3D <span className="font-mono text-[10px] opacity-80">· spaziale</span>
+            </button>
           </div>
+        </div>
+
+        {/* Note didattica */}
+        <div className="text-[11px] text-ink-3 leading-snug pt-1 border-t border-border">
+          Il modello verrà creato vuoto. Aggiungi nodi, elementi e carichi
+          dal pannello <b className="text-ink-2">Make</b>, oppure parti da un{" "}
+          <b className="text-ink-2">template</b> precaricato.
         </div>
       </div>
     </Dialog>
