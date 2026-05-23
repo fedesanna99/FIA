@@ -162,7 +162,11 @@ def _verify_one_beam(
                 gamma_M1=gamma_M1,
             )
             Nb_value = buck.N_b_Rd
-            UR_buck = N_Ed / Nb_value if Nb_value > 0 else float("inf")
+            # v2.3.2 fix CI: JSON spec non supporta Infinity. Quando la
+            # resistenza è 0 (sezione collassata o input degenere) usiamo
+            # un sentinel grande (1e6) che è semanticamente equivalente
+            # a "UR molto >> 1, FAIL totale" ma JSON-safe.
+            UR_buck = N_Ed / Nb_value if Nb_value > 0 else 1e6
         except Exception:
             UR_buck = None
 
@@ -180,7 +184,8 @@ def _verify_one_beam(
                 fy=fy, M_cr=M_cr, h=sec.h, b=sec.b, gamma_M1=gamma_M1,
             )
             Mb_value = ltb.M_b_Rd
-            UR_LTB = M_Ed / Mb_value if Mb_value > 0 else float("inf")
+            # v2.3.2 fix CI: idem caso buckling, sentinel 1e6 invece di inf.
+            UR_LTB = M_Ed / Mb_value if Mb_value > 0 else 1e6
         except Exception:
             UR_LTB = None
 
