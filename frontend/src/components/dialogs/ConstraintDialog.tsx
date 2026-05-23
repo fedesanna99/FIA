@@ -13,14 +13,19 @@ import { toast } from "../../store/toastStore";
 import type { ConstraintType } from "../../types/model";
 import { TipBubble } from "../ui/TipBubble";
 
-const CONSTRAINT_TYPES: { value: ConstraintType; label: string }[] = [
-  { value: "fixed",    label: "Incastro · Fixed" },
-  { value: "pinned",   label: "Cerniera · Pinned" },
-  { value: "roller_x", label: "Carrello asse X" },
-  { value: "roller_y", label: "Carrello asse Y" },
-  { value: "roller_z", label: "Carrello asse Z" },
-  { value: "custom",   label: "Personalizzato · 6 GdL" },
-  { value: "spring",   label: "Molla elastica" },
+// v2.1.8 audit-fix: label esplicite sulla convention del solver. La
+// nomenclatura `roller_X` indica "blocca traslazione X" (lascia libere Y, Z e
+// rotazioni). Non confondere con altri software (Ansys/SAP usano la convention
+// opposta "asse di scorrimento"). Per trave bi-appoggiata orizzontale lungo X
+// con gravità in -Y: pinned a sx + roller_y a dx.
+const CONSTRAINT_TYPES: { value: ConstraintType; label: string; hint: string }[] = [
+  { value: "fixed",    label: "Incastro (tutti i GdL)",       hint: "Blocca uₓ uᵧ u_z θₓ θᵧ θ_z" },
+  { value: "pinned",   label: "Cerniera (3 traslazioni)",     hint: "Blocca uₓ uᵧ u_z · rotazioni libere" },
+  { value: "roller_x", label: "Carrello — blocca uₓ",         hint: "Solo uₓ vincolato · libero in Y e Z" },
+  { value: "roller_y", label: "Carrello — blocca uᵧ",         hint: "Solo uᵧ vincolato · libero in X e Z · classico carrello bi-appoggiata" },
+  { value: "roller_z", label: "Carrello — blocca u_z",        hint: "Solo u_z vincolato · libero in X e Y" },
+  { value: "custom",   label: "Personalizzato — 6 GdL",       hint: "Scegli quali DOF bloccare" },
+  { value: "spring",   label: "Molla elastica",               hint: "Rigidezze K per ogni DOF" },
 ];
 
 const DOF_LABELS = ["uₓ", "uᵧ", "u_z", "θₓ", "θᵧ", "θ_z"];
@@ -150,6 +155,14 @@ export function ConstraintDialog({ open, onClose, editConstraintId = null }: Pro
             <input type="number" className={`${inputCls} font-mono tabular-nums`} value={nodeId}
                    onChange={(e) => setNodeId(Number(e.target.value))} />
           </label>
+        </div>
+
+        {/* v2.1.8 audit-fix: hint esplicativo del vincolo selezionato.
+            Risolve ambiguità "roller_X = blocca X" (convention codice) vs
+            "roller_X = asse di scorrimento X" (convention Ansys/SAP). */}
+        <div className="px-3 py-2 border border-border-light bg-bg-elevated text-[11px] text-ink-2 leading-snug" data-testid="constraint-hint">
+          <span className="font-mono text-[9px] uppercase tracking-wide-1 text-ink-3 font-semibold mr-1.5">Cosa fa</span>
+          {CONSTRAINT_TYPES.find((t) => t.value === type)?.hint ?? ""}
         </div>
 
         {type === "custom" && (

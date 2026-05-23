@@ -121,21 +121,25 @@ export function VerifyChecksLive() {
 
   return (
     <div
-      className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-4 p-4 bg-bg-viewport min-h-[400px]"
+      className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-3 p-2 sm:p-3 lg:p-4 bg-bg-viewport min-h-[400px] min-w-0"
       data-testid="verify-checks-live"
     >
-      <ChecksRail
-        checks={checks}
-        activeId={activeId}
-        onSelect={setActiveId}
-      />
-      <ChecksDetailTable
-        checkId={activeSpec.id}
-        title={activeSpec.detailTitle}
-        subtitle={activeSpec.detailSub}
-        rows={detailRows}
-        ucLimit={1.0}
-      />
+      <div className="min-w-0">
+        <ChecksRail
+          checks={checks}
+          activeId={activeId}
+          onSelect={setActiveId}
+        />
+      </div>
+      <div className="min-w-0">
+        <ChecksDetailTable
+          checkId={activeSpec.id}
+          title={activeSpec.detailTitle}
+          subtitle={activeSpec.detailSub}
+          rows={detailRows}
+          ucLimit={1.0}
+        />
+      </div>
     </div>
   );
 }

@@ -64,6 +64,10 @@ function RailButton({ item, disabled }: { item: RailItem; disabled: boolean }) {
   return (
     <Tooltip
       side="right"
+      // v2.1.7 nav-dedup: tooltip ridondante quando il pannello è già aperto
+      // (header del PanelChrome mostra già lo stesso titolo + descrizione).
+      // Disabilitato in active state, attivo solo per "preview" del bottone chiuso.
+      disabled={active && !disabled}
       content={
         disabled ? (
           <div className="text-[11px]">

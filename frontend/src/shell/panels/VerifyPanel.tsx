@@ -37,12 +37,15 @@ const HUB_CARDS: HubCard[] = [
 ];
 
 
+// v2.1.6 nav-dedup: etichette brevi per non creare titoli mobile lunghi del
+// tipo "Verifiche · EC2 — Calcestruzzo". L'icona della hub-card + il sub-text
+// del PanelHub forniscono già il dettaglio quando l'utente sceglie.
 const TAB_LABELS: Record<string, string> = {
-  live:  "Verifiche live",
-  ec2:   "EC2 — Calcestruzzo",
-  ec3:   "EC3 — Acciaio",
-  ec5:   "EC5 — Legno",
-  ec8:   "EC8 — Sismica",
+  live:  "Live",
+  ec2:   "EC2",
+  ec3:   "EC3",
+  ec5:   "EC5",
+  ec8:   "EC8",
   ntc18: "NTC 2018",
 };
 
@@ -92,57 +95,18 @@ export function VerifyPanel() {
         current={TAB_LABELS[tab] ?? tab}
         onBack={() => setTab(null)}
       />
-      <div className="p-2 space-y-3">
-        {tab === "live" && (
-          <Section title="Verifiche live · UC normativi" icon={IconActivity}>
-            <VerifyChecksLive />
-          </Section>
-        )}
-        {tab === "ec2" && (
-          <Section title="EC2 — Calcestruzzo armato" icon={IconBuildingFactory2}>
-            <EC2Panel />
-          </Section>
-        )}
-        {tab === "ec3" && (
-          <Section title="EC3 — Acciaio" icon={IconBolt}>
-            <VerificationPanel />
-          </Section>
-        )}
-        {tab === "ec5" && (
-          <Section title="EC5 — Legno" icon={IconWood}>
-            <EC5Panel />
-          </Section>
-        )}
-        {tab === "ec8" && (
-          <Section title="EC8 — Sismica" icon={IconMountain}>
-            <EC8Panel />
-          </Section>
-        )}
-        {tab === "ntc18" && (
-          <Section title="NTC 2018 — Combinazioni" icon={IconFlag}>
-            <NTCCombinationsPanel />
-          </Section>
-        )}
+      {/* v2.1.6 nav-dedup: rimossi wrapper <Section title=...> con h3.
+          La PanelBreadcrumb sopra (desktop) e l'header del MobilePanel
+          (mobile) mostrano già "Verify › Verifiche live", il duplicato
+          h3 era solo rumore. */}
+      <div className="p-1.5 sm:p-2 space-y-3 min-w-0">
+        {tab === "live"  && <VerifyChecksLive />}
+        {tab === "ec2"   && <EC2Panel />}
+        {tab === "ec3"   && <VerificationPanel />}
+        {tab === "ec5"   && <EC5Panel />}
+        {tab === "ec8"   && <EC8Panel />}
+        {tab === "ntc18" && <NTCCombinationsPanel />}
       </div>
     </PanelChrome>
-  );
-}
-
-
-function Section({
-  title, icon: Icon, children,
-}: {
-  title: string;
-  icon: typeof IconShieldCheck;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <h3 className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold px-1 pt-1 pb-2">
-        <Icon size={12} />
-        {title}
-      </h3>
-      {children}
-    </div>
   );
 }

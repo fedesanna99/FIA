@@ -67,16 +67,18 @@ export function ChecksDetailTable({ checkId, title, subtitle, rows, ucLimit = 1.
     <section
       key={checkId}
       className={cn(
-        "bg-bg-panel border border-border animate-fade-in",
+        "bg-bg-panel border border-border animate-fade-in min-w-0",
         className,
       )}
       data-testid="checks-detail-table"
     >
       {/* Header */}
-      <header className="px-4 py-3 border-b border-border">
-        <h3 className="font-display text-lg font-semibold tracking-tight-1 text-ink">{title}</h3>
-        {subtitle && <p className="font-mono text-xs text-ink-3 mt-0.5">{subtitle}</p>}
-        <div className="mt-2 flex items-center gap-3 font-mono text-[10px] text-ink-3">
+      <header className="px-3 sm:px-4 py-3 border-b border-border">
+        <h3 className="font-display text-base sm:text-lg font-semibold tracking-tight-1 text-ink break-words">{title}</h3>
+        {subtitle && <p className="font-mono text-[11px] sm:text-xs text-ink-3 mt-0.5 break-words">{subtitle}</p>}
+        {/* v2.1.5 mobile-fix: flex-wrap così "UC max" + "UC limite" vanno a capo
+            invece di sforare lateralmente sui mobile stretti. */}
+        <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 font-mono text-[10px] text-ink-3">
           <span><span className="text-ink-2">{rows.length}</span> elementi</span>
           <span>UC max <span className={cn(
             "font-semibold tabular-nums",
@@ -88,8 +90,11 @@ export function ChecksDetailTable({ checkId, title, subtitle, rows, ucLimit = 1.
         </div>
       </header>
 
-      {/* Table */}
-      <table className="w-full border-collapse">
+      {/* Table — wrapped in scroll container so 7 colonne non spingono il
+          pannello fuori dal viewport mobile 375px. Mobile: l'utente scrolla
+          orizzontalmente nella tabella mentre il pannello resta fixed. */}
+      <div className="overflow-x-auto -mx-px">
+      <table className="w-full min-w-[560px] border-collapse">
         <thead>
           <tr className="bg-bg border-b border-border">
             <Th>Elemento</Th>
@@ -149,6 +154,7 @@ export function ChecksDetailTable({ checkId, title, subtitle, rows, ucLimit = 1.
           })}
         </tbody>
       </table>
+      </div>
     </section>
   );
 }

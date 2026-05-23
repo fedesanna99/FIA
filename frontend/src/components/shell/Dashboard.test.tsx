@@ -67,7 +67,13 @@ describe("Dashboard offline/database state", () => {
     expect(screen.getByTestId("dashboard-action-template")).toBeDisabled();
     expect(screen.getByTestId("dashboard-action-import")).toBeDisabled();
     expect(screen.getByTestId("dashboard-action-examples")).toBeDisabled();
-    expect(screen.getByText("Lista non caricabile finche' il backend non risponde.")).toBeInTheDocument();
+    // v2.1.6: testo banner aggiornato dal refactor Precision PR16. Il
+    // wording attuale spiega che la UI resta navigabile ma le API
+    // (modelli/salvataggi) richiedono il backend.
+    expect(screen.getByText("Backend/database non disponibile.")).toBeInTheDocument();
+    expect(
+      screen.getByText(/La UI resta navigabile, ma modelli e salvataggi richiedono le API\./),
+    ).toBeInTheDocument();
   });
 
   it("mantiene le action abilitate quando i modelli sono disponibili", () => {

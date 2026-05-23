@@ -25,9 +25,12 @@ interface TooltipProps {
 }
 
 export function Tooltip({ content, children, side = "top", align = "center", disabled }: TooltipProps) {
-  if (disabled) return <>{children}</>;
+  // v2.1.7: quando disabled NON unmountiamo l'intero Radix.Root (cambierebbe
+  // la tree shape e React rimonterebbe il children — ref stale, test break).
+  // Forziamo il controlled open=false: l'albero resta identico, solo
+  // l'overlay del tooltip non si apre mai.
   return (
-    <RadixTooltip.Root>
+    <RadixTooltip.Root open={disabled ? false : undefined}>
       <RadixTooltip.Trigger asChild>{children}</RadixTooltip.Trigger>
       <RadixTooltip.Portal>
         <RadixTooltip.Content

@@ -48,6 +48,12 @@ function RailButton({ item, disabled }: { item: RailItem; disabled: boolean }) {
   return (
     <Tooltip
       side="left"
+      // v2.1.7 nav-dedup: quando il pannello è già aperto, il tooltip
+      // descrittivo è ridondante (il PanelChrome header ripete title +
+      // subtitle) e su desktop appare come un "rettangolo fantasma"
+      // sovrapposto al pannello stesso. Tooltip resta utile SOLO quando
+      // il pannello è chiuso (aiuta l'utente a decidere se aprirlo).
+      disabled={active && !disabled}
       content={
         disabled ? (
           <div className="text-[11px]">Apri o crea un modello per iniziare</div>

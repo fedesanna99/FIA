@@ -17,6 +17,10 @@
  * categorizzate (allinea mockup_reference.html sezione 03/04).
  */
 import { ArrowLeft, ChevronRight, type LucideIcon } from "lucide-react";
+import { useEffect } from "react";
+
+import { useIsMobile } from "../../../hooks/useIsMobile";
+import { usePanelHeaderStore } from "../../../store/panelHeaderStore";
 import { cn } from "../../ui/cn";
 
 
@@ -119,6 +123,21 @@ export function PanelBreadcrumb({
   onBack: () => void;
   testId?: string;
 }) {
+  // v2.1.6 nav-dedup: pubblica current + popDrillIn nel panelHeaderStore
+  // così MobilePanel può comporre l'header unificato "Verifiche · Live"
+  // con back-arrow smart. Cleanup su unmount (= ritorno al hub).
+  const setPanelHeader = usePanelHeaderStore((s) => s.set);
+  const isMobile = useIsMobile();
+
+  useEffect(() => {
+    setPanelHeader({ current, popDrillIn: onBack });
+    return () => setPanelHeader({ current: null, popDrillIn: null });
+  }, [current, onBack, setPanelHeader]);
+
+  // Su mobile la breadcrumb è ridondante: MobilePanel header mostra già
+  // "Verifiche · Live" + back-arrow smart. Niente render.
+  if (isMobile) return null;
+
   return (
     <div
       className="px-3.5 py-2 border-b border-border flex items-center gap-2 font-mono text-[10px] uppercase tracking-wide-1 flex-shrink-0 bg-bg-panel"
