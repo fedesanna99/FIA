@@ -183,4 +183,9 @@ if _STATIC_DIR.is_dir() and (_STATIC_DIR / "index.html").is_file():
         candidate = _STATIC_DIR / full_path
         if candidate.is_file():
             return FileResponse(candidate)
+        # Directory request (e.g. /audit/) → serve nested index.html if present
+        # so sub-app entry points (audit viewer, /docs static, …) work
+        # without forcing a SPA route to a different bundle.
+        if candidate.is_dir() and (candidate / "index.html").is_file():
+            return FileResponse(candidate / "index.html")
         return FileResponse(_STATIC_DIR / "index.html")
