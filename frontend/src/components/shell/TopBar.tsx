@@ -38,7 +38,8 @@ const AccountDialog = lazy(() =>
   import("../dialogs/AccountDialog").then((m) => ({ default: m.AccountDialog })),
 );
 import { LocationPickerDialog } from "../dialogs/LocationPickerDialog";
-import { AuthDialog } from "../dialogs/AuthDialog";
+// AuthDialog rimosso: v2.1.4 auth-gate fa login obbligatorio prima
+// di montare App, quindi il dialog "Accedi" non serve più qui.
 import { useClimateStore } from "../../store/climateStore";
 import { useAuthStore } from "../../store/authStore";
 import { toast } from "../../store/toastStore";
@@ -95,36 +96,26 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   const [editOpen, setEditOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
-  const [authOpen, setAuthOpen] = useState(false);
   const setClimateBundle = useClimateStore((s) => s.setBundle);
-  const authToken = useAuthStore((s) => s.token);
-  const authUser = useAuthStore((s) => s.user);
-  const verifyToken = useAuthStore((s) => s.verifyToken);
   const qc = useQueryClient();
 
-  // Al mount: se c'e' un token salvato, valida lato server (se invalido → logout)
-  useEffect(() => {
-    if (authToken && !authUser) {
-      verifyToken();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // v2.1.4 auth-gate: l'AuthGate (in main.tsx) chiama bootstrap() al boot e
+  // ha già validato il token via /api/auth/me prima che TopBar venga montato.
+  // Niente più verifyToken() qui — questo componente assume utente loggato.
 
-  // alpha.21: listener custom events dalla Command Palette per aprire i dialog
-  // gestiti dal TopBar (account/location/auth). Evita prop drilling.
+  // Listener custom events dalla Command Palette per aprire i dialog
+  // gestiti dal TopBar (account/location). Evita prop drilling.
+  // v2.1.4: rimosso listener `feapro:open-auth` (gate prevede auth obbligatorio).
   useEffect(() => {
     const openAcc = () => setAccountOpen(true);
     const openLoc = () => setLocationOpen(true);
-    const openAuthFn = () => setAuthOpen(true);
     const openNew = () => setNewOpen(true);
     window.addEventListener("feapro:open-account", openAcc);
     window.addEventListener("feapro:open-location", openLoc);
-    window.addEventListener("feapro:open-auth", openAuthFn);
     window.addEventListener("feapro:open-new-model", openNew);
     return () => {
       window.removeEventListener("feapro:open-account", openAcc);
       window.removeEventListener("feapro:open-location", openLoc);
-      window.removeEventListener("feapro:open-auth", openAuthFn);
       window.removeEventListener("feapro:open-new-model", openNew);
     };
   }, []);
@@ -361,7 +352,8 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         onClose={() => setLocationOpen(false)}
         onApply={(bundle) => setClimateBundle(bundle)}
       />
-      <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />
+      {/* v2.1.4 auth-gate: AuthDialog rimosso da qui (login obbligatorio
+          al boot tramite AuthGate). */}
     </header>
   );
 }

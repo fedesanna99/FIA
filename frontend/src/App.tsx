@@ -44,7 +44,7 @@ import { HelpSheet } from "./components/shell/HelpSheet";
 import { OnboardingTour } from "./components/shell/OnboardingTour";
 import { ClimateContextBadge } from "./components/shell/ClimateContextBadge";
 import { StatusBar } from "./components/layout/StatusBar";
-import { Toaster } from "./components/layout/Toaster";
+// Toaster mounted at root in main.tsx (così resta visibile durante AuthScreen).
 import { Viewport3D } from "./components/viewport/Viewport3D";
 import { DropZone } from "./components/viewport/DropZone";
 import { LoadingScreen, type SolverPhase } from "./components/shell/LoadingScreen";
@@ -306,10 +306,21 @@ export default function App() {
           // Wizard mounted at root reads wizardStore.active — niente close.
           oneShot = false;
           break;
+        // v2.2.0 audit-fix B8: invece di toast "in arrivo" portiamo l'utente
+        // direttamente sul panel esistente che gestisce ogni solver.
         case "pushover":
+          // PushoverPanel vive dentro SolvePanel · tab "dinamica"
+          useWorkspaceStore.getState().openLeftPanel("solve", "dinamica");
+          useLeftRailStore.getState().open("analysis");
+          break;
         case "nonlinear":
+          // NonlinearPanel + ArcLengthPanel vivono in SolvePanel · tab "nonlin"
+          useWorkspaceStore.getState().openLeftPanel("solve", "nonlin");
+          useLeftRailStore.getState().open("analysis");
+          break;
         case "report":
-          toast("info", `Wizard ${kind} in arrivo nel prossimo update.`);
+          // ReportExportDialog è già montato in App: dispatcher event globale.
+          window.dispatchEvent(new Event("feapro:open-export-pdf"));
           break;
       }
       if (oneShot) useWizardStore.getState().close();
@@ -564,7 +575,6 @@ export default function App() {
       </div>
       {isMobile && !isFocusMode && <MobileTabbar />}
       {!isMobile && !isFocusMode && <StatusBar />}
-      <Toaster />
       <CommandPalette />
       <HelpSheet />
       <OnboardingTour disabled={!activeId || modelsQuery.isError || modelsQuery.isFetching} />

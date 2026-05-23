@@ -24,7 +24,7 @@
  */
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
-  User, MapPin, LogOut, LogIn, Sun, Moon, Monitor,
+  User, MapPin, LogOut, Sun, Moon, Monitor,
   Eye, FileJson, FileSpreadsheet, FileText, HelpCircle,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
@@ -41,7 +41,6 @@ import {
   exportDisplacementsCSV, exportModesCSV,
 } from "../../../utils/export";
 import { generateReport, viewportCanvasDataUrl } from "../../../utils/reportPdf";
-import { Button } from "../../ui/Button";
 import { Tooltip } from "../../ui/Tooltip";
 import { CollabAvatars } from "./CollabAvatars";
 
@@ -100,20 +99,12 @@ export function AvatarMenu() {
   const themeMode = useThemeStore((s) => s.mode);
   const cycleTheme = useThemeStore((s) => s.cycle);
 
+  // v2.1.4 auth-gate: AvatarMenu è raggiungibile SOLO ad autenticazione
+  // completata (l'AuthGate blocca App finché user è null). Difensivo: se
+  // per qualunque race condition user fosse null qui, non mostriamo nulla
+  // (era login button, ora dead-code).
   if (!user) {
-    return (
-      <Tooltip content="Accedi o crea un account">
-        <Button
-          size="sm"
-          variant="ghost"
-          iconLeft={<LogIn className="h-3.5 w-3.5" />}
-          onClick={() => window.dispatchEvent(new Event("feapro:open-auth"))}
-          data-testid="topbar-login"
-        >
-          <span className="hidden md:inline">Accedi</span>
-        </Button>
-      </Tooltip>
-    );
+    return null;
   }
 
   const ThemeIcon = THEME_ICON[themeMode];

@@ -30,7 +30,7 @@ import type { LucideIcon } from "lucide-react";
 import {
   Boxes, Cpu, BarChart3, ShieldCheck, ArrowRightLeft,
   Plus, Copy, Pencil, Play, Layers, MousePointerClick,
-  Eye, Wrench, History, MapPin, User, LogIn, LogOut,
+  Eye, Wrench, History, MapPin, User, LogOut,
   Sun, Moon, Monitor, Search, HelpCircle, Sparkles,
   FileDown, FileUp, FileText, GitCompareArrows, Ruler,
   Camera, FileBarChart, Trash2, RotateCcw, Settings,
@@ -170,7 +170,8 @@ const SETTINGS: PaletteItem[] = [
 
   // Account
   { id: "open-account", label: "Apri account · Usage + Tier + Admin", aliases: ["billing", "quota", "credits"], section: "settings", group: "Account", icon: User, actionKind: "openAccount" },
-  { id: "open-auth",    label: "Login / Crea account", aliases: ["accedi", "register", "signin"], section: "settings", group: "Account", icon: LogIn, actionKind: "openAuth" },
+  // v2.1.4 auth-gate: rimosso "Login / Crea account" — l'AuthGate richiede
+  // l'autenticazione PRIMA che la palette sia accessibile. Resta solo logout.
   { id: "logout",       label: "Logout (disconnetti)", aliases: ["esci"], section: "settings", group: "Account", icon: LogOut, actionKind: "logout" },
 
   // Misc settings (placeholder Sprint 5)
@@ -269,9 +270,11 @@ const WIZARDS_EXTRA: PaletteItem[] = [
   { id: "wiz-new-model",  label: "Apri wizard nuovo modello",         aliases: ["nuovo", "new", "model", "wizard"], section: "commands", group: "Wizard", icon: Plus,     actionKind: "open-wizard", payload: { wizard: "new-model" } },
   { id: "wiz-mesh",       label: "Apri wizard mesh",                  aliases: ["mesh", "wizard", "discretizzazione"], section: "commands", group: "Wizard", icon: Layers,   actionKind: "open-wizard", payload: { wizard: "mesh" }, needsModel: true },
   { id: "wiz-sismica-th", label: "Apri wizard sismica time-history",  aliases: ["sismica", "th", "wizard", "newmark"], section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "sismica-th" }, needsModel: true },
-  { id: "wiz-pushover",   label: "Apri wizard pushover",              aliases: ["pushover", "wizard"],                 section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "pushover" },   soon: true, needsModel: true },
-  { id: "wiz-nonlinear",  label: "Apri wizard nonlinear arc-length",  aliases: ["nonlinear", "arc length", "riks"],    section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "nonlinear" },  soon: true, needsModel: true },
-  { id: "wiz-report",     label: "Apri wizard report PDF",            aliases: ["report", "pdf", "wizard"],            section: "commands", group: "Wizard", icon: FileText, actionKind: "open-wizard", payload: { wizard: "report" },     soon: true, needsModel: true },
+  // v2.2.0 audit-fix B8: i tre wizard "soon" diventano scorciatoie verso
+  // panel/dialog esistenti che già funzionano (no nuovo wizard 3-step da costruire).
+  { id: "wiz-pushover",   label: "Apri pushover (Solve · Dinamica)",   aliases: ["pushover", "wizard"],                 section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "pushover" },  needsModel: true },
+  { id: "wiz-nonlinear",  label: "Apri nonlinear (Solve · Non-lin)",   aliases: ["nonlinear", "arc length", "riks"],    section: "commands", group: "Wizard", icon: Activity, actionKind: "open-wizard", payload: { wizard: "nonlinear" }, needsModel: true },
+  { id: "wiz-report",     label: "Apri report export PDF",             aliases: ["report", "pdf", "wizard"],            section: "commands", group: "Wizard", icon: FileText, actionKind: "open-wizard", payload: { wizard: "report" },    needsModel: true },
 ];
 
 

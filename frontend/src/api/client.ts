@@ -44,23 +44,15 @@ api.interceptors.response.use(
     if (!err.response) {
       return Promise.reject(err);
     }
-    // 401 su endpoint authenticated: il token e' scaduto/invalido. Pulisci
-    // lo store cosi' la UI redirige a login. Tocca farlo qui per evitare
-    // di mostrare toast 401 ripetuti.
-    if (status === 401) {
+    // 401 su endpoint authenticated: il token e' scaduto/invalido.
+    // v2.1.4 auth-gate: dispatch evento `feapro:auth-invalidated` — l'authStore
+    // è sottoscritto e fa logout() così l'AuthGate ri-appare automaticamente.
+    // Niente più scrittura diretta a localStorage (era fragile rispetto al
+    // re-render zustand). Evitiamo il 401 di /api/auth/me al boot perché lì
+    // il bootstrap() di authStore gestisce già il caso direttamente.
+    if (status === 401 && !url.endsWith("/api/auth/me")) {
       try {
-        const raw = window.localStorage.getItem("auth-store");
-        if (raw) {
-          const parsed = JSON.parse(raw) as { state?: { token?: string } };
-          if (parsed?.state?.token) {
-            window.localStorage.setItem(
-              "auth-store",
-              JSON.stringify({ state: { token: "", user: null }, version: 0 }),
-            );
-            // Forza re-render delle componenti che leggono dallo store:
-            window.dispatchEvent(new Event("storage"));
-          }
-        }
+        window.dispatchEvent(new Event("feapro:auth-invalidated"));
       } catch {
         /* ignore */
       }

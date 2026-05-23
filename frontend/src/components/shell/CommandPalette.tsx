@@ -14,6 +14,9 @@
  */
 import { Command } from "cmdk";
 import { useEffect, useMemo } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+
+import { modelsApi } from "../../api/client";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useRightRailStore } from "../../store/rightRailStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
@@ -55,6 +58,7 @@ export function CommandPalette() {
   const authLogout = useAuthStore((s) => s.logout);
   const setOpenSection = useRightRailStore((s) => s.open);
   const run = useRunAnalysis();
+  const qc = useQueryClient();
 
   // v1.5 follow-up: voci dinamiche goto-node/element generate dal modello attivo
   const navItems = useNavigationCommands();
@@ -133,7 +137,9 @@ export function CommandPalette() {
         window.dispatchEvent(new CustomEvent("feapro:open-location"));
         break;
       case "openAuth":
-        window.dispatchEvent(new CustomEvent("feapro:open-auth"));
+        // v2.1.4 auth-gate: legacy no-op. Login obbligatorio gestito dall'
+        // AuthGate al boot — niente piu' AuthDialog. Manteniamo il case per
+        // evitare TS exhaustive errors finche' il tipo non viene rimosso.
         break;
       case "openExport":
         // v1.5.2 Task 35: il pannello I/O legacy e' stato rimosso. L'export
@@ -175,26 +181,33 @@ export function CommandPalette() {
         break;
       }
       case "apply-material": {
-        // v1.5 Task 34: applica materiale alla selezione del modelStore.
-        // Se nulla e' selezionato, ricorda all'utente di selezionare prima.
-        const sel = useModelStore.getState().selectedElementIds;
+        // v2.1.9 audit-fix B5: ora la mutation è REALE.
+        // Chiama modelsApi.updateElement per ogni elemento selezionato,
+        // aggiorna lo store locale + invalida la cache React Query.
+        const ms = useModelStore.getState();
+        const sel = ms.selectedElementIds;
+        const m = ms.model;
         const matId = (item.payload as { materialId: string }).materialId;
+        if (!m) { toast("info", "Apri un modello per applicare materiali."); break; }
         if (sel.size === 0) {
           toast("info", `Seleziona elementi prima di applicare ${matId}.`);
-        } else {
-          // TODO v1.5+: chiama materialsApi.applyToElements(modelId, Array.from(sel), matId).
-          toast("success", `Materiale ${matId} marcato per ${sel.size} elementi (mutation API in arrivo).`);
+          break;
         }
+        void applyMaterialToSelection(m.id, m.elements, sel, matId, qc);
         break;
       }
       case "apply-section": {
-        const sel = useModelStore.getState().selectedElementIds;
+        // v2.1.9 audit-fix B5: stessa logica per le sezioni.
+        const ms = useModelStore.getState();
+        const sel = ms.selectedElementIds;
+        const m = ms.model;
         const secId = (item.payload as { sectionId: string }).sectionId;
+        if (!m) { toast("info", "Apri un modello per applicare sezioni."); break; }
         if (sel.size === 0) {
           toast("info", `Seleziona elementi prima di applicare ${secId}.`);
-        } else {
-          toast("success", `Sezione ${secId} marcata per ${sel.size} elementi (mutation API in arrivo).`);
+          break;
         }
+        void applySectionToSelection(m.id, m.elements, sel, secId, qc);
         break;
       }
       case "toggle-view": {
@@ -457,6 +470,73 @@ export function CommandPalette() {
       </div>
     </Command.Dialog>
   );
+}
+
+
+/**
+ * v2.1.9 audit-fix B5 — applica materiale/sezione alla selezione corrente.
+ *
+ * Chiama `modelsApi.updateElement` per ogni elemento selezionato (in parallelo
+ * tramite `Promise.allSettled`), aggiorna lo store locale via `updateElement`
+ * e invalida la React Query cache così le UI dipendenti (ResultsOverviewCard,
+ * VerifyChecksLive, ecc.) si rinfrescano. Errori parziali sono raccolti.
+ */
+async function applyMaterialToSelection(
+  modelId: string,
+  elements: import("../../types/model").Element[],
+  selection: Set<number>,
+  materialId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  qc: any,
+): Promise<void> {
+  return applyPropertyToSelection(modelId, elements, selection, qc, (el) => ({
+    ...el, material_id: materialId,
+  }), `Materiale ${materialId}`);
+}
+
+async function applySectionToSelection(
+  modelId: string,
+  elements: import("../../types/model").Element[],
+  selection: Set<number>,
+  sectionId: string,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  qc: any,
+): Promise<void> {
+  return applyPropertyToSelection(modelId, elements, selection, qc, (el) => ({
+    ...el, section_id: sectionId,
+  }), `Sezione ${sectionId}`);
+}
+
+async function applyPropertyToSelection(
+  modelId: string,
+  elements: import("../../types/model").Element[],
+  selection: Set<number>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  qc: any,
+  mapper: (el: import("../../types/model").Element) => import("../../types/model").Element,
+  label: string,
+): Promise<void> {
+  const targets = elements.filter((e) => selection.has(e.id));
+  if (targets.length === 0) return;
+  const updateLocal = useModelStore.getState().updateElement;
+  const results = await Promise.allSettled(
+    targets.map(async (el) => {
+      const updated = await modelsApi.updateElement(modelId, el.id, mapper(el));
+      updateLocal(el.id, updated);
+      return updated;
+    }),
+  );
+  const ok = results.filter((r) => r.status === "fulfilled").length;
+  const fail = results.length - ok;
+  qc.invalidateQueries({ queryKey: ["model", modelId] });
+  qc.invalidateQueries({ queryKey: ["models"] });
+  if (fail === 0) {
+    toast("success", `${label} applicato a ${ok} elementi.`);
+  } else if (ok > 0) {
+    toast("warning", `${label}: ${ok} ok · ${fail} falliti.`);
+  } else {
+    toast("error", `Impossibile applicare ${label} (${fail} errori).`);
+  }
 }
 
 

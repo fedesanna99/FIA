@@ -1,14 +1,18 @@
 /**
- * Auth store (alpha.14) — persiste JWT bearer + user info per cross-tab.
+ * Auth store (alpha.14 · esteso v2.1.4 auth-gate).
  *
- * Storage key: "auth-store" (zustand persist, localStorage).
- * - token: JWT bearer ("" se non loggato)
- * - user: AuthUser | null
- * - login/logout helpers
+ * Persiste JWT bearer + user info per cross-tab. Storage key: "auth-store".
  *
- * NON contiene la password (mai persisterla). Il token e' single-source-of-
- * truth: scaduto/invalido → logout silenzioso. App.tsx puo' chiamare
- * `verifyToken()` al boot per re-validare e refreshare l'user.
+ * v2.1.4 auth-gate:
+ *   - `bootstrapping` flag: true durante la verifica del token al boot.
+ *   - `bootstrap()`: chiama verifyToken (se c'è un token), poi spegne il flag.
+ *     Va invocato una sola volta da App al mount. Idempotente.
+ *   - Listener globale su `window.feapro:auth-invalidated`: il client axios
+ *     dispatcha questo event quando un 401 risponde su endpoint authenticated.
+ *     Lo store risponde con logout() così l'AuthGate riappare automaticamente.
+ *
+ * NON contiene la password (mai persisterla). Il token è single-source-of-
+ * truth: scaduto/invalido → logout silenzioso.
  */
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
@@ -20,15 +24,25 @@ import { getMe } from "../api/auth";
 interface AuthState {
   token: string;
   user: AuthUser | null;
+  /** True durante la verifica del token al boot (mostra spinner nell'AuthGate). */
+  bootstrapping: boolean;
   /** Imposta token + user dopo register/login riuscito. */
   setAuth: (token: string, user: AuthUser) => void;
   /** Pulisce tutto (logout). */
   logout: () => void;
   /** Verifica il token corrente contro /api/auth/me; se fallisce → logout. */
   verifyToken: () => Promise<boolean>;
+  /**
+   * Boot one-shot: se c'è un token persistito, valida con verifyToken().
+   * Se non c'è token, spegne subito bootstrapping. Idempotente.
+   */
+  bootstrap: () => Promise<void>;
   /** True se utente loggato (token + user presenti). */
   isLoggedIn: () => boolean;
 }
+
+
+let bootstrapPromise: Promise<void> | null = null;
 
 
 export const useAuthStore = create<AuthState>()(
@@ -36,8 +50,9 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       token: "",
       user: null,
-      setAuth: (token, user) => set({ token, user }),
-      logout: () => set({ token: "", user: null }),
+      bootstrapping: true,
+      setAuth: (token, user) => set({ token, user, bootstrapping: false }),
+      logout: () => set({ token: "", user: null, bootstrapping: false }),
       verifyToken: async () => {
         const tok = get().token;
         if (!tok) {
@@ -52,6 +67,26 @@ export const useAuthStore = create<AuthState>()(
           return false;
         }
       },
+      bootstrap: async () => {
+        // Idempotent: la prima chiamata fa il lavoro, le successive aspettano
+        // la stessa promise.
+        if (bootstrapPromise) return bootstrapPromise;
+        bootstrapPromise = (async () => {
+          const tok = get().token;
+          if (!tok) {
+            set({ bootstrapping: false });
+            return;
+          }
+          try {
+            const user = await getMe(tok);
+            set({ user, bootstrapping: false });
+          } catch {
+            // Token scaduto / invalido → logout silenzioso.
+            set({ token: "", user: null, bootstrapping: false });
+          }
+        })();
+        return bootstrapPromise;
+      },
       isLoggedIn: () => {
         const s = get();
         return !!s.token && !!s.user;
@@ -59,6 +94,19 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: "auth-store",
+      // Non persistere `bootstrapping` (volatile, sempre true al boot).
+      partialize: (s) => ({ token: s.token, user: s.user }),
     },
   ),
 );
+
+
+// ── Auto-logout su 401 ──────────────────────────────────────────────────────
+// Il client axios dispatcha `feapro:auth-invalidated` quando un endpoint
+// risponde 401. Ciò capita se il token scade durante l'uso. Resettiamo lo
+// store così l'AuthGate ri-appare e l'utente fa di nuovo login.
+if (typeof window !== "undefined") {
+  window.addEventListener("feapro:auth-invalidated", () => {
+    useAuthStore.getState().logout();
+  });
+}
