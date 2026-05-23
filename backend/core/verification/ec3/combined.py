@@ -24,6 +24,12 @@ from typing import Optional
 
 from .section_classification import SectionClass
 
+# v2.3.2 fix CI: JSON spec non supporta Infinity. Quando una resistenza
+# è 0 (sezione collassata / input degenere) usiamo questo sentinel —
+# UR molto >> 1 = FAIL totale, semanticamente identico a "infinito" ma
+# JSON-safe per la serializzazione Pydantic/FastAPI.
+EC3_SENTINEL_INF: float = 1e6
+
 
 @dataclass(frozen=True)
 class CombinedResult:
@@ -73,7 +79,8 @@ def combined_NM(
         elif M_N_Rd is None:
             # fallback lineare conservativo se mancano le info geometriche
             M_N_Rd = M_Rd * max(0.0, 1.0 - UR_N)
-        UR_NM = M_Ed / M_N_Rd if M_N_Rd > 0 else float("inf")
+        # v2.3.2 fix CI: JSON non supporta Infinity → sentinel 1e6
+        UR_NM = M_Ed / M_N_Rd if M_N_Rd > 0 else EC3_SENTINEL_INF
     else:
         # Classe 3 o 4: somma lineare (6.42)
         UR_NM = UR_N + UR_M
@@ -115,8 +122,9 @@ def combined_NMV(
     if M_Rd_reduced <= 0:
         # taglio troppo elevato — segnala U.R. saturato
         return CombinedResult(
-            UR=float("inf"), UR_N=abs(N_Ed)/N_Rd, UR_M=float("inf"),
-            UR_V=UR_V, UR_NM=float("inf"),
+            # v2.3.2 fix CI: JSON non supporta Infinity → sentinel 1e6
+            UR=EC3_SENTINEL_INF, UR_N=abs(N_Ed)/N_Rd, UR_M=EC3_SENTINEL_INF,
+            UR_V=UR_V, UR_NM=EC3_SENTINEL_INF,
             governing="V", rho_shear=rho,
             notes="V_Ed eccessivo: M_Rd ridotto a zero",
         )

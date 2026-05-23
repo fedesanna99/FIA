@@ -68,11 +68,16 @@ class TestCombinedNMV:
         assert r.rho_shear == pytest.approx(0.36, rel=1e-3)
 
     def test_excessive_shear_returns_inf(self):
-        """V_Ed = V_Rd → ρ=1, M_Rd_ridotto=0 → U.R. infinito."""
+        """V_Ed = V_Rd → ρ=1, M_Rd_ridotto=0 → U.R. sentinel.
+
+        v2.3.2: il sentinel ora è EC3_SENTINEL_INF (1e6) invece di
+        float('inf'), così la response API è JSON-safe.
+        """
+        from core.verification.ec3.combined import EC3_SENTINEL_INF
         r = combined_NMV(N_Ed=0, M_Ed=50e3, V_Ed=100e3,
                          N_Rd=1000e3, M_Rd=200e3, V_Rd=100e3,
                          section_class=SectionClass.CLASS_1)
-        assert r.UR == float("inf")
+        assert r.UR == EC3_SENTINEL_INF
         assert r.governing == "V"
 
     def test_v_governs_when_high(self):
