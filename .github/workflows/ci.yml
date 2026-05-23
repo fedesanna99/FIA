@@ -39,7 +39,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
       - name: Run pytest
-        run: pytest --tb=short --cov-fail-under=70
+        # Escludi i marker opt-in (network, ai_live, calibration) e i
+        # long-running (slow). Questi test integration contro API esterne
+        # (USGS, Open-Meteo, ecc.) sono flaky su runner CI senza network
+        # garantito. Resta comunque possibile lanciarli con
+        # `pytest -m slow` in locale.
+        run: pytest --tb=short --cov-fail-under=70 -m "not slow and not network and not ai_live and not calibration"
 
   frontend-build:
     name: Frontend (typecheck + vitest + build)
