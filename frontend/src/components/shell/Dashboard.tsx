@@ -105,22 +105,21 @@ export function Dashboard({
       )}
 
       {/* v1.8 T1: CTA doppia Studio Pro / Percorsi — asse semantico
-          del prodotto. Studio Pro (accent blu) = controllo esperto,
-          apre subito il dialog Nuovo modello. Percorsi (emerald, token
-          v1.8 step 0) = workflow guidato, placeholder fino a v1.9. */}
+          del prodotto. v2.0 Precision: stesso accento cyan per entrambi,
+          si distinguono per layout/eyebrow (no doppio colore). */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5 max-w-5xl mx-auto">
         <button
           type="button"
           onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-new-model"))}
           disabled={modelsUnavailable}
           data-testid="home-cta-studio-pro"
-          className="text-left bg-accent text-white border border-accent-hover/30 rounded-lg p-5 shadow-pop hover:bg-accent-hover hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="text-left bg-accent text-white border border-accent-hover/30 p-5 shadow-pop hover:bg-accent-hover hover:-translate-y-0.5 transition-all duration-fast disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
-          <div className="text-[10px] uppercase tracking-wider font-mono opacity-80 mb-1">
+          <div className="font-mono text-[10px] uppercase tracking-wide-4 opacity-80 mb-1">
             Modalita' esperto
           </div>
-          <div className="text-lg font-semibold mb-1">Studio Pro</div>
-          <div className="text-xs opacity-90">
+          <div className="font-display text-lg font-semibold mb-1 tracking-tight-1">Studio Pro</div>
+          <div className="text-xs opacity-90 leading-snug">
             Tutti gli strumenti, controllo completo. Per ingegneri che sanno cosa fare.
           </div>
         </button>
@@ -130,13 +129,13 @@ export function Dashboard({
           onClick={() => !modelsUnavailable && window.dispatchEvent(new Event("feapro:open-percorsi"))}
           disabled={modelsUnavailable}
           data-testid="home-cta-percorsi"
-          className="text-left bg-percorsi text-white border border-percorsi/30 rounded-lg p-5 shadow-pop hover:opacity-90 hover:-translate-y-0.5 hover:shadow-lg transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-percorsi focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
+          className="text-left bg-bg-panel text-ink border-2 border-accent p-5 shadow-pop hover:bg-accent-subtle hover:-translate-y-0.5 transition-all duration-fast disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
         >
-          <div className="text-[10px] uppercase tracking-wider font-mono opacity-80 mb-1">
+          <div className="font-mono text-[10px] uppercase tracking-wide-4 text-accent mb-1">
             Workflow guidato
           </div>
-          <div className="text-lg font-semibold mb-1">Percorsi</div>
-          <div className="text-xs opacity-90">
+          <div className="font-display text-lg font-semibold mb-1 tracking-tight-1 text-ink">Percorsi</div>
+          <div className="text-xs text-ink-2 leading-snug">
             Step-by-step verso il risultato. Per esperti che vogliono un assistente, per principianti che vogliono imparare.
           </div>
         </button>
