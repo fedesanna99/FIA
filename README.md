@@ -6,6 +6,7 @@
 > **Stato attuale**: `v2.2.2-audit-deep` (auth gate + nav dedup + audit ingegneristico chiuso)
 > **Storia release**: vedi [CHANGELOG.md](CHANGELOG.md)
 > **Direzione prodotto**: vedi [ROADMAP.md](ROADMAP.md)
+> **Guida utente in italiano**: vedi [docs/USER_GUIDE.md](docs/USER_GUIDE.md) — tour interfaccia, flussi passo-passo, convention, troubleshooting, glossario
 
 ![Backend](https://img.shields.io/badge/Backend-660%2B%20pytest-brightgreen)
 ![Frontend](https://img.shields.io/badge/Frontend-571%20vitest-brightgreen)
