@@ -33,7 +33,7 @@ export function ValidationView() {
           <ShieldCheck className="w-3.5 h-3.5 text-ink-purple" />
           <h3 className="text-xs font-semibold text-ink">Benchmark NAFEMS</h3>
         </div>
-        <p className="text-[11px] text-ink-muted leading-relaxed mb-2">
+        <p className="text-[11px] text-ink-3 leading-relaxed mb-2">
           Test di validazione del solver contro i benchmark NAFEMS (LE1, LE2, LE10).
           Verifica accuratezza del FEM su problemi con soluzione analitica nota.
         </p>
@@ -50,7 +50,7 @@ export function ValidationView() {
       </section>
 
       <section>
-        <div className="text-[10px] uppercase tracking-wider text-ink-muted font-semibold mb-2">
+        <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold mb-2">
           Test recenti
         </div>
         <div className="space-y-1">
@@ -71,10 +71,10 @@ export function ValidationView() {
       <div className="border-t border-border" />
 
       <section>
-        <div className="text-[10px] uppercase tracking-wider text-ink-muted font-semibold mb-2">
+        <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold mb-2">
           Verifiche EC2 / EC3 / EC5 / EC8 / NTC
         </div>
-        <p className="text-[11px] text-ink-muted leading-relaxed mb-2">
+        <p className="text-[11px] text-ink-3 leading-relaxed mb-2">
           Le verifiche di codice (LTB, instabilità, sezioni, sismica NTC2018) vivono nel pannello Verify.
         </p>
         <button

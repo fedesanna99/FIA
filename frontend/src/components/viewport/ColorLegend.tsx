@@ -22,7 +22,7 @@ export function ColorLegend({
     "absolute top-4 right-4";
   return (
     <div className={`${posClass} bg-bg-panel/95 border border-border rounded p-2 text-xs backdrop-blur`}>
-      <div className="text-ink-muted uppercase tracking-wider text-[10px] mb-1">{title}</div>
+      <div className="text-ink-3 uppercase tracking-wider text-[10px] mb-1">{title}</div>
       <div className="flex items-stretch gap-2">
         <div className="flex flex-col" style={{ height: 200 }}>
           {Array.from({ length: stops }).map((_, i) => (
@@ -35,7 +35,7 @@ export function ColorLegend({
         </div>
         <div className="flex flex-col justify-between text-[10px] numeric text-ink py-0.5">
           <span>{format(max)}</span>
-          <span className="text-ink-dim">{format((min + max) / 2)}</span>
+          <span className="text-ink-3">{format((min + max) / 2)}</span>
           <span>{format(min)}</span>
         </div>
       </div>

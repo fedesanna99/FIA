@@ -43,7 +43,7 @@ const STEPS: Step[] = [
     title: "Benvenuto in FEA Pro",
     description: "Analisi strutturale agli elementi finiti — moderna, didattica, completa.",
     body: (
-      <div className="space-y-2 text-sm text-ink-muted">
+      <div className="space-y-2 text-sm text-ink-3">
         <p>L'app e' organizzata in <strong className="text-ink">due rail laterali</strong> ispirati al workflow strutturale.</p>
 
         <p className="font-semibold text-ink pt-1 text-xs uppercase tracking-wider">A sinistra · costruisci</p>
@@ -60,7 +60,7 @@ const STEPS: Step[] = [
           <li className="flex items-center gap-2"><Wrench       className="h-4 w-4 text-accent" /> <strong>Tools</strong> — cost preview, compare, misure, BIM</li>
         </ul>
 
-        <p className="text-[11px] text-ink-dim pt-2">
+        <p className="text-[11px] text-ink-3 pt-2">
           Tip: usa <kbd className="bg-bg px-1 rounded border border-border">1</kbd>–<kbd className="bg-bg px-1 rounded border border-border">3</kbd> per i rail principali,{" "}
           <kbd className="bg-bg px-1 rounded border border-border">Ctrl K</kbd> per la palette comandi globale.
         </p>
@@ -74,7 +74,7 @@ const STEPS: Step[] = [
     title: "1 · Workspace MODELLO",
     description: "Geometria, materiali, sezioni, carichi, vincoli.",
     body: (
-      <div className="space-y-2 text-xs text-ink-muted">
+      <div className="space-y-2 text-xs text-ink-3">
         <p>Costruisci la struttura con shortcut rapidi: <kbd className="bg-bg px-1 rounded border border-border">N</kbd> nodo · <kbd className="bg-bg px-1 rounded border border-border">E</kbd> elemento · <kbd className="bg-bg px-1 rounded border border-border">L</kbd> carico · <kbd className="bg-bg px-1 rounded border border-border">C</kbd> vincolo · <kbd className="bg-bg px-1 rounded border border-border">M</kbd> wizard mesh.</p>
         <p>Il <strong className="text-ink">wizard mesh</strong> supporta:</p>
         <ul className="list-disc pl-4 space-y-0.5">
@@ -94,7 +94,7 @@ const STEPS: Step[] = [
     title: "2 · Workspace ANALISI",
     description: "Lineare · push-over · time-history · fatica · monitor live.",
     body: (
-      <div className="space-y-2 text-xs text-ink-muted">
+      <div className="space-y-2 text-xs text-ink-3">
         <p>Oltre alle analisi lineari standard, hai 3 analisi avanzate:</p>
         <ul className="list-disc pl-4 space-y-0.5">
           <li><strong className="text-ink">Push-over</strong> — incremento di carico + cerniere plastiche (NTC §7.3.4.1)</li>
@@ -115,7 +115,7 @@ const STEPS: Step[] = [
     title: "3 · Risultati nel rail destro · Inspect",
     description: "Deformata, drift, modi, qualità mesh — Inspect del rail destro.",
     body: (
-      <div className="space-y-2 text-xs text-ink-muted">
+      <div className="space-y-2 text-xs text-ink-3">
         <p>Dopo aver eseguito un'analisi i risultati vivono nel <strong className="text-ink">rail destro · Inspect</strong> (icona occhio). Tab disponibili:</p>
         <ul className="list-disc pl-4 space-y-0.5">
           <li><strong className="text-ink">Statica</strong> — spostamenti, reazioni vincolari, σ Von Mises</li>
@@ -134,7 +134,7 @@ const STEPS: Step[] = [
     title: "4 · Workspace VERIFICHE",
     description: "Eurocodici + NTC 2018.",
     body: (
-      <div className="space-y-2 text-xs text-ink-muted">
+      <div className="space-y-2 text-xs text-ink-3">
         <p>Tutte le verifiche normative principali:</p>
         <ul className="list-disc pl-4 space-y-0.5">
           <li><strong className="text-ink">EC3</strong> — acciaio (iter automatico su tutti i beam in acciaio)</li>
@@ -155,7 +155,7 @@ const STEPS: Step[] = [
     title: "5 · Import / Export / Collab",
     description: "Wizard import 4-step · Tools (rail destro) · palette per tutto.",
     body: (
-      <div className="space-y-2 text-xs text-ink-muted">
+      <div className="space-y-2 text-xs text-ink-3">
         <p>L'I/O e' stato semplificato:</p>
         <ul className="list-disc pl-4 space-y-0.5">
           <li><strong className="text-ink">Import</strong> — wizard 4-step (Fonte → File → Anteprima → Conferma). Cerca "import" in Ctrl+K o usa Dashboard.</li>
@@ -176,7 +176,7 @@ const STEPS: Step[] = [
     title: "🆕 6 · Climate Loads — vento, neve, sismica da location",
     description: "Calcola loads EN 1991 + NTC 2018 da coordinate reali.",
     body: (
-      <div className="space-y-2 text-xs text-ink-muted">
+      <div className="space-y-2 text-xs text-ink-3">
         <p>Click sull'avatar in alto a destra → <kbd className="bg-bg px-1 rounded border border-border">📍 Loads location</kbd> per:</p>
         <ul className="list-disc pl-4 space-y-0.5">
           <li><strong className="text-ink">5 preset rapidi</strong> Italia (Roma, Milano, L'Aquila, Cagliari, Cortina) — 1 click, no API call</li>
@@ -202,7 +202,7 @@ const STEPS: Step[] = [
     title: "7 · Rail destro — Inspect / View / Tools",
     description: "Esplora risultati, layer 3D e strumenti pro.",
     body: (
-      <div className="space-y-2 text-xs text-ink-muted">
+      <div className="space-y-2 text-xs text-ink-3">
         <p>Sul lato destro hai 3 macro-panel sempre raggiungibili:</p>
         <ul className="space-y-1 list-none pl-0">
           <li className="flex items-start gap-2"><Eye className="h-3.5 w-3.5 mt-0.5 text-accent flex-shrink-0" /> <span><strong className="text-ink">Inspect</strong> · risultati: 5 tab Statica / Modale / Dinamica / Iso 3D / Fatica</span></li>
@@ -219,7 +219,7 @@ const STEPS: Step[] = [
     title: "8 · Command palette globale — Cmd+K",
     description: "Cerca tutto in 2 keystroke: comandi, pannelli, impostazioni.",
     body: (
-      <div className="space-y-2 text-xs text-ink-muted">
+      <div className="space-y-2 text-xs text-ink-3">
         <p>Premi <kbd className="bg-bg px-1 rounded border border-border">Ctrl K</kbd> (o <kbd className="bg-bg px-1 rounded border border-border">Cmd K</kbd>) per aprire la palette globale fuzzy-search:</p>
         <ul className="list-disc pl-4 space-y-0.5">
           <li><strong className="text-ink">Suggeriti</strong> contestuali (top 3 in base al workspace attivo)</li>
@@ -239,7 +239,7 @@ const STEPS: Step[] = [
     title: "9 · Focus mode — viewport pieno",
     description: "Quando vuoi solo il modello 3D, chiudi tutto in un click.",
     body: (
-      <div className="space-y-2 text-xs text-ink-muted">
+      <div className="space-y-2 text-xs text-ink-3">
         <p>Per il momento "solo viewport" hai due modi:</p>
         <ul className="list-disc pl-4 space-y-0.5">
           <li>Click sull'avatar in alto a destra → <kbd className="bg-bg px-1 rounded border border-border">👁 Modalità focus</kbd></li>

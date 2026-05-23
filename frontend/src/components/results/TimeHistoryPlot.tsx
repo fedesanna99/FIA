@@ -44,7 +44,7 @@ export function TimeHistoryPlot() {
           })}
         </select>
       </div>
-      <div className="text-ink-muted text-[10px] uppercase">Storia temporale u(t) [mm]</div>
+      <div className="text-ink-3 text-[10px] uppercase">Storia temporale u(t) [mm]</div>
       <div style={{ width: "100%", height: 240 }}>
         <ResponsiveContainer>
           <LineChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>

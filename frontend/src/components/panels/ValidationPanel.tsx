@@ -35,14 +35,14 @@ export function ValidationPanel() {
 
   if (!model) {
     return (
-      <div className="p-4 text-xs text-ink-dim">
+      <div className="p-4 text-xs text-ink-3">
         Nessun modello caricato.
       </div>
     );
   }
 
   if (isLoading) {
-    return <div className="p-4 text-xs text-ink-dim">Validazione in corso…</div>;
+    return <div className="p-4 text-xs text-ink-3">Validazione in corso…</div>;
   }
 
   if (!data) return null;
@@ -72,7 +72,7 @@ export function ValidationPanel() {
       </div>
 
       {ok && (
-        <div className="p-4 text-ink-dim text-center text-[11px]">
+        <div className="p-4 text-ink-3 text-center text-[11px]">
           Tutti i controlli sono OK.<br />
           Il modello è pronto per l'analisi.
         </div>
@@ -94,7 +94,7 @@ export function ValidationPanel() {
                   <div className="flex-1 min-w-0">
                     <div className="text-ink">{iss.message}</div>
                     {iss.entity_type && (
-                      <div className="text-[10px] text-ink-dim mt-0.5 numeric">
+                      <div className="text-[10px] text-ink-3 mt-0.5 numeric">
                         {iss.entity_type}{iss.entity_id != null && ` #${iss.entity_id}`}
                         {clickable && <span className="text-accent-primary ml-1">▸ seleziona</span>}
                       </div>

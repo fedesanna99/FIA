@@ -150,7 +150,7 @@ export function Viewport3D() {
 
       {!model && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-ink-dim text-sm">
+          <div className="text-ink-3 text-sm">
             Seleziona o crea un modello FEA per iniziare
           </div>
         </div>

@@ -52,7 +52,7 @@ export function ClimateContextBadge({ onReopen }: Props) {
         >
           {location.name}
         </button>
-        <span className="text-[10px] text-ink-dim font-mono whitespace-nowrap">
+        <span className="text-[10px] text-ink-3 font-mono whitespace-nowrap">
           {location.lat.toFixed(3)}, {location.lon.toFixed(3)}
           {elevation_m != null && ` · ${elevation_m.toFixed(0)} m`}
         </span>
@@ -60,7 +60,7 @@ export function ClimateContextBadge({ onReopen }: Props) {
         {onReopen && (
           <Tooltip content="Cambia location">
             <button
-              className="p-1 hover:bg-bg-hover rounded text-ink-dim hover:text-ink"
+              className="p-1 hover:bg-bg-hover rounded text-ink-3 hover:text-ink"
               onClick={onReopen}
               data-testid="climate-badge-edit"
             >
@@ -70,7 +70,7 @@ export function ClimateContextBadge({ onReopen }: Props) {
         )}
         <Tooltip content="Rimuovi context">
           <button
-            className="p-1 hover:bg-error/20 rounded text-ink-dim hover:text-error"
+            className="p-1 hover:bg-error/20 rounded text-ink-3 hover:text-error"
             onClick={clear}
             data-testid="climate-badge-clear"
           >
@@ -86,7 +86,7 @@ export function ClimateContextBadge({ onReopen }: Props) {
         >
           {meteo && (
             <div>
-              <div className="text-ink-dim font-semibold mb-0.5">🌬️ Vento + Neve (EN 1991)</div>
+              <div className="text-ink-3 font-semibold mb-0.5">🌬️ Vento + Neve (EN 1991)</div>
               <div className="flex items-center justify-between font-mono">
                 <span>v_b,0 = {meteo.wind.v_b0_ms.toFixed(2)} m/s</span>
                 <span>q_p(10m) = <strong className="text-accent">{meteo.wind.q_p_z10_kN_m2.toFixed(3)} kN/m²</strong></span>
@@ -100,7 +100,7 @@ export function ClimateContextBadge({ onReopen }: Props) {
 
           {seismic && (
             <div>
-              <div className="text-ink-dim font-semibold mb-0.5">🌋 Sismica (NTC 2018)</div>
+              <div className="text-ink-3 font-semibold mb-0.5">🌋 Sismica (NTC 2018)</div>
               <div className="flex items-center justify-between font-mono">
                 <span>M_max = Mw {seismic.historical_max_magnitude.toFixed(1)}</span>
                 <span>a_g/g = <strong className="text-accent">{seismic.site_params.a_g_over_g.toFixed(4)}</strong></span>
@@ -123,7 +123,7 @@ export function ClimateContextBadge({ onReopen }: Props) {
             </button>
           </div>
 
-          <div className="text-[9px] text-ink-dim italic">
+          <div className="text-[9px] text-ink-3 italic">
             calcolato {ageLabel} · valori da location reale via Open-Meteo + USGS + Open-Elevation
           </div>
         </div>

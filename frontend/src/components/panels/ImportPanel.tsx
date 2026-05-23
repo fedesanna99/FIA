@@ -36,7 +36,7 @@ export function ImportPanel() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-ink">Apri wizard import</div>
-              <p className="text-[11px] text-ink-muted leading-snug mt-0.5">
+              <p className="text-[11px] text-ink-3 leading-snug mt-0.5">
                 Supporta DXF (CAD), IFC4 (BIM), JSON nativo FEA Pro. Drag&drop
                 + preview con summary nodi/elementi/warnings.
               </p>
@@ -62,7 +62,7 @@ export function ImportPanel() {
             </Button>
           </div>
 
-          <p className="text-[10px] text-ink-dim leading-snug">
+          <p className="text-[10px] text-ink-3 leading-snug">
             Tip: puoi anche trascinare un file JSON direttamente nel viewport
             (drag&drop globale) o usare <kbd className="kbd">Ctrl+K</kbd> →
             <span className="font-semibold"> "import"</span>.

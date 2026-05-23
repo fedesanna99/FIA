@@ -28,7 +28,7 @@ export function DynamicTimelineHUD() {
         {animating ? "❚❚" : "▶"}
       </button>
       <div className="flex flex-col items-center min-w-[80px]">
-        <span className="text-ink-muted text-[10px] uppercase">tempo</span>
+        <span className="text-ink-3 text-[10px] uppercase">tempo</span>
         <span className="numeric text-accent-primary">
           {t.toFixed(3)} / {tMax.toFixed(2)} s
         </span>
@@ -52,7 +52,7 @@ export function DynamicTimelineHUD() {
           value={scale}
           onChange={(e) => setScale(Number(e.target.value))}
         />
-        <span className="text-ink-dim">×</span>
+        <span className="text-ink-3">×</span>
       </div>
     </div>
   );

@@ -87,7 +87,7 @@ export function ZZErrorPanel() {
         <Field label="Frazione rifinitura" hint="Top 20% = candidati per h-refinement">
           <NumericInput value={refineFrac} step={0.05} min={0.05} max={1} onChange={setRefineFrac} />
         </Field>
-        <div className="mt-2 text-[10px] text-ink-dim">
+        <div className="mt-2 text-[10px] text-ink-3">
           Campo scalare estratto: <span className="font-mono">
             {elementValues ? `${Object.keys(elementValues).length} elementi` : "non disponibile"}
           </span>
@@ -119,14 +119,14 @@ export function ZZErrorPanel() {
               <div className="space-y-0.5 max-h-48 overflow-auto">
                 {result.refinement_candidates.slice(0, 30).map((eid) => (
                   <div key={eid} className="flex items-center justify-between text-xs font-mono">
-                    <span className="text-ink-dim">El. #{eid}</span>
+                    <span className="text-ink-3">El. #{eid}</span>
                     <Badge size="sm" variant="warn">
                       ε={result.element_errors[eid]?.toExponential(2) ?? "?"}
                     </Badge>
                   </div>
                 ))}
                 {result.refinement_candidates.length > 30 && (
-                  <div className="text-[10px] text-ink-dim italic">
+                  <div className="text-[10px] text-ink-3 italic">
                     +{result.refinement_candidates.length - 30} altri non mostrati
                   </div>
                 )}
@@ -143,7 +143,7 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
   const color = highlight === "warn" ? "text-warn" : "text-ink";
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className={`text-sm font-mono ${color}`}>{value}</div>
     </div>
   );

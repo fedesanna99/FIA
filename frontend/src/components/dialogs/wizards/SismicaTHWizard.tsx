@@ -213,7 +213,7 @@ function DirectionsStep({
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-[12px] text-ink-muted leading-relaxed">
+      <p className="text-[12px] text-ink-3 leading-relaxed">
         Scegli quali componenti sismiche applicare al modello. Per la
         progettazione standard si usano <span className="font-semibold text-ink">X + Y</span>
         (orizzontali ortogonali); Z e' richiesta solo per strutture sensibili
@@ -240,7 +240,7 @@ function DirectionsStep({
               />
               <div className="flex-1">
                 <div className="text-sm font-semibold text-ink">Direzione {ax}</div>
-                <div className="text-[11px] text-ink-muted">
+                <div className="text-[11px] text-ink-3">
                   {ax === "X" && "Orizzontale primaria (longitudinale strutturale)"}
                   {ax === "Y" && "Orizzontale secondaria (trasversale strutturale)"}
                   {ax === "Z" && "Verticale (zone alta sismicità o strutture sensibili)"}
@@ -271,7 +271,7 @@ function AccelerogramsStep({
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-[12px] text-ink-muted leading-relaxed">
+      <p className="text-[12px] text-ink-3 leading-relaxed">
         Per ogni direzione attiva scegli un accelerogramma dal catalogo
         (eventi storici registrati) o genera un segnale sintetico stazionario.
       </p>
@@ -310,7 +310,7 @@ function AccelerogramsStep({
             {cfg.source === "synthetic" && (
               <div className="grid grid-cols-2 gap-1.5 text-[11px]">
                 <label>
-                  <div className="text-[10px] text-ink-muted mb-0.5">Algoritmo</div>
+                  <div className="text-[10px] text-ink-3 mb-0.5">Algoritmo</div>
                   <select
                     value={cfg.algorithm ?? "kanai_tajimi"}
                     onChange={(e) => update(ax, { algorithm: e.target.value as "kanai_tajimi" | "boore" })}
@@ -321,7 +321,7 @@ function AccelerogramsStep({
                   </select>
                 </label>
                 <label>
-                  <div className="text-[10px] text-ink-muted mb-0.5">Seed</div>
+                  <div className="text-[10px] text-ink-3 mb-0.5">Seed</div>
                   <input
                     type="number"
                     value={cfg.seed ?? ""}
@@ -331,7 +331,7 @@ function AccelerogramsStep({
                   />
                 </label>
                 <label>
-                  <div className="text-[10px] text-ink-muted mb-0.5">Durata [s]</div>
+                  <div className="text-[10px] text-ink-3 mb-0.5">Durata [s]</div>
                   <input
                     type="number"
                     value={cfg.duration ?? ""}
@@ -340,7 +340,7 @@ function AccelerogramsStep({
                   />
                 </label>
                 <label>
-                  <div className="text-[10px] text-ink-muted mb-0.5">PGA [m/s²]</div>
+                  <div className="text-[10px] text-ink-3 mb-0.5">PGA [m/s²]</div>
                   <input
                     type="number"
                     step="0.1"
@@ -376,7 +376,7 @@ function ParametersStep({
     <div className="space-y-4">
       <div className="bg-bg-info border border-accent/20 rounded-md p-3">
         <div className="text-[11px] font-semibold text-ink-info mb-1">Riepilogo</div>
-        <div className="text-[11px] text-ink-muted">
+        <div className="text-[11px] text-ink-3">
           {activeAxes.length} componente/i attiva/e: {activeAxes.join(", ")}.
           Solver Newmark-β su modello 3D con smorzamento Rayleigh.
         </div>
@@ -390,7 +390,7 @@ function ParametersStep({
       <button
         type="button"
         onClick={() => setAdvanced(!advanced)}
-        className="w-full flex items-center gap-1.5 text-[11px] font-semibold text-ink-muted hover:text-ink transition py-1.5"
+        className="w-full flex items-center gap-1.5 text-[11px] font-semibold text-ink-3 hover:text-ink transition py-1.5"
       >
         {advanced ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
         Parametri avanzati (smorzamento Rayleigh)
@@ -421,7 +421,7 @@ function NumberField({
 }) {
   return (
     <label className="block">
-      <div className="text-[10px] text-ink-muted mb-0.5 font-mono uppercase tracking-wider">{label}</div>
+      <div className="text-[10px] text-ink-3 mb-0.5 font-mono uppercase tracking-wider">{label}</div>
       <input
         type="number"
         value={Number.isFinite(value) ? value : 0}
@@ -434,7 +434,7 @@ function NumberField({
         max={max}
         className="w-full h-8 px-2 rounded bg-bg-elevated border border-border text-ink font-mono text-sm focus:outline-none focus:border-accent/60"
       />
-      {hint && <div className="text-[10px] text-ink-dim mt-0.5">{hint}</div>}
+      {hint && <div className="text-[10px] text-ink-3 mt-0.5">{hint}</div>}
     </label>
   );
 }

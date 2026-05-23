@@ -25,7 +25,7 @@ export function HistoryPanelContent() {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
         <Camera className="h-8 w-8 text-ink-faint" strokeWidth={1.5} />
-        <p className="text-ink-muted">Nessuno snapshot salvato.</p>
+        <p className="text-ink-3">Nessuno snapshot salvato.</p>
         <p className="text-[11px] text-ink-faint leading-relaxed max-w-[240px]">
           Crea snapshot dal pannello Tools per congelare lo stato dei
           risultati e confrontarli in seguito.
@@ -36,7 +36,7 @@ export function HistoryPanelContent() {
 
   return (
     <div className="space-y-1">
-      <p className="text-ink-muted leading-relaxed mb-2">
+      <p className="text-ink-3 leading-relaxed mb-2">
         <span className="chip chip-info text-[10px] mr-1">{snapshots.length}</span>
         snapshot salvati nella sessione corrente.
       </p>
@@ -50,7 +50,7 @@ export function HistoryPanelContent() {
           <Camera className="h-3.5 w-3.5 text-accent mt-0.5 flex-shrink-0" />
           <div className="min-w-0 flex-1">
             <div className="text-xs font-medium truncate">{snap.label || `Snapshot #${snap.id}`}</div>
-            <div className="text-[11px] text-ink-muted truncate">
+            <div className="text-[11px] text-ink-3 truncate">
               {snap.modelName} · {formatRelative(snap.timestamp)}
             </div>
             <div className="flex gap-1 mt-1 text-[10px] text-ink-faint">

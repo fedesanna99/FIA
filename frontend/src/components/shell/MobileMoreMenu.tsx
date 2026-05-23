@@ -152,9 +152,9 @@ export function MobileMoreMenu() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-ink">{row.label}</div>
-              <div className="text-[11px] text-ink-muted">{row.sub}</div>
+              <div className="text-[11px] text-ink-3">{row.sub}</div>
             </div>
-            <ChevronRight className="w-4 h-4 text-ink-muted flex-shrink-0" />
+            <ChevronRight className="w-4 h-4 text-ink-3 flex-shrink-0" />
           </button>
         );
       })}

@@ -190,7 +190,7 @@ export function ArcLengthPanel() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="text-xs text-ink-dim">Pochi step per tracciare il path.</div>
+              <div className="text-xs text-ink-3">Pochi step per tracciare il path.</div>
             )}
             <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
               <Stat label="Steps" value={String(results.steps.length)} />
@@ -199,7 +199,7 @@ export function ArcLengthPanel() {
                     value={results.converged_all ? "Tutti OK" : "Parziale"}
                     highlight={results.converged_all ? "ok" : "warn"} />
             </div>
-            <div className="mt-2 text-[10px] text-ink-dim">
+            <div className="mt-2 text-[10px] text-ink-3">
               Tempo solver: {results.solve_time_ms.toFixed(0)} ms
             </div>
           </Card>
@@ -214,12 +214,12 @@ export function ArcLengthPanel() {
                   key={s.step}
                   className="flex items-center justify-between text-[11px] gap-2 font-mono"
                 >
-                  <span className="text-ink-dim w-8">#{s.step}</span>
+                  <span className="text-ink-3 w-8">#{s.step}</span>
                   <Badge size="sm" variant={s.converged ? "success" : "warn"}>
                     λ={s.load_factor.toFixed(3)}
                   </Badge>
-                  <span className="text-ink-dim">it={s.iterations}</span>
-                  <span className="text-ink-dim">Δs={s.arc_length.toExponential(1)}</span>
+                  <span className="text-ink-3">it={s.iterations}</span>
+                  <span className="text-ink-3">Δs={s.arc_length.toExponential(1)}</span>
                   <span className="text-accent flex items-center gap-1">
                     <Compass className="h-3 w-3" />
                     δ={s.control_displacement.toExponential(2)}
@@ -227,7 +227,7 @@ export function ArcLengthPanel() {
                 </div>
               ))}
               {results.steps.length > 60 && (
-                <div className="text-[10px] text-ink-dim italic mt-1">
+                <div className="text-[10px] text-ink-3 italic mt-1">
                   +{results.steps.length - 60} step non mostrati
                 </div>
               )}
@@ -250,7 +250,7 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
   const color = highlight === "warn" ? "text-warn" : highlight === "ok" ? "text-accent-success" : "text-ink";
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className={`text-sm font-mono ${color}`}>{value}</div>
     </div>
   );

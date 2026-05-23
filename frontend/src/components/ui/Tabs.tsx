@@ -41,7 +41,7 @@ export const TabsTrigger = forwardRef<
     <RadixTabs.Trigger
       ref={ref}
       className={cn(
-        "relative px-3 py-2 text-xs font-medium text-ink-muted",
+        "relative px-3 py-2 text-xs font-medium text-ink-3",
         "hover:text-ink transition-colors duration-fast",
         "data-[state=active]:text-ink",
         "data-[state=active]:after:content-[''] data-[state=active]:after:absolute",

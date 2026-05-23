@@ -113,7 +113,7 @@ export function ConvergencePanel() {
 function Stat({ label, value, badge }: { label: string; value: string; badge?: string }) {
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className="flex items-center justify-between mt-0.5">
         <span className="text-sm font-mono text-ink">{value}</span>
         {badge && <Badge size="sm" variant="muted">{badge}</Badge>}

@@ -63,7 +63,7 @@ export function ModelTree() {
 
   if (!model) {
     return (
-      <div className="p-4 text-xs text-ink-dim">
+      <div className="p-4 text-xs text-ink-3">
         Seleziona un modello dalla toolbar per iniziare.
       </div>
     );
@@ -74,7 +74,7 @@ export function ModelTree() {
   }) => (
     <div>
       <button
-        className="w-full flex items-center justify-between px-3 py-1.5 text-xs uppercase tracking-wider hover:bg-bg-hover text-ink-muted"
+        className="w-full flex items-center justify-between px-3 py-1.5 text-xs uppercase tracking-wider hover:bg-bg-hover text-ink-3"
         onClick={() => setOpen(open === id ? null : id)}
       >
         <span className="flex items-center gap-2">
@@ -109,7 +109,7 @@ export function ModelTree() {
       <div className="px-3 py-2 border-b border-border">
         <div className="font-semibold text-ink">{model.name}</div>
         {model.description && (
-          <div className="text-ink-dim text-[10px] mt-0.5 leading-snug">{model.description}</div>
+          <div className="text-ink-3 text-[10px] mt-0.5 leading-snug">{model.description}</div>
         )}
       </div>
       <div className="px-3 py-1.5 border-b border-border">
@@ -130,7 +130,7 @@ export function ModelTree() {
             onDelete={() => delNode.mutate(n.id)}
           >
             <span>#{n.id}</span>{" "}
-            <span className="text-ink-dim">
+            <span className="text-ink-3">
               ({n.x.toFixed(1)}, {n.y.toFixed(1)}, {n.z.toFixed(1)})
             </span>
           </TreeRow>
@@ -146,7 +146,7 @@ export function ModelTree() {
             onDelete={() => delElem.mutate(e.id)}
           >
             <span>#{e.id}</span>{" "}
-            <span className="text-ink-dim">{e.type} · [{e.nodes.join(",")}]</span>
+            <span className="text-ink-3">{e.type} · [{e.nodes.join(",")}]</span>
           </TreeRow>
         ))}
       </Section>
@@ -160,7 +160,7 @@ export function ModelTree() {
             onDelete={() => delLoad.mutate(l.id)}
           >
             <span className="text-accent-warning">#{l.id}</span>{" "}
-            <span className="text-ink-dim">{l.type} → {l.target_id || "global"}</span>
+            <span className="text-ink-3">{l.type} → {l.target_id || "global"}</span>
           </TreeRow>
         ))}
       </Section>
@@ -174,7 +174,7 @@ export function ModelTree() {
             onDelete={() => delConstr.mutate(c.id)}
           >
             <span className="text-accent-success">#{c.id}</span>{" "}
-            <span className="text-ink-dim">{c.type} @ {c.node_id}</span>
+            <span className="text-ink-3">{c.type} @ {c.node_id}</span>
           </TreeRow>
         ))}
       </Section>

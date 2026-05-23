@@ -241,7 +241,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           content={
             <div>
               <div className="font-semibold">{activeJob.label}</div>
-              <div className="text-[11px] text-ink-muted mt-0.5">
+              <div className="text-[11px] text-ink-3 mt-0.5">
                 {(activeJob.progress * 100).toFixed(0)}% completato
               </div>
             </div>
@@ -379,7 +379,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
  * long-press (mobile, gestito dal componente Tooltip).
  *
  * Stili per tier:
- *   - free       → bg-bg-hover / text-ink-dim   (default neutrale)
+ *   - free       → bg-bg-hover / text-ink-3   (default neutrale)
  *   - starter    → bg-bg-info / text-ink-info   (blu)
  *   - pro        → bg-bg-percorsi / text-ink-percorsi (emerald, asse Percorsi)
  *   - enterprise → bg-bg-purple / text-ink-purple (premium)
@@ -396,7 +396,7 @@ function TopBarTierBadge() {
   const tier = quota?.tier ?? "free";
 
   const styleByTier: Record<typeof tier, string> = {
-    free:       "bg-bg-hover text-ink-dim border-border",
+    free:       "bg-bg-hover text-ink-3 border-border",
     starter:    "bg-bg-info text-ink-info border-ink-info/30",
     pro:        "bg-bg-percorsi text-ink-percorsi border-percorsi/30",
     enterprise: "bg-bg-purple text-ink-purple border-ink-purple/30",
@@ -413,7 +413,7 @@ function TopBarTierBadge() {
   const tooltipContent = (
     <div className="min-w-[180px] space-y-1.5">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[10px] uppercase tracking-wider text-ink-muted font-mono">
+        <span className="text-[10px] uppercase tracking-wider text-ink-3 font-mono">
           Piano
         </span>
         <span className="text-ink font-semibold capitalize">{tier}</span>
@@ -421,10 +421,10 @@ function TopBarTierBadge() {
       {cap > 0 && (
         <>
           <div className="flex items-center justify-between gap-2 text-[11px]">
-            <span className="text-ink-muted">Crediti usati</span>
+            <span className="text-ink-3">Crediti usati</span>
             <span className="font-mono text-ink">
               {total}
-              <span className="text-ink-muted"> / {cap}</span>
+              <span className="text-ink-3"> / {cap}</span>
             </span>
           </div>
           <div className="h-1 bg-bg-hover rounded-full overflow-hidden">
@@ -434,13 +434,13 @@ function TopBarTierBadge() {
               data-testid="topbar-tier-quota-bar"
             />
           </div>
-          <div className="text-[10px] text-ink-muted">
+          <div className="text-[10px] text-ink-3">
             {quota?.month ? `Mese ${quota.month}` : ""}
           </div>
         </>
       )}
       {tier === "free" && (
-        <div className="text-[10px] text-ink-muted pt-1 border-t border-border">
+        <div className="text-[10px] text-ink-3 pt-1 border-t border-border">
           Upgrade per crediti illimitati →
         </div>
       )}

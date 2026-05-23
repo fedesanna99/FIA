@@ -78,7 +78,7 @@ export const DropdownMenuLabel = forwardRef<
   return (
     <RadixMenu.Label
       ref={ref}
-      className={cn("px-2.5 py-1 text-[10px] uppercase tracking-wider text-ink-dim font-medium", className)}
+      className={cn("px-2.5 py-1 text-[10px] uppercase tracking-wider text-ink-3 font-medium", className)}
       {...props}
     />
   );

@@ -33,7 +33,7 @@ export function HoverTooltip() {
     return (
       <div>
         <div className="text-accent-primary font-semibold mb-0.5">Nodo #{nodeId}</div>
-        <div className="text-ink-dim">
+        <div className="text-ink-3">
           ({fmtLength(x)}, {fmtLength(y)}, {fmtLength(z)})
         </div>
         {disp && (
@@ -59,9 +59,9 @@ export function HoverTooltip() {
     return (
       <div>
         <div className="text-accent-primary font-semibold mb-0.5">Elem #{elementId}</div>
-        <div className="text-ink-dim">{elementType} · [{nodes.join(", ")}]</div>
-        {el?.material_id && <div className="text-ink-dim">mat: {el.material_id}</div>}
-        {el?.section_id && <div className="text-ink-dim">sez: {el.section_id}</div>}
+        <div className="text-ink-3">{elementType} · [{nodes.join(", ")}]</div>
+        {el?.material_id && <div className="text-ink-3">mat: {el.material_id}</div>}
+        {el?.section_id && <div className="text-ink-3">sez: {el.section_id}</div>}
         {forces && (
           <div className="text-ink mt-1 pt-1 border-t border-border">
             N = {fmtForce(forces.N_i)}{forces.Mz_i !== 0 && `, M = ${(forces.Mz_i / 1000).toFixed(2)} kNm`}

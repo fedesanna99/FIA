@@ -73,7 +73,7 @@ export function MobilePanel({ title, onBack, children }: Props) {
           onClick={onBack}
           aria-label="Indietro"
           data-testid="mobile-panel-back"
-          className="w-7 h-7 flex items-center justify-center text-ink-muted hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 rounded"
+          className="w-7 h-7 flex items-center justify-center text-ink-3 hover:text-ink transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 rounded"
         >
           <ArrowLeft className="w-4 h-4" />
         </button>

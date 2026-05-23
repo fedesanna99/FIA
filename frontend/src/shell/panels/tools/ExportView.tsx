@@ -163,7 +163,7 @@ function ExportRow({
         <Icon className="w-4 h-4 text-ink-success mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
           <div className="text-xs font-semibold text-ink">{title}</div>
-          <p className="text-[11px] text-ink-muted leading-snug mt-0.5">{description}</p>
+          <p className="text-[11px] text-ink-3 leading-snug mt-0.5">{description}</p>
         </div>
       </div>
       <button
@@ -175,7 +175,7 @@ function ExportRow({
         {loading ? "Esportazione…" : ctaLabel}
       </button>
       {hint && (
-        <p className="text-[10px] text-ink-dim mt-1 italic">{hint}</p>
+        <p className="text-[10px] text-ink-3 mt-1 italic">{hint}</p>
       )}
     </div>
   );

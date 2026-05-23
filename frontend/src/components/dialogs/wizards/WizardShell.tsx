@@ -78,7 +78,7 @@ export function WizardShell({
         {/* Header con breadcrumb + close */}
         <header className="px-5 py-3.5 border-b border-border flex-shrink-0">
           <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-1.5 text-[11px] text-ink-muted">
+            <div className="flex items-center gap-1.5 text-[11px] text-ink-3">
               {breadcrumb.map((b, i) => {
                 const Icon = b.icon;
                 const isLastCrumb = i === breadcrumb.length - 1;
@@ -89,7 +89,7 @@ export function WizardShell({
                     >
                       <Icon className="w-3 h-3" /> {b.label}
                     </span>
-                    {!isLastCrumb && <ChevronRight className="w-2.5 h-2.5 text-ink-dim" />}
+                    {!isLastCrumb && <ChevronRight className="w-2.5 h-2.5 text-ink-3" />}
                   </Fragment>
                 );
               })}
@@ -114,7 +114,7 @@ export function WizardShell({
                     <div className={`w-2 h-2 rounded-full ${dotClass} flex-shrink-0`} />
                     <span
                       className={`text-[10px] uppercase tracking-wider font-semibold ${
-                        current ? "text-ink" : done ? "text-ink-muted" : "text-ink-dim"
+                        current ? "text-ink" : done ? "text-ink-3" : "text-ink-3"
                       }`}
                     >
                       {s.label}
@@ -129,7 +129,7 @@ export function WizardShell({
               );
             })}
           </div>
-          <div className="text-[10px] text-ink-muted mt-1 font-mono">
+          <div className="text-[10px] text-ink-3 mt-1 font-mono">
             Step {currentStep + 1} di {steps.length}
           </div>
         </header>
@@ -144,7 +144,7 @@ export function WizardShell({
           <button
             type="button"
             onClick={onBack || onClose}
-            className="text-[12px] text-ink-muted hover:text-ink transition-colors px-3 py-1.5"
+            className="text-[12px] text-ink-3 hover:text-ink transition-colors px-3 py-1.5"
             data-testid="wizard-back"
           >
             {currentStep > 0 ? "← Indietro" : "Annulla"}

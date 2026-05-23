@@ -37,7 +37,7 @@ export function AutoDetectView() {
 
   if (!model) {
     return (
-      <div className="p-4 text-xs text-ink-dim">
+      <div className="p-4 text-xs text-ink-3">
         Carica o crea un modello per eseguire la diagnostica automatica.
       </div>
     );
@@ -53,7 +53,7 @@ export function AutoDetectView() {
           <Bug className="w-4 h-4 text-ink-purple mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
             <div className="text-xs font-semibold text-ink">Auto-detect modello</div>
-            <p className="text-[11px] text-ink-muted leading-relaxed mt-0.5">
+            <p className="text-[11px] text-ink-3 leading-relaxed mt-0.5">
               Cerca duplicati, nodi coincidenti, carichi orfani, sezioni mancanti
               e salti improvvisi di rigidezza Winkler.
             </p>
@@ -86,7 +86,7 @@ export function AutoDetectView() {
 
       {report && report.n_issues > 0 && (
         <section className="space-y-2">
-          <div className="text-[10px] uppercase tracking-wider text-ink-muted font-semibold">
+          <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold">
             Issue rilevate ({report.n_issues})
           </div>
           {report.issues.map((issue, idx) => {
@@ -107,10 +107,10 @@ export function AutoDetectView() {
                     <div className="text-xs font-semibold text-ink">
                       {CODE_LABEL[issue.code] ?? issue.code}
                     </div>
-                    <p className="text-[11px] text-ink-muted leading-snug mt-0.5">
+                    <p className="text-[11px] text-ink-3 leading-snug mt-0.5">
                       {issue.message}
                     </p>
-                    <p className="text-[10px] text-ink-dim leading-snug mt-1">
+                    <p className="text-[10px] text-ink-3 leading-snug mt-1">
                       Fix suggerito: {issue.suggested_fix}
                     </p>
                     {issue.entity_ids?.length > 0 && (

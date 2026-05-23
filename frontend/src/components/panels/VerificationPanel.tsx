@@ -42,7 +42,7 @@ export function VerificationPanel() {
 
   if (!model) {
     return (
-      <div className="p-4 text-xs text-ink-dim">
+      <div className="p-4 text-xs text-ink-3">
         Nessun modello caricato.
       </div>
     );
@@ -98,12 +98,12 @@ export function VerificationPanel() {
           </div>
 
           {data.n_elements_checked === 0 ? (
-            <div className="p-4 text-ink-dim">
+            <div className="p-4 text-ink-3">
               Nessun elemento beam in acciaio con profilo a doppio T.
             </div>
           ) : (
             <div className="px-2 py-2">
-              <div className="text-[10px] uppercase tracking-wider text-ink-dim font-semibold mb-2 px-1">
+              <div className="font-mono text-[10px] uppercase tracking-wide-2 font-semibold text-ink-3 font-semibold mb-2 px-1">
                 Profili acciaio · § 6.3
               </div>
               <div className="space-y-0.5">
@@ -114,10 +114,10 @@ export function VerificationPanel() {
                     onClick={() => { selectElement(v.element_id, false); setDetails(v); }}
                     className="w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-md hover:bg-bg-hover text-left text-[12px] transition-colors"
                   >
-                    <span className="numeric text-ink-muted w-8 flex-shrink-0">#{v.element_id}</span>
+                    <span className="numeric text-ink-3 w-8 flex-shrink-0">#{v.element_id}</span>
                     <span className="flex-1 truncate">
                       {v.section_id}
-                      <span className="text-ink-dim ml-1.5">· {v.governing}</span>
+                      <span className="text-ink-3 ml-1.5">· {v.governing}</span>
                     </span>
                     <UCBadge value={v.UR_max} />
                   </button>
@@ -125,7 +125,7 @@ export function VerificationPanel() {
               </div>
 
               {/* Summary stati limite — aggregato max UR per gruppo */}
-              <div className="text-[10px] uppercase tracking-wider text-ink-dim font-semibold mt-4 mb-2 px-1">
+              <div className="font-mono text-[10px] uppercase tracking-wide-2 font-semibold text-ink-3 font-semibold mt-4 mb-2 px-1">
                 Stati limite
               </div>
               <SummaryRow
@@ -183,9 +183,9 @@ function SummaryRow({ label, value }: { label: string; value: number }) {
   const empty = value <= 0 || !isFinite(value);
   return (
     <div className="flex items-center gap-2.5 px-2.5 py-1 text-[12px]">
-      <span className="flex-1 text-ink-muted">{label}</span>
+      <span className="flex-1 text-ink-3">{label}</span>
       {empty ? (
-        <span className="text-[10px] text-ink-dim font-mono">—</span>
+        <span className="text-[10px] text-ink-3 font-mono">—</span>
       ) : (
         <UCBadge value={value} />
       )}
@@ -211,34 +211,34 @@ function DetailsModal({
         </div>
         <table className="w-full text-xs">
           <tbody>
-            <tr><td className="text-ink-dim pr-2">L</td><td className="numeric">{v.L.toFixed(3)} m</td></tr>
-            <tr><td className="text-ink-dim pr-2">Classe sezione</td><td className="numeric">C{v.section_class ?? "—"}</td></tr>
-            <tr><td className="text-ink-dim pr-2">N_Ed</td><td className="numeric">{fmtN(v.N_Ed)}</td></tr>
-            <tr><td className="text-ink-dim pr-2">M_Ed</td><td className="numeric">{fmtM(v.M_Ed)}</td></tr>
-            <tr><td className="text-ink-dim pr-2">V_Ed</td><td className="numeric">{fmtN(v.V_Ed)}</td></tr>
-            <tr><td className="text-ink-dim pr-2">N_Rd</td><td className="numeric">{fmtN(v.N_Rd)}</td></tr>
-            <tr><td className="text-ink-dim pr-2">M_c,Rd</td><td className="numeric">{fmtM(v.M_c_Rd)}</td></tr>
-            <tr><td className="text-ink-dim pr-2">V_c,Rd</td><td className="numeric">{fmtN(v.V_c_Rd)}</td></tr>
-            <tr><td className="text-ink-dim pr-2">N_b,Rd</td><td className="numeric">{fmtN(v.N_b_Rd)}</td></tr>
-            <tr><td className="text-ink-dim pr-2">M_b,Rd (LTB)</td><td className="numeric">{fmtM(v.M_b_Rd)}</td></tr>
+            <tr><td className="text-ink-3 pr-2">L</td><td className="numeric">{v.L.toFixed(3)} m</td></tr>
+            <tr><td className="text-ink-3 pr-2">Classe sezione</td><td className="numeric">C{v.section_class ?? "—"}</td></tr>
+            <tr><td className="text-ink-3 pr-2">N_Ed</td><td className="numeric">{fmtN(v.N_Ed)}</td></tr>
+            <tr><td className="text-ink-3 pr-2">M_Ed</td><td className="numeric">{fmtM(v.M_Ed)}</td></tr>
+            <tr><td className="text-ink-3 pr-2">V_Ed</td><td className="numeric">{fmtN(v.V_Ed)}</td></tr>
+            <tr><td className="text-ink-3 pr-2">N_Rd</td><td className="numeric">{fmtN(v.N_Rd)}</td></tr>
+            <tr><td className="text-ink-3 pr-2">M_c,Rd</td><td className="numeric">{fmtM(v.M_c_Rd)}</td></tr>
+            <tr><td className="text-ink-3 pr-2">V_c,Rd</td><td className="numeric">{fmtN(v.V_c_Rd)}</td></tr>
+            <tr><td className="text-ink-3 pr-2">N_b,Rd</td><td className="numeric">{fmtN(v.N_b_Rd)}</td></tr>
+            <tr><td className="text-ink-3 pr-2">M_b,Rd (LTB)</td><td className="numeric">{fmtM(v.M_b_Rd)}</td></tr>
             <tr className="border-t border-border">
-              <td className="text-ink-dim pr-2 pt-1">U.R. resistenza</td>
+              <td className="text-ink-3 pr-2 pt-1">U.R. resistenza</td>
               <td className={`numeric pt-1 ${urColor(v.UR_resistance)}`}>{v.UR_resistance.toFixed(3)}</td>
             </tr>
             {v.UR_buckling != null && (
               <tr>
-                <td className="text-ink-dim pr-2">U.R. instabilità</td>
+                <td className="text-ink-3 pr-2">U.R. instabilità</td>
                 <td className={`numeric ${urColor(v.UR_buckling)}`}>{v.UR_buckling.toFixed(3)}</td>
               </tr>
             )}
             {v.UR_LTB != null && (
               <tr>
-                <td className="text-ink-dim pr-2">U.R. LTB</td>
+                <td className="text-ink-3 pr-2">U.R. LTB</td>
                 <td className={`numeric ${urColor(v.UR_LTB)}`}>{v.UR_LTB.toFixed(3)}</td>
               </tr>
             )}
             <tr className="border-t border-border font-semibold">
-              <td className="text-ink-dim pr-2 pt-1">U.R. max</td>
+              <td className="text-ink-3 pr-2 pt-1">U.R. max</td>
               <td className={`numeric pt-1 ${urColor(v.UR_max)}`}>
                 {isFinite(v.UR_max) ? v.UR_max.toFixed(3) : "∞"} ({v.governing})
               </td>

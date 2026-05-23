@@ -79,7 +79,7 @@ export function ModeSuperpositionPanel() {
               <div className="flex items-center justify-between text-xs">
                 <span className="text-ink">
                   Modo #{i + 1}
-                  <span className="text-ink-dim ml-1.5 font-mono">
+                  <span className="text-ink-3 ml-1.5 font-mono">
                     {mode.frequency_hz.toFixed(2)} Hz
                   </span>
                 </span>
@@ -97,7 +97,7 @@ export function ModeSuperpositionPanel() {
 
         <div className="grid grid-cols-2 gap-2 mt-3 pt-3 border-t border-border">
           <div>
-            <label className="text-xs font-medium text-ink-muted block mb-1">Amplitude</label>
+            <label className="text-xs font-medium text-ink-3 block mb-1">Amplitude</label>
             <input
               type="number" step="0.1" min="0.01"
               className="w-full h-8 px-2.5 rounded-md text-sm font-mono bg-bg-elevated border border-border text-ink"
@@ -131,7 +131,7 @@ export function ModeSuperpositionPanel() {
               const mag = Math.hypot(d.ux, d.uy, d.uz);
               return (
                 <div key={d.node_id} className="flex items-center justify-between text-xs font-mono">
-                  <span className="text-ink-dim">#{d.node_id}</span>
+                  <span className="text-ink-3">#{d.node_id}</span>
                   <span>ux={d.ux.toExponential(2)}</span>
                   <span>uy={d.uy.toExponential(2)}</span>
                   <span>uz={d.uz.toExponential(2)}</span>
@@ -142,7 +142,7 @@ export function ModeSuperpositionPanel() {
               );
             })}
             {result.deformed.length > 20 && (
-              <div className="text-[10px] text-ink-dim italic">
+              <div className="text-[10px] text-ink-3 italic">
                 +{result.deformed.length - 20} nodi non mostrati
               </div>
             )}

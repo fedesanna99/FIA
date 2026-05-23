@@ -21,7 +21,7 @@ const VARIANT: Record<Variant, string> = {
   warn:    "bg-warn/15 text-warn border-warn/30",
   danger:  "bg-danger/15 text-danger border-danger/30",
   accent:  "bg-accent/15 text-accent border-accent/30",
-  muted:   "bg-bg-hover text-ink-muted border-border",
+  muted:   "bg-bg-hover text-ink-3 border-border",
 };
 
 const SIZE: Record<Size, string> = {

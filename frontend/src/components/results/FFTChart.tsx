@@ -56,7 +56,7 @@ export function FFTChart() {
 
       {mut.data && (
         <>
-          <div className="text-[10px] text-ink-muted">
+          <div className="text-[10px] text-ink-3">
             Frequenza dominante: <span className="text-accent-primary numeric">
               {mut.data.dominant_hz.toFixed(3)} Hz
             </span>

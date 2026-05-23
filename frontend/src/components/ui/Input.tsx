@@ -29,13 +29,13 @@ export function Field({ label, hint, error, required, htmlFor, children, classNa
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <label htmlFor={htmlFor} className="text-xs font-medium text-ink-muted">
+        <label htmlFor={htmlFor} className="text-xs font-medium text-ink-3">
           {label}
           {required && <span className="text-danger ml-0.5">*</span>}
         </label>
       )}
       {children}
-      {hint && !error && <p className="text-xs text-ink-dim">{hint}</p>}
+      {hint && !error && <p className="text-xs text-ink-3">{hint}</p>}
       {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );
@@ -61,7 +61,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           "w-full h-8 px-2.5 rounded-md text-sm",
           "bg-bg-elevated border text-ink",
           "border-border focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30",
-          "placeholder:text-ink-dim",
+          "placeholder:text-ink-3",
           "disabled:opacity-40 disabled:cursor-not-allowed",
           invalid && "border-danger focus:border-danger focus:ring-danger/30",
           unit && "pr-10",
@@ -70,7 +70,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         {...props}
       />
       {unit && (
-        <span className="absolute right-2 text-xs text-ink-muted pointer-events-none font-mono">
+        <span className="absolute right-2 text-xs text-ink-3 pointer-events-none font-mono">
           {unit}
         </span>
       )}

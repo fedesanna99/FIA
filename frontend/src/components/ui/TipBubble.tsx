@@ -24,7 +24,7 @@ export function TipBubble({ tipId, content, className }: Props) {
   return (
     <Tooltip content={<span className="text-[11px] leading-snug max-w-[280px] block">{md}</span>}>
       <span
-        className={`inline-flex items-center align-middle text-ink-dim hover:text-ink cursor-help ${className ?? ""}`}
+        className={`inline-flex items-center align-middle text-ink-3 hover:text-ink cursor-help ${className ?? ""}`}
         aria-label={`Tip: ${tipId}`}
       >
         <Info className="h-3 w-3" />

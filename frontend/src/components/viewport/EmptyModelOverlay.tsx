@@ -73,7 +73,7 @@ export function EmptyModelOverlay() {
         </div>
         {/* v1.8.3 T2: hint shortcut sotto le CTA (affordance keyboard).
             Solo desktop (sm+), su mobile poco utile. */}
-        <div className="hidden sm:flex items-center justify-center gap-1.5 mt-3 text-[10px] text-ink-muted">
+        <div className="hidden sm:flex items-center justify-center gap-1.5 mt-3 text-[10px] text-ink-3">
           <span>oppure premi</span>
           <kbd className="font-mono bg-bg-hover border border-border rounded px-1 py-0.5 text-[9px]">
             Ctrl

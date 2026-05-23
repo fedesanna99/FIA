@@ -14,10 +14,10 @@ export function SelectionInspector() {
 
   if (selNodes.length === 0 && selElements.length === 0) {
     return (
-      <div className="p-4 text-xs text-ink-dim leading-relaxed">
+      <div className="p-4 text-xs text-ink-3 leading-relaxed">
         <div className="font-semibold text-ink mb-2">Nessuna selezione</div>
         Clicca su un nodo o un elemento nel viewport (o nell'albero modello) per ispezionare le proprietà.
-        <div className="mt-3 text-[10px] text-ink-dim leading-relaxed">
+        <div className="mt-3 text-[10px] text-ink-3 leading-relaxed">
           <div>· Shift + click → aggiunge alla selezione</div>
           <div>· Click viewport → ruota / pan / zoom</div>
         </div>
@@ -34,7 +34,7 @@ export function SelectionInspector() {
           <div key={`n-${n.id}`} className="panel rounded">
             <div className="panel-header flex items-center justify-between">
               <span>Nodo #{n.id}</span>
-              {n.label && <span className="text-ink-dim normal-case">{n.label}</span>}
+              {n.label && <span className="text-ink-3 normal-case">{n.label}</span>}
             </div>
             <div className="p-2 space-y-1">
               <Row k="x" v={fmtLength(n.x)} />
@@ -71,7 +71,7 @@ export function SelectionInspector() {
           <div key={`e-${e.id}`} className="panel rounded">
             <div className="panel-header flex items-center justify-between">
               <span>Elem #{e.id}</span>
-              <span className="text-ink-dim normal-case">{e.type}</span>
+              <span className="text-ink-3 normal-case">{e.type}</span>
             </div>
             <div className="p-2 space-y-1">
               <Row k="nodi" v={`[${e.nodes.join(", ")}]`} />
@@ -102,7 +102,7 @@ export function SelectionInspector() {
 function Row({ k, v }: { k: string; v: string }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-ink-muted">{k}</span>
+      <span className="text-ink-3">{k}</span>
       <span className="numeric text-ink">{v}</span>
     </div>
   );

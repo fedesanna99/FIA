@@ -101,7 +101,7 @@ function BendingForm() {
               A_s ({(r.A_s * 1e4).toFixed(2)} cm²) &lt; A_s,min ({(r.A_s_min * 1e4).toFixed(2)} cm²) — armatura minima EC2 §9.2.1
             </div>
           )}
-          <div className="text-[10px] text-ink-dim">{r.notes}</div>
+          <div className="text-[10px] text-ink-3">{r.notes}</div>
         </div>
       )}
     </Card>
@@ -174,7 +174,7 @@ function ShearForm() {
             <Stat label="V_Rd,s" value={`${(r.V_Rd_s / 1e3).toFixed(1)} kN`} />
             <Stat label="V_Rd,max" value={`${(r.V_Rd_max / 1e3).toFixed(1)} kN`} />
           </div>
-          <div className="text-[10px] text-ink-dim mt-2">{r.notes}</div>
+          <div className="text-[10px] text-ink-3 mt-2">{r.notes}</div>
         </div>
       )}
     </Card>
@@ -191,7 +191,7 @@ function Stat({ label, value, variant = "default" }: {
               : "text-ink";
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className={`text-sm font-mono ${color}`}>{value}</div>
     </div>
   );

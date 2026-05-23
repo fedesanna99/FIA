@@ -83,7 +83,7 @@ export function DropZone({ onImported }: Props) {
       {error && (
         <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-accent-danger/20 border border-accent-danger text-accent-danger text-xs px-3 py-1.5 rounded z-40 cursor-pointer"
              onClick={() => setError(null)}>
-          {error} <span className="text-ink-dim">(click per chiudere)</span>
+          {error} <span className="text-ink-3">(click per chiudere)</span>
         </div>
       )}
     </>

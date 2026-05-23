@@ -23,13 +23,13 @@ export function MaterialsLibrary() {
         <button
           className={`flex-1 px-2 py-1.5 ${tab === "materials"
             ? "text-accent-primary bg-bg-panel border-b-2 border-accent-primary"
-            : "text-ink-muted hover:text-ink"}`}
+            : "text-ink-3 hover:text-ink"}`}
           onClick={() => setTab("materials")}
         >Materiali</button>
         <button
           className={`flex-1 px-2 py-1.5 ${tab === "sections"
             ? "text-accent-primary bg-bg-panel border-b-2 border-accent-primary"
-            : "text-ink-muted hover:text-ink"}`}
+            : "text-ink-3 hover:text-ink"}`}
           onClick={() => setTab("sections")}
         >Sezioni</button>
       </div>
@@ -53,7 +53,7 @@ export function MaterialsLibrary() {
                 <span className="w-3 h-3 rounded" style={{ background: m.color }} />
                 <span className="font-semibold text-ink">{m.name}</span>
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 numeric text-[11px] text-ink-muted">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 numeric text-[11px] text-ink-3">
                 <Row k="E" v={fmtStress(m.E)} />
                 <Row k="ν" v={m.nu.toFixed(2)} />
                 <Row k="ρ" v={`${m.rho} kg/m³`} />
@@ -89,7 +89,7 @@ export function MaterialsLibrary() {
                   >×</button>
                 )}
               </div>
-              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 numeric text-[11px] text-ink-muted">
+              <div className="grid grid-cols-2 gap-x-3 gap-y-0.5 numeric text-[11px] text-ink-3">
                 <Row k="A" v={`${(s.A * 1e4).toFixed(2)} cm²`} />
                 <Row k="Iy" v={`${(s.Iy * 1e8).toFixed(0)} cm⁴`} />
                 <Row k="Iz" v={`${(s.Iz * 1e8).toFixed(0)} cm⁴`} />

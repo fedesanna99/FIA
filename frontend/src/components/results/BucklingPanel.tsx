@@ -33,21 +33,21 @@ export function BucklingPanel() {
             <div className="text-accent-warning mb-2 text-[11px]">{mut.data.message}</div>
           )}
           <div className="mb-2">
-            <span className="text-ink-muted">Moltiplicatore critico λ₁:</span>{" "}
+            <span className="text-ink-3">Moltiplicatore critico λ₁:</span>{" "}
             <span className="text-accent-primary font-bold">
               {mut.data.critical_factor.toFixed(4)}
             </span>
           </div>
-          <div className="text-[10px] text-ink-dim mb-1 uppercase">Tutti i moltiplicatori</div>
+          <div className="text-[10px] text-ink-3 mb-1 uppercase">Tutti i moltiplicatori</div>
           <div className="divide-y divide-border">
             {mut.data.load_factors.map((lf, i) => (
               <div key={i} className="flex justify-between py-1">
-                <span className="text-ink-muted">Modo {i + 1}</span>
+                <span className="text-ink-3">Modo {i + 1}</span>
                 <span className="text-ink">λ = {lf.toFixed(4)}</span>
               </div>
             ))}
           </div>
-          <div className="text-[10px] text-ink-dim mt-2">
+          <div className="text-[10px] text-ink-3 mt-2">
             Tempo solver: {mut.data.solve_time_ms.toFixed(0)} ms
           </div>
         </div>

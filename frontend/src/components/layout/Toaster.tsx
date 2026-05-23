@@ -70,7 +70,7 @@ export function Toaster() {
             <div className="flex-1 min-w-0">
               <div className="text-[13px] font-semibold text-ink mb-0.5 break-words">{title}</div>
               {description && (
-                <div className="text-[11px] text-ink-muted font-mono break-words">
+                <div className="text-[11px] text-ink-3 font-mono break-words">
                   {description}
                 </div>
               )}
@@ -78,7 +78,7 @@ export function Toaster() {
             <button
               type="button"
               onClick={() => dismiss(t.id)}
-              className="text-ink-dim hover:text-ink p-0.5 flex-shrink-0"
+              className="text-ink-3 hover:text-ink p-0.5 flex-shrink-0"
               aria-label="Chiudi notifica"
             >
               <XIcon className="w-3.5 h-3.5" />

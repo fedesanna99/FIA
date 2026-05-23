@@ -24,7 +24,7 @@ export function ResponseSpectrumPanel() {
 
   if (!model || !dyn) {
     return (
-      <div className="p-3 text-xs text-ink-dim">
+      <div className="p-3 text-xs text-ink-3">
         Lo spettro di risposta richiede un'analisi dinamica preliminare.
       </div>
     );

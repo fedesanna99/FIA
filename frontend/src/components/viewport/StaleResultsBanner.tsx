@@ -21,7 +21,7 @@ export function StaleResultsBanner() {
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-30 bg-accent-warning/20 border border-accent-warning text-accent-warning text-xs px-3 py-1.5 rounded flex items-center gap-3 backdrop-blur shadow">
       <span className="font-semibold">⚠ Risultati obsoleti</span>
-      <span className="text-ink-muted">Il modello è cambiato dopo l'ultima analisi.</span>
+      <span className="text-ink-3">Il modello è cambiato dopo l'ultima analisi.</span>
       <button
         className="btn btn-primary text-[10px] py-0.5 px-2"
         onClick={() => run()}

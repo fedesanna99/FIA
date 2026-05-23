@@ -16,7 +16,7 @@ export function ResultsPanel() {
 
   if (!staticResults && !modalResults && !dynamicResults) {
     return (
-      <div className="p-4 text-xs text-ink-dim leading-relaxed">
+      <div className="p-4 text-xs text-ink-3 leading-relaxed">
         <div className="font-semibold text-ink mb-2">Nessun risultato</div>
         Esegui un'analisi dalla toolbar per visualizzare qui i risultati.
       </div>
@@ -34,7 +34,7 @@ export function ResultsPanel() {
           <button
             key={t}
             className={`flex-1 px-2 py-1.5 transition ${
-              tab === t ? "text-accent-primary bg-bg-panel" : "text-ink-muted hover:text-ink"
+              tab === t ? "text-accent-primary bg-bg-panel" : "text-ink-3 hover:text-ink"
             }`}
             onClick={() => setTab(t)}
           >
@@ -48,7 +48,7 @@ export function ResultsPanel() {
         {tab === "table" && analysisType === "static" && staticResults && <DisplacementTable />}
         {tab === "table" && analysisType === "modal" && modalResults && <ModalTable />}
         {tab === "table" && analysisType === "dynamic" && dynamicResults && (
-          <div className="text-ink-dim">Vedi grafico per la storia temporale.</div>
+          <div className="text-ink-3">Vedi grafico per la storia temporale.</div>
         )}
         {tab === "chart" && analysisType === "static" && staticResults && <StressDiagram />}
         {tab === "chart" && analysisType === "modal" && modalResults && <FrequencyChart />}
@@ -56,11 +56,11 @@ export function ResultsPanel() {
           <div className="space-y-4">
             <TimeHistoryPlot />
             <div className="border-t border-border pt-3">
-              <div className="text-[10px] uppercase text-ink-muted mb-2">FFT della risposta</div>
+              <div className="text-[10px] uppercase text-ink-3 mb-2">FFT della risposta</div>
               <FFTChart />
             </div>
             <div className="border-t border-border pt-3">
-              <div className="text-[10px] uppercase text-ink-muted mb-2">Spettro di risposta sismica</div>
+              <div className="text-[10px] uppercase text-ink-3 mb-2">Spettro di risposta sismica</div>
               <ResponseSpectrumPanel />
             </div>
           </div>
@@ -117,7 +117,7 @@ function Summary() {
 function Row({ k, v, accent }: { k: string; v: string; accent?: boolean }) {
   return (
     <div className="flex items-center justify-between">
-      <span className="text-ink-muted">{k}</span>
+      <span className="text-ink-3">{k}</span>
       <span className={accent ? "text-accent-primary" : "text-ink"}>{v}</span>
     </div>
   );
@@ -127,7 +127,7 @@ function ModalTable() {
   const modal = useResultsStore((s) => s.modalResults)!;
   return (
     <div className="numeric text-[11px]">
-      <div className="grid grid-cols-4 gap-1 text-ink-muted uppercase text-[10px] border-b border-border pb-1 mb-1">
+      <div className="grid grid-cols-4 gap-1 text-ink-3 uppercase text-[10px] border-b border-border pb-1 mb-1">
         <span>Modo</span><span>f [Hz]</span><span>T [s]</span><span>Mₓ_eff</span>
       </div>
       {modal.modes.map((m) => (
@@ -135,7 +135,7 @@ function ModalTable() {
           <span>{m.mode}</span>
           <span className="text-accent-primary">{m.frequency_hz.toFixed(4)}</span>
           <span>{m.period.toFixed(4)}</span>
-          <span className="text-ink-dim">{m.effective_mass_x.toFixed(1)}</span>
+          <span className="text-ink-3">{m.effective_mass_x.toFixed(1)}</span>
         </div>
       ))}
     </div>

@@ -39,7 +39,7 @@ export function ThemeToggle({ className, compact = true }: Props) {
         aria-label={`Tema: ${mode}. ${NEXT_LABEL[mode]}`}
         className={cn(
           "flex items-center justify-center rounded-md transition-colors",
-          "text-ink-muted hover:bg-bg-hover hover:text-ink",
+          "text-ink-3 hover:bg-bg-hover hover:text-ink",
           "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1",
           compact ? "w-9 h-9" : "px-3 h-8 gap-1.5 text-xs",
           className,

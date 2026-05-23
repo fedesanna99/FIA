@@ -210,7 +210,7 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
               : "text-ink";
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className={`text-sm font-mono ${color}`}>{value}</div>
     </div>
   );

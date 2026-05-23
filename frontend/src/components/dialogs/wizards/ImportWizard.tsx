@@ -183,7 +183,7 @@ function SourceStep({
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-[12px] text-ink-muted leading-relaxed">
+      <p className="text-[12px] text-ink-3 leading-relaxed">
         Scegli da dove vuoi importare il modello strutturale. Per file CAD
         tipici (architetto / topografo) usa DXF. Per modelli BIM completi usa IFC.
       </p>
@@ -208,7 +208,7 @@ function SourceStep({
             >
               <div className="flex items-start gap-2.5">
                 <div className={`w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 ${
-                  active ? "bg-accent/15 text-accent" : "bg-bg-hover text-ink-muted"
+                  active ? "bg-accent/15 text-accent" : "bg-bg-hover text-ink-3"
                 }`}>
                   <Icon className="w-4 h-4" />
                 </div>
@@ -216,12 +216,12 @@ function SourceStep({
                   <div className="text-sm font-semibold text-ink flex items-center gap-1.5">
                     {s.label}
                     {s.soon && (
-                      <span className="text-[9px] uppercase font-mono text-ink-dim border border-border rounded-sm px-1">
+                      <span className="text-[9px] uppercase font-mono text-ink-3 border border-border rounded-sm px-1">
                         soon
                       </span>
                     )}
                   </div>
-                  <div className="text-[11px] text-ink-muted mt-0.5">{s.sub}</div>
+                  <div className="text-[11px] text-ink-3 mt-0.5">{s.sub}</div>
                 </div>
               </div>
             </button>
@@ -257,7 +257,7 @@ function FileStep({
 
       {showDefaults && (
         <div className="border border-border rounded-md p-3 bg-bg-panel space-y-2.5">
-          <div className="text-[10px] uppercase tracking-wider text-ink-muted font-semibold">
+          <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold">
             Default elementi DXF
           </div>
           <DefaultRow
@@ -304,7 +304,7 @@ function DefaultRow({
 }) {
   return (
     <label className="flex items-center justify-between gap-3 py-1">
-      <span className="text-[11px] text-ink-muted">{label}</span>
+      <span className="text-[11px] text-ink-3">{label}</span>
       <input
         type={type}
         step={step}
@@ -340,19 +340,19 @@ function FilePicker({
         dragOver ? "border-accent bg-accent/5" : "border-border bg-bg-panel hover:border-accent/40"
       } ${disabled ? "opacity-50 cursor-not-allowed" : ""}`}
     >
-      <FileUp className="w-6 h-6 text-ink-muted" />
-      <div className="text-[11px] text-ink-muted text-center">
+      <FileUp className="w-6 h-6 text-ink-3" />
+      <div className="text-[11px] text-ink-3 text-center">
         {file ? (
           <>
             <span className="font-semibold text-ink">{file.name}</span>
-            <span className="block text-[10px] text-ink-dim">
+            <span className="block text-[10px] text-ink-3">
               {(file.size / 1024).toFixed(1)} KB · clicca per cambiare
             </span>
           </>
         ) : (
           <>
             <span className="font-semibold text-ink">Trascina o clicca</span>
-            <span className="block text-[10px] text-ink-dim">{accept}</span>
+            <span className="block text-[10px] text-ink-3">{accept}</span>
           </>
         )}
       </div>
@@ -388,10 +388,10 @@ function PreviewStep({ model, warnings }: { model: FEAModel; warnings: string[] 
             <div className="font-semibold mb-0.5">{warnings.length} warning</div>
             <ul className="space-y-0.5 max-h-20 overflow-y-auto">
               {warnings.slice(0, 5).map((w, i) => (
-                <li key={i} className="text-[10px] text-ink-muted">· {w}</li>
+                <li key={i} className="text-[10px] text-ink-3">· {w}</li>
               ))}
               {warnings.length > 5 && (
-                <li className="text-[10px] text-ink-dim italic">+{warnings.length - 5} altri</li>
+                <li className="text-[10px] text-ink-3 italic">+{warnings.length - 5} altri</li>
               )}
             </ul>
           </div>
@@ -419,7 +419,7 @@ function SvgPreview({ model }: { model: FEAModel }) {
 
   return (
     <div className="border border-border rounded-md p-2 bg-bg-panel">
-      <div className="text-[10px] uppercase tracking-wider text-ink-muted font-semibold mb-1.5">
+      <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold mb-1.5">
         Wireframe (proiezione XY)
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto bg-bg-elevated rounded-sm">
@@ -447,7 +447,7 @@ function SvgPreview({ model }: { model: FEAModel }) {
 function SummaryTable({ model }: { model: FEAModel }) {
   return (
     <div className="border border-border rounded-md p-3 bg-bg-panel">
-      <div className="text-[10px] uppercase tracking-wider text-ink-muted font-semibold mb-2">
+      <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold mb-2">
         Riepilogo
       </div>
       <dl className="space-y-1.5 text-[11px]">
@@ -466,7 +466,7 @@ function SummaryTable({ model }: { model: FEAModel }) {
 function SummaryRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between gap-2">
-      <dt className="text-ink-muted">{label}</dt>
+      <dt className="text-ink-3">{label}</dt>
       <dd className="font-mono font-semibold text-ink truncate">{value}</dd>
     </div>
   );
@@ -488,7 +488,7 @@ function DoneStep({
       </div>
       <div>
         <h2 className="text-base font-semibold text-ink">Importazione completata</h2>
-        <p className="text-[12px] text-ink-muted mt-1">
+        <p className="text-[12px] text-ink-3 mt-1">
           <span className="font-semibold text-ink">"{model.name}"</span> aperto nel viewport
           <br />
           {model.nodes.length} nodi · {model.elements.length} elementi
@@ -507,7 +507,7 @@ function DoneStep({
         <button
           type="button"
           onClick={onReset}
-          className="w-full bg-bg-panel border border-border text-ink-muted hover:text-ink hover:bg-bg-hover text-[12px] py-2 rounded-md transition-colors flex items-center justify-center gap-1.5"
+          className="w-full bg-bg-panel border border-border text-ink-3 hover:text-ink hover:bg-bg-hover text-[12px] py-2 rounded-md transition-colors flex items-center justify-center gap-1.5"
         >
           <RotateCcw className="w-3 h-3" />
           Importa un altro file

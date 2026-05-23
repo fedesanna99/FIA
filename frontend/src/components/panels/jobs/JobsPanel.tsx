@@ -105,7 +105,7 @@ export function JobsPanel({ userId = DEFAULT_USER_ID }: { userId?: string }) {
             {wsConnected ? "live" : "offline"}
           </Badge>
           {lastEvent && (
-            <span className="text-[10px] text-ink-dim font-mono ml-auto truncate" data-testid="jobs-last-event">
+            <span className="text-[10px] text-ink-3 font-mono ml-auto truncate" data-testid="jobs-last-event">
               {lastEvent.type}: {lastEvent.job_id?.slice(0, 8) ?? "—"}
             </span>
           )}
@@ -129,7 +129,7 @@ export function JobsPanel({ userId = DEFAULT_USER_ID }: { userId?: string }) {
                   {STATUS_LABELS[j.status]}
                 </Badge>
                 <span className="flex-1 font-mono truncate">{j.solver} / {j.model_id}</span>
-                <span className="text-ink-dim">{j.priority}</span>
+                <span className="text-ink-3">{j.priority}</span>
                 {(j.status === "queued" || j.status === "running") && (
                   <Button
                     variant="ghost" size="sm"

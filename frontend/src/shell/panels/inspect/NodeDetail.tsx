@@ -89,12 +89,12 @@ export function NodeDetail({ nodeId }: { nodeId: number }) {
         <CircleDot className="w-3.5 h-3.5 text-ink-info" />
         <span className="font-semibold text-sm text-ink">Nodo N{node.id}</span>
         {node.label && (
-          <span className="text-[11px] text-ink-muted truncate">· {node.label}</span>
+          <span className="text-[11px] text-ink-3 truncate">· {node.label}</span>
         )}
         <button
           type="button"
           onClick={handleClose}
-          className="ml-auto text-ink-muted hover:text-ink transition-colors"
+          className="ml-auto text-ink-3 hover:text-ink transition-colors"
           aria-label="Chiudi inspect nodo"
           data-testid="node-detail-close"
         >
@@ -106,13 +106,13 @@ export function NodeDetail({ nodeId }: { nodeId: number }) {
       <div className="flex-1 px-3.5 py-3 space-y-4 overflow-y-auto min-h-0">
         {/* Coordinate XYZ */}
         <section>
-          <div className="text-[10px] uppercase tracking-wider text-ink-dim font-semibold mb-2">
+          <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold mb-2">
             Coordinate
           </div>
           <div className="grid grid-cols-3 gap-1.5">
             {(["X", "Y", "Z"] as const).map((axis, i) => (
               <div key={axis}>
-                <div className="text-[10px] text-ink-muted mb-0.5 font-mono">{axis}</div>
+                <div className="text-[10px] text-ink-3 mb-0.5 font-mono">{axis}</div>
                 <input
                   type="number"
                   step="0.01"
@@ -135,14 +135,14 @@ export function NodeDetail({ nodeId }: { nodeId: number }) {
 
         {/* Vincolo */}
         <section>
-          <div className="text-[10px] uppercase tracking-wider text-ink-dim font-semibold mb-2">
+          <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold mb-2">
             Vincolo
           </div>
           {constraint ? <ConstraintCard constraint={constraint} onEdit={() => openEditConstraint(constraint.id)} /> : (
             <button
               type="button"
               onClick={() => setOpenDialog("constraint")}
-              className="w-full flex items-center gap-2 px-2.5 py-2 rounded border border-dashed border-border text-[11px] text-ink-muted hover:border-accent/40 hover:text-ink transition"
+              className="w-full flex items-center gap-2 px-2.5 py-2 rounded border border-dashed border-border text-[11px] text-ink-3 hover:border-accent/40 hover:text-ink transition"
             >
               <Plus className="w-3 h-3" />
               Aggiungi vincolo
@@ -152,7 +152,7 @@ export function NodeDetail({ nodeId }: { nodeId: number }) {
 
         {/* Carichi applicati */}
         <section>
-          <div className="text-[10px] uppercase tracking-wider text-ink-dim font-semibold mb-2 flex justify-between">
+          <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold mb-2 flex justify-between">
             <span>Carichi applicati</span>
             <span className="font-mono">{loads.length}</span>
           </div>
@@ -164,7 +164,7 @@ export function NodeDetail({ nodeId }: { nodeId: number }) {
           <button
             type="button"
             onClick={() => setOpenDialog("load")}
-            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded border border-dashed border-border text-[11px] text-ink-muted hover:border-accent/40 hover:text-ink transition"
+            className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded border border-dashed border-border text-[11px] text-ink-3 hover:border-accent/40 hover:text-ink transition"
           >
             <Plus className="w-3 h-3" />
             Aggiungi carico
@@ -173,19 +173,19 @@ export function NodeDetail({ nodeId }: { nodeId: number }) {
 
         {/* Elementi connessi */}
         <section>
-          <div className="text-[10px] uppercase tracking-wider text-ink-dim font-semibold mb-2 flex justify-between">
+          <div className="text-[10px] uppercase tracking-wider text-ink-3 font-semibold mb-2 flex justify-between">
             <span>Connesso a</span>
             <span className="font-mono">{connectedElements.length}</span>
           </div>
           {connectedElements.length === 0 ? (
-            <p className="text-[11px] text-ink-dim italic">Nessun elemento collegato.</p>
+            <p className="text-[11px] text-ink-3 italic">Nessun elemento collegato.</p>
           ) : (
             <div className="space-y-0.5">
               {connectedElements.slice(0, 12).map((el) => (
                 <ConnectedElementRow key={el.id} elem={el} nodeId={node.id} />
               ))}
               {connectedElements.length > 12 && (
-                <p className="text-[10px] text-ink-dim mt-1">
+                <p className="text-[10px] text-ink-3 mt-1">
                   +{connectedElements.length - 12} altri…
                 </p>
               )}
@@ -199,7 +199,7 @@ export function NodeDetail({ nodeId }: { nodeId: number }) {
         <button
           type="button"
           onClick={handleClose}
-          className="flex-1 bg-bg-panel border border-border text-ink-muted hover:text-ink hover:bg-bg-hover text-[11px] py-1.5 rounded-md transition-colors"
+          className="flex-1 bg-bg-panel border border-border text-ink-3 hover:text-ink hover:bg-bg-hover text-[11px] py-1.5 rounded-md transition-colors"
           data-testid="node-detail-cancel"
         >
           Annulla
@@ -223,7 +223,7 @@ export function NodeDetail({ nodeId }: { nodeId: number }) {
 
 function EmptyState({ text }: { text: string }) {
   return (
-    <div className="p-4 text-[11px] text-ink-muted italic">{text}</div>
+    <div className="p-4 text-[11px] text-ink-3 italic">{text}</div>
   );
 }
 
@@ -241,9 +241,9 @@ function ConstraintCard({ constraint, onEdit }: { constraint: Constraint; onEdit
       <div className="flex items-center gap-2">
         <Lock className="w-3 h-3 text-ink-warn" />
         <span className="text-[11px] font-semibold text-ink capitalize">{constraint.type}</span>
-        <Trash2 className="w-3 h-3 text-ink-dim ml-auto" />
+        <Trash2 className="w-3 h-3 text-ink-3 ml-auto" />
       </div>
-      <div className="text-[10px] text-ink-muted font-mono mt-0.5">{dofLabel || "—"}</div>
+      <div className="text-[10px] text-ink-3 font-mono mt-0.5">{dofLabel || "—"}</div>
     </button>
   );
 }
@@ -267,7 +267,7 @@ function LoadCard({ load, onEdit }: { load: Load; onEdit: () => void }) {
         <div className="text-[11px] font-medium text-ink capitalize truncate">
           {load.label ?? load.type}
         </div>
-        <div className="text-[10px] text-ink-muted font-mono truncate">{desc}</div>
+        <div className="text-[10px] text-ink-3 font-mono truncate">{desc}</div>
       </div>
     </button>
   );
@@ -295,10 +295,10 @@ function ConnectedElementRow({ elem, nodeId }: { elem: Element; nodeId: number }
       onClick={() => useSelectionStore.getState().selectElement(elem.id)}
       className="w-full flex items-center justify-between gap-2 px-1.5 py-1 hover:bg-bg-hover rounded-sm text-left transition"
     >
-      <span className="text-[11px] text-ink-muted font-mono truncate">
+      <span className="text-[11px] text-ink-3 font-mono truncate">
         E{elem.id} · {elem.type}
       </span>
-      <span className="text-[10px] text-ink-dim flex items-center gap-1 flex-shrink-0">
+      <span className="text-[10px] text-ink-3 flex items-center gap-1 flex-shrink-0">
         {dir} <ArrowRight className="w-2.5 h-2.5" />
       </span>
     </button>

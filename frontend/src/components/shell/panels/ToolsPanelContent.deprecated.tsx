@@ -37,7 +37,7 @@ export function ToolsPanelContent() {
 
   return (
     <div className="space-y-1">
-      <p className="text-ink-muted leading-relaxed mb-2">
+      <p className="text-ink-3 leading-relaxed mb-2">
         Strumenti rapidi. Click per saltare al workspace dedicato.
       </p>
 
@@ -70,7 +70,7 @@ export function ToolsPanelContent() {
                 {t.label}
                 {disabled && <span className="chip text-[9px]">soon</span>}
               </div>
-              <div className="text-[11px] text-ink-muted truncate">{t.description}</div>
+              <div className="text-[11px] text-ink-3 truncate">{t.description}</div>
             </div>
           </button>
         );

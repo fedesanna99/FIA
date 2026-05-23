@@ -37,7 +37,7 @@ export function PropertiesPanel() {
             className={`flex-1 px-2 py-2 text-[11px] font-semibold uppercase tracking-wider transition ${
               tab === t
                 ? "text-accent-primary border-b-2 border-accent-primary bg-bg-panel"
-                : "text-ink-muted hover:text-ink"
+                : "text-ink-3 hover:text-ink"
             }`}
             onClick={() => setTab(t)}
           >
@@ -63,7 +63,7 @@ export function PropertiesPanel() {
 
 function Empty() {
   return (
-    <div className="p-6 text-center text-ink-dim text-xs">
+    <div className="p-6 text-center text-ink-3 text-xs">
       Nessun modello caricato.
     </div>
   );

@@ -166,18 +166,18 @@ export function CollabPanel() {
 
       <Card title={`Partecipanti (${participants.size})`}>
         {participants.size === 0 && (
-          <div className="text-xs text-ink-dim italic">Nessun partecipante connesso.</div>
+          <div className="text-xs text-ink-3 italic">Nessun partecipante connesso.</div>
         )}
         <div className="space-y-1">
           {Array.from(participants.values()).map((p) => (
             <div key={p.client_id} className="flex items-center justify-between text-xs">
               <span className="flex items-center gap-1.5">
-                <Users className="h-3 w-3 text-ink-dim" />
+                <Users className="h-3 w-3 text-ink-3" />
                 <span>{p.name ?? "Anonimo"}</span>
                 {p.client_id === clientIdRef.current && <Badge size="sm" variant="accent">tu</Badge>}
               </span>
               {p.cursor && (
-                <span className="font-mono text-[10px] text-ink-dim">
+                <span className="font-mono text-[10px] text-ink-3">
                   ({p.cursor.x.toFixed(1)}, {p.cursor.y.toFixed(1)}, {p.cursor.z.toFixed(1)})
                 </span>
               )}
@@ -188,7 +188,7 @@ export function CollabPanel() {
 
       <Card title="Log eventi" description="Ultime op ricevute via WebSocket.">
         {log.length === 0 && (
-          <div className="text-xs text-ink-dim italic">In attesa di eventi…</div>
+          <div className="text-xs text-ink-3 italic">In attesa di eventi…</div>
         )}
         <div className="space-y-0.5 max-h-32 overflow-auto">
           {log.map((e, i) => {

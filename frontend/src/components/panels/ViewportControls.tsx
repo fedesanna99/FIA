@@ -72,7 +72,7 @@ export function ViewportControls() {
           <Toggle label="Diagramma N/V/M" value={showDiagrams} onChange={toggleDiagrams} />
           <Toggle label="Tensioni principali σ₁/σ₂" value={showPrincipals} onChange={togglePrincipals} />
           {showPrincipals && (
-            <div className="text-[10px] text-ink-dim leading-snug pl-4">
+            <div className="text-[10px] text-ink-3 leading-snug pl-4">
               <span className="text-accent-danger">─</span> trazione  ·{" "}
               <span className="text-accent-primary">─</span> compressione
             </div>
@@ -107,7 +107,7 @@ export function ViewportControls() {
         <section>
           <div className="panel-header pl-0 border-b-0 mb-2">Risposta dinamica</div>
           <Toggle label="Anima nel tempo" value={showDynamicAnimation} onChange={toggleDynamicAnimation} />
-          <div className="text-[10px] text-ink-dim mt-1 leading-snug">
+          <div className="text-[10px] text-ink-3 mt-1 leading-snug">
             Usa la timeline in fondo al viewport per play/pausa e scrubbing.
           </div>
         </section>

@@ -152,7 +152,7 @@ export function NTCCombinationsPanel() {
                     {c.value.toFixed(2)}
                   </Badge>
                 </div>
-                <div className="grid grid-cols-3 gap-1 text-[10px] font-mono text-ink-dim">
+                <div className="grid grid-cols-3 gap-1 text-[10px] font-mono text-ink-3">
                   {Object.entries(c.factors).map(([name, f]) => (
                     <span key={name}>{name}: ×{f.toFixed(2)}</span>
                   ))}
@@ -169,7 +169,7 @@ export function NTCCombinationsPanel() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className="text-sm font-mono text-ink">{value}</div>
     </div>
   );

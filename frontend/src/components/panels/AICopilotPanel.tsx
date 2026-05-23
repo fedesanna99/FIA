@@ -101,7 +101,7 @@ export function AICopilotPanel() {
         </div>
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-sm text-ink">AI Copilot</div>
-          <div className="text-[11px] text-ink-dim font-mono truncate">
+          <div className="text-[11px] text-ink-3 font-mono truncate">
             {providerLabel} · contesto {model ? "attivo" : "vuoto"}
           </div>
         </div>
@@ -109,7 +109,7 @@ export function AICopilotPanel() {
           <button
             type="button"
             onClick={() => { setHistory([]); setLastMeta(null); }}
-            className="w-7 h-7 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink flex-shrink-0"
+            className="w-7 h-7 rounded-md flex items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink flex-shrink-0"
             title="Reset chat"
             aria-label="Reset chat"
           >
@@ -134,7 +134,7 @@ export function AICopilotPanel() {
         className="flex-1 overflow-y-auto p-3.5 space-y-3.5 min-h-0"
       >
         {history.length === 0 && (
-          <div className="text-center text-ink-dim text-xs py-8">
+          <div className="text-center text-ink-3 text-xs py-8">
             {model
               ? "Chiedi qualcosa sul tuo modello o scegli un suggerimento qui sotto."
               : "Carica un modello per iniziare la conversazione."}
@@ -144,7 +144,7 @@ export function AICopilotPanel() {
           <div key={i} className="flex gap-2.5 items-start">
             <Avatar role={m.role} />
             <div className="flex-1 min-w-0">
-              <div className="text-[11px] font-semibold text-ink-muted mb-1">
+              <div className="text-[11px] font-semibold text-ink-3 mb-1">
                 {m.role === "user" ? "Tu" : "Copilot"}
               </div>
               <div className="text-sm text-ink leading-relaxed whitespace-pre-wrap break-words">
@@ -157,13 +157,13 @@ export function AICopilotPanel() {
           <div className="flex gap-2.5 items-start">
             <Avatar role="assistant" />
             <div className="flex-1">
-              <div className="text-[11px] font-semibold text-ink-muted mb-1">Copilot</div>
-              <div className="text-sm text-ink-dim italic">Pensando…</div>
+              <div className="text-[11px] font-semibold text-ink-3 mb-1">Copilot</div>
+              <div className="text-sm text-ink-3 italic">Pensando…</div>
             </div>
           </div>
         )}
         {lastMeta && (
-          <div className="text-[10px] text-ink-dim font-mono pt-2 border-t border-border/50">
+          <div className="text-[10px] text-ink-3 font-mono pt-2 border-t border-border/50">
             {lastMeta.provider} · {lastMeta.elapsed_ms}ms · ≈{lastMeta.prompt_tokens_approx} tok
           </div>
         )}
@@ -177,7 +177,7 @@ export function AICopilotPanel() {
             type="button"
             onClick={() => send(q)}
             disabled={!model || mut.isPending}
-            className="px-2.5 py-1 bg-bg border border-border rounded-full text-[11px] text-ink-muted hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+            className="px-2.5 py-1 bg-bg border border-border rounded-full text-[11px] text-ink-3 hover:bg-bg-hover hover:text-ink disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
             {q}
           </button>
@@ -187,7 +187,7 @@ export function AICopilotPanel() {
       {/* Input */}
       <div className="p-3 border-t border-border bg-bg flex-shrink-0">
         <textarea
-          className="w-full text-sm px-3 py-2 rounded-md bg-bg-panel border border-border text-ink placeholder:text-ink-dim resize-none focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+          className="w-full text-sm px-3 py-2 rounded-md bg-bg-panel border border-border text-ink placeholder:text-ink-3 resize-none focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
           rows={2}
           placeholder={model ? "Chiedi qualcosa sul modello…" : "Nessun modello attivo"}
           value={input}
@@ -201,7 +201,7 @@ export function AICopilotPanel() {
           }}
         />
         <div className="flex justify-between items-center mt-2">
-          <div className="text-[11px] text-ink-dim font-mono">{providerLabel}</div>
+          <div className="text-[11px] text-ink-3 font-mono">{providerLabel}</div>
           <button
             type="button"
             onClick={() => send(input)}

@@ -72,7 +72,7 @@ function ToolSection({
         <Icon className="w-3.5 h-3.5 text-ink-info" />
         <h3 className="text-xs font-semibold text-ink">{title}</h3>
       </div>
-      <p className="text-[11px] text-ink-muted leading-relaxed mb-2">{description}</p>
+      <p className="text-[11px] text-ink-3 leading-relaxed mb-2">{description}</p>
       <button
         type="button"
         onClick={onAction}
@@ -82,7 +82,7 @@ function ToolSection({
         {ctaLabel}
       </button>
       {disabled && hint && (
-        <p className="text-[10px] text-ink-dim mt-1 italic">{hint}</p>
+        <p className="text-[10px] text-ink-3 mt-1 italic">{hint}</p>
       )}
     </section>
   );

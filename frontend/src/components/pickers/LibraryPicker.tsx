@@ -140,7 +140,7 @@ export function LibraryPicker<T extends LibraryItem>({
           <div className="flex-1 flex flex-col min-w-0">
             <div className="p-3 border-b border-border flex-shrink-0">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-muted" />
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-ink-3" />
                 <input
                   type="text"
                   placeholder={searchPlaceholder}
@@ -155,7 +155,7 @@ export function LibraryPicker<T extends LibraryItem>({
 
             <div className="flex-1 overflow-y-auto">
               {filtered.length === 0 ? (
-                <div className="p-8 text-center text-[12px] text-ink-muted">
+                <div className="p-8 text-center text-[12px] text-ink-3">
                   {emptyMessage ?? "Nessun risultato. Prova con un'altra parola chiave."}
                 </div>
               ) : (
@@ -176,13 +176,13 @@ export function LibraryPicker<T extends LibraryItem>({
                     <div className="flex-1 min-w-0">
                       <div className="font-medium text-[12px] text-ink truncate">{it.name}</div>
                       {it.metaLine && (
-                        <div className="text-[10px] text-ink-muted font-mono mt-0.5 truncate">
+                        <div className="text-[10px] text-ink-3 font-mono mt-0.5 truncate">
                           {it.metaLine}
                         </div>
                       )}
                     </div>
                     {it.badge && (
-                      <div className="text-[10px] text-ink-muted font-mono flex-shrink-0">
+                      <div className="text-[10px] text-ink-3 font-mono flex-shrink-0">
                         {it.badge}
                       </div>
                     )}
@@ -192,7 +192,7 @@ export function LibraryPicker<T extends LibraryItem>({
             </div>
 
             <footer className="border-t border-border px-3 py-2.5 flex items-center justify-between flex-shrink-0">
-              <span className="text-[11px] text-ink-muted">
+              <span className="text-[11px] text-ink-3">
                 {filtered.length} su {items.length}
               </span>
               <CustomItemPlaceholder />
@@ -227,7 +227,7 @@ function FamilyButton({
         "whitespace-nowrap md:w-full text-left px-2.5 py-1.5 rounded text-[12px] transition-colors flex-shrink-0 md:flex-shrink",
         active
           ? "bg-bg-info text-ink-info font-medium"
-          : "text-ink-muted hover:bg-bg-hover hover:text-ink",
+          : "text-ink-3 hover:bg-bg-hover hover:text-ink",
       )}
     >
       {label}

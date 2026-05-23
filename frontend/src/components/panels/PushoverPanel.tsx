@@ -123,7 +123,7 @@ export function PushoverPanel() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="text-xs text-ink-dim">Pochi punti per tracciare la curva.</div>
+              <div className="text-xs text-ink-3">Pochi punti per tracciare la curva.</div>
             )}
             <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
               <Stat label="Steps" value={String(results.steps.length)} />
@@ -143,17 +143,17 @@ export function PushoverPanel() {
               <div className="space-y-1 max-h-40 overflow-auto">
                 {results.hinge_events.slice(0, 40).map((h, i) => (
                   <div key={i} className="flex items-center justify-between text-xs gap-2">
-                    <span className="text-ink-dim">step {h.step}</span>
+                    <span className="text-ink-3">step {h.step}</span>
                     <Badge size="sm" variant="warn">λ={h.lambda_value.toFixed(3)}</Badge>
                     <span className="text-ink">El. #{h.element_id}</span>
-                    <span className="text-ink-dim">end {h.end}</span>
+                    <span className="text-ink-3">end {h.end}</span>
                     <span className="font-mono text-[10px]">
                       |M|={(Math.abs(h.M) / 1e3).toFixed(1)} kNm / Mpl={(h.M_pl / 1e3).toFixed(1)} kNm
                     </span>
                   </div>
                 ))}
                 {results.hinge_events.length > 40 && (
-                  <div className="text-[10px] text-ink-dim italic mt-1">
+                  <div className="text-[10px] text-ink-3 italic mt-1">
                     +{results.hinge_events.length - 40} altri eventi non mostrati
                   </div>
                 )}
@@ -176,7 +176,7 @@ export function PushoverPanel() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className="text-sm font-mono text-ink">{value}</div>
     </div>
   );

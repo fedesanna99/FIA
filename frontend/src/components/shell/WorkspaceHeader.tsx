@@ -38,14 +38,14 @@ export function WorkspaceHeader({ icon, title, description, badge, onHelp, class
             <h2 className="text-sm font-semibold text-ink truncate">{title}</h2>
             {badge}
           </div>
-          <p className="text-xs text-ink-muted leading-snug">{description}</p>
+          <p className="text-xs text-ink-3 leading-snug">{description}</p>
         </div>
       </div>
       <Tooltip content="Apri guida contestuale">
         <button
           type="button"
           onClick={handleHelp}
-          className="flex-shrink-0 text-ink-muted hover:text-ink p-1 rounded hover:bg-bg-hover transition-colors"
+          className="flex-shrink-0 text-ink-3 hover:text-ink p-1 rounded hover:bg-bg-hover transition-colors"
           aria-label="Aiuto"
         >
           <HelpCircle className="h-4 w-4" />

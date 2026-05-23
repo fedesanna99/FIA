@@ -53,7 +53,7 @@ export function SnapshotsPanel() {
         </button>
       </div>
       {!canSnapshot && (
-        <div className="text-ink-dim text-[10px]">
+        <div className="text-ink-3 text-[10px]">
           Esegui un'analisi (statica/modale) per abilitare gli snapshot.
         </div>
       )}
@@ -62,7 +62,7 @@ export function SnapshotsPanel() {
         <>
           <div className="border-t border-border pt-2">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] uppercase text-ink-muted">Snapshot salvati ({snapshots.length})</span>
+              <span className="text-[10px] uppercase text-ink-3">Snapshot salvati ({snapshots.length})</span>
               <button className="text-[10px] text-accent-danger hover:underline" onClick={clearAll}>
                 cancella tutti
               </button>
@@ -74,7 +74,7 @@ export function SnapshotsPanel() {
                   <div key={s.id} className="group flex items-center justify-between py-1 px-1 hover:bg-bg-hover">
                     <div className="flex-1 min-w-0">
                       <div className="truncate text-ink">{s.label}</div>
-                      <div className="text-[10px] text-ink-dim">
+                      <div className="text-[10px] text-ink-3">
                         {s.modelName}
                         {!hashMatchesCurrent && <span className="text-accent-warning"> · modello diverso</span>}
                       </div>
@@ -91,11 +91,11 @@ export function SnapshotsPanel() {
           </div>
 
           <div className="border-t border-border pt-2">
-            <div className="text-[10px] uppercase text-ink-muted mb-1">Max spostamento [mm]</div>
+            <div className="text-[10px] uppercase text-ink-3 mb-1">Max spostamento [mm]</div>
             <ChartBlock data={chartData} dataKey="maxU_mm" color="#00d4ff" />
-            <div className="text-[10px] uppercase text-ink-muted mb-1 mt-3">Max tensione σ [MPa]</div>
+            <div className="text-[10px] uppercase text-ink-3 mb-1 mt-3">Max tensione σ [MPa]</div>
             <ChartBlock data={chartData} dataKey="maxStress_MPa" color="#ffaa00" />
-            <div className="text-[10px] uppercase text-ink-muted mb-1 mt-3">Frequenza f₁ [Hz]</div>
+            <div className="text-[10px] uppercase text-ink-3 mb-1 mt-3">Frequenza f₁ [Hz]</div>
             <ChartBlock data={chartData} dataKey="f1_Hz" color="#ff66cc" />
           </div>
         </>
@@ -107,7 +107,7 @@ export function SnapshotsPanel() {
 function ChartBlock({ data, dataKey, color }: { data: any[]; dataKey: string; color: string }) {
   const filtered = data.filter((d) => d[dataKey] != null);
   if (filtered.length === 0) {
-    return <div className="text-ink-dim text-[10px]">— nessun dato</div>;
+    return <div className="text-ink-3 text-[10px]">— nessun dato</div>;
   }
   return (
     <div style={{ width: "100%", height: 140 }}>

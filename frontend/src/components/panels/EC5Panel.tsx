@@ -112,7 +112,7 @@ export function EC5Panel() {
 
       {r && (
         <Card title="Risultati EC5">
-          <div className="text-[10px] text-ink-dim mb-2">
+          <div className="text-[10px] text-ink-3 mb-2">
             k_mod = <span className="font-mono">{r.k_mod.toFixed(2)}</span> · γ_M = <span className="font-mono">{r.gamma_M.toFixed(2)}</span>
           </div>
           <div className="grid grid-cols-4 gap-2 text-xs">
@@ -146,7 +146,7 @@ function Stat({ label, value, variant = "default" }: {
               : "text-ink";
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className={`text-sm font-mono ${color}`}>{value}</div>
     </div>
   );

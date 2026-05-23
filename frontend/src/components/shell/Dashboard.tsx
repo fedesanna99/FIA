@@ -108,7 +108,7 @@ export function Dashboard({
               <WifiOff className="w-4 h-4 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <span className="font-medium">Backend/database non disponibile.</span>{" "}
-                <span className="text-ink-muted">
+                <span className="text-ink-3">
                   La UI resta navigabile, ma modelli e salvataggi richiedono le API.
                 </span>
               </div>

@@ -20,7 +20,7 @@ export function AICopilotButton() {
           <div className="font-semibold flex items-center gap-1.5">
             AI Copilot
           </div>
-          <div className="text-ink-muted text-[11px] mt-0.5">
+          <div className="text-ink-3 text-[11px] mt-0.5">
             Debug FEM, spiegazione errori, suggerimenti
           </div>
         </div>

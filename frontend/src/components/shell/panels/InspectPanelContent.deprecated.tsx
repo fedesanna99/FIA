@@ -44,7 +44,7 @@ export function InspectPanelContent() {
 
   return (
     <div className="space-y-3">
-      <p className="text-ink-muted leading-relaxed">
+      <p className="text-ink-3 leading-relaxed">
         Risultati delle analisi eseguite sul modello attivo. Click su una
         voce per aprire il viewer.
       </p>
@@ -74,19 +74,19 @@ export function InspectPanelContent() {
                 <Activity className={`h-3.5 w-3.5 flex-shrink-0 ${has ? "text-accent" : "text-ink-faint"}`} />
                 <div className="min-w-0">
                   <div className="text-xs font-medium truncate">{row.label}</div>
-                  <div className="text-[11px] text-ink-muted truncate">
+                  <div className="text-[11px] text-ink-3 truncate">
                     {has ? row.description : "non ancora calcolata"}
                   </div>
                 </div>
               </div>
-              {has && <ChevronRight className="h-3.5 w-3.5 text-ink-muted flex-shrink-0" />}
+              {has && <ChevronRight className="h-3.5 w-3.5 text-ink-3 flex-shrink-0" />}
             </button>
           );
         })}
       </div>
 
       <div className="pt-2 border-t border-border">
-        <p className="text-[11px] text-ink-muted leading-relaxed">
+        <p className="text-[11px] text-ink-3 leading-relaxed">
           <span className="chip chip-info text-[10px] mr-1">tip</span>
           Premi <span className="kbd">3</span> per andare al workspace Risultati
           con la tab analisi attiva.

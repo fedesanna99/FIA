@@ -170,7 +170,7 @@ export function NonlinearPanel() {
                 </ResponsiveContainer>
               </div>
             ) : (
-              <div className="text-xs text-ink-dim">Pochi step per tracciare la curva.</div>
+              <div className="text-xs text-ink-3">Pochi step per tracciare la curva.</div>
             )}
             <div className="grid grid-cols-3 gap-2 mt-3 text-xs">
               <Stat label="Steps" value={String(results.steps.length)} />
@@ -179,7 +179,7 @@ export function NonlinearPanel() {
                     highlight={results.converged ? "ok" : "warn"} />
               <Stat label="max |u|" value={results.max_displacement.toExponential(2) + " m"} />
             </div>
-            <div className="mt-2 text-[10px] text-ink-dim">
+            <div className="mt-2 text-[10px] text-ink-3">
               Tempo solver: {results.solve_time_ms.toFixed(0)} ms
             </div>
           </Card>
@@ -194,12 +194,12 @@ export function NonlinearPanel() {
                   key={s.step}
                   className="flex items-center justify-between text-[11px] gap-2 font-mono"
                 >
-                  <span className="text-ink-dim w-12">#{s.step}</span>
+                  <span className="text-ink-3 w-12">#{s.step}</span>
                   <Badge size="sm" variant={s.converged ? "success" : "warn"}>
                     λ={s.load_factor.toFixed(3)}
                   </Badge>
-                  <span className="text-ink-dim">it={s.iterations}</span>
-                  <span className="text-ink-dim">
+                  <span className="text-ink-3">it={s.iterations}</span>
+                  <span className="text-ink-3">
                     r={s.residual_norm.toExponential(1)}
                   </span>
                   {(s.active_cables > 0 || s.slack_cables > 0) && (
@@ -229,7 +229,7 @@ function Stat({ label, value, highlight }: { label: string; value: string; highl
   const color = highlight === "warn" ? "text-warn" : highlight === "ok" ? "text-accent-success" : "text-ink";
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className={`text-sm font-mono ${color}`}>{value}</div>
     </div>
   );

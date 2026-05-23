@@ -24,7 +24,7 @@ export function StressDiagram() {
 
   return (
     <div className="space-y-2">
-      <div className="text-ink-muted text-[10px] uppercase">Forze interne (estremo i) — beam</div>
+      <div className="text-ink-3 text-[10px] uppercase">Forze interne (estremo i) — beam</div>
       <div style={{ width: "100%", height: 200 }}>
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>

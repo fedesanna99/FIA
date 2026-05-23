@@ -28,7 +28,7 @@ function Toggle({
       />
       <div className="min-w-0 flex-1">
         <div className="text-xs font-medium">{label}</div>
-        {description && <div className="text-[11px] text-ink-muted">{description}</div>}
+        {description && <div className="text-[11px] text-ink-3">{description}</div>}
       </div>
     </label>
   );
@@ -48,7 +48,7 @@ export function ViewPanelContent() {
   return (
     <div className="space-y-4">
       <section>
-        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">
+        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-ink-3 mb-2">
           Overlay risultati
         </h3>
         <Toggle
@@ -75,7 +75,7 @@ export function ViewPanelContent() {
       </section>
 
       <section className="pt-3 border-t border-border">
-        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-ink-muted mb-2">
+        <h3 className="text-[10px] font-semibold uppercase tracking-wider text-ink-3 mb-2">
           Scala deformata
         </h3>
         <div className="flex items-center gap-2">
@@ -93,7 +93,7 @@ export function ViewPanelContent() {
         </div>
       </section>
 
-      <div className="pt-2 border-t border-border text-[11px] text-ink-muted leading-relaxed">
+      <div className="pt-2 border-t border-border text-[11px] text-ink-3 leading-relaxed">
         <span className="chip chip-info text-[10px] mr-1">tip</span>
         Le opzioni si applicano al viewport 3D principale.
       </div>

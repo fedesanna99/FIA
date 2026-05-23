@@ -44,7 +44,7 @@ export function SeismicTHPanel() {
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-sm font-semibold text-ink">Configura sismica time-history</div>
-              <p className="text-[11px] text-ink-muted leading-snug mt-0.5">
+              <p className="text-[11px] text-ink-3 leading-snug mt-0.5">
                 Wizard a 3 step: scegli direzioni X/Y/Z, accelerogrammi
                 (catalogo o sintetici), parametri solver Newmark-β.
               </p>
@@ -63,7 +63,7 @@ export function SeismicTHPanel() {
           </Button>
 
           {!model && (
-            <p className="text-[11px] text-ink-dim italic">
+            <p className="text-[11px] text-ink-3 italic">
               Richiede un modello caricato.
             </p>
           )}

@@ -67,13 +67,13 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
                   </RadixDialog.Title>
                 )}
                 {description && (
-                  <RadixDialog.Description className="text-xs text-ink-muted mt-1">
+                  <RadixDialog.Description className="text-xs text-ink-3 mt-1">
                     {description}
                   </RadixDialog.Description>
                 )}
               </div>
               {!hideClose && (
-                <RadixDialog.Close className="flex-shrink-0 text-ink-muted hover:text-ink p-1 rounded hover:bg-bg-hover transition-colors">
+                <RadixDialog.Close className="flex-shrink-0 text-ink-3 hover:text-ink p-1 rounded hover:bg-bg-hover transition-colors">
                   <X className="h-4 w-4" />
                 </RadixDialog.Close>
               )}

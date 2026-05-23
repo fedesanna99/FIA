@@ -92,7 +92,7 @@ export function LiveMonitorPanel() {
             <Activity className="h-3 w-3 mr-0.5" />
             {isRunning ? "Esecuzione" : "Idle"}
           </Badge>
-          <span className="text-ink-dim">
+          <span className="text-ink-3">
             {events.length} event{events.length === 1 ? "o" : "i"}
           </span>
           <div className="flex-1" />
@@ -142,11 +142,11 @@ export function LiveMonitorPanel() {
                 key={i}
                 className="flex items-center gap-2 py-0.5 border-b border-border/30 last:border-b-0"
               >
-                <span className="text-ink-dim w-16 flex-shrink-0">
+                <span className="text-ink-3 w-16 flex-shrink-0">
                   {formatTs(e.ts)}
                 </span>
                 <span className={`w-8 flex-shrink-0 font-bold ${
-                  e.source === "ws" ? "text-accent" : "text-ink-muted"
+                  e.source === "ws" ? "text-accent" : "text-ink-3"
                 }`}>
                   {e.source.toUpperCase()}
                 </span>

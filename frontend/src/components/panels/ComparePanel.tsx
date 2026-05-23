@@ -130,7 +130,7 @@ function DiffRow({ label, d, k }: {
   const modified = (d[`${k}_modified`] ?? d[`${k}_moved`] ?? []).length;
   return (
     <div className="bg-bg/40 border border-border rounded p-2">
-      <div className="text-[10px] uppercase tracking-wider text-ink-dim mb-1">{label}</div>
+      <div className="font-mono text-[10px] uppercase tracking-wide-2 font-semibold text-ink-3 mb-1">{label}</div>
       <div className="flex items-center gap-1">
         <Badge size="sm" variant={added > 0 ? "success" : "muted"}>+{added}</Badge>
         <Badge size="sm" variant={removed > 0 ? "danger"  : "muted"}>−{removed}</Badge>
@@ -143,7 +143,7 @@ function DiffRow({ label, d, k }: {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className="text-sm font-mono text-ink">{value}</div>
     </div>
   );

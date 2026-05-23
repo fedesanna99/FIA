@@ -22,7 +22,7 @@ export function CostPreviewView() {
           <Receipt className="w-3.5 h-3.5 text-ink-coral" />
           <h3 className="text-xs font-semibold text-ink">Cost preview</h3>
         </div>
-        <p className="text-[11px] text-ink-muted leading-relaxed mb-3">
+        <p className="text-[11px] text-ink-3 leading-relaxed mb-3">
           Il cost preview e' integrato nel pannello{" "}
           <span className="font-semibold text-ink">Solve</span>: appare automaticamente
           quando scegli un'analisi (statica, modale, dinamica, sismica) e mostra
@@ -31,7 +31,7 @@ export function CostPreviewView() {
 
         {/* Mock card del cost preview */}
         <div className="bg-gradient-to-br from-bg-info to-bg-purple/40 border border-accent/20 rounded-lg p-3">
-          <div className="flex items-center gap-1.5 text-[10px] text-ink-muted uppercase tracking-wider font-semibold mb-1">
+          <div className="flex items-center gap-1.5 text-[10px] text-ink-3 uppercase tracking-wider font-semibold mb-1">
             <Coins className="w-3 h-3" />
             Esempio
           </div>
@@ -40,11 +40,11 @@ export function CostPreviewView() {
           </div>
           <div className="flex items-end justify-between">
             <div>
-              <div className="text-[10px] text-ink-muted">Costo stimato</div>
+              <div className="text-[10px] text-ink-3">Costo stimato</div>
               <div className="text-xl font-bold font-mono text-accent">2.4 cr</div>
             </div>
             <div className="text-right">
-              <div className="text-[10px] text-ink-muted">Tempo atteso</div>
+              <div className="text-[10px] text-ink-3">Tempo atteso</div>
               <div className="text-sm font-mono text-ink">~1.2 s</div>
             </div>
           </div>

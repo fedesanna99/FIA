@@ -516,7 +516,7 @@ export default function App() {
             <button
               type="button"
               onClick={exitFocus}
-              className="absolute top-3 right-3 z-50 w-8 h-8 rounded-full bg-bg-panel/80 backdrop-blur border border-border text-ink-muted hover:text-ink flex items-center justify-center shadow-pop"
+              className="absolute top-3 right-3 z-50 w-8 h-8 rounded-full bg-bg-panel/80 backdrop-blur border border-border text-ink-3 hover:text-ink flex items-center justify-center shadow-pop"
               title="Esci da focus mode (Shift+Space)"
               aria-label="Esci da focus mode"
               data-testid="exit-focus"

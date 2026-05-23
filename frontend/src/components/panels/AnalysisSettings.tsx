@@ -62,7 +62,7 @@ export function AnalysisSettings() {
       )}
 
       {analysisType === "buckling" && (
-        <div className="text-ink-dim text-[11px] leading-relaxed">
+        <div className="text-ink-3 text-[11px] leading-relaxed">
           L'analisi di buckling lineare risolve K φ = λ K_G φ a partire dalla statica
           preliminare con i carichi correnti.<br />Apri il tab "Risultati" per lanciarla.
         </div>

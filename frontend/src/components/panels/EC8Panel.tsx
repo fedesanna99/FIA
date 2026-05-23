@@ -124,7 +124,7 @@ function SpectrumForm() {
       </div>
       {r && (
         <div className="mt-3 pt-3 border-t border-border">
-          <div className="flex items-center gap-1.5 text-[10px] text-ink-dim mb-2">
+          <div className="flex items-center gap-1.5 text-[10px] text-ink-3 mb-2">
             <Badge size="sm" variant="info">S={r.params.S.toFixed(2)}</Badge>
             <Badge size="sm" variant="muted">T_B={r.params.T_B.toFixed(2)}s</Badge>
             <Badge size="sm" variant="muted">T_C={r.params.T_C.toFixed(2)}s</Badge>
@@ -203,9 +203,9 @@ function QFactorForm() {
       {r && (
         <div className="mt-3 pt-3 border-t border-border">
           <div className="text-center">
-            <div className="text-[10px] uppercase tracking-wider text-ink-dim">Fattore di struttura</div>
+            <div className="font-mono text-[10px] uppercase tracking-wide-2 font-semibold text-ink-3">Fattore di struttura</div>
             <div className="text-3xl font-mono font-bold text-accent">{r.q.toFixed(2)}</div>
-            <div className="text-[10px] text-ink-dim mt-1">
+            <div className="text-[10px] text-ink-3 mt-1">
               q_0 × α_u/α_1 × k_w (≥ 1.5)
             </div>
           </div>

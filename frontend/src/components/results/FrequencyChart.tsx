@@ -13,7 +13,7 @@ export function FrequencyChart() {
 
   return (
     <div className="space-y-3">
-      <div className="text-ink-muted text-[10px] uppercase">Frequenze proprie [Hz]</div>
+      <div className="text-ink-3 text-[10px] uppercase">Frequenze proprie [Hz]</div>
       <div style={{ width: "100%", height: 220 }}>
         <ResponsiveContainer>
           <BarChart data={data} margin={{ top: 5, right: 5, left: -10, bottom: 5 }}>

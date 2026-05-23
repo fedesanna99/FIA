@@ -156,7 +156,7 @@ export function IsosurfacePanel() {
               onChange={(e) => setExplicitLevels(e.target.value)}
             />
           </Field>
-          <div className="text-[10px] text-ink-dim">
+          <div className="text-[10px] text-ink-3">
             Campo nodale (smoothing media adiacenti):{" "}
             <span className="font-mono">
               {nodalField ? `${Object.keys(nodalField).length} nodi` : "non disponibile"}
@@ -206,7 +206,7 @@ export function IsosurfacePanel() {
                     key={k}
                     className="flex items-center justify-between text-[11px] gap-2 font-mono"
                   >
-                    <span className="text-ink-dim w-20">
+                    <span className="text-ink-3 w-20">
                       σ = {Number(lvl).toExponential(2)}
                     </span>
                     <Badge size="sm" variant={area > 0 ? "info" : "default"}>
@@ -236,7 +236,7 @@ export function IsosurfacePanel() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="bg-bg/40 border border-border rounded px-2 py-1.5">
-      <div className="text-[9px] uppercase tracking-wider text-ink-dim">{label}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 font-semibold text-ink-3">{label}</div>
       <div className="text-sm font-mono text-ink">{value}</div>
     </div>
   );

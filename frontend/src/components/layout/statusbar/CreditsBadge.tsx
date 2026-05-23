@@ -6,7 +6,7 @@
  * aprire l'AccountDialog (Usage tab).
  *
  * Stati visivi:
- *   - normal: text-ink-muted
+ *   - normal: text-ink-3
  *   - >80%:   text-warn (avvicinarsi al cap)
  *   - >=100%: text-danger + bg-warn tint (cap esaurito)
  *
@@ -54,7 +54,7 @@ export function CreditsBadge({ onClick }: Props) {
   const colorClass =
     tone === "danger" ? "text-danger" :
     tone === "warn"   ? "text-warn"   :
-    "text-ink-muted";
+    "text-ink-3";
 
   return (
     <Tooltip
@@ -66,10 +66,10 @@ export function CreditsBadge({ onClick }: Props) {
               {pct.toFixed(0)}%
             </span>
           </div>
-          <div className="text-ink-muted text-[11px] mt-0.5">
+          <div className="text-ink-3 text-[11px] mt-0.5">
             Usati {used.toFixed(2)} / cap {totalCap.toFixed(0)} (mese {data.month})
           </div>
-          <div className="text-[10px] text-ink-dim mt-1">
+          <div className="text-[10px] text-ink-3 mt-1">
             Click per dettagli usage
           </div>
         </div>

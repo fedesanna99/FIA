@@ -137,7 +137,7 @@ export function DriftPanel() {
                 const exceeds = r != null && Math.abs(r) > 0.01;
                 return (
                   <div key={s} className="flex items-center justify-between text-xs">
-                    <span className="text-ink-dim">Piano {s}</span>
+                    <span className="text-ink-3">Piano {s}</span>
                     <span className="font-mono">{(v * 1000).toFixed(2)} mm</span>
                     {r != null && (
                       <Badge size="sm" variant={exceeds ? "danger" : "success"}>

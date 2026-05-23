@@ -78,7 +78,7 @@ export function CostPreviewDialog({
     >
       <div className="px-4 py-3 space-y-3 text-sm">
         {isLoading && (
-          <div className="text-ink-dim text-xs" data-testid="cost-loading">
+          <div className="text-ink-3 text-xs" data-testid="cost-loading">
             Calcolo stima in corso...
           </div>
         )}
@@ -96,7 +96,7 @@ export function CostPreviewDialog({
               />
             </div>
             {estimate.explanation && (
-              <div className="text-[10px] text-ink-dim italic border-l-2 border-border pl-2">
+              <div className="text-[10px] text-ink-3 italic border-l-2 border-border pl-2">
                 {estimate.explanation}
               </div>
             )}
@@ -117,7 +117,7 @@ export function CostPreviewDialog({
             Quota esaurita: passa a un tier superiore per procedere.
           </div>
         )}
-        <label className="flex items-center gap-2 text-xs text-ink-dim pt-1">
+        <label className="flex items-center gap-2 text-xs text-ink-3 pt-1">
           <input
             type="checkbox"
             checked={skipCostPreview}
@@ -134,7 +134,7 @@ export function CostPreviewDialog({
 function Row({ label, value }: { label: string; value: string }) {
   return (
     <>
-      <div className="text-ink-dim">{label}</div>
+      <div className="text-ink-3">{label}</div>
       <div className="font-mono text-ink">{value}</div>
     </>
   );

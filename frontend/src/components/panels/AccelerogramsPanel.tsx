@@ -69,9 +69,9 @@ export function AccelerogramsPanel() {
         title="Catalogo accelerogrammi"
         description="PEER NGA · ESM · sintetici (FASE 13). Click sul nome per caricare la time-history."
       >
-        {isLoading && <div className="text-xs text-ink-dim">Caricamento catalogo…</div>}
+        {isLoading && <div className="text-xs text-ink-3">Caricamento catalogo…</div>}
         {catalog && catalog.length === 0 && (
-          <div className="text-xs text-ink-dim">Catalogo vuoto. Aggiungi file PEER in <code>backend/data/accelerograms/</code></div>
+          <div className="text-xs text-ink-3">Catalogo vuoto. Aggiungi file PEER in <code>backend/data/accelerograms/</code></div>
         )}
         <div className="space-y-1 max-h-48 overflow-auto">
           {catalog?.map((a) => (
@@ -85,7 +85,7 @@ export function AccelerogramsPanel() {
                 <span className="text-xs font-medium text-ink">{a.name}</span>
                 <Badge size="sm" variant="muted">{a.source}</Badge>
               </div>
-              <div className="text-[10px] text-ink-dim font-mono mt-0.5">
+              <div className="text-[10px] text-ink-3 font-mono mt-0.5">
                 PGA {a.pga_m_s2.toFixed(2)} m/s² · {a.duration_s.toFixed(1)} s · dt={a.dt}s
               </div>
             </button>

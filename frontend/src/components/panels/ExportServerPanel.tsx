@@ -108,7 +108,7 @@ export function ExportServerPanel() {
         </div>
       </Card>
 
-      <div className="text-[10px] text-ink-dim">
+      <div className="text-[10px] text-ink-3">
         Gli export client-side (PDF screenshot, JSON, CSV) restano disponibili nel menu Export del TopBar.
       </div>
     </div>
@@ -132,9 +132,9 @@ function ExportButton({ icon, title, desc, onClick, loading, disabled }: {
       <div className="flex items-center gap-2 mb-1">
         {icon}
         <span className="text-sm font-medium text-ink">{title}</span>
-        {loading && <span className="text-[10px] text-ink-dim ml-auto">…</span>}
+        {loading && <span className="text-[10px] text-ink-3 ml-auto">…</span>}
       </div>
-      <div className="text-[10px] text-ink-dim">{desc}</div>
+      <div className="text-[10px] text-ink-3">{desc}</div>
     </button>
   );
 }

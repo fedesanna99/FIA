@@ -83,7 +83,7 @@ export function WorkspacePanel() {
               <div className="flex items-center justify-end px-2 py-1.5 border-b border-border flex-shrink-0">
                 <button
                   onClick={() => setMobileOpen(false)}
-                  className="text-ink-muted hover:text-ink p-1 rounded hover:bg-bg-hover"
+                  className="text-ink-3 hover:text-ink p-1 rounded hover:bg-bg-hover"
                   aria-label="Chiudi pannello"
                 >
                   <X className="h-4 w-4" />

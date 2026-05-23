@@ -18,10 +18,10 @@ export function ToolHUD() {
          style={{ minWidth: 260 }}>
       <div className="flex items-center justify-between mb-2">
         <span className="font-semibold text-accent-primary">⊕ Modalità: nuovo nodo</span>
-        <button className="text-ink-dim hover:text-ink text-lg leading-none"
+        <button className="text-ink-3 hover:text-ink text-lg leading-none"
                 onClick={() => setTool("select")} title="Annulla (Esc)">×</button>
       </div>
-      <div className="text-ink-muted text-[11px] mb-2 leading-snug">
+      <div className="text-ink-3 text-[11px] mb-2 leading-snug">
         Click sul piano XY per posizionare un nuovo nodo.<br/>
         Tieni premuto <kbd className="numeric text-[10px] bg-bg px-1 rounded border border-border">Shift</kbd> per piazzarne in serie.
       </div>
@@ -31,13 +31,13 @@ export function ToolHUD() {
       </label>
       {snapEnabled && (
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-ink-muted">Risoluzione</span>
+          <span className="text-ink-3">Risoluzione</span>
           <input
             type="number" step="0.1" min="0.01"
             className="input numeric w-20" value={snapResolution}
             onChange={(e) => setSnapResolution(Number(e.target.value))}
           />
-          <span className="text-ink-dim">m</span>
+          <span className="text-ink-3">m</span>
         </div>
       )}
     </div>

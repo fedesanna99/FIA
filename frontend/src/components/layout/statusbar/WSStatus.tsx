@@ -76,7 +76,7 @@ export function WSStatus() {
         <div>
           <div className="font-semibold">Backend · {label}</div>
           {state.latencyMs !== null && (
-            <div className="text-ink-muted text-[11px] mt-0.5">
+            <div className="text-ink-3 text-[11px] mt-0.5">
               Latency {state.latencyMs.toFixed(0)} ms
             </div>
           )}
@@ -91,7 +91,7 @@ export function WSStatus() {
           className={`w-1.5 h-1.5 rounded-full ${colorClass} ${state.status === "ok" ? "feapro-pulse" : ""}`}
           aria-label={label}
         />
-        <span className="text-[11px] text-ink-muted hidden lg:inline">{label}</span>
+        <span className="text-[11px] text-ink-3 hidden lg:inline">{label}</span>
       </div>
     </Tooltip>
   );
