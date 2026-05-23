@@ -640,3 +640,64 @@ a:not([data-no-transition]),
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── PR22 · Responsive audit finale + a11y polish ─────────────────────── */
+
+/* Touch targets ≥ 44px su touch device (WCAG 2.5.5 AAA) */
+@media (pointer: coarse) {
+  button:not(.no-touch-min),
+  a[role="button"]:not(.no-touch-min),
+  [role="button"]:not(.no-touch-min) {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  /* Esclusioni: icon buttons in compact bars (TopBar/StatusBar) */
+  .topbar button.no-touch-min,
+  .statusbar button.no-touch-min {
+    min-height: unset;
+    min-width: unset;
+  }
+}
+
+/* Mobile-first text scaling (375px viewport) */
+@media (max-width: 374px) {
+  html { font-size: 12px; }
+}
+@media (min-width: 768px) {
+  html { font-size: 13px; }
+}
+@media (min-width: 1280px) {
+  html { font-size: 13px; }
+}
+
+/* Tablet portrait: collapse sidebar destra automaticamente */
+@media (min-width: 768px) and (max-width: 1023px) {
+  aside.dash-side,
+  [data-sidebar="right"] {
+    grid-column: 1;
+    margin-top: 16px;
+  }
+}
+
+/* Print stylesheet — report PDF generation context */
+@media print {
+  .topbar,
+  .leftrail,
+  .rightrail,
+  .statusbar,
+  .missionbar,
+  [role="dialog"],
+  [data-no-print] {
+    display: none !important;
+  }
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}
+
+/* Selection color uniforme Precision */
+::selection {
+  background: rgba(8, 145, 178, 0.2);
+  color: var(--ink);
+}
