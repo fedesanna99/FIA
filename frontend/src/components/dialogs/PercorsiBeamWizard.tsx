@@ -234,6 +234,18 @@ export function PercorsiBeamWizard({ open, onClose, onLoadTemplate }: Props) {
                 <ArrowLeft className="w-3.5 h-3.5" />
                 Indietro
               </button>
+              {/* v2.0 Precision PR15 T8: opzione anteprima full-screen del flow 6-step */}
+              <button
+                type="button"
+                onClick={() => {
+                  handleClose();
+                  window.dispatchEvent(new CustomEvent("feapro:open-percorso-fullscreen"));
+                }}
+                data-testid="percorsi-open-fullscreen-demo"
+                className="px-3 py-1.5 text-xs text-accent hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+              >
+                Anteprima flow completo →
+              </button>
               <div className="flex-1" />
               <button
                 type="button"

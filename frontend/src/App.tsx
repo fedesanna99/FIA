@@ -32,6 +32,7 @@ import { ModelInfoCard } from "./components/shell/ModelInfoCard";
 import { AnalysisSummaryCard } from "./components/shell/AnalysisSummaryCard";
 import { ResultsOverviewCard } from "./components/shell/ResultsOverviewCard";
 import { ResultsInsightAuto } from "./components/shell/ResultsInsightAuto";
+import { PercorsoFullScreenDemo } from "./components/shell/PercorsoFullScreenDemo";
 import { LeftRail } from "./components/shell/LeftRail";
 import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
 import { RightRail } from "./components/shell/RightRail";
@@ -623,6 +624,10 @@ export default function App() {
         open={reportExportOpen}
         onClose={() => setReportExportOpen(false)}
       />
+      {/* v2.0 Precision PR15 T8: full-screen demo del 6-step Percorso
+          (PercorsoStep template) attivabile via custom event
+          feapro:open-percorso-fullscreen. */}
+      <PercorsoFullScreenDemo />
     </div>
   );
 }

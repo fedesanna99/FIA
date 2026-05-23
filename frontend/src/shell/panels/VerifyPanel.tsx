@@ -6,7 +6,7 @@
  */
 import {
   IconShieldCheck, IconBuildingFactory2, IconBolt,
-  IconWood, IconMountain, IconFlag,
+  IconWood, IconMountain, IconFlag, IconActivity,
 } from "@tabler/icons-react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
@@ -17,14 +17,18 @@ import { EC2Panel } from "../../components/panels/EC2Panel";
 import { EC5Panel } from "../../components/panels/EC5Panel";
 import { EC8Panel } from "../../components/panels/EC8Panel";
 import { NTCCombinationsPanel } from "../../components/panels/NTCCombinationsPanel";
+import { VerifyChecksLive } from "../../components/shell/VerifyChecksLive";
 
 
 // v1.8 (post-T6): TABS rimosso — Verify drill-in usa solo PanelBreadcrumb
 // come navigation (coerenza con InspectPanel + Make/SolvePanel).
 
 
-// v1.5.2 Task 39: hub-first per Verify. 5 card, una per normativa.
+// v1.5.2 Task 39 + v2.0 PR15 T7: hub-first per Verify. 6 card.
+// "Live" (PR15 T7) e' la prima per visibilita': mostra UC normativi
+// derivati live da staticResults via ChecksRail + ChecksDetailTable.
 const HUB_CARDS: HubCard[] = [
+  { id: "live",  label: "Verifiche live",         sub: "UC S275 · EC3 · NTC derivati live",        icon: IconActivity as unknown as HubCard["icon"],         tone: "info" },
   { id: "ec2",   label: "EC2 — Calcestruzzo",     sub: "Flessione · taglio · armatura",            icon: IconBuildingFactory2 as unknown as HubCard["icon"], tone: "info" },
   { id: "ec3",   label: "EC3 — Acciaio",          sub: "Resistenza · stabilita' · LTB",            icon: IconBolt as unknown as HubCard["icon"],             tone: "success" },
   { id: "ec5",   label: "EC5 — Legno",            sub: "k_mod · classi servizio · UR combinati",   icon: IconWood as unknown as HubCard["icon"],             tone: "warn" },
@@ -34,6 +38,7 @@ const HUB_CARDS: HubCard[] = [
 
 
 const TAB_LABELS: Record<string, string> = {
+  live:  "Verifiche live",
   ec2:   "EC2 — Calcestruzzo",
   ec3:   "EC3 — Acciaio",
   ec5:   "EC5 — Legno",
@@ -88,6 +93,11 @@ export function VerifyPanel() {
         onBack={() => setTab(null)}
       />
       <div className="p-2 space-y-3">
+        {tab === "live" && (
+          <Section title="Verifiche live · UC normativi" icon={IconActivity}>
+            <VerifyChecksLive />
+          </Section>
+        )}
         {tab === "ec2" && (
           <Section title="EC2 — Calcestruzzo armato" icon={IconBuildingFactory2}>
             <EC2Panel />
