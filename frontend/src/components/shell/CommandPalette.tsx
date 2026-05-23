@@ -394,34 +394,39 @@ export function CommandPalette() {
        * impedire che il click su una riga buchi fino al backdrop.
        */}
       <div
-        className="fixed inset-0 -z-10 bg-black/60 backdrop-blur-sm"
+        className="fixed inset-0 -z-10 bg-black/50 animate-fade-in"
         onClick={() => setOpen(false)}
         aria-hidden="true"
         data-testid="palette-backdrop"
       />
       <div
-        className="w-[720px] max-w-[calc(100vw-32px)] bg-bg-elevated border border-border rounded-lg shadow-dialog overflow-hidden animate-slide-up"
+        className="w-[760px] max-w-[calc(100vw-32px)] bg-bg-elevated border border-border-light shadow-dialog overflow-hidden animate-slide-up"
         onClick={(e) => e.stopPropagation()}
       >
         <Command.Input
-          placeholder={`Cerca tra ${allItems.length} comandi…  (workspace, analisi, theme, location, n42, e17)`}
+          placeholder={`Cerca tra ${allItems.length} comandi · workspace · analisi · theme · location · n42 · e17`}
           className={cn(
-            "w-full px-4 py-3 bg-bg-elevated border-b border-border",
-            "text-sm text-ink placeholder:text-ink-dim font-display",
+            "w-full px-4 py-3.5 bg-bg-elevated border-b border-border",
+            "text-base text-ink placeholder:text-ink-3 font-display",
             "focus:outline-none",
           )}
           data-testid="palette-input"
         />
-        <Command.List className="max-h-[60vh] overflow-y-auto p-2">
-          <Command.Empty className="px-4 py-6 text-center text-xs text-ink-muted">
-            Nessun comando trovato. Prova "model", "run", "theme", "help"…
+        <Command.List className="max-h-[62vh] overflow-y-auto p-1.5">
+          <Command.Empty className="px-4 py-8 text-center">
+            <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-1">
+              Nessun comando trovato
+            </div>
+            <div className="text-sm text-ink-2">
+              Prova "model", "run", "theme", "help"…
+            </div>
           </Command.Empty>
 
           {/* Suggeriti contestuali */}
           {favorites.length > 0 && (
             <Command.Group
               heading={SECTION_LABELS.favorites}
-              className="text-xs text-ink-muted px-2 pt-2 pb-1 font-medium [&_[cmdk-group-heading]]:py-1"
+              className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 px-2 pt-2 pb-1 font-semibold [&_[cmdk-group-heading]]:py-1"
             >
               {favorites.map((item) => <Row key={`fav-${item.id}`} item={item} onSelect={() => execute(item)} disabled={item.needsModel && !model} />)}
             </Command.Group>
@@ -435,7 +440,7 @@ export function CommandPalette() {
               <Command.Group
                 key={section}
                 heading={`${SECTION_LABELS[section]} · ${items.length}`}
-                className="text-xs text-ink-muted px-2 pt-3 pb-1 font-medium"
+                className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 px-2 pt-3 pb-1 font-semibold"
               >
                 {items.map((item) => <Row key={item.id} item={item} onSelect={() => execute(item)} disabled={item.needsModel && !model} />)}
               </Command.Group>
@@ -443,11 +448,11 @@ export function CommandPalette() {
           })}
         </Command.List>
 
-        <div className="px-3 py-2 border-t border-border bg-bg-panel/50 flex items-center gap-3 text-[11px] text-ink-dim">
-          <span><kbd className="kbd">↑↓</kbd> naviga</span>
-          <span><kbd className="kbd">↵</kbd> esegui</span>
-          <span><kbd className="kbd">Esc</kbd> chiudi</span>
-          <span className="ml-auto"><kbd className="kbd">Ctrl K</kbd> toggle</span>
+        <div className="px-3 py-2 border-t border-border bg-bg-panel flex items-center gap-3 font-mono text-[10px] uppercase tracking-wide-1 text-ink-3">
+          <span className="inline-flex items-center gap-1"><kbd className="bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium normal-case tracking-normal">↑↓</kbd> naviga</span>
+          <span className="inline-flex items-center gap-1"><kbd className="bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium normal-case tracking-normal">↵</kbd> esegui</span>
+          <span className="inline-flex items-center gap-1"><kbd className="bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium normal-case tracking-normal">Esc</kbd> chiudi</span>
+          <span className="ml-auto inline-flex items-center gap-1"><kbd className="bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium normal-case tracking-normal">⌘ K</kbd> toggle</span>
         </div>
       </div>
     </Command.Dialog>
@@ -473,21 +478,29 @@ function Row({
       onSelect={() => !disabled && !item.soon && onSelect()}
       disabled={disabled || item.soon}
       data-testid={`palette-item-${item.id}`}
-      className="px-3 py-2 rounded text-sm flex items-center gap-2 cursor-pointer text-ink data-[selected=true]:bg-bg-hover data-[disabled=true]:opacity-40 data-[disabled=true]:cursor-not-allowed"
+      className="px-3 py-2 text-sm flex items-center gap-2.5 cursor-pointer text-ink data-[selected=true]:bg-bg-hover data-[selected=true]:border-l-2 data-[selected=true]:border-accent data-[disabled=true]:opacity-40 data-[disabled=true]:cursor-not-allowed transition-colors"
     >
-      {Icon && <Icon className="h-4 w-4 text-ink-muted flex-shrink-0" strokeWidth={1.8} />}
+      {Icon && <Icon className="h-4 w-4 text-ink-3 flex-shrink-0" strokeWidth={1.8} />}
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1.5">
-          <span className="truncate">{item.label}</span>
-          {item.soon && <span className="chip chip-purple text-[9px]">soon</span>}
-          {item.group && <span className="text-[10px] text-ink-dim ml-1">· {item.group}</span>}
+          <span className="truncate text-ink font-medium">{item.label}</span>
+          {item.soon && (
+            <span className="font-mono text-[9px] uppercase tracking-wide-1 bg-bg-purple text-purple border border-purple/30 px-1 py-0.5 font-semibold">
+              soon
+            </span>
+          )}
+          {item.group && (
+            <span className="font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 ml-1">· {item.group}</span>
+          )}
         </div>
         {item.description && (
-          <div className="text-[11px] text-ink-muted truncate">{item.description}</div>
+          <div className="text-[11px] text-ink-3 truncate mt-0.5">{item.description}</div>
         )}
       </div>
       {item.shortcut && (
-        <kbd className="kbd flex-shrink-0">{item.shortcut}</kbd>
+        <kbd className="font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium flex-shrink-0">
+          {item.shortcut}
+        </kbd>
       )}
     </Command.Item>
   );

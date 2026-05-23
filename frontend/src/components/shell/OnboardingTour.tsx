@@ -308,27 +308,30 @@ export function OnboardingTour({ disabled = false }: OnboardingTourProps) {
   const isLast = step === STEPS.length - 1;
 
   return (
-    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/60 backdrop-blur-sm animate-fade-in"
+    <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 animate-fade-in"
          onClick={() => finish(true)}>
       <div
-        className="w-[540px] max-w-[calc(100vw-32px)] bg-bg-elevated border border-border rounded-lg shadow-dialog overflow-hidden animate-slide-up"
+        className="w-[580px] max-w-[calc(100vw-32px)] bg-bg-elevated border border-border-light shadow-dialog overflow-hidden animate-slide-up"
         onClick={(e) => e.stopPropagation()}
         role="dialog" aria-modal="true" aria-label="Onboarding tour"
       >
-        {/* Header */}
-        <header className="flex items-start justify-between gap-2 px-5 pt-5 pb-3">
+        {/* Header Precision */}
+        <header className="flex items-start justify-between gap-2 px-5 pt-5 pb-3 bg-bg-panel border-b border-border">
           <div className="flex items-start gap-3 min-w-0">
-            <div className="w-12 h-12 rounded-lg bg-accent-subtle flex items-center justify-center flex-shrink-0">
+            <div className="w-12 h-12 bg-accent-subtle border border-accent/30 flex items-center justify-center flex-shrink-0">
               {s.icon}
             </div>
             <div>
-              <h2 className="text-base font-semibold text-ink">{s.title}</h2>
-              <p className="text-xs text-ink-muted mt-0.5">{s.description}</p>
+              <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-0.5">
+                Step {step + 1}/{STEPS.length}
+              </div>
+              <h2 className="font-display text-lg font-semibold tracking-tight-1 text-ink">{s.title}</h2>
+              <p className="text-sm text-ink-2 mt-0.5">{s.description}</p>
             </div>
           </div>
           <button
             onClick={() => finish(true)}
-            className="text-ink-muted hover:text-ink p-1 rounded hover:bg-bg-hover flex-shrink-0"
+            className="text-ink-3 hover:text-ink p-1 hover:bg-bg-hover flex-shrink-0 transition-colors"
             aria-label="Salta tour"
           >
             <X className="h-4 w-4" />
@@ -336,27 +339,27 @@ export function OnboardingTour({ disabled = false }: OnboardingTourProps) {
         </header>
 
         {/* Body */}
-        <div className="px-5 pb-4 min-h-[160px]">
+        <div className="px-5 py-4 min-h-[160px]">
           {s.body}
         </div>
 
-        {/* Stepper indicators */}
-        <div className="flex items-center justify-center gap-1.5 py-2">
+        {/* Stepper indicators sharp */}
+        <div className="flex items-center justify-center gap-1 py-2 border-t border-border">
           {STEPS.map((_, i) => (
             <button
               key={i}
               onClick={() => setStep(i)}
               className={cn(
-                "h-1.5 rounded-full transition-all",
-                i === step ? "w-8 bg-accent" : "w-1.5 bg-border hover:bg-border-light",
+                "h-1.5 transition-all",
+                i === step ? "w-8 bg-accent" : "w-1.5 bg-border hover:bg-border-strong",
               )}
               aria-label={`Vai allo step ${i + 1}`}
             />
           ))}
         </div>
 
-        {/* Footer */}
-        <footer className="flex items-center justify-between gap-2 px-4 py-3 border-t border-border bg-bg-panel/50">
+        {/* Footer Precision */}
+        <footer className="flex items-center justify-between gap-2 px-4 py-3 border-t border-border bg-bg-panel">
           <Button variant="ghost" size="sm" onClick={() => finish(true)}>
             Salta
           </Button>
