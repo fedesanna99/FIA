@@ -43,6 +43,7 @@ import { StatusBar } from "./components/layout/StatusBar";
 import { Toaster } from "./components/layout/Toaster";
 import { Viewport3D } from "./components/viewport/Viewport3D";
 import { DropZone } from "./components/viewport/DropZone";
+import { LoadingScreen, type SolverPhase } from "./components/shell/LoadingScreen";
 import { Dashboard } from "./components/shell/Dashboard";
 import { HelpDialog } from "./components/dialogs/HelpDialog";
 import { NodeDialog } from "./components/dialogs/NodeDialog";
@@ -74,6 +75,9 @@ import { useRightRailStore } from "./store/rightRailStore";
 import { useThemeStore } from "./store/themeStore";
 import { toast } from "./store/toastStore";
 import { useWizardStore } from "./store/wizardStore";
+import { useAnalysisStore } from "./store/analysisStore";
+import { useModelStore } from "./store/modelStore";
+import { useJobsStore } from "./store/jobsStore";
 
 /**
  * Helper riusabile: entra in focus mode chiudendo tutti i pannelli + toast hint.
@@ -91,6 +95,29 @@ function enterFocusMode() {
 function pwaSafeAreaEnabled() {
   if (typeof window === "undefined") return true;
   return window.localStorage.getItem("feapro-pwa-safe-area") !== "off";
+}
+
+/**
+ * Precision v2.0 PR11: deriva la SolverPhase corrente dal progress numerico.
+ * Mappa onesta basata su tempistica empirica dei nostri solver:
+ *   0..15%  → validation (controllo modello, fast)
+ *   15..30% → discretization (mesh, fast)
+ *   30..50% → assembly K (medium)
+ *   50..82% → factorization (slow, dominante)
+ *   82..95% → solve (fast)
+ *   95..100% → postprocess (stress recovery)
+ *
+ * Sostituibile in futuro quando il backend emetterà `phase` esplicita via
+ * WebSocket `/ws/jobs/{id}` (oggi emette solo `progress` + `message`).
+ */
+function phaseFromProgress(progress: number, isRunning: boolean): SolverPhase | null {
+  if (!isRunning) return null;
+  if (progress < 0.15) return "validation";
+  if (progress < 0.30) return "discretization";
+  if (progress < 0.50) return "assembly";
+  if (progress < 0.82) return "factorization";
+  if (progress < 0.95) return "solve";
+  return "postprocess";
 }
 
 export default function App() {
@@ -453,6 +480,10 @@ export default function App() {
             <>
               <Viewport3D />
               <DropZone onImported={(id) => setActiveId(id)} />
+              {/* v2.0 Precision PR11: overlay LoadingScreen ricco durante
+                  analisi. Phase derivata da progress (vedi phaseFromProgress
+                  sopra) fino a quando il backend non emetterà phase via WS. */}
+              <SolverOverlay />
             </>
           ) : (
             <>
@@ -591,5 +622,48 @@ export default function App() {
         onClose={() => setReportExportOpen(false)}
       />
     </div>
+  );
+}
+
+/**
+ * SolverOverlay (v2.0 Precision PR11) — overlay full viewport durante
+ * `useAnalysisStore().isRunning`. Si nasconde quando l'analisi finisce.
+ *
+ * Subscribe locale al solo `isRunning` + `progress` + `progressMessage`
+ * + `analysisType` per non ri-renderizzare l'intero `App` su ogni tick
+ * di progress (~10 Hz dal WS).
+ */
+function SolverOverlay() {
+  const isRunning = useAnalysisStore((s) => s.isRunning);
+  const progress = useAnalysisStore((s) => s.progress);
+  const message = useAnalysisStore((s) => s.progressMessage);
+  const analysisType = useAnalysisStore((s) => s.analysisType);
+  const modelName = useModelStore((s) => s.model?.name);
+  const activeJob = useJobsStore((s) => s.activeJob);
+
+  if (!isRunning) return null;
+
+  const phase = phaseFromProgress(progress, isRunning);
+  // Log stream minimal: solo il message corrente (il backend non emette ancora
+  // un vero stdout stream; quando lo farà, sostituire con array). Per ora il
+  // log mostra le ultime 3 transizioni di message preservate dall'activeJob
+  // se disponibili.
+  const logs = message ? [message] : [];
+
+  // ETA proxy: progress 1.0 → 0s, lineare back-extrapolation se activeJob.startedAt.
+  let etaSeconds: number | null = null;
+  if (activeJob?.startedAt && progress > 0.01) {
+    const elapsed = (Date.now() - activeJob.startedAt) / 1000;
+    etaSeconds = (elapsed * (1 - progress)) / progress;
+  }
+
+  return (
+    <LoadingScreen
+      phase={phase}
+      progress={progress}
+      logs={logs}
+      etaSeconds={etaSeconds}
+      subtitle={`${analysisType} · ${modelName ?? "modello"}`}
+    />
   );
 }

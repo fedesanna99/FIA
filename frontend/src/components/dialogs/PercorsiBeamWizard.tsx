@@ -21,6 +21,7 @@ import { useState } from "react";
 import { Dialog } from "./Dialog";
 import { useModalBackButton } from "../../hooks/useModalBackButton";
 import { ChevronRight, ArrowLeft, Sparkles, Workflow, ShieldCheck, type LucideIcon } from "lucide-react";
+import { PercorsoStepper, PERCORSO_STEPS_6 } from "../shell/PercorsoStepper";
 
 interface Props {
   open: boolean;
@@ -190,11 +191,11 @@ export function PercorsiBeamWizard({ open, onClose, onLoadTemplate }: Props) {
         {/* STEP 3 — Conferma e carica */}
         {step === 3 && selected && (
           <div className="space-y-3" data-testid="percorsi-step-3">
-            <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold">
+            <div className="font-mono text-[10px] uppercase tracking-wide-3 text-ink-3 font-semibold">
               Pronto a caricare
             </div>
-            <div className="bg-bg-success border border-success/30 rounded-md p-3 text-[11px]">
-              <div className="text-ink-success font-semibold mb-1">
+            <div className="bg-bg-success border border-success/30 p-3 text-[11px]">
+              <div className="text-success font-semibold mb-1">
                 Carico "{selected.title}" come modello attivo
               </div>
               <div className="text-ink leading-snug">
@@ -203,7 +204,22 @@ export function PercorsiBeamWizard({ open, onClose, onLoadTemplate }: Props) {
                 lanciare l'analisi statica e vedere i risultati.
               </div>
             </div>
-            <div className="text-[10px] text-ink-muted leading-snug">
+            {/* v2.0 Precision PR10: preview del flow 6-step che ti aspetta.
+                I primi 3 step (geometria/vincoli/materiali) sono "fatti" dal
+                template caricato, "esegui" e' lo step corrente (in attesa di F5),
+                "critical" e "report" sono todo. */}
+            <div className="border border-border bg-bg-panel">
+              <div className="px-3 pt-2 pb-1 font-mono text-[9px] uppercase tracking-wide-3 text-ink-3">
+                Anteprima percorso
+              </div>
+              <PercorsoStepper
+                steps={PERCORSO_STEPS_6}
+                currentStep={4}
+                compact
+                className="border-b-0"
+              />
+            </div>
+            <div className="text-[10px] text-ink-3 leading-snug">
               Studio Pro e Percorsi sono due porte sullo stesso modello — dopo
               il caricamento tutti i tool del rail sinistro (Make / Solve /
               Verify) restano accessibili.
