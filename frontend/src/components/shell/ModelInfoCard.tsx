@@ -14,15 +14,7 @@
  * Si nasconde quando model = null.
  */
 import { useModelStore } from "../../store/modelStore";
-
-type TrustOrigin = "user" | "template" | "imported" | "ai";
-
-function inferTrustOrigin(id: string): TrustOrigin {
-  if (id.startsWith("ai_")) return "ai";
-  if (id.startsWith("ex_")) return "template";
-  if (id.startsWith("imp_") || id.startsWith("dxf_") || id.startsWith("ifc_")) return "imported";
-  return "user";
-}
+import { inferTrustOrigin, type TrustOrigin } from "../../lib/gpsTrust";
 
 const TRUST_STYLE: Record<TrustOrigin, { label: string; cls: string; hint: string }> = {
   user: {
