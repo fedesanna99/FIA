@@ -111,7 +111,7 @@ export function CostPreviewDialog({
         )}
         {overQuota && (
           <div
-            className="text-xs text-error bg-error/10 border border-error/30 rounded px-2 py-1.5"
+            className="text-xs text-danger bg-error/10 border border-error/30 rounded px-2 py-1.5"
             data-testid="quota-exceeded-banner"
           >
             Quota esaurita: passa a un tier superiore per procedere.

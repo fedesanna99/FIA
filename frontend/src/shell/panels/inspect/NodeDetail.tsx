@@ -86,7 +86,7 @@ export function NodeDetail({ nodeId }: { nodeId: number }) {
     <div className="flex flex-col h-full" data-testid="node-detail">
       {/* Header */}
       <header className="px-4 py-3 border-b border-border flex items-center gap-2 flex-shrink-0">
-        <CircleDot className="w-3.5 h-3.5 text-ink-info" />
+        <CircleDot className="w-3.5 h-3.5 text-accent" />
         <span className="font-semibold text-sm text-ink">Nodo N{node.id}</span>
         {node.label && (
           <span className="text-[11px] text-ink-3 truncate">· {node.label}</span>
@@ -239,7 +239,7 @@ function ConstraintCard({ constraint, onEdit }: { constraint: Constraint; onEdit
       className="w-full text-left bg-bg-panel border border-border hover:border-accent/30 rounded-md px-2.5 py-2 transition"
     >
       <div className="flex items-center gap-2">
-        <Lock className="w-3 h-3 text-ink-warn" />
+        <Lock className="w-3 h-3 text-warn" />
         <span className="text-[11px] font-semibold text-ink capitalize">{constraint.type}</span>
         <Trash2 className="w-3 h-3 text-ink-3 ml-auto" />
       </div>

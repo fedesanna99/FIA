@@ -19,22 +19,22 @@ import { inferTrustOrigin, type TrustOrigin } from "../../lib/gpsTrust";
 const TRUST_STYLE: Record<TrustOrigin, { label: string; cls: string; hint: string }> = {
   user: {
     label: "Utente",
-    cls: "bg-bg-success text-ink-success border-success/30",
+    cls: "bg-bg-success text-success border-success/30",
     hint: "Modello creato dall'utente (Studio Pro o New). Fidato.",
   },
   template: {
     label: "Template",
-    cls: "bg-bg-info text-ink-info border-ink-info/30",
+    cls: "bg-bg-info text-accent border-accent/30",
     hint: "Template didattico fornito (id ex_*). Sostituisci sezione/carichi prima della verifica formale.",
   },
   imported: {
     label: "Importato",
-    cls: "bg-bg-warn text-ink-warn border-warn/30",
+    cls: "bg-bg-warn text-warn border-warn/30",
     hint: "Modello da import esterno (DXF/IFC/JSON). Verifica unità e topologia.",
   },
   ai: {
     label: "AI-gen",
-    cls: "bg-bg-purple text-ink-purple border-purple/30",
+    cls: "bg-bg-purple text-purple border-purple/30",
     hint: "Generato da AI. Richiede revisione completa prima dell'uso normativo.",
   },
 };

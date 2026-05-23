@@ -69,7 +69,7 @@ function ToolSection({
   return (
     <section>
       <div className="flex items-center gap-2 mb-1.5">
-        <Icon className="w-3.5 h-3.5 text-ink-info" />
+        <Icon className="w-3.5 h-3.5 text-accent" />
         <h3 className="text-xs font-semibold text-ink">{title}</h3>
       </div>
       <p className="text-[11px] text-ink-3 leading-relaxed mb-2">{description}</p>

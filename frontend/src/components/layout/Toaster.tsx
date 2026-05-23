@@ -36,7 +36,7 @@ const TONE: Record<
   info: {
     icon: <Info className="w-4 h-4" />,
     bgIcon: "bg-bg-info",
-    ringIcon: "text-info",
+    ringIcon: "text-accent",
   },
 };
 

@@ -8,7 +8,7 @@
  *   - Body scrollabile per il content
  *
  * Stile mockup v1.3: ankora absolute al rail (left-14 o right-14), 276px
- * wide, sfondo `bg-bg-surface`, border laterale, transition slide.
+ * wide, sfondo `bg-bg-elevated`, border laterale, transition slide.
  */
 import { IconX, type Icon as TablerIcon } from "@tabler/icons-react";
 import clsx from "clsx";

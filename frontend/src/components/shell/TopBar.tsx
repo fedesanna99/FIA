@@ -380,9 +380,9 @@ export function TopBar({ models, activeId, onSelect }: Props) {
  *
  * Stili per tier:
  *   - free       → bg-bg-hover / text-ink-3   (default neutrale)
- *   - starter    → bg-bg-info / text-ink-info   (blu)
- *   - pro        → bg-bg-percorsi / text-ink-percorsi (emerald, asse Percorsi)
- *   - enterprise → bg-bg-purple / text-ink-purple (premium)
+ *   - starter    → bg-bg-info / text-accent   (blu)
+ *   - pro        → bg-bg-percorsi / text-accent (emerald, asse Percorsi)
+ *   - enterprise → bg-bg-purple / text-purple (premium)
  */
 function TopBarTierBadge() {
   const user = useAuthStore((s) => s.user);
@@ -397,9 +397,9 @@ function TopBarTierBadge() {
 
   const styleByTier: Record<typeof tier, string> = {
     free:       "bg-bg-hover text-ink-3 border-border",
-    starter:    "bg-bg-info text-ink-info border-ink-info/30",
-    pro:        "bg-bg-percorsi text-ink-percorsi border-percorsi/30",
-    enterprise: "bg-bg-purple text-ink-purple border-ink-purple/30",
+    starter:    "bg-bg-info text-accent border-accent/30",
+    pro:        "bg-bg-percorsi text-accent border-percorsi/30",
+    enterprise: "bg-bg-purple text-purple border-purple/30",
   };
 
   // Credits usage calcolato dalla quota (used + bonus vs cap).

@@ -226,7 +226,7 @@ function FamilyButton({
         // md:w-full ripristina il pieno width nella sidebar desktop.
         "whitespace-nowrap md:w-full text-left px-2.5 py-1.5 rounded text-[12px] transition-colors flex-shrink-0 md:flex-shrink",
         active
-          ? "bg-bg-info text-ink-info font-medium"
+          ? "bg-bg-info text-accent font-medium"
           : "text-ink-3 hover:bg-bg-hover hover:text-ink",
       )}
     >
@@ -245,7 +245,7 @@ function CustomItemPlaceholder() {
       onClick={() => {
         toast("info", "Editor custom in arrivo nello Sprint 2.");
       }}
-      className="text-[12px] text-ink-info hover:underline"
+      className="text-[12px] text-accent hover:underline"
     >
       + Crea custom
     </button>

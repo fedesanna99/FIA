@@ -14,7 +14,7 @@ export function ToolHUD() {
   if (tool === "select") return null;
 
   return (
-    <div className="absolute top-4 left-4 z-30 bg-bg-panel/95 border border-accent-primary backdrop-blur rounded p-3 text-xs shadow-lg"
+    <div className="absolute top-4 left-4 z-30 bg-bg-panel/95 border border-accent-primary backdrop-blur rounded p-3 text-xs shadow-pop"
          style={{ minWidth: 260 }}>
       <div className="flex items-center justify-between mb-2">
         <span className="font-semibold text-accent-primary">⊕ Modalità: nuovo nodo</span>

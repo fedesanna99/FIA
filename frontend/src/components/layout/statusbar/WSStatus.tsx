@@ -88,7 +88,7 @@ export function WSStatus() {
         data-testid="statusbar-ws-status"
       >
         <span
-          className={`w-1.5 h-1.5 rounded-full ${colorClass} ${state.status === "ok" ? "feapro-pulse" : ""}`}
+          className={`w-1.5 h-1.5 rounded-full ${colorClass} ${state.status === "ok" ? "animate-pulse" : ""}`}
           aria-label={label}
         />
         <span className="text-[11px] text-ink-3 hidden lg:inline">{label}</span>

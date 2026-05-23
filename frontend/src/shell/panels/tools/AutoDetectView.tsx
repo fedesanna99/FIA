@@ -4,8 +4,8 @@ import { autoDetectApi, type AutoDetectIssue } from "../../../api/autodetect";
 import { useModelStore } from "../../../store/modelStore";
 
 const LEVEL_CLASS: Record<AutoDetectIssue["level"], string> = {
-  info: "text-ink-info bg-bg-info border-info/30",
-  warning: "text-ink-warn bg-bg-warn border-warn/30",
+  info: "text-accent bg-bg-info border-info/30",
+  warning: "text-warn bg-bg-warn border-warn/30",
   error: "text-danger bg-danger/10 border-danger/30",
 };
 
@@ -50,7 +50,7 @@ export function AutoDetectView() {
     <div className="p-3 space-y-3 overflow-y-auto">
       <section className="border border-border rounded-md bg-bg-panel p-3">
         <div className="flex items-start gap-2.5">
-          <Bug className="w-4 h-4 text-ink-purple mt-0.5 shrink-0" />
+          <Bug className="w-4 h-4 text-purple mt-0.5 shrink-0" />
           <div className="flex-1 min-w-0">
             <div className="text-xs font-semibold text-ink">Auto-detect modello</div>
             <p className="text-[11px] text-ink-3 leading-relaxed mt-0.5">
@@ -64,7 +64,7 @@ export function AutoDetectView() {
           onClick={() => query.refetch()}
           disabled={query.isFetching}
           data-testid="tools-auto-detect-run"
-          className="w-full mt-3 bg-bg-purple text-ink-purple border border-purple/30 hover:bg-purple/15 disabled:opacity-50 disabled:cursor-not-allowed text-[11px] font-medium py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5"
+          className="w-full mt-3 bg-bg-purple text-purple border border-purple/30 hover:bg-purple/15 disabled:opacity-50 disabled:cursor-not-allowed text-[11px] font-medium py-1.5 rounded-md transition-colors flex items-center justify-center gap-1.5"
         >
           <RefreshCw className={`w-3 h-3 ${query.isFetching ? "animate-spin" : ""}`} />
           {query.isFetching ? "Diagnostica..." : "Esegui auto-detect"}
@@ -78,7 +78,7 @@ export function AutoDetectView() {
       )}
 
       {ok && (
-        <div className="border border-success/30 bg-bg-success text-ink-success rounded-md p-3 flex items-center gap-2 text-xs">
+        <div className="border border-success/30 bg-bg-success text-success rounded-md p-3 flex items-center gap-2 text-xs">
           <CheckCircle2 className="w-4 h-4" />
           Nessun problema rilevato sul modello.
         </div>
@@ -114,7 +114,7 @@ export function AutoDetectView() {
                       Fix suggerito: {issue.suggested_fix}
                     </p>
                     {issue.entity_ids?.length > 0 && (
-                      <div className="text-[10px] text-ink-info font-mono mt-1">
+                      <div className="text-[10px] text-accent font-mono mt-1">
                         {issue.entity_type ?? "entity"} #{issue.entity_ids.join(", #")}
                         {canFocus && " - seleziona"}
                       </div>

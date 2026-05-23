@@ -160,7 +160,7 @@ function ExportRow({
   return (
     <div className="border border-border rounded-md p-2.5 bg-bg-panel">
       <div className="flex items-start gap-2.5">
-        <Icon className="w-4 h-4 text-ink-success mt-0.5 shrink-0" />
+        <Icon className="w-4 h-4 text-success mt-0.5 shrink-0" />
         <div className="flex-1 min-w-0">
           <div className="text-xs font-semibold text-ink">{title}</div>
           <p className="text-[11px] text-ink-3 leading-snug mt-0.5">{description}</p>
@@ -170,7 +170,7 @@ function ExportRow({
         type="button"
         onClick={onAction}
         disabled={disabled || loading}
-        className="w-full mt-2 bg-bg-success/60 hover:bg-bg-success text-ink-success border border-success/30 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-medium py-1.5 rounded-md transition-colors"
+        className="w-full mt-2 bg-bg-success/60 hover:bg-bg-success text-success border border-success/30 disabled:opacity-40 disabled:cursor-not-allowed text-[11px] font-medium py-1.5 rounded-md transition-colors"
       >
         {loading ? "Esportazione…" : ctaLabel}
       </button>

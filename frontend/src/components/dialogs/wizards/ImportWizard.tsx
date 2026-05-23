@@ -281,8 +281,8 @@ function FileStep({
             step="1e-7"
           />
           <div className="flex items-start gap-2 px-2 py-1.5 bg-bg-success border border-success/20 rounded-md">
-            <CheckCircle2 className="w-3.5 h-3.5 text-ink-success mt-0.5 shrink-0" />
-            <p className="text-[10px] text-ink-success leading-snug">
+            <CheckCircle2 className="w-3.5 h-3.5 text-success mt-0.5 shrink-0" />
+            <p className="text-[10px] text-success leading-snug">
               Va bene così per la maggior parte dei casi. Modifica solo se sai
               cosa stai cambiando.
             </p>
@@ -383,7 +383,7 @@ function PreviewStep({ model, warnings }: { model: FEAModel; warnings: string[] 
 
       {warnings.length > 0 && (
         <div className="flex items-start gap-2 px-3 py-2 bg-bg-warn/30 border border-warn/40 rounded-md">
-          <AlertTriangle className="w-3.5 h-3.5 text-ink-warn mt-0.5 shrink-0" />
+          <AlertTriangle className="w-3.5 h-3.5 text-warn mt-0.5 shrink-0" />
           <div className="text-[11px] text-ink leading-snug">
             <div className="font-semibold mb-0.5">{warnings.length} warning</div>
             <ul className="space-y-0.5 max-h-20 overflow-y-auto">
@@ -484,7 +484,7 @@ function DoneStep({
   return (
     <div className="text-center py-4 space-y-4">
       <div className="w-14 h-14 mx-auto rounded-full bg-bg-success border-2 border-success/40 flex items-center justify-center">
-        <CheckCircle2 className="w-7 h-7 text-ink-success" />
+        <CheckCircle2 className="w-7 h-7 text-success" />
       </div>
       <div>
         <h2 className="text-base font-semibold text-ink">Importazione completata</h2>

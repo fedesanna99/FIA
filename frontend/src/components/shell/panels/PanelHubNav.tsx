@@ -10,7 +10,7 @@
  *   - PanelBreadcrumb: header sticky "← Root › Current" che riporta
  *     l'utente all'hub root (onBack).
  *
- * Tonalita' allineate ai design token CSS (bg-bg-info, text-ink-info,
+ * Tonalita' allineate ai design token CSS (bg-bg-info, text-accent,
  * shadow-pop). 6 toni disponibili: info / success / purple / coral / warn / gray.
  *
  * v1.7 T1: aggiunto tono "gray" come 6° tono neutro per hub-card non
@@ -37,12 +37,12 @@ export interface HubCard {
 
 
 const TONE_STYLE: Record<HubTone, string> = {
-  info:    "bg-bg-info text-ink-info",
-  success: "bg-bg-success text-ink-success",
-  purple:  "bg-bg-purple text-ink-purple",
-  coral:   "bg-bg-coral text-ink-coral",
-  warn:    "bg-bg-warn text-ink-warn",
-  gray:    "bg-bg-gray text-ink-gray",
+  info:    "bg-bg-info text-accent",
+  success: "bg-bg-success text-success",
+  purple:  "bg-bg-purple text-purple",
+  coral:   "bg-bg-coral text-coral",
+  warn:    "bg-bg-warn text-warn",
+  gray:    "bg-bg-gray text-ink-3",
 };
 
 

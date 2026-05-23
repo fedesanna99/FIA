@@ -247,7 +247,7 @@ function DirectionsStep({
                 </div>
               </div>
               {active && (
-                <span className="text-[10px] font-mono text-ink-info bg-bg-info border border-accent/30 px-1.5 py-0.5 rounded-sm">
+                <span className="text-[10px] font-mono text-accent bg-bg-info border border-accent/30 px-1.5 py-0.5 rounded-sm">
                   ATTIVA
                 </span>
               )}
@@ -375,7 +375,7 @@ function ParametersStep({
   return (
     <div className="space-y-4">
       <div className="bg-bg-info border border-accent/20 rounded-md p-3">
-        <div className="text-[11px] font-semibold text-ink-info mb-1">Riepilogo</div>
+        <div className="text-[11px] font-semibold text-accent mb-1">Riepilogo</div>
         <div className="text-[11px] text-ink-3">
           {activeAxes.length} componente/i attiva/e: {activeAxes.join(", ")}.
           Solver Newmark-β su modello 3D con smorzamento Rayleigh.

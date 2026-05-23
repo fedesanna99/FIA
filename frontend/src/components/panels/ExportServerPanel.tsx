@@ -74,7 +74,7 @@ export function ExportServerPanel() {
       <Card title="Formati disponibili">
         <div className="grid grid-cols-2 gap-2">
           <ExportButton
-            icon={<FileText className="h-4 w-4 text-info" />}
+            icon={<FileText className="h-4 w-4 text-accent" />}
             title="PDF Report"
             desc="reportlab · 7 sezioni"
             onClick={() => pdfMut.mutate()}

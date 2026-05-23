@@ -18,7 +18,7 @@ export function DynamicTimelineHUD() {
   const tMax = dyn.times[dyn.times.length - 1] ?? 0;
 
   return (
-    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-bg-panel/95 backdrop-blur border border-border rounded p-3 flex items-center gap-3 text-xs shadow-lg"
+    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-bg-panel/95 backdrop-blur border border-border rounded p-3 flex items-center gap-3 text-xs shadow-pop"
          style={{ minWidth: 480 }}>
       <button
         className="btn btn-primary"

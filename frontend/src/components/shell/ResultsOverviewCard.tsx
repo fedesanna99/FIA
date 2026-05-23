@@ -51,9 +51,9 @@ export function ResultsOverviewCard() {
   const SAFETY_THRESHOLD_MPA = 235;
   const safetyRatio = maxStressMPa / SAFETY_THRESHOLD_MPA;
   const stressTone =
-    safetyRatio >= 1.0 ? "text-ink-coral" :
-    safetyRatio >= 0.7 ? "text-ink-warn" :
-    "text-ink-success";
+    safetyRatio >= 1.0 ? "text-coral" :
+    safetyRatio >= 0.7 ? "text-warn" :
+    "text-success";
   const stressHint = `σ / 235 MPa = ${safetyRatio.toFixed(2)} (riferimento S235, solo visivo)`;
 
   // v1.9.0 T2: GPS Strutturale - 3 verifiche normative semplificate.

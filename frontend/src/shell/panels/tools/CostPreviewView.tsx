@@ -19,7 +19,7 @@ export function CostPreviewView() {
     <div className="p-3 space-y-4 overflow-y-auto">
       <section>
         <div className="flex items-center gap-2 mb-1.5">
-          <Receipt className="w-3.5 h-3.5 text-ink-coral" />
+          <Receipt className="w-3.5 h-3.5 text-coral" />
           <h3 className="text-xs font-semibold text-ink">Cost preview</h3>
         </div>
         <p className="text-[11px] text-ink-3 leading-relaxed mb-3">
@@ -52,8 +52,8 @@ export function CostPreviewView() {
       </section>
 
       <div className="flex items-start gap-2 px-2 py-2 bg-bg-info border border-accent/20 rounded-md">
-        <Info className="w-3.5 h-3.5 text-ink-info mt-0.5 shrink-0" />
-        <p className="text-[10px] text-ink-info leading-snug">
+        <Info className="w-3.5 h-3.5 text-accent mt-0.5 shrink-0" />
+        <p className="text-[10px] text-accent leading-snug">
           Il costo varia con n. di nodi, gradi di libertà, tipo solver e quota piano.
           La preview e' aggiornata in tempo reale al cambio di parametri.
         </p>
@@ -62,7 +62,7 @@ export function CostPreviewView() {
       <button
         type="button"
         onClick={openSolve}
-        className="w-full bg-coral/20 hover:bg-coral/30 text-ink-coral border border-coral/30 text-[11px] font-medium py-2 rounded-md transition-colors"
+        className="w-full bg-coral/20 hover:bg-coral/30 text-coral border border-coral/30 text-[11px] font-medium py-2 rounded-md transition-colors"
       >
         Apri pannello Solve →
       </button>

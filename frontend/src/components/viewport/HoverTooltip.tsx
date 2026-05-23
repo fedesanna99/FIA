@@ -19,7 +19,7 @@ export function HoverTooltip() {
 
   return (
     <div
-      className="fixed pointer-events-none z-40 bg-bg-panel/95 border border-border rounded px-2 py-1.5 text-[11px] numeric shadow-lg backdrop-blur"
+      className="fixed pointer-events-none z-40 bg-bg-panel/95 border border-border rounded px-2 py-1.5 text-[11px] numeric shadow-pop backdrop-blur"
       style={{ left: pos.x + 16, top: pos.y + 12, minWidth: 160 }}
     >
       {hover.kind === "node" && <NodeTooltip nodeId={hover.id} x={hover.x} y={hover.y} z={hover.z} />}

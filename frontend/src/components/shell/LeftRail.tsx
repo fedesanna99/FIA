@@ -178,7 +178,7 @@ export function LeftRail() {
 function SectionLabel({ text }: { text: string }) {
   return (
     <div
-      className="text-[7px] uppercase tracking-[0.15em] text-ink-faint font-mono font-semibold mt-1.5 mb-0.5 select-none"
+      className="text-[7px] uppercase tracking-[0.15em] text-ink-4 font-mono font-semibold mt-1.5 mb-0.5 select-none"
       aria-hidden
     >
       {text}

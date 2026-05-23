@@ -16,7 +16,7 @@ interface BadgeProps extends HTMLAttributes<HTMLSpanElement> {
 
 const VARIANT: Record<Variant, string> = {
   default: "bg-bg-elevated text-ink border-border",
-  info:    "bg-info/15 text-info border-info/30",
+  info:    "bg-info/15 text-accent border-info/30",
   success: "bg-success/15 text-success border-success/30",
   warn:    "bg-warn/15 text-warn border-warn/30",
   danger:  "bg-danger/15 text-danger border-danger/30",

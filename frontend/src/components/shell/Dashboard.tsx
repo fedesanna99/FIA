@@ -104,7 +104,7 @@ export function Dashboard({
 
           {/* Backend down banner */}
           {modelsUnavailable && (
-            <div className="border border-warn/35 bg-bg-warn text-ink-warn px-3.5 py-2.5 flex items-center gap-2.5 text-sm animate-fade-in">
+            <div className="border border-warn/35 bg-bg-warn text-warn px-3.5 py-2.5 flex items-center gap-2.5 text-sm animate-fade-in">
               <WifiOff className="w-4 h-4 flex-shrink-0" />
               <div className="min-w-0 flex-1">
                 <span className="font-medium">Backend/database non disponibile.</span>{" "}

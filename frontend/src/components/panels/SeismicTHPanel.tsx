@@ -39,7 +39,7 @@ export function SeismicTHPanel() {
         <div className="space-y-3">
           {/* Empty state: l'utente deve configurare prima di eseguire */}
           <div className="bg-bg-panel border border-border rounded-md p-3.5 flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-bg-info text-ink-info flex items-center justify-center flex-shrink-0">
+            <div className="w-9 h-9 rounded-lg bg-bg-info text-accent flex items-center justify-center flex-shrink-0">
               <Zap className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">

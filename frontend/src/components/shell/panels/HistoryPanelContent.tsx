@@ -24,9 +24,9 @@ export function HistoryPanelContent() {
   if (snapshots.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
-        <Camera className="h-8 w-8 text-ink-faint" strokeWidth={1.5} />
+        <Camera className="h-8 w-8 text-ink-4" strokeWidth={1.5} />
         <p className="text-ink-3">Nessuno snapshot salvato.</p>
-        <p className="text-[11px] text-ink-faint leading-relaxed max-w-[240px]">
+        <p className="text-[11px] text-ink-4 leading-relaxed max-w-[240px]">
           Crea snapshot dal pannello Tools per congelare lo stato dei
           risultati e confrontarli in seguito.
         </p>
@@ -53,7 +53,7 @@ export function HistoryPanelContent() {
             <div className="text-[11px] text-ink-3 truncate">
               {snap.modelName} · {formatRelative(snap.timestamp)}
             </div>
-            <div className="flex gap-1 mt-1 text-[10px] text-ink-faint">
+            <div className="flex gap-1 mt-1 text-[10px] text-ink-4">
               {snap.staticResults && <span className="chip chip-success">statica</span>}
               {snap.modalResults && <span className="chip chip-purple">modale</span>}
             </div>
@@ -63,7 +63,7 @@ export function HistoryPanelContent() {
             onClick={() => remove(snap.id)}
             aria-label="Elimina snapshot"
             data-testid={`history-delete-${snap.id}`}
-            className="w-6 h-6 rounded flex items-center justify-center text-ink-faint hover:text-danger hover:bg-bg-hover opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+            className="w-6 h-6 rounded flex items-center justify-center text-ink-4 hover:text-danger hover:bg-bg-hover opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
           >
             <X className="h-3 w-3" />
           </button>

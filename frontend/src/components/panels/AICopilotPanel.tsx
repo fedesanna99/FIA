@@ -120,7 +120,7 @@ export function AICopilotPanel() {
 
       {/* Context banner */}
       {model && (
-        <div className="bg-bg-info text-ink-info text-[11px] font-mono px-3.5 py-2 border-b border-border flex items-center gap-2 flex-shrink-0">
+        <div className="bg-bg-info text-accent text-[11px] font-mono px-3.5 py-2 border-b border-border flex items-center gap-2 flex-shrink-0">
           <Link2 className="w-3 h-3 flex-shrink-0" />
           <span className="truncate">
             Contesto: {model.name} · {model.nodes?.length ?? 0} N · {model.elements?.length ?? 0} EL
