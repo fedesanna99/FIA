@@ -656,7 +656,11 @@ export default function App() {
           open={percorsiPlaceholderOpen}
           onClose={() => setPercorsiPlaceholderOpen(false)}
           onLoadTemplate={(templateId) => {
-            setPercorsiPlaceholderOpen(false);
+            // v2.2.3 audit-visual-fix: prima chiudevamo il wizard subito
+            // dopo onLoadTemplate, rendendo gli step 4-5-6 (Esegui /
+            // Critical / Report) unreachable. Ora NON chiudiamo: il wizard
+            // resta aperto sopra il viewport e l'utente prosegue fino al
+            // Report dove c'è il bottone "Chiudi · vai al modello".
             setActiveId(templateId);
           }}
         />
