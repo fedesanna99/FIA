@@ -20,6 +20,10 @@ backend/storage/results/
 venv/
 .env
 
+# Pubblicazione audit interno via SPA (frontend/public/audit/ è statico per fly.dev)
+!frontend/public/audit/
+!frontend/public/audit/**
+
 node_modules/
 dist/
 build/

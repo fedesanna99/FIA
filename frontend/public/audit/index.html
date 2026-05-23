@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>FEA Pro — Audit interno</title>
+  <style>
+    :root {
+      --bg: #fafafa;
+      --panel: #ffffff;
+      --ink: #1a1a1a;
+      --ink-3: #6a6a6a;
+      --border: #e5e5e5;
+      --accent: #1a73e8;
+      --success: #1a8f3f;
+      --warn: #d97706;
+      --danger: #d23131;
+      --code-bg: #f4f4f5;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0f1219;
+        --panel: #1a1f2e;
+        --ink: #e5e7eb;
+        --ink-3: #9ca3af;
+        --border: #2a3040;
+        --accent: #5eaaff;
+        --code-bg: #161b26;
+      }
+    }
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 15px;
+      line-height: 1.6;
+    }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .topbar h1 {
+      margin: 0;
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .topbar .badge {
+      font-size: 11px;
+      font-family: ui-monospace, "JetBrains Mono", monospace;
+      background: var(--warn);
+      color: white;
+      padding: 2px 8px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    nav {
+      margin-left: auto;
+      display: flex;
+      gap: 8px;
+    }
+    nav a {
+      text-decoration: none;
+      color: var(--ink-3);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+    }
+    nav a:hover, nav a.active {
+      background: var(--code-bg);
+      color: var(--ink);
+    }
+    main {
+      max-width: 980px;
+      margin: 32px auto;
+      padding: 0 24px 80px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    main > div { padding: 32px 40px; }
+    main h1, main h2, main h3, main h4 {
+      margin-top: 1.4em;
+      margin-bottom: 0.6em;
+      line-height: 1.3;
+    }
+    main h1 { font-size: 28px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
+    main h2 { font-size: 22px; margin-top: 2em; }
+    main h3 { font-size: 18px; }
+    main h4 { font-size: 15px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.04em; }
+    main p { margin: 0.8em 0; }
+    main code {
+      background: var(--code-bg);
+      padding: 2px 6px;
+      border-radius: 3px;
+      font-family: ui-monospace, "JetBrains Mono", monospace;
+      font-size: 0.88em;
+    }
+    main pre {
+      background: var(--code-bg);
+      padding: 14px 18px;
+      border-radius: 6px;
+      overflow-x: auto;
+      font-size: 13px;
+    }
+    main pre code {
+      background: transparent;
+      padding: 0;
+    }
+    main table {
+      border-collapse: collapse;
+      margin: 1.2em 0;
+      font-size: 13px;
+      width: 100%;
+    }
+    main th, main td {
+      padding: 8px 12px;
+      border: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+    main th {
+      background: var(--code-bg);
+      font-weight: 600;
+    }
+    main blockquote {
+      border-left: 3px solid var(--accent);
+      padding: 4px 16px;
+      margin: 1em 0;
+      color: var(--ink-3);
+      background: var(--code-bg);
+      border-radius: 0 6px 6px 0;
+    }
+    main ul, main ol { padding-left: 24px; }
+    main li { margin: 0.3em 0; }
+    main strong { color: var(--ink); }
+    main hr { border: none; border-top: 1px solid var(--border); margin: 2em 0; }
+    .legend {
+      font-size: 13px;
+      color: var(--ink-3);
+      padding: 12px 16px;
+      background: var(--code-bg);
+      border-radius: 6px;
+      margin: 16px 0;
+    }
+    .footer {
+      text-align: center;
+      color: var(--ink-3);
+      font-size: 12px;
+      padding: 32px 0;
+    }
+    .loading {
+      text-align: center;
+      padding: 80px;
+      color: var(--ink-3);
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <h1>FEA Pro — Audit interno</h1>
+    <span class="badge">Confidential</span>
+    <nav>
+      <a href="?doc=report" id="link-report">Executive report</a>
+      <a href="?doc=checklist" id="link-checklist">Checklist 280 test</a>
+      <a href="/">← Torna all'app</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="legend">
+      <strong>Note:</strong> Documento di audit interno completato 2026-05-24.
+      252/280 test eseguiti su FEA Pro v2.3.2 simulando ingegnere strutturista
+      paying €2000/mese. Identificati 18 bug confermati e gap funzionali.
+    </div>
+    <div id="content" class="loading">Caricamento markdown…</div>
+    <div class="footer">
+      Auditato da Claude (Anthropic) · Sorgente: <a href="https://github.com/fedesanna99/FIA/tree/feature/redesign-precision/.codex-temp">github.com/fedesanna99/FIA</a>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/marked@12/marked.min.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const doc = params.get('doc') || 'report';
+    const file = doc === 'checklist' ? 'checklist.md' : 'report.md';
+    document.getElementById('link-' + doc)?.classList.add('active');
+    fetch('/audit/' + file)
+      .then(r => r.text())
+      .then(md => {
+        marked.setOptions({ gfm: true, breaks: false });
+        document.getElementById('content').innerHTML = marked.parse(md);
+        document.getElementById('content').classList.remove('loading');
+      })
+      .catch(e => {
+        document.getElementById('content').textContent = 'Errore caricamento: ' + e;
+      });
+  </script>
+</body>
+</html>
