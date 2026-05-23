@@ -1,14 +1,10 @@
 /**
- * ReportExportDialog (v1.9.0 T4) — Demo Slice GPS Strutturale.
+ * ReportExportDialog (Precision v2.0 PR17 T9 finalize) — export PDF Precision.
  *
- * Modal wrapper sopra l'utility `generateReport` (reportPdf.ts).
- * Mostra una checklist delle sezioni che verranno incluse nel PDF +
- * bottone download.
- *
- * Apertura: il bottone "Genera report PDF →" in ResultsOverviewCard
- * dispatcha `feapro:open-export-pdf` (ascoltato da App.tsx).
- *
- * Dismiss: ESC / backdrop / swipe-back (regola UI v1.7 T5).
+ * Modal wrapper sopra `generateReport` (reportPdf.ts). Checklist sezioni
+ * + bottone download. Apertura via custom event `feapro:open-export-pdf`.
+ * TrustLayerBadge banner sopra (PR15 T2). Footer Precision con filename
+ * mono + spinner inline.
  */
 import { useMemo, useState } from "react";
 import { FileText, Download, CheckSquare, Square } from "lucide-react";
@@ -74,6 +70,7 @@ export function ReportExportDialog({ open, onClose }: Props) {
   const [enabled, setEnabled] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(SECTIONS.map((s) => [s.id, s.defaultEnabled])),
   );
+  const [downloading, setDownloading] = useState(false);
 
   const pageCount = useMemo(
     () => Object.values(enabled).filter(Boolean).length || 1,
@@ -89,6 +86,7 @@ export function ReportExportDialog({ open, onClose }: Props) {
       toast("warning", "Apri un modello prima di esportare il report.");
       return;
     }
+    setDownloading(true);
     try {
       generateReport({
         model,
@@ -96,29 +94,32 @@ export function ReportExportDialog({ open, onClose }: Props) {
         modalResults: modalRes ?? null,
       });
       notify("success", "Report PDF generato", `${pageCount} sezioni · ${model.name}`);
+      setDownloading(false);
       onClose();
     } catch (e) {
+      setDownloading(false);
       toast("error", `Errore generazione PDF: ${(e as Error).message}`);
     }
   }
 
   return (
-    <Dialog open={open} onClose={onClose} title="Genera report PDF" width={520}>
-      <div className="space-y-3" data-testid="report-export-dialog">
-        {/* v2.0 Precision PR15 T2: TrustLayerBadge banner sopra le sezioni —
-            il report è SEMPRE DRAFT finché il professionista non firma. */}
+    <Dialog open={open} onClose={onClose} title="Genera report PDF" width={540}>
+      <div className="space-y-4" data-testid="report-export-dialog">
+        {/* Trust Layer banner */}
         <TrustLayerBadge variant="banner" />
 
-        <div className="flex items-start gap-2.5 bg-bg-info border border-ink-info/30 p-2.5">
+        {/* Info card */}
+        <div className="flex items-start gap-2.5 bg-bg-info border border-accent/20 px-3 py-2.5">
           <FileText className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
-          <div className="text-[11px] text-ink leading-snug">
+          <div className="text-[11px] text-ink-2 leading-snug">
             Il report include solo le sezioni selezionate. La generazione è
-            client-side (jsPDF) — nessun upload al server.
+            client-side (jsPDF) · nessun upload al server.
           </div>
         </div>
 
-        <div className="space-y-1">
-          <div className="text-[10px] uppercase tracking-wider text-ink-muted font-mono font-semibold mb-1">
+        {/* Sezioni checklist */}
+        <div className="space-y-0.5">
+          <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-2">
             Sezioni · {pageCount} attive
           </div>
           {SECTIONS.map((s) => {
@@ -129,54 +130,60 @@ export function ReportExportDialog({ open, onClose }: Props) {
                 type="button"
                 onClick={() => toggle(s.id)}
                 data-testid={`report-section-${s.id}`}
-                className="w-full flex items-start gap-2.5 p-2 rounded-md hover:bg-bg-hover transition-colors text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+                className="w-full flex items-start gap-2.5 px-2.5 py-2 hover:bg-bg-hover transition-colors text-left focus-visible:outline-none focus-visible:border-accent border border-transparent"
               >
                 {on ? (
-                  <CheckSquare className="w-4 h-4 text-ink-info flex-shrink-0 mt-0.5" />
+                  <CheckSquare className="w-4 h-4 text-accent flex-shrink-0 mt-0.5" />
                 ) : (
-                  <Square className="w-4 h-4 text-ink-muted flex-shrink-0 mt-0.5" />
+                  <Square className="w-4 h-4 text-ink-3 flex-shrink-0 mt-0.5" />
                 )}
                 <div className="min-w-0 flex-1">
-                  <div className={`text-sm font-semibold ${on ? "text-ink" : "text-ink-muted"}`}>
+                  <div className={`text-sm font-semibold ${on ? "text-ink" : "text-ink-3"}`}>
                     {s.label}
                   </div>
-                  <div className="text-[11px] text-ink-muted leading-snug">{s.description}</div>
+                  <div className="text-[11px] text-ink-3 leading-snug">{s.description}</div>
                 </div>
               </button>
             );
           })}
         </div>
 
-        <div className="pt-2 border-t border-border flex items-center gap-2">
-          <div className="text-[10px] text-ink-muted flex-1">
-            Output: <span className="font-mono text-ink">{model?.name ?? "modello"}.pdf</span>
+        {/* Warning if no results */}
+        {!staticRes && (
+          <div className="flex items-start gap-2 px-3 py-2 bg-bg-warn border border-warn/40 text-sm text-warn">
+            <span className="font-mono text-[11px] uppercase tracking-wide-1 font-semibold flex-shrink-0">!</span>
+            <span>Esegui un'analisi statica prima per popolare le sezioni Risultati/Criticità.</span>
+          </div>
+        )}
+
+        {/* Footer actions */}
+        <div className="pt-3 border-t border-border flex items-center gap-2 flex-wrap">
+          <div className="text-[11px] text-ink-3 flex-1 min-w-0">
+            Output: <span className="font-mono text-ink-2">{model?.name ?? "modello"}.pdf</span>
           </div>
           <button
             type="button"
             onClick={onClose}
             data-testid="report-cancel"
-            className="px-3 py-1.5 text-xs text-ink-muted hover:text-ink rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover"
           >
             Annulla
           </button>
           <button
             type="button"
             onClick={handleDownload}
-            disabled={!model || !staticRes}
+            disabled={!model || !staticRes || downloading}
             data-testid="report-download"
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-accent text-white text-xs font-medium rounded-md hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+            className="inline-flex items-center gap-1.5 bg-accent text-white border border-accent px-4 py-1.5 text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Download className="w-3.5 h-3.5" />
-            Scarica PDF
+            {downloading ? (
+              <span className="inline-block w-3 h-3 border-[1.5px] border-white/40 border-t-white animate-spin" />
+            ) : (
+              <Download className="w-3.5 h-3.5" />
+            )}
+            {downloading ? "Generazione…" : "Scarica PDF"}
           </button>
         </div>
-
-        {!staticRes && (
-          <div className="text-[10px] text-ink-warn italic">
-            Esegui un'analisi statica prima per popolare le sezioni
-            Risultati/Criticità.
-          </div>
-        )}
       </div>
     </Dialog>
   );
