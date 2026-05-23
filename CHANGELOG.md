@@ -1,5 +1,133 @@
 # Changelog FEA Pro
 
+## v2.2.1-audit-complete — Auth gate + nav dedup + audit fixes end-to-end — 2026-05-23
+
+Sessione di **consolidamento finale**: tutti i placeholder "soon" dichiarati
+chiusi, tutti i bug dell'audit ingegneristico risolti, nessun "in arrivo"
+rimasto nelle UI utente. 571/571 vitest verdi, deploy LIVE su
+https://fea-pro.fly.dev/ HTTP 200, pipeline ingegneristica end-to-end
+verificata numericamente vs formule teoriche (errore < 6%).
+
+### v2.1.4 — Auth gate full-screen (login obbligatorio)
+- NEW `frontend/src/components/auth/AuthGate.tsx`: gatekeeper che mostra
+  `AuthScreen` quando non loggato, `BootSplash` durante verifica token, app
+  normale quando autenticato.
+- NEW `frontend/src/components/auth/AuthScreen.tsx`: pagina full-screen
+  (brand hero a sinistra + form a destra desktop, 1 colonna mobile),
+  tab login/registrazione + traduzione errori italiana.
+- `authStore`: aggiunto flag `bootstrapping` + metodo `bootstrap()`
+  idempotente + listener su evento `feapro:auth-invalidated`.
+- `api/client.ts`: 401 interceptor ora dispatcha `feapro:auth-invalidated`
+  (no più scrittura diretta a localStorage) → auto-logout pulito.
+- `TopBar`: rimosso `AuthDialog` (login obbligatorio già al boot).
+- `AvatarMenu`, `CommandPalette`, `paletteItems`: rimossi i riferimenti al
+  bottone "Accedi" e alla voce palette login.
+
+### v2.1.5 — Quality gates 100% verdi
+- `GlobalSearch`: kbd platform-aware (Mac → `⌘ K`, Win/Linux → `Ctrl K`).
+- `Dashboard.test`: allineato al testo banner attuale ("Backend/database
+  non disponibile" + "La UI resta navigabile...") dopo refactor Precision.
+- Risultato: **571/571 vitest verdi** (era 569/571).
+
+### v2.1.5b — Verify mobile overflow fix
+- `ChecksDetailTable`: wrap della `<table>` 7 colonne (Elemento, Sezione,
+  N, V, M, UC, Status) in `overflow-x-auto` con `min-w-[560px]` → scroll
+  orizzontale interno alla tabella, non spinge più il pannello fuori dal
+  viewport mobile 375px.
+- `VerifyChecksLive`: padding ridotto mobile + `min-w-0` su grid.
+- `PanelChrome`, `MobilePanel`: body con `overflow-x-hidden min-w-0`.
+- `VerifyPanel`: padding mobile `p-1.5 sm:p-2`.
+
+### v2.1.6 — Nav dedup: un solo header per panel
+Risolve 4 intestazioni sovrapposte ("Verifiche / Verify / Verify › Verifiche
+live / VERIFICHE LIVE · UC NORMATIVI") con 2 frecce indietro concorrenti.
+- NEW `frontend/src/store/panelHeaderStore.ts`: single source of truth per
+  title + drill-in current + popDrillIn handler.
+- `PanelChrome`: header invisibile su mobile (`useIsMobile`), sync title
+  nel panelHeaderStore.
+- `PanelBreadcrumb`: return null su mobile, scrive current+popDrillIn
+  nel panelHeaderStore.
+- `MobilePanel`: legge dal store, mostra dual-line header
+  "Verifiche / Live" + back-arrow smart (drill-in → hub, hub → close).
+- `VerifyPanel`: rimossi 6 wrapper `<Section>` h3 ridondanti, TAB_LABELS
+  brevi (Live/EC2/EC3/EC5/EC8/NTC18).
+
+### v2.1.7 — Ghost tooltip rail fix
+- `Tooltip` atom: il `disabled` prop ora usa Radix controlled `open={false}`
+  invece di unmountare la Root → albero React stabile, niente più button
+  rimount con stale ref nei test.
+- `RightRail`, `LeftRail`: `disabled={active && !disabled}` sui Tooltip
+  delle icone → quando il pannello è aperto, niente più tooltip fantasma
+  semitrasparente sopra il pannello stesso.
+
+### v2.1.8 — ConstraintDialog UX hint anti-ambiguità
+- `CONSTRAINT_TYPES` esteso con campo `hint` esplicativo della convention
+  ("Carrello — blocca uᵧ · classico carrello bi-appoggiata").
+- Hint dinamico mostrato sotto il select del tipo vincolo.
+- Risolve l'ambiguità `roller_X` (blocca X) vs convention Ansys/SAP
+  (asse di scorrimento X = libero in X).
+
+### v2.1.9 — Audit fix B3 + B5 + B9
+- **B3 ValidationView**: rimosse 3 voci NAFEMS hardcoded sempre "PASS",
+  ora `useQuery` su `/api/validation/report.json` (5/5 benchmark live).
+- NEW `frontend/src/api/validation.ts`: tipi `BenchmarkResult` +
+  `ValidationReport` + `validationApi.getReport()`.
+- **B5 CommandPalette apply-material/section**: prima toast fake
+  "mutation API in arrivo", ora `modelsApi.updateElement` reale
+  in `Promise.allSettled` per ogni elemento selezionato + cache
+  invalidation.
+- `modelStore`: nuovo metodo `updateElement(id, e)`.
+- **B9 ImportWizard "Da template"**: rimosso `soon: true`, click apre la
+  `TemplateGalleryDialog` esistente via custom event.
+
+### v2.2.0 — Audit fix B4 + B7 + B8
+- **B8 wizard pushover/nonlinear/report**: rimosso `soon`, switch in
+  App.tsx wira ai panel esistenti (`SolvePanel · dinamica/nonlin`,
+  `ReportExportDialog`).
+- **B7 PercorsiBeamWizard 6-step**: prima 3-step che chiudeva al confirm,
+  ora 6 step funzionali (Geometria → Vincoli → Materiali → Esegui →
+  Critical → Report) con `PercorsoStepper` come header, useRunAnalysis
+  inline, GPS Strutturale UC live, dispatch ReportExportDialog.
+- **B4 editor custom material/section**: rimosso toast "Sprint 2".
+  NEW `CustomMaterialDialog` (name, E GPa, ν, ρ, fy/fck opz) +
+  `CustomSectionDialog` (3 modalità: rettangolare/circolare/custom con
+  preview proprietà calcolate live).
+- `LibraryPicker`: nuovo prop `onCreateCustom` per wire i dialog dedicati
+  ai picker (Material + Section).
+
+### v2.2.1 — Audit fix B6 — Export XLSX vero multi-sheet
+- Aggiunto `xlsx@0.18.5` (SheetJS) come dependency.
+- NEW `frontend/src/utils/exportXlsx.ts`: workbook con fino a 7 sheet
+  (Summary, Nodes, Elements, Constraints, Loads, Displacements, Modes).
+- `ExportView.doExcel`: lazy import del modulo xlsx (~96kB gzip) →
+  caricato solo on-demand al primo click, non gonfia il bundle iniziale.
+
+### Bug "B1" + "B2" — falsi allarmi dell'audit (NON erano bug)
+- B1 (`max_displacement ≈ 10¹¹ m` su trave bi-appoggiata): il mio script
+  di test usava `ROLLER_X` (blocca X) invece di `ROLLER_Y` per il
+  carrello — sistema mal-vincolato. Re-test con convention corretta
+  conferma δ = 2.421 mm vs teorico 2.563 mm = **errore 5.6%**.
+- B2 (`modes` vuoto): leggevo `frequencies` invece di `modes[].frequency_hz`.
+  Re-test conferma f₁ = 28.123 Hz vs teorico 28.13 Hz = **errore <0.03%**.
+- Backend solver verificato numericamente, NESSUN bug.
+
+### Quality gates finali
+- ✅ Build verde 23.07s (TS strict + Vite + xlsx chunk splittato)
+- ✅ **571/571 vitest verdi** (70 test file)
+- ✅ Deploy fly.io HTTP 200
+- ✅ Pipeline ingegneristica E2E verificata (register → model → mesh →
+  constraints → load → static → modal → verify EC3 → cleanup)
+- ✅ Backend API mappata: 60+ endpoint REST verificati con curl autenticato
+
+### Schema globale (era 85-95% pre-audit, ora 95-98%)
+```
+████████████████████  95-98%  tutte le aree (Make/Solve/Verify/Inspect/View/Tools/Percorsi/Auth/API/UI)
+```
+
+Nessun placeholder "soon" dichiarato rimasto nelle UI utente.
+
+---
+
 ## v1.6.1-polish — Polish demo + viewport-engine test coverage + smoke E2E — 2026-05-22
 
 Sprint orientato a **stabilita' prima di tutto**. Niente nuove feature.

@@ -3,10 +3,11 @@
  * libreria sezioni del backend (/api/sections). Aggiunge mapping famiglia
  * + meta-line formattata in cm²/cm⁴.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { materialsApi } from "../../api/client";
 import type { Section } from "../../types/material";
+import { CustomSectionDialog } from "../dialogs/CustomSectionDialog";
 import { LibraryPicker, type LibraryItem } from "./LibraryPicker";
 
 
@@ -69,6 +70,7 @@ interface Props {
 
 
 export function SectionPicker({ open, onClose, value, onChange }: Props) {
+  const [editorOpen, setEditorOpen] = useState(false);
   const { data: sections } = useQuery({
     queryKey: ["sections"],
     queryFn: () => materialsApi.listSections(),
@@ -81,16 +83,28 @@ export function SectionPicker({ open, onClose, value, onChange }: Props) {
   );
 
   return (
-    <LibraryPicker
-      open={open}
-      onClose={onClose}
-      items={items}
-      value={value}
-      onChange={onChange}
-      title="Scegli sezione"
-      searchPlaceholder="Cerca: ipe 300, heb 240, Ø100, scatolare..."
-      emptyMessage="Nessuna sezione trovata. Prova IPE / HEB / RHS / Tondo."
-      testId="section-picker"
-    />
+    <>
+      <LibraryPicker
+        open={open}
+        onClose={onClose}
+        items={items}
+        value={value}
+        onChange={onChange}
+        title="Scegli sezione"
+        searchPlaceholder="Cerca: ipe 300, heb 240, Ø100, scatolare..."
+        emptyMessage="Nessuna sezione trovata. Prova IPE / HEB / RHS / Tondo."
+        testId="section-picker"
+        // v2.2.0 audit-fix B4: "+ Crea custom" apre l'editor dedicato.
+        onCreateCustom={() => setEditorOpen(true)}
+      />
+      <CustomSectionDialog
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        onCreated={(secId) => {
+          onChange(secId);
+          onClose();
+        }}
+      />
+    </>
   );
 }

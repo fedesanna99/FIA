@@ -62,46 +62,54 @@ describe("PercorsiBeamWizard", () => {
     expect(screen.getByTestId("percorsi-step-3")).toBeInTheDocument();
   });
 
-  it("step 3 → 'Conferma' chiama onLoadTemplate(templateId) + onClose", () => {
+  it("step 3 → 'Carica e procedi' chiama onLoadTemplate(templateId) e avanza a step 4", () => {
+    // v2.2.0 audit-fix B7: prima il wizard era 3-step e chiudeva al confirm.
+    // Ora è 6-step (Geometria → Vincoli → Materiali → Esegui → Critical → Report).
+    // Step 3 "Materiali/Sezioni" → Carica template → avanza a step 4 "Esegui".
+    // onClose NON viene chiamato qui (succede solo al "Chiudi" dello step 6).
     const onClose = vi.fn();
     const onLoadTemplate = vi.fn();
     render(<PercorsiBeamWizard open={true} onClose={onClose} onLoadTemplate={onLoadTemplate} />);
+    // Click card è già step 1 → 2 (handlePick → setStep(2)).
     fireEvent.click(screen.getByTestId("percorsi-card-trave-bi-appoggiata-uc1"));
-    fireEvent.click(screen.getByTestId("percorsi-next"));
-    fireEvent.click(screen.getByTestId("percorsi-confirm"));
+    fireEvent.click(screen.getByTestId("percorsi-next")); // step 2 → 3
+    fireEvent.click(screen.getByTestId("percorsi-next")); // step 3 → 4 (carica)
     expect(onLoadTemplate).toHaveBeenCalledWith("ex_simple_beam_2d");
-    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(onClose).not.toHaveBeenCalled(); // niente close al carica
+    expect(screen.getByTestId("percorsi-step-4")).toBeInTheDocument();
   });
 
   it("step 3 → 'Indietro' torna a step 2", () => {
     const onClose = vi.fn();
     const onLoadTemplate = vi.fn();
     render(<PercorsiBeamWizard open={true} onClose={onClose} onLoadTemplate={onLoadTemplate} />);
+    // Click card è già step 1 → 2 (handlePick triggera setStep(2) direttamente).
     fireEvent.click(screen.getByTestId("percorsi-card-mensola-3d"));
-    fireEvent.click(screen.getByTestId("percorsi-next"));
-    fireEvent.click(screen.getByTestId("percorsi-back-2"));
+    fireEvent.click(screen.getByTestId("percorsi-next")); // step 2 → 3
+    // v2.2.0 B7: testid generico FooterNav (era percorsi-back-2)
+    fireEvent.click(screen.getByTestId("percorsi-back"));
     expect(screen.getByTestId("percorsi-step-2")).toBeInTheDocument();
   });
 
   it("ogni card ha templateId corretto (verifica mapping)", () => {
-    const onClose = vi.fn();
-    const onLoadTemplate = vi.fn();
-    const { rerender } = render(
-      <PercorsiBeamWizard open={true} onClose={onClose} onLoadTemplate={onLoadTemplate} />,
-    );
-    // Trave bi-appoggiata → ex_simple_beam_2d
-    fireEvent.click(screen.getByTestId("percorsi-card-trave-bi-appoggiata-uc1"));
-    fireEvent.click(screen.getByTestId("percorsi-next"));
-    fireEvent.click(screen.getByTestId("percorsi-confirm"));
-    expect(onLoadTemplate).toHaveBeenLastCalledWith("ex_simple_beam_2d");
+    // v2.2.0 B7: unmount + new render per evitare leak di state interno
+    // tra invocazioni (rerender mantiene stesso component instance).
+    function flowThrough(cardTestId: string): string | null {
+      const onClose = vi.fn();
+      const onLoadTemplate = vi.fn();
+      const { unmount } = render(
+        <PercorsiBeamWizard open={true} onClose={onClose} onLoadTemplate={onLoadTemplate} />,
+      );
+      fireEvent.click(screen.getByTestId(cardTestId)); // step 1 → 2
+      fireEvent.click(screen.getByTestId("percorsi-next")); // step 2 → 3
+      fireEvent.click(screen.getByTestId("percorsi-next")); // step 3 → 4 (carica)
+      const last = onLoadTemplate.mock.lastCall?.[0] ?? null;
+      unmount();
+      return last;
+    }
 
-    // Re-render fresh per testare telaio
-    onLoadTemplate.mockClear();
-    onClose.mockClear();
-    rerender(<PercorsiBeamWizard open={true} onClose={onClose} onLoadTemplate={onLoadTemplate} />);
-    fireEvent.click(screen.getByTestId("percorsi-card-telaio-portale-2d"));
-    fireEvent.click(screen.getByTestId("percorsi-next"));
-    fireEvent.click(screen.getByTestId("percorsi-confirm"));
-    expect(onLoadTemplate).toHaveBeenLastCalledWith("ex_portal_frame_2d");
+    expect(flowThrough("percorsi-card-trave-bi-appoggiata-uc1")).toBe("ex_simple_beam_2d");
+    expect(flowThrough("percorsi-card-telaio-portale-2d")).toBe("ex_portal_frame_2d");
+    expect(flowThrough("percorsi-card-mensola-3d")).toBe("ex_3d_grid");
   });
 });

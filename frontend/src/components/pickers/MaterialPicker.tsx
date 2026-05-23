@@ -4,10 +4,11 @@
  * famiglia: acciai S235/S275/S355/S460, calcestruzzo C25/C30/..., legno
  * C24/GL24/..., alluminio 6061/7075, ecc.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { materialsApi } from "../../api/client";
 import type { Material } from "../../types/material";
+import { CustomMaterialDialog } from "../dialogs/CustomMaterialDialog";
 import { LibraryPicker, type LibraryItem } from "./LibraryPicker";
 
 
@@ -57,6 +58,7 @@ interface Props {
 
 
 export function MaterialPicker({ open, onClose, value, onChange }: Props) {
+  const [editorOpen, setEditorOpen] = useState(false);
   const { data: materials } = useQuery({
     queryKey: ["materials"],
     queryFn: () => materialsApi.list(),
@@ -69,16 +71,29 @@ export function MaterialPicker({ open, onClose, value, onChange }: Props) {
   );
 
   return (
-    <LibraryPicker
-      open={open}
-      onClose={onClose}
-      items={items}
-      value={value}
-      onChange={onChange}
-      title="Scegli materiale"
-      searchPlaceholder="Cerca: S355, C30/37, lamellare, alluminio..."
-      emptyMessage="Nessun materiale trovato. Prova S235 / C25 / Legno / Acciaio."
-      testId="material-picker"
-    />
+    <>
+      <LibraryPicker
+        open={open}
+        onClose={onClose}
+        items={items}
+        value={value}
+        onChange={onChange}
+        title="Scegli materiale"
+        searchPlaceholder="Cerca: S355, C30/37, lamellare, alluminio..."
+        emptyMessage="Nessun materiale trovato. Prova S235 / C25 / Legno / Acciaio."
+        testId="material-picker"
+        // v2.2.0 audit-fix B4: "+ Crea custom" apre l'editor dedicato.
+        onCreateCustom={() => setEditorOpen(true)}
+      />
+      <CustomMaterialDialog
+        open={editorOpen}
+        onClose={() => setEditorOpen(false)}
+        onCreated={(matId) => {
+          // Auto-select + chiudi il picker per UX fluida.
+          onChange(matId);
+          onClose();
+        }}
+      />
+    </>
   );
 }

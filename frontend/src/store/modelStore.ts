@@ -31,6 +31,8 @@ interface ModelState {
   removeNode: (id: number) => void;
 
   addElement: (e: Element) => void;
+  /** v2.1.9 audit-fix B5: aggiorna un elemento esistente (es. apply-material). */
+  updateElement: (id: number, e: Element) => void;
   removeElement: (id: number) => void;
 
   addLoad: (l: Load) => void;
@@ -103,6 +105,10 @@ export const useModelStore = create<ModelState>((set, get) => ({
   addElement: (e) => {
     const m = get().model; if (!m) return;
     set({ lastSavedAt: new Date(), model: { ...m, elements: [...m.elements, e] } });
+  },
+  updateElement: (id, e) => {
+    const m = get().model; if (!m) return;
+    set({ lastSavedAt: new Date(), model: { ...m, elements: m.elements.map((x) => x.id === id ? e : x) } });
   },
   removeElement: (id) => {
     const m = get().model; if (!m) return;

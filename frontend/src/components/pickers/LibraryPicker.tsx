@@ -50,6 +50,12 @@ interface Props<T extends LibraryItem> {
   emptyMessage?: string;
   /** data-testid */
   testId?: string;
+  /**
+   * v2.2.0 audit-fix B4: callback per il bottone "Crea custom" in fondo
+   * alla lista. Se omesso, mostra toast legacy "in arrivo". Se presente,
+   * apre l'editor dialog del consumer (Material/SectionEditorDialog).
+   */
+  onCreateCustom?: () => void;
 }
 
 
@@ -63,6 +69,7 @@ export function LibraryPicker<T extends LibraryItem>({
   searchPlaceholder,
   emptyMessage,
   testId = "library-picker",
+  onCreateCustom,
 }: Props<T>) {
   const [search, setSearch] = useState("");
   const [family, setFamily] = useState<string>("all");
@@ -195,7 +202,7 @@ export function LibraryPicker<T extends LibraryItem>({
               <span className="text-[11px] text-ink-3">
                 {filtered.length} su {items.length}
               </span>
-              <CustomItemPlaceholder />
+              <CustomItemPlaceholder onCreate={onCreateCustom} />
             </footer>
           </div>
         </div>
@@ -236,15 +243,19 @@ function FamilyButton({
 }
 
 
-function CustomItemPlaceholder() {
-  // v1.6 S0 · B13: il bottone "Crea custom" e' un placeholder per Sprint 2
-  // (S2.T1 — material/section editor). Per ora mostra un toast.
+function CustomItemPlaceholder({ onCreate }: { onCreate?: () => void }) {
+  // v2.2.0 audit-fix B4: se il consumer (MaterialPicker/SectionPicker) ha
+  // wirato `onCreateCustom`, lo chiama → apre l'editor dialog dedicato.
+  // Se omesso fallback al toast legacy (per consumer custom di LibraryPicker
+  // non ancora aggiornati).
   return (
     <button
       type="button"
       onClick={() => {
-        toast("info", "Editor custom in arrivo nello Sprint 2.");
+        if (onCreate) onCreate();
+        else toast("info", "Editor custom non disponibile in questo picker.");
       }}
+      data-testid="library-picker-create-custom"
       className="text-[12px] text-accent hover:underline"
     >
       + Crea custom

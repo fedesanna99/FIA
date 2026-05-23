@@ -154,7 +154,18 @@ export function ImportWizard({ open, onClose, initialSource }: Props) {
       submitLabel="Chiudi"
       onSubmit={handleClose}
     >
-      {step === 0 && <SourceStep state={state} setState={setState} />}
+      {step === 0 && (
+        <SourceStep
+          state={state}
+          setState={setState}
+          onTemplateRequested={() => {
+            // v2.1.9 audit-fix B9: chiude wizard e apre TemplateGalleryDialog.
+            // App.tsx ha già un listener globale su `feapro:open-template-gallery`.
+            handleClose();
+            window.dispatchEvent(new Event("feapro:open-template-gallery"));
+          }}
+        />
+      )}
       {step === 1 && <FileStep state={state} setState={setState} pending={importMut.isPending} />}
       {step === 2 && imported && (
         <PreviewStep model={imported.model} warnings={imported.warnings} />
@@ -168,18 +179,22 @@ export function ImportWizard({ open, onClose, initialSource }: Props) {
 
 
 // ── Step 1: Fonte ──────────────────────────────────────────────────────────
-const SOURCES: { id: ImportSource; label: string; sub: string; icon: typeof FileUp; soon?: boolean }[] = [
-  { id: "dxf",      label: "File DXF",     sub: "LINE/POLYLINE → BEAM 2D/3D",        icon: FileUp },
-  { id: "ifc",      label: "File IFC4",    sub: "IfcBeam/Column/Member → BEAM 3D",   icon: FileBox },
-  { id: "json",     label: "JSON nativo",  sub: "Re-import FEA Pro (lossless)",      icon: FileJson },
-  { id: "template", label: "Template",     sub: "8 preset (presto disponibile)",     icon: Layers, soon: true },
+// v2.1.9 audit-fix B9: rimosso `soon: true` dalla card Template.
+// Click su Template chiude il wizard e apre la TemplateGalleryDialog
+// (galleria modelli precaricati già funzionante in App.tsx).
+const SOURCES: { id: ImportSource; label: string; sub: string; icon: typeof FileUp }[] = [
+  { id: "dxf",      label: "File DXF",     sub: "LINE/POLYLINE → BEAM 2D/3D",      icon: FileUp },
+  { id: "ifc",      label: "File IFC4",    sub: "IfcBeam/Column/Member → BEAM 3D", icon: FileBox },
+  { id: "json",     label: "JSON nativo",  sub: "Re-import FEA Pro (lossless)",    icon: FileJson },
+  { id: "template", label: "Da template",  sub: "9 modelli precaricati pronti",    icon: Layers },
 ];
 
 function SourceStep({
-  state, setState,
+  state, setState, onTemplateRequested,
 }: {
   state: ImportState;
   setState: React.Dispatch<React.SetStateAction<ImportState>>;
+  onTemplateRequested: () => void;
 }) {
   return (
     <div className="space-y-4">
@@ -191,18 +206,24 @@ function SourceStep({
         {SOURCES.map((s) => {
           const Icon = s.icon;
           const active = state.source === s.id;
+          // v2.1.9 audit-fix B9: card Template apre direttamente la gallery
+          // invece di selezionare una sorgente impossibile da uploadare.
+          const handleClick = () => {
+            if (s.id === "template") {
+              onTemplateRequested();
+              return;
+            }
+            setState((prev) => ({ ...prev, source: s.id, file: null }));
+          };
           return (
             <button
               key={s.id}
               type="button"
-              disabled={s.soon}
-              onClick={() => setState((prev) => ({ ...prev, source: s.id, file: null }))}
+              onClick={handleClick}
               data-testid={`wiz-source-${s.id}`}
               className={`text-left p-3 rounded-lg border transition ${
                 active
                   ? "border-accent bg-bg-info ring-2 ring-accent/30"
-                  : s.soon
-                  ? "border-border bg-bg-panel opacity-50 cursor-not-allowed"
                   : "border-border bg-bg-panel hover:border-accent/40 hover:bg-bg-hover"
               }`}
             >
@@ -215,11 +236,6 @@ function SourceStep({
                 <div className="flex-1 min-w-0">
                   <div className="text-sm font-semibold text-ink flex items-center gap-1.5">
                     {s.label}
-                    {s.soon && (
-                      <span className="text-[9px] uppercase font-mono text-ink-3 border border-border rounded-sm px-1">
-                        soon
-                      </span>
-                    )}
                   </div>
                   <div className="text-[11px] text-ink-3 mt-0.5">{s.sub}</div>
                 </div>

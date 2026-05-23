@@ -39,15 +39,24 @@ export function ExportView() {
     }
   };
 
-  const doExcel = () => {
+  const doExcel = async () => {
     if (!model) return;
     setBusy("xlsx");
     try {
-      // XLSX dedicato non ancora wired — usiamo CSV piatti (displacements + modi)
-      // come placeholder finche' non arriva un generatore multi-sheet.
-      if (staticResults) exportDisplacementsCSV(model, staticResults);
-      if (modalResults) exportModesCSV(model, modalResults);
-      toast("success", "Export Excel: scaricati i CSV piatti.");
+      // v2.2.1 audit-fix B6: vero workbook XLSX multi-sheet via SheetJS.
+      // Lazy import per non gonfiare il bundle iniziale (~300kB la lib).
+      const { exportModelToXlsx } = await import("../../../utils/exportXlsx");
+      const ok = exportModelToXlsx(model, { staticResults, modalResults });
+      if (ok) {
+        const sheets = ["Summary", "Nodes", "Elements", "Constraints", "Loads"];
+        if (staticResults) sheets.push("Displacements");
+        if (modalResults)  sheets.push("Modes");
+        toast("success", `XLSX scaricato (${sheets.length} sheet: ${sheets.join(", ")}).`);
+      } else {
+        toast("warning", "Workbook non generato (modello non disponibile).");
+      }
+    } catch (e) {
+      toast("error", `Errore export XLSX: ${(e as Error)?.message ?? e}`);
     } finally {
       setBusy(null);
     }
@@ -104,12 +113,12 @@ export function ExportView() {
       <ExportRow
         icon={FileSpreadsheet}
         title="Excel multi-sheet"
-        description="Workbook XLSX con sheet separati (placeholder: per ora 2 CSV)."
+        description="Workbook XLSX completo: Summary, Nodes, Elements, Constraints, Loads + Displacements/Modes se presenti."
         onAction={doExcel}
         loading={busy === "xlsx"}
-        disabled={noModel || (!staticResults && !modalResults)}
+        disabled={noModel}
         ctaLabel="Esporta XLSX"
-        hint={!staticResults && !modalResults ? "Esegui un'analisi prima." : undefined}
+        hint={!staticResults && !modalResults ? "Senza risultati esporta solo geometria + carichi." : undefined}
       />
       <ExportRow
         icon={Database}
