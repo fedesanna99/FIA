@@ -317,7 +317,7 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
     @apply bg-bg-panel border border-border;
   }
   .panel-header {
-    @apply px-3 py-2 border-b border-border text-xs font-semibold uppercase tracking-wider text-ink-muted;
+    @apply px-3 py-2 border-b border-border text-xs font-semibold uppercase tracking-wider text-ink-3;
   }
   .btn {
     @apply px-3 py-1.5 text-xs font-medium border border-border hover:bg-bg-hover hover:border-border-light transition;
@@ -335,7 +335,7 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
     @apply bg-bg border border-border px-2 py-1 text-xs numeric focus:border-accent outline-none w-full;
   }
   .label {
-    @apply text-xs text-ink-muted uppercase tracking-wide;
+    @apply text-xs text-ink-3 uppercase tracking-wide;
   }
   .row {
     @apply flex items-center justify-between px-3 py-1.5 hover:bg-bg-hover cursor-pointer text-xs;

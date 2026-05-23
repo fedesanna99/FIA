@@ -18,9 +18,9 @@ export function ScaleIndicator() {
     size > 50 ? "1:200" : size > 10 ? "1:50" : size > 2 ? "1:20" : "1:5";
 
   return (
-    <div className="absolute bottom-3.5 left-3.5 z-10 bg-bg-panel border border-border rounded-md px-2.5 py-1.5 flex items-center gap-2 text-[10px] text-ink-3 shadow-pop font-mono pointer-events-none">
-      <span className="inline-block w-12 h-1 border-l border-r border-b border-ink-muted" />
-      1 m · {scaleStr}
+    <div className="absolute bottom-3.5 left-3.5 z-10 bg-bg-elevated border border-border-light px-2.5 py-1.5 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 shadow-pop pointer-events-none font-semibold">
+      <span className="inline-block w-12 h-1 border-l border-r border-b border-ink-3" />
+      <span className="tabular-nums normal-case tracking-normal">1 m · {scaleStr}</span>
     </div>
   );
 }

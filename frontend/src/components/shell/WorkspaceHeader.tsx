@@ -30,22 +30,22 @@ export function WorkspaceHeader({ icon, title, description, badge, onHelp, class
       )}
     >
       <div className="flex items-start gap-2.5 min-w-0">
-        <div className="w-7 h-7 rounded-md bg-accent-subtle text-accent flex items-center justify-center flex-shrink-0">
+        <div className="w-8 h-8 bg-accent-subtle text-accent border border-accent/30 flex items-center justify-center flex-shrink-0">
           {icon}
         </div>
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h2 className="text-sm font-semibold text-ink truncate">{title}</h2>
+            <h2 className="font-display text-base font-semibold tracking-tight-1 text-ink truncate">{title}</h2>
             {badge}
           </div>
-          <p className="text-xs text-ink-3 leading-snug">{description}</p>
+          <p className="text-xs text-ink-3 leading-snug mt-0.5">{description}</p>
         </div>
       </div>
       <Tooltip content="Apri guida contestuale">
         <button
           type="button"
           onClick={handleHelp}
-          className="flex-shrink-0 text-ink-3 hover:text-ink p-1 rounded hover:bg-bg-hover transition-colors"
+          className="flex-shrink-0 text-ink-3 hover:text-ink p-1 hover:bg-bg-hover transition-colors"
           aria-label="Aiuto"
         >
           <HelpCircle className="h-4 w-4" />

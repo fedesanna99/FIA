@@ -38,10 +38,10 @@ export function ThemeToggle({ className, compact = true }: Props) {
         onClick={cycle}
         aria-label={`Tema: ${mode}. ${NEXT_LABEL[mode]}`}
         className={cn(
-          "flex items-center justify-center rounded-md transition-colors",
+          "inline-flex items-center justify-center transition-colors",
           "text-ink-3 hover:bg-bg-hover hover:text-ink",
-          "focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1",
-          compact ? "w-9 h-9" : "px-3 h-8 gap-1.5 text-xs",
+          "focus-visible:outline-none focus-visible:border focus-visible:border-accent",
+          compact ? "w-9 h-9" : "px-3 h-8 gap-1.5 font-mono text-[10px] uppercase tracking-wide-1 font-semibold",
           className,
         )}
       >

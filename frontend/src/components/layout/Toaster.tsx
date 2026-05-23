@@ -60,17 +60,17 @@ export function Toaster() {
         return (
           <div
             key={t.id}
-            className="bg-bg-panel border border-border rounded-lg shadow-elev p-3.5 min-w-[280px] max-w-[340px] flex items-start gap-2.5 animate-slide-up"
+            className="bg-bg-elevated border border-border-light shadow-dialog p-3.5 min-w-[300px] max-w-[360px] flex items-start gap-2.5 animate-slide-up"
             role="status"
             aria-live="polite"
           >
-            <div className={`w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 ${tone.bgIcon} ${tone.ringIcon}`}>
+            <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 border ${tone.bgIcon} ${tone.ringIcon} border-current/30`}>
               {tone.icon}
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-[13px] font-semibold text-ink mb-0.5 break-words">{title}</div>
+              <div className="font-display text-sm font-semibold tracking-tight-1 text-ink mb-0.5 break-words">{title}</div>
               {description && (
-                <div className="text-[11px] text-ink-3 font-mono break-words">
+                <div className="text-[11px] text-ink-2 font-mono break-words leading-snug">
                   {description}
                 </div>
               )}
@@ -78,7 +78,7 @@ export function Toaster() {
             <button
               type="button"
               onClick={() => dismiss(t.id)}
-              className="text-ink-3 hover:text-ink p-0.5 flex-shrink-0"
+              className="text-ink-3 hover:text-ink hover:bg-bg-hover p-1 flex-shrink-0 transition-colors"
               aria-label="Chiudi notifica"
             >
               <XIcon className="w-3.5 h-3.5" />

@@ -40,19 +40,19 @@ export function ClimateContextBadge({ onReopen }: Props) {
 
   return (
     <div
-      className="fixed top-14 left-3 z-40 max-w-md bg-bg-panel/95 backdrop-blur border border-border rounded-lg shadow-lg text-xs"
+      className="fixed top-14 left-3 z-40 max-w-md bg-bg-elevated border border-border-light shadow-pop text-xs animate-slide-down"
       data-testid="climate-context-badge"
     >
-      <div className="flex items-center gap-1.5 px-2.5 py-1.5">
+      <div className="flex items-center gap-2 px-2.5 py-2">
         <MapPin className="h-3.5 w-3.5 text-accent flex-shrink-0" />
         <button
-          className="font-semibold text-ink hover:text-accent transition-colors truncate"
+          className="font-display font-semibold text-sm tracking-tight-1 text-ink hover:text-accent transition-colors truncate"
           onClick={() => setExpanded((v) => !v)}
           title="Click per espandere/comprimere"
         >
           {location.name}
         </button>
-        <span className="text-[10px] text-ink-3 font-mono whitespace-nowrap">
+        <span className="font-mono text-[10px] text-ink-3 whitespace-nowrap tabular-nums">
           {location.lat.toFixed(3)}, {location.lon.toFixed(3)}
           {elevation_m != null && ` · ${elevation_m.toFixed(0)} m`}
         </span>
@@ -60,7 +60,7 @@ export function ClimateContextBadge({ onReopen }: Props) {
         {onReopen && (
           <Tooltip content="Cambia location">
             <button
-              className="p-1 hover:bg-bg-hover rounded text-ink-3 hover:text-ink"
+              className="p-1 hover:bg-bg-hover text-ink-3 hover:text-ink transition-colors"
               onClick={onReopen}
               data-testid="climate-badge-edit"
             >
@@ -70,7 +70,7 @@ export function ClimateContextBadge({ onReopen }: Props) {
         )}
         <Tooltip content="Rimuovi context">
           <button
-            className="p-1 hover:bg-error/20 rounded text-ink-3 hover:text-error"
+            className="p-1 hover:bg-bg-danger text-ink-3 hover:text-danger transition-colors"
             onClick={clear}
             data-testid="climate-badge-clear"
           >
@@ -81,12 +81,14 @@ export function ClimateContextBadge({ onReopen }: Props) {
 
       {expanded && (
         <div
-          className="px-3 py-2 border-t border-border space-y-2 text-[11px]"
+          className="px-3 py-2.5 border-t border-border space-y-2.5 text-[11px] bg-bg-panel animate-fade-in"
           data-testid="climate-badge-expanded"
         >
           {meteo && (
             <div>
-              <div className="text-ink-3 font-semibold mb-0.5">🌬️ Vento + Neve (EN 1991)</div>
+              <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-1">
+                Vento · Neve · EN 1991
+              </div>
               <div className="flex items-center justify-between font-mono">
                 <span>v_b,0 = {meteo.wind.v_b0_ms.toFixed(2)} m/s</span>
                 <span>q_p(10m) = <strong className="text-accent">{meteo.wind.q_p_z10_kN_m2.toFixed(3)} kN/m²</strong></span>
@@ -100,7 +102,9 @@ export function ClimateContextBadge({ onReopen }: Props) {
 
           {seismic && (
             <div>
-              <div className="text-ink-3 font-semibold mb-0.5">🌋 Sismica (NTC 2018)</div>
+              <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-1">
+                Sismica · NTC 2018
+              </div>
               <div className="flex items-center justify-between font-mono">
                 <span>M_max = Mw {seismic.historical_max_magnitude.toFixed(1)}</span>
                 <span>a_g/g = <strong className="text-accent">{seismic.site_params.a_g_over_g.toFixed(4)}</strong></span>
@@ -112,9 +116,9 @@ export function ClimateContextBadge({ onReopen }: Props) {
             </div>
           )}
 
-          <div className="flex items-center gap-1 pt-1 border-t border-border">
+          <div className="flex items-center gap-1 pt-2 border-t border-border">
             <button
-              className="flex-1 flex items-center justify-center gap-1 px-2 py-1 rounded bg-accent/20 hover:bg-accent/30 text-accent text-[11px] font-semibold transition-colors"
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 bg-accent text-white border border-accent hover:bg-accent-hover font-mono text-[10px] uppercase tracking-wide-1 font-semibold transition-colors"
               onClick={() => setApplyOpen(true)}
               data-testid="climate-badge-apply"
             >
@@ -123,8 +127,8 @@ export function ClimateContextBadge({ onReopen }: Props) {
             </button>
           </div>
 
-          <div className="text-[9px] text-ink-3 italic">
-            calcolato {ageLabel} · valori da location reale via Open-Meteo + USGS + Open-Elevation
+          <div className="text-[10px] text-ink-3 font-mono">
+            calcolato {ageLabel} · Open-Meteo + USGS + Open-Elevation
           </div>
         </div>
       )}
