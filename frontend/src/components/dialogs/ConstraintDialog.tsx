@@ -1,9 +1,8 @@
 /**
- * ConstraintDialog — vincoli (Fixed/Pinned/Roller/Custom/Spring).
+ * ConstraintDialog (Precision v2.0 PR17 T7) — vincoli Precision-aligned.
  *
- * Estensione M2:
- *   - type=spring: input 6× spring_k [N/m] per i 6 GdL
- *   - flag `compression_only` (active-set, vedi FASE 9) — terreno no-tension
+ * Vincoli Fixed/Pinned/Roller/Custom/Spring + flag compression_only
+ * (active-set per terreno no-tension). Hairline borders, mono labels.
  */
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -15,16 +14,19 @@ import type { ConstraintType } from "../../types/model";
 import { TipBubble } from "../ui/TipBubble";
 
 const CONSTRAINT_TYPES: { value: ConstraintType; label: string }[] = [
-  { value: "fixed",    label: "Incastro (Fixed)" },
-  { value: "pinned",   label: "Cerniera (Pinned)" },
+  { value: "fixed",    label: "Incastro · Fixed" },
+  { value: "pinned",   label: "Cerniera · Pinned" },
   { value: "roller_x", label: "Carrello asse X" },
   { value: "roller_y", label: "Carrello asse Y" },
   { value: "roller_z", label: "Carrello asse Z" },
-  { value: "custom",   label: "Personalizzato (6 GdL)" },
+  { value: "custom",   label: "Personalizzato · 6 GdL" },
   { value: "spring",   label: "Molla elastica" },
 ];
 
 const DOF_LABELS = ["uₓ", "uᵧ", "u_z", "θₓ", "θᵧ", "θ_z"];
+
+const fieldLabel = "block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5";
+const inputCls = "w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink focus:border-accent focus:outline-none transition-colors";
 
 interface Props {
   open: boolean;
@@ -69,6 +71,7 @@ export function ConstraintDialog({ open, onClose, editConstraintId = null }: Pro
     mutationFn: () => {
       if (!model) throw new Error("Nessun modello");
       const useId = editing ? editing.id : nextId;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const payload: any = {
         id: useId, type, node_id: nodeId,
         dofs: type === "custom" ? dofs : undefined,
@@ -98,58 +101,92 @@ export function ConstraintDialog({ open, onClose, editConstraintId = null }: Pro
   });
 
   return (
-    <Dialog open={open} onClose={onClose}
+    <Dialog
+      open={open}
+      onClose={onClose}
       title={editing ? `Modifica vincolo #${editing.id}` : "Aggiungi vincolo"}
-      width={460}
+      width={480}
       footer={
         <>
-          <button className="btn" onClick={onClose}>Annulla</button>
-          <button className="btn btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            {editing ? "Salva" : "Aggiungi"}
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover"
+          >
+            Annulla
+          </button>
+          <button
+            type="button"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+            data-testid="constraint-save"
+            className="inline-flex items-center gap-1.5 bg-accent text-white border border-accent px-4 py-1.5 text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-wait"
+          >
+            {mutation.isPending && (
+              <span className="inline-block w-3 h-3 border-[1.5px] border-white/40 border-t-white animate-spin" />
+            )}
+            {editing ? "Salva" : "Aggiungi vincolo"}
           </button>
         </>
       }
     >
-      <div className="space-y-3">
+      <div className="space-y-4">
         {mutation.isError && (
-          <div className="text-accent-danger text-xs">{(mutation.error as Error).message}</div>
+          <div className="flex items-start gap-2 px-3 py-2 bg-bg-danger border border-danger/40 text-sm text-danger">
+            <span className="font-mono text-[11px] uppercase tracking-wide-1 font-semibold flex-shrink-0">!</span>
+            <span>{(mutation.error as Error).message}</span>
+          </div>
         )}
-        <div>
-          <label className="label block mb-1">Tipo</label>
-          <select className="input" value={type} onChange={(e) => setType(e.target.value as ConstraintType)}>
-            {CONSTRAINT_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
-          </select>
-        </div>
-        <div>
-          <label className="label block mb-1">Nodo</label>
-          <input type="number" className="input" value={nodeId}
-                 onChange={(e) => setNodeId(Number(e.target.value))} />
+
+        <div className="grid grid-cols-2 gap-3">
+          <label className="block">
+            <span className={fieldLabel}>Tipo vincolo</span>
+            <select className={inputCls} value={type} onChange={(e) => setType(e.target.value as ConstraintType)}>
+              {CONSTRAINT_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
+            </select>
+          </label>
+          <label className="block">
+            <span className={fieldLabel}>Nodo</span>
+            <input type="number" className={`${inputCls} font-mono tabular-nums`} value={nodeId}
+                   onChange={(e) => setNodeId(Number(e.target.value))} />
+          </label>
         </div>
 
         {type === "custom" && (
           <div>
-            <label className="label block mb-2">GdL bloccati</label>
-            <div className="grid grid-cols-6 gap-1">
+            <div className={fieldLabel}>GdL bloccati</div>
+            <div className="grid grid-cols-6 gap-1 border border-border bg-bg-panel p-0.5">
               {DOF_LABELS.map((d, i) => (
                 <button
                   key={i}
-                  className={`btn text-[10px] py-1 ${dofs[i] ? "btn-success" : ""}`}
+                  type="button"
+                  className={[
+                    "py-1.5 font-mono text-[11px] font-semibold transition-colors",
+                    dofs[i]
+                      ? "bg-success text-white"
+                      : "text-ink-3 hover:text-ink hover:bg-bg-hover",
+                  ].join(" ")}
                   onClick={() => setDofs(dofs.map((v, j) => j === i ? !v : v))}
                 >{d}</button>
               ))}
+            </div>
+            <div className="text-[11px] text-ink-3 mt-1.5 leading-snug">
+              Click su un GdL per bloccarlo (verde) o liberarlo.
             </div>
           </div>
         )}
 
         {type === "spring" && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <div>
-              <label className="label block mb-2">Rigidezze molla [N/m, Nm/rad]</label>
+              <div className={fieldLabel}>
+                Rigidezze molla <span className="text-ink-4 normal-case tracking-normal">· [N/m, Nm/rad]</span>
+              </div>
               <div className="grid grid-cols-3 gap-2">
                 {DOF_LABELS.map((d, i) => (
                   <div key={i}>
-                    <label className="text-[10px] text-ink-dim block mb-0.5">{d}</label>
-                    <input className="input numeric text-center"
+                    <div className="font-mono text-[10px] text-ink-3 mb-0.5">{d}</div>
+                    <input className={`${inputCls} font-mono tabular-nums text-center`}
                            placeholder="0"
                            value={springK[i]}
                            onChange={(e) => {
@@ -160,20 +197,24 @@ export function ConstraintDialog({ open, onClose, editConstraintId = null }: Pro
                   </div>
                 ))}
               </div>
-              <div className="text-[10px] text-ink-dim mt-1">
+              <div className="text-[11px] text-ink-3 mt-1.5 leading-snug">
                 Lascia 0 per GdL liberi. Tipici per suolo: 1e7–1e8 N/m sui GdL traslazionali.
               </div>
             </div>
-            <label className="flex items-center gap-2 text-xs cursor-pointer">
-              <input type="checkbox" checked={compressionOnly}
-                     onChange={(e) => setCompressionOnly(e.target.checked)} />
-              <span>Solo compressione (no-tension)</span>
+            <label className="flex items-center gap-2 text-sm cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={compressionOnly}
+                onChange={(e) => setCompressionOnly(e.target.checked)}
+                className="w-3.5 h-3.5 border border-border-light accent-accent"
+              />
+              <span className="text-ink-2">Solo compressione (no-tension)</span>
               <TipBubble tipId="compression-only" />
             </label>
-            <div className="text-[10px] text-ink-dim leading-relaxed">
-              Se attivo, la molla si disattiva quando in trazione → usa il risolutore
-              unilaterale (active-set, FASE 9). Utile per modellare terreno che non
-              resiste a trazione, contatti con gap, parti che si possono sollevare.
+            <div className="text-[11px] text-ink-3 leading-snug">
+              Se attivo, la molla si disattiva quando in trazione → usa il solver unilaterale
+              (active-set). Utile per modellare terreno che non resiste a trazione, contatti con
+              gap, parti che si possono sollevare.
             </div>
           </div>
         )}

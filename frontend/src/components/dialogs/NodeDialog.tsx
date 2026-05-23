@@ -1,16 +1,8 @@
 /**
+ * NodeDialog (Precision v2.0 PR17 T7) — Precision-aligned.
+ *
  * @deprecated v1.5 Task 32 — sostituito da NodeDetail nel RightPanel Inspect.
- *
- * Il modal qui sotto resta per retrocompatibilita':
- *  - shortcut N apre questo dialog (creazione nodo)
- *  - doppio-click su un nodo nel viewport (legacy edit modale)
- *  - voce palette "Aggiungi nodo"
- *
- * Per il flow "ispeziona / modifica nodo esistente" il nuovo path e' click
- * singolo sul nodo viewport → `useSelectionStore.selectNode(id)` →
- * `RightPanel "Inspect"` renderizza `NodeDetail.tsx`.
- *
- * Da rimuovere quando tutti i caller saranno migrati al pannello.
+ * Resta per retrocompatibilita' (shortcut N, doppio-click nodo, palette).
  */
 import { useState, useEffect } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -24,6 +16,43 @@ interface Props {
   onClose: () => void;
   /** Se valorizzato, modifica un nodo esistente invece di crearne uno nuovo. */
   editNodeId?: number | null;
+}
+
+/** Reusable precision input field with mono uppercase label. */
+function FieldInput({
+  label, value, onChange, unit, disabled, autoFocus, type = "text", step,
+}: {
+  label: string;
+  value: string | number;
+  onChange: (v: string) => void;
+  unit?: string;
+  disabled?: boolean;
+  autoFocus?: boolean;
+  type?: string;
+  step?: string;
+}) {
+  return (
+    <label className="block">
+      <span className="block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5">
+        {label}
+        {unit && <span className="text-ink-4 normal-case tracking-normal ml-1">{unit}</span>}
+      </span>
+      <input
+        type={type}
+        step={step}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        disabled={disabled}
+        autoFocus={autoFocus}
+        className={[
+          "w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink",
+          "focus:border-accent focus:outline-none transition-colors",
+          "disabled:bg-bg-hover disabled:text-ink-3 disabled:cursor-not-allowed",
+          type === "number" ? "font-mono tabular-nums" : "",
+        ].join(" ")}
+      />
+    </label>
+  );
 }
 
 export function NodeDialog({ open, onClose, editNodeId = null }: Props) {
@@ -81,41 +110,70 @@ export function NodeDialog({ open, onClose, editNodeId = null }: Props) {
       open={open}
       onClose={onClose}
       title={editing ? `Modifica nodo #${editing.id}` : "Aggiungi nodo"}
+      width={440}
       footer={
         <>
-          <button className="btn" onClick={onClose}>Annulla</button>
-          <button className="btn btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            {mutation.isPending ? "..." : (editing ? "Salva" : "Aggiungi")}
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover"
+          >
+            Annulla
+          </button>
+          <button
+            type="button"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+            data-testid="node-save"
+            className="inline-flex items-center gap-1.5 bg-accent text-white border border-accent px-4 py-1.5 text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-wait"
+          >
+            {mutation.isPending && (
+              <span className="inline-block w-3 h-3 border-[1.5px] border-white/40 border-t-white animate-spin" />
+            )}
+            {mutation.isPending ? "..." : (editing ? "Salva" : "Aggiungi nodo")}
           </button>
         </>
       }
     >
       <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="label block mb-1">ID</label>
-          <input type="number" className="input" value={id}
-                 onChange={(e) => setId(Number(e.target.value))}
-                 disabled={!!editing} />
-        </div>
-        <div>
-          <label className="label block mb-1">Etichetta</label>
-          <input className="input" value={label} onChange={(e) => setLabel(e.target.value)} />
-        </div>
-        <div>
-          <label className="label block mb-1">X [m]</label>
-          <input type="number" step="0.1" className="input numeric" value={x}
-                 onChange={(e) => setX(Number(e.target.value))} autoFocus={!!editing} />
-        </div>
-        <div>
-          <label className="label block mb-1">Y [m]</label>
-          <input type="number" step="0.1" className="input numeric" value={y}
-                 onChange={(e) => setY(Number(e.target.value))} />
-        </div>
-        <div>
-          <label className="label block mb-1">Z [m]</label>
-          <input type="number" step="0.1" className="input numeric" value={z}
-                 onChange={(e) => setZ(Number(e.target.value))} />
-        </div>
+        <FieldInput
+          label="ID nodo"
+          value={id}
+          onChange={(v) => setId(Number(v))}
+          disabled={!!editing}
+          type="number"
+        />
+        <FieldInput
+          label="Etichetta"
+          unit="· opzionale"
+          value={label}
+          onChange={setLabel}
+        />
+        <FieldInput
+          label="Coord. X"
+          unit="[m]"
+          type="number"
+          step="0.1"
+          value={x}
+          onChange={(v) => setX(Number(v))}
+          autoFocus={!!editing}
+        />
+        <FieldInput
+          label="Coord. Y"
+          unit="[m]"
+          type="number"
+          step="0.1"
+          value={y}
+          onChange={(v) => setY(Number(v))}
+        />
+        <FieldInput
+          label="Coord. Z"
+          unit="[m]"
+          type="number"
+          step="0.1"
+          value={z}
+          onChange={(v) => setZ(Number(v))}
+        />
       </div>
     </Dialog>
   );

@@ -1,3 +1,9 @@
+/**
+ * ElementDialog (Precision v2.0 PR17 T7) — Precision-aligned.
+ *
+ * Aggiunge/modifica elemento finito. Hairline borders, mono labels,
+ * picker buttons per material/section, releases/winkler/pretension opzionali.
+ */
 import { useState, useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "./Dialog";
@@ -10,19 +16,22 @@ import { SectionPicker } from "../pickers/SectionPicker";
 import { MaterialPicker } from "../pickers/MaterialPicker";
 
 const ELEMENT_OPTIONS: { value: ElementType; label: string; nodeCount: number }[] = [
-  { value: "beam2d",        label: "Beam 2D",                  nodeCount: 2 },
-  { value: "beam3d",        label: "Beam 3D",                  nodeCount: 2 },
-  { value: "truss2d",       label: "Truss 2D",                 nodeCount: 2 },
-  { value: "truss3d",       label: "Truss 3D",                 nodeCount: 2 },
-  { value: "cable2d",       label: "Cable 2D (tension-only)",  nodeCount: 2 },
-  { value: "cable3d",       label: "Cable 3D (tension-only)",  nodeCount: 2 },
-  { value: "tri3",          label: "Tri T3 (plane-stress)",    nodeCount: 3 },
-  { value: "shell_q4",      label: "Shell Q4",                 nodeCount: 4 },
-  { value: "shell_q4_mitc", label: "Shell Q4 MITC4 (anti-locking)", nodeCount: 4 },
-  { value: "solid_h8",      label: "Solid H8",                 nodeCount: 8 },
-  { value: "solid_t4",      label: "Solid Tet4",               nodeCount: 4 },
-  { value: "solid_t10",     label: "Solid Tet10 (quadratic)",  nodeCount: 10 },
+  { value: "beam2d",        label: "Beam 2D",                       nodeCount: 2 },
+  { value: "beam3d",        label: "Beam 3D",                       nodeCount: 2 },
+  { value: "truss2d",       label: "Truss 2D",                      nodeCount: 2 },
+  { value: "truss3d",       label: "Truss 3D",                      nodeCount: 2 },
+  { value: "cable2d",       label: "Cable 2D · tension-only",       nodeCount: 2 },
+  { value: "cable3d",       label: "Cable 3D · tension-only",       nodeCount: 2 },
+  { value: "tri3",          label: "Tri T3 · plane-stress",         nodeCount: 3 },
+  { value: "shell_q4",      label: "Shell Q4",                      nodeCount: 4 },
+  { value: "shell_q4_mitc", label: "Shell Q4 MITC4 · anti-locking", nodeCount: 4 },
+  { value: "solid_h8",      label: "Solid H8",                      nodeCount: 8 },
+  { value: "solid_t4",      label: "Solid Tet4",                    nodeCount: 4 },
+  { value: "solid_t10",     label: "Solid Tet10 · quadratic",       nodeCount: 10 },
 ];
+
+const fieldLabel = "block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5";
+const inputCls = "w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink focus:border-accent focus:outline-none transition-colors disabled:bg-bg-hover disabled:text-ink-3 disabled:cursor-not-allowed";
 
 interface Props {
   open: boolean;
@@ -84,7 +93,6 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
   const { data: materials } = useQuery({ queryKey: ["materials"], queryFn: () => materialsApi.list(), staleTime: Infinity });
   const { data: sections } = useQuery({ queryKey: ["sections"], queryFn: () => materialsApi.listSections(), staleTime: Infinity });
 
-  // v1.6 S0 · B13: picker dialog state (sostituiscono i <select> hard-coded).
   const [matPickerOpen, setMatPickerOpen] = useState(false);
   const [secPickerOpen, setSecPickerOpen] = useState(false);
   const selectedMaterial = materials?.find((m) => m.id === materialId);
@@ -105,14 +113,13 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
       const wk = winklerK.trim() ? Number(winklerK) : undefined;
       const pt = pretension.trim() ? Number(pretension) : undefined;
       const isCable = type === "cable2d" || type === "cable3d";
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const payload: any = {
         id, type, nodes: nodeIds,
         material_id: materialId,
         section_id: sectionId,
         releases,
-        // winkler_k è supportato solo su beam2d (vedi FASE 8)
         ...(type === "beam2d" && wk != null && Number.isFinite(wk) ? { winkler_k: wk } : {}),
-        // pretension è supportata solo sui cavi (vedi BL-1)
         ...(isCable && pt != null && Number.isFinite(pt) ? { pretension: pt } : {}),
       };
       if (editing) return modelsApi.updateElement(model.id, editing.id, payload);
@@ -131,127 +138,153 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
       open={open}
       onClose={onClose}
       title={editing ? `Modifica elemento #${editing.id}` : "Aggiungi elemento"}
-      width={500}
+      width={520}
       footer={
         <>
-          <button className="btn" onClick={onClose}>Annulla</button>
-          <button className="btn btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            {mutation.isPending ? "..." : (editing ? "Salva" : "Aggiungi")}
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover"
+          >
+            Annulla
+          </button>
+          <button
+            type="button"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+            data-testid="element-save"
+            className="inline-flex items-center gap-1.5 bg-accent text-white border border-accent px-4 py-1.5 text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-wait"
+          >
+            {mutation.isPending && (
+              <span className="inline-block w-3 h-3 border-[1.5px] border-white/40 border-t-white animate-spin" />
+            )}
+            {mutation.isPending ? "..." : (editing ? "Salva" : "Aggiungi elemento")}
           </button>
         </>
       }
     >
-      <div className="space-y-3">
+      <div className="space-y-4">
         {mutation.isError && (
-          <div className="text-accent-danger text-xs">{(mutation.error as Error).message}</div>
-        )}
-        {/* v1.7 T4: stack su mobile (no overflow del select Tipo con
-            label lunghe come "Shell Q4 MITC4 (anti-locking)"). 2 colonne
-            da sm: 640px in su. */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <label className="label block mb-1">ID</label>
-            <input type="number" className="input w-full" value={id}
-                   onChange={(e) => setId(Number(e.target.value))} disabled={!!editing} />
+          <div className="flex items-start gap-2 px-3 py-2 bg-bg-danger border border-danger/40 text-sm text-danger">
+            <span className="font-mono text-[11px] uppercase tracking-wide-1 font-semibold flex-shrink-0">!</span>
+            <span>{(mutation.error as Error).message}</span>
           </div>
-          <div>
-            <label className="label block mb-1">Tipo</label>
-            <select className="input w-full" value={type} onChange={(e) => setType(e.target.value as ElementType)}
+        )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <label className="block">
+            <span className={fieldLabel}>ID elemento</span>
+            <input type="number" className={`${inputCls} font-mono tabular-nums`} value={id}
+                   onChange={(e) => setId(Number(e.target.value))} disabled={!!editing} />
+          </label>
+          <label className="block">
+            <span className={fieldLabel}>Tipo</span>
+            <select className={inputCls} value={type} onChange={(e) => setType(e.target.value as ElementType)}
                     disabled={!!editing}>
               {ELEMENT_OPTIONS.map((o) => (
                 <option key={o.value} value={o.value}>{o.label}</option>
               ))}
             </select>
-          </div>
+          </label>
         </div>
-        <div>
-          <label className="label block mb-1">Nodi (CSV — {expected} richiesti)</label>
-          <input className="input" placeholder="es. 1,2"
+
+        <label className="block">
+          <span className={fieldLabel}>
+            Nodi <span className="text-ink-4 normal-case tracking-normal">· CSV, {expected} richiesti</span>
+          </span>
+          <input className={`${inputCls} font-mono tabular-nums`} placeholder="es. 1,2"
                  value={nodesText} onChange={(e) => setNodesText(e.target.value)} />
           {!editing && selectedNodes.size > 0 && (
             <button
-              className="text-[10px] text-accent-primary mt-1 hover:underline"
+              type="button"
+              className="font-mono text-[10px] uppercase tracking-wide-1 text-accent mt-1.5 hover:underline"
               onClick={() => setNodesText(Array.from(selectedNodes).join(","))}
             >
-              Usa selezione corrente ({selectedNodes.size} nodi)
+              Usa selezione corrente · {selectedNodes.size} nodi
             </button>
           )}
+        </label>
+
+        {/* Picker rows */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <div className={fieldLabel}>Materiale</div>
+            <button
+              type="button"
+              onClick={() => setMatPickerOpen(true)}
+              data-testid="element-material-pick"
+              className={`${inputCls} text-left flex items-center justify-between hover:border-accent`}
+            >
+              <span className="truncate">
+                {selectedMaterial?.name ?? <span className="text-ink-3">Scegli…</span>}
+              </span>
+              <span className="font-mono text-[10px] text-ink-3 ml-2 flex-shrink-0">cambia</span>
+            </button>
+          </div>
+          <div>
+            <div className={fieldLabel}>Sezione</div>
+            <button
+              type="button"
+              onClick={() => setSecPickerOpen(true)}
+              data-testid="element-section-pick"
+              className={`${inputCls} text-left flex items-center justify-between hover:border-accent`}
+            >
+              <span className="truncate">
+                {selectedSection?.name ?? <span className="text-ink-3">Scegli…</span>}
+              </span>
+              <span className="font-mono text-[10px] text-ink-3 ml-2 flex-shrink-0">cambia</span>
+            </button>
+          </div>
         </div>
-        {/* v1.6 S0 · B13: i dropdown <select> diventano bottoni "Cambia..." */}
-        {/* che aprono SectionPicker/MaterialPicker — modal 2-colonne con */}
-        {/* search + famiglie + meta. Lista completa libreria backend. */}
-        <div>
-          <label className="label block mb-1">Materiale</label>
-          <button
-            type="button"
-            onClick={() => setMatPickerOpen(true)}
-            data-testid="element-material-pick"
-            className="w-full input text-left flex items-center justify-between hover:border-accent transition-colors"
-          >
-            <span className="truncate">
-              {selectedMaterial?.name ?? <span className="text-ink-muted">Scegli materiale...</span>}
-            </span>
-            <span className="text-[10px] text-ink-muted ml-2 flex-shrink-0">cambia</span>
-          </button>
-        </div>
-        <div>
-          <label className="label block mb-1">Sezione</label>
-          <button
-            type="button"
-            onClick={() => setSecPickerOpen(true)}
-            data-testid="element-section-pick"
-            className="w-full input text-left flex items-center justify-between hover:border-accent transition-colors"
-          >
-            <span className="truncate">
-              {selectedSection?.name ?? <span className="text-ink-muted">Scegli sezione...</span>}
-            </span>
-            <span className="text-[10px] text-ink-muted ml-2 flex-shrink-0">cambia</span>
-          </button>
-        </div>
+
+        {/* Beam-only: releases */}
         {(type === "beam2d" || type === "beam3d") && (
-          <div>
-            <label className="label block mb-1">Releases (cerniere interne, opzionale)</label>
-            <input className="input numeric" placeholder="es. 5 oppure 2,5"
+          <label className="block">
+            <span className={fieldLabel}>
+              Releases <span className="text-ink-4 normal-case tracking-normal">· opzionale, cerniere interne</span>
+            </span>
+            <input className={`${inputCls} font-mono tabular-nums`} placeholder="es. 5 oppure 2,5"
                    value={releasesText} onChange={(e) => setReleasesText(e.target.value)} />
-            <div className="text-[10px] text-ink-dim mt-1">
-              Indici dof locali da rilasciare. Beam2D: 2=θ_i, 5=θ_j. Beam3D: 3-5=θ_i, 9-11=θ_j.
+            <div className="text-[11px] text-ink-3 mt-1.5 leading-snug">
+              Indici dof locali da rilasciare. Beam2D: 2=θ_i, 5=θ_j · Beam3D: 3-5=θ_i, 9-11=θ_j.
             </div>
-          </div>
+          </label>
         )}
+
+        {/* Beam2D-only: Winkler */}
         {type === "beam2d" && (
-          <div>
-            <label className="label block mb-1 flex items-center gap-1.5">
-              Suolo di Winkler k [N/m²] (opzionale)
+          <label className="block">
+            <span className={`${fieldLabel} flex items-center gap-1.5`}>
+              Suolo Winkler k [N/m²] <span className="text-ink-4 normal-case tracking-normal">· opzionale</span>
               <TipBubble tipId="winkler-k" />
-            </label>
-            <input className="input numeric" placeholder="es. 5e7 per terreno medio"
+            </span>
+            <input className={`${inputCls} font-mono tabular-nums`} placeholder="es. 5e7 per terreno medio"
                    value={winklerK} onChange={(e) => setWinklerK(e.target.value)} />
-            <div className="text-[10px] text-ink-dim mt-1">
-              Coefficiente di sottosuolo elastico (modello Hetényi). Lascia vuoto se la
-              trave non poggia su suolo. Tipici: argilla molle 1e7, terreno medio 5e7,
-              roccia 1e9 N/m².
+            <div className="text-[11px] text-ink-3 mt-1.5 leading-snug">
+              Coefficiente di sottosuolo elastico (modello Hetényi). Lascia vuoto se la trave non
+              poggia su suolo. Tipici: argilla molle 1e7 · terreno medio 5e7 · roccia 1e9 N/m².
             </div>
-          </div>
+          </label>
         )}
+
+        {/* Cable-only: pretension */}
         {(type === "cable2d" || type === "cable3d") && (
-          <div>
-            <label className="label block mb-1">
-              Pretensione N₀ [N] (opzionale, &gt; 0 = trazione iniziale)
-            </label>
-            <input className="input numeric" placeholder="es. 50000 (= 50 kN)"
+          <label className="block">
+            <span className={fieldLabel}>
+              Pretensione N₀ [N] <span className="text-ink-4 normal-case tracking-normal">· opzionale, &gt; 0 trazione iniziale</span>
+            </span>
+            <input className={`${inputCls} font-mono tabular-nums`} placeholder="es. 50000 (= 50 kN)"
                    value={pretension} onChange={(e) => setPretension(e.target.value)} />
-            <div className="text-[10px] text-ink-dim mt-1">
-              Stato iniziale del cavo per il solver Newton-Raphson (BL-1). Senza
-              pretensione, il cavo è considerato slack a riposo e la rigidezza
-              tangente è quasi nulla finché non si tende. Sezione tipica:
-              <span className="font-mono ml-1">cable_d20</span> o
-              <span className="font-mono ml-1">cable_d50</span>.
+            <div className="text-[11px] text-ink-3 mt-1.5 leading-snug">
+              Stato iniziale del cavo per il solver Newton-Raphson. Senza pretensione, il cavo è
+              slack a riposo e la rigidezza tangente è quasi nulla finché non si tende. Sezioni
+              tipiche: <span className="font-mono text-ink-2">cable_d20</span> o{" "}
+              <span className="font-mono text-ink-2">cable_d50</span>.
             </div>
-          </div>
+          </label>
         )}
       </div>
 
-      {/* v1.6 S0 · B13: picker modali sopra il dialog (z-50 vs z-40). */}
       <MaterialPicker
         open={matPickerOpen}
         onClose={() => setMatPickerOpen(false)}

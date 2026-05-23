@@ -1,3 +1,9 @@
+/**
+ * LoadDialog (Precision v2.0 PR17 T7) — carichi Precision-aligned.
+ *
+ * Carichi nodali/distribuiti/pressione/termici/massa/peso/dinamici/sisma.
+ * Hairline borders, mono labels, chart Recharts theme-aware.
+ */
 import { useState, useEffect, useMemo } from "react";
 import { toast } from "../../store/toastStore";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -8,15 +14,19 @@ import { useModelStore } from "../../store/modelStore";
 import type { LoadType } from "../../types/model";
 
 const LOAD_TYPES: { value: LoadType; label: string; targetKind: "node" | "element" | "global" }[] = [
-  { value: "nodal",         label: "Nodale (Fx,Fy,Fz,M)",       targetKind: "node" },
+  { value: "nodal",         label: "Nodale · Fx,Fy,Fz,M",       targetKind: "node" },
   { value: "distributed",   label: "Distribuito su elemento",   targetKind: "element" },
   { value: "pressure",      label: "Pressione su shell",        targetKind: "element" },
   { value: "temperature",   label: "Variazione termica ΔT",     targetKind: "element" },
-  { value: "nodal_mass",    label: "Massa nodale (modale)",     targetKind: "node" },
+  { value: "nodal_mass",    label: "Massa nodale · modale",     targetKind: "node" },
   { value: "self_weight",   label: "Peso proprio",              targetKind: "node" },
   { value: "dynamic",       label: "Forzante dinamica F(t)",    targetKind: "node" },
   { value: "ground_accel",  label: "Accelerogramma alla base",  targetKind: "global" },
 ];
+
+const fieldLabel = "block font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mb-1.5";
+const inputCls = "w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink focus:border-accent focus:outline-none transition-colors";
+const numInputCls = `${inputCls} font-mono tabular-nums`;
 
 interface Props {
   open: boolean;
@@ -90,6 +100,7 @@ export function LoadDialog({ open, onClose, editLoadId = null }: Props) {
       const base = {
         id: useId, type, target_id: targetKind === "global" ? 0 : targetId,
       };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let payload: any;
       if (type === "nodal") payload = { ...base, fx, fy, fz };
       else if (type === "distributed") payload = { ...base, qy, qz };
@@ -141,59 +152,80 @@ export function LoadDialog({ open, onClose, editLoadId = null }: Props) {
   }, [open, editing]);
 
   return (
-    <Dialog open={open} onClose={onClose}
-      title={editing ? `Modifica carico #${editing.id}` : "Aggiungi carico"} width={500}
+    <Dialog
+      open={open}
+      onClose={onClose}
+      title={editing ? `Modifica carico #${editing.id}` : "Aggiungi carico"}
+      width={520}
       footer={
         <>
-          <button className="btn" onClick={onClose}>Annulla</button>
-          <button className="btn btn-primary" onClick={() => mutation.mutate()} disabled={mutation.isPending}>
-            {mutation.isPending ? "..." : (editing ? "Salva" : "Aggiungi")}
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover"
+          >
+            Annulla
+          </button>
+          <button
+            type="button"
+            onClick={() => mutation.mutate()}
+            disabled={mutation.isPending}
+            data-testid="load-save"
+            className="inline-flex items-center gap-1.5 bg-accent text-white border border-accent px-4 py-1.5 text-sm font-medium hover:bg-accent-hover disabled:opacity-50 disabled:cursor-wait"
+          >
+            {mutation.isPending && (
+              <span className="inline-block w-3 h-3 border-[1.5px] border-white/40 border-t-white animate-spin" />
+            )}
+            {mutation.isPending ? "..." : (editing ? "Salva" : "Aggiungi carico")}
           </button>
         </>
       }
     >
-      <div className="space-y-3">
+      <div className="space-y-4">
         {mutation.isError && (
-          <div className="text-accent-danger text-xs">{(mutation.error as Error).message}</div>
+          <div className="flex items-start gap-2 px-3 py-2 bg-bg-danger border border-danger/40 text-sm text-danger">
+            <span className="font-mono text-[11px] uppercase tracking-wide-1 font-semibold flex-shrink-0">!</span>
+            <span>{(mutation.error as Error).message}</span>
+          </div>
         )}
 
-        <div>
-          <label className="label block mb-1">Tipo</label>
-          <select className="input" value={type} onChange={(e) => setType(e.target.value as LoadType)}>
+        <label className="block">
+          <span className={fieldLabel}>Tipo carico</span>
+          <select className={inputCls} value={type} onChange={(e) => setType(e.target.value as LoadType)}>
             {LOAD_TYPES.map((t) => (<option key={t.value} value={t.value}>{t.label}</option>))}
           </select>
-        </div>
+        </label>
 
         {targetKind !== "global" && (
-          <div>
-            <label className="label block mb-1">
+          <label className="block">
+            <span className={fieldLabel}>
               {targetKind === "node" ? "Nodo target" : "Elemento target"}
-            </label>
-            <input type="number" className="input" value={targetId}
+            </span>
+            <input type="number" className={numInputCls} value={targetId}
                    onChange={(e) => setTargetId(Number(e.target.value))} />
-          </div>
+          </label>
         )}
 
         {type === "nodal" && (
           <div className="grid grid-cols-3 gap-2">
-            <Field label="Fx [N]" value={fx} onChange={setFx} />
-            <Field label="Fy [N]" value={fy} onChange={setFy} />
-            <Field label="Fz [N]" value={fz} onChange={setFz} />
+            <PField label="Fx" unit="[N]" value={fx} onChange={setFx} />
+            <PField label="Fy" unit="[N]" value={fy} onChange={setFy} />
+            <PField label="Fz" unit="[N]" value={fz} onChange={setFz} />
           </div>
         )}
         {type === "distributed" && (
           <div className="grid grid-cols-2 gap-2">
-            <Field label="qy [N/m]" value={qy} onChange={setQy} />
-            <Field label="qz [N/m]" value={qz} onChange={setQz} />
+            <PField label="qy" unit="[N/m]" value={qy} onChange={setQy} />
+            <PField label="qz" unit="[N/m]" value={qz} onChange={setQz} />
           </div>
         )}
         {type === "nodal_mass" && (
-          <Field label="Massa [kg]" value={mass} onChange={setMass} />
+          <PField label="Massa" unit="[kg]" value={mass} onChange={setMass} />
         )}
         {type === "pressure" && (
           <>
-            <Field label="Pressione [Pa]" value={pressure} onChange={setPressure} step={100} />
-            <div className="text-[10px] text-ink-dim">
+            <PField label="Pressione" unit="[Pa]" value={pressure} onChange={setPressure} step={100} />
+            <div className="text-[11px] text-ink-3 leading-snug">
               Applicata sulla normale dello shell Q4. Positiva = direzione +normal (sotto la piastra).
               I T3 plane-stress sono ignorati (rigidezza solo nel piano).
             </div>
@@ -201,10 +233,10 @@ export function LoadDialog({ open, onClose, editLoadId = null }: Props) {
         )}
         {type === "temperature" && (
           <>
-            <Field label="ΔT [°C]" value={deltaT} onChange={setDeltaT} step={1} />
-            <div className="text-[10px] text-ink-dim">
+            <PField label="ΔT" unit="[°C]" value={deltaT} onChange={setDeltaT} step={1} />
+            <div className="text-[11px] text-ink-3 leading-snug">
               Forza assiale equivalente N = E·A·α·ΔT applicata all'elemento beam/truss.
-              Il coefficiente α di dilatazione è preso dal materiale. Shell/Solid/T3 sono ignorati.
+              Il coefficiente α di dilatazione è preso dal materiale.
             </div>
           </>
         )}
@@ -212,52 +244,58 @@ export function LoadDialog({ open, onClose, editLoadId = null }: Props) {
         {(type === "dynamic" || type === "ground_accel") && (
           <>
             <div>
-              <label className="label block mb-1">Direzione (versore)</label>
+              <span className={fieldLabel}>Direzione · versore</span>
               <div className="grid grid-cols-3 gap-2">
-                <Field label="dirX" value={dirX} onChange={setDirX} step={0.1} />
-                <Field label="dirY" value={dirY} onChange={setDirY} step={0.1} />
-                <Field label="dirZ" value={dirZ} onChange={setDirZ} step={0.1} />
+                <PField label="dirX" value={dirX} onChange={setDirX} step={0.1} />
+                <PField label="dirY" value={dirY} onChange={setDirY} step={0.1} />
+                <PField label="dirZ" value={dirZ} onChange={setDirZ} step={0.1} />
               </div>
             </div>
-            <div>
-              <label className="label block mb-1">
-                Time-history CSV (t, valore — {type === "ground_accel" ? "a_g [m/s²]" : "F [N]"})
-              </label>
+            <label className="block">
+              <span className={fieldLabel}>
+                Time-history CSV <span className="text-ink-4 normal-case tracking-normal">
+                  · t, {type === "ground_accel" ? "a_g [m/s²]" : "F [N]"}
+                </span>
+              </span>
               <textarea
-                className="input numeric font-mono min-h-[100px] text-[10px]"
+                className={`${numInputCls} min-h-[100px] resize-y text-[11px]`}
                 value={timeHistoryCsv}
                 onChange={(e) => setTimeHistoryCsv(e.target.value)}
-                placeholder="0,0
-0.05,9.81
-0.10,0
-..."
+                placeholder={"0,0\n0.05,9.81\n0.10,0\n..."}
               />
-              <div className="text-[10px] text-ink-dim mt-1">
+              <div className="text-[11px] text-ink-3 mt-1.5 leading-snug">
                 Una riga per istante. Separatori: virgola, spazio o ;
                 {type === "ground_accel" && (
-                  <> · L'accelerazione produce forza equivalente <span className="numeric">F=-M·r·aₘ(t)</span></>
+                  <> · L'accelerazione produce forza equivalente <span className="font-mono text-ink-2">F=-M·r·aₘ(t)</span></>
                 )}
               </div>
               {stats && (
-                <div className="mt-2 border border-border rounded">
-                  <div className="px-2 py-1 text-[10px] text-ink-muted border-b border-border flex justify-between numeric">
-                    <span>Preview · {stats.n} punti · t<sub>max</sub>={stats.tMax.toFixed(3)}s</span>
+                <div className="mt-2 border border-border bg-bg-panel">
+                  <div className="px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 border-b border-border flex justify-between">
+                    <span>Preview · {stats.n} punti · t_max={stats.tMax.toFixed(3)}s</span>
                     <span>|max|={stats.maxAbs.toFixed(3)}</span>
                   </div>
-                  <div style={{ width: "100%", height: 120 }}>
+                  <div style={{ width: "100%", height: 130 }}>
                     <ResponsiveContainer>
-                      <LineChart data={chartData} margin={{ top: 5, right: 6, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="2 4" stroke="#2a3040" />
-                        <XAxis dataKey="t" stroke="#8a92a5" fontSize={9} />
-                        <YAxis stroke="#8a92a5" fontSize={9} />
-                        <Tooltip contentStyle={{ background: "#0f1219", border: "1px solid #2a3040", fontSize: 10 }} />
-                        <Line type="monotone" dataKey="v" stroke="#00d4ff" dot={false} />
+                      <LineChart data={chartData} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="2 4" stroke="currentColor" className="text-border" />
+                        <XAxis dataKey="t" stroke="currentColor" className="text-ink-3" fontSize={9} />
+                        <YAxis stroke="currentColor" className="text-ink-3" fontSize={9} />
+                        <Tooltip
+                          contentStyle={{
+                            background: "var(--bg-elevated)",
+                            border: "1px solid var(--border-light)",
+                            fontSize: 10,
+                            borderRadius: 0,
+                          }}
+                        />
+                        <Line type="monotone" dataKey="v" stroke="var(--accent)" strokeWidth={1.5} dot={false} />
                       </LineChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
               )}
-            </div>
+            </label>
           </>
         )}
       </div>
@@ -265,13 +303,26 @@ export function LoadDialog({ open, onClose, editLoadId = null }: Props) {
   );
 }
 
-function Field({ label, value, onChange, step = 1 }: {
-  label: string; value: number; onChange: (v: number) => void; step?: number;
+function PField({ label, unit, value, onChange, step = 1 }: {
+  label: string;
+  unit?: string;
+  value: number;
+  onChange: (v: number) => void;
+  step?: number;
 }) {
   return (
-    <div>
-      <label className="label block mb-1">{label}</label>
-      <input type="number" step={step} className="input" value={value} onChange={(e) => onChange(Number(e.target.value))} />
-    </div>
+    <label className="block">
+      <span className={fieldLabel}>
+        {label}
+        {unit && <span className="text-ink-4 normal-case tracking-normal ml-1">{unit}</span>}
+      </span>
+      <input
+        type="number"
+        step={step}
+        className={numInputCls}
+        value={value}
+        onChange={(e) => onChange(Number(e.target.value))}
+      />
+    </label>
   );
 }
