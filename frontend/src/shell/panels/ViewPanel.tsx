@@ -115,7 +115,7 @@ export function ViewPanel() {
             ))}
           </div>
           {activeViewPreset === "custom" && (
-            <div className="mt-1.5 text-[10px] font-mono text-ink-muted">
+            <div className="mt-1.5 text-[10px] font-mono text-ink-3">
               custom: override manuale attivo
             </div>
           )}
@@ -163,16 +163,16 @@ export function ViewPanel() {
               onClick={() => !useViewportEngine && toggleViewportEngine()}
               testId="view-engine-new"
             />
-            <div className="min-w-[76px] rounded-md border border-border bg-bg px-2 py-1 text-[10px] font-mono">
+            <div className="min-w-[76px] border border-border-light bg-bg-panel px-2 py-1 font-mono text-[10px]">
               {engineStats ? (
                 <>
-                  <div className="text-ink-dim">draw {engineStats.engineDrawPaths}</div>
-                  <div className="text-ink">x{engineStats.compressionRatio.toFixed(1)}</div>
+                  <div className="text-ink-3 uppercase tracking-wide-1 font-semibold">draw {engineStats.engineDrawPaths}</div>
+                  <div className="text-ink tabular-nums font-semibold">x{engineStats.compressionRatio.toFixed(1)}</div>
                 </>
               ) : (
                 <>
-                  <div className="text-ink-dim">draw -</div>
-                  <div className="text-ink">no model</div>
+                  <div className="text-ink-3 uppercase tracking-wide-1">draw —</div>
+                  <div className="text-ink-3 uppercase tracking-wide-1">no model</div>
                 </>
               )}
             </div>
@@ -259,7 +259,7 @@ export function ViewPanel() {
               data-testid="view-deformed-scale"
               aria-label="Scala deformata"
             />
-            <div className="flex justify-between text-[10px] text-ink-muted mt-0.5">
+            <div className="flex justify-between text-[10px] text-ink-3 mt-0.5">
               <span>x1</span>
               <span>x500</span>
               <span>x1000</span>
@@ -268,8 +268,9 @@ export function ViewPanel() {
         )}
 
         {!hasAnyResults && (
-          <div className="border border-info/25 bg-bg-info rounded-md px-2.5 py-2 text-[11px] text-ink-info leading-snug">
-            <strong>Overlay risultati spenti.</strong> Esegui una statica o una modale da Solve per abilitarli.
+          <div className="border border-accent/30 bg-bg-info px-2.5 py-2 text-[11px] text-accent leading-snug">
+            <strong className="font-mono uppercase tracking-wide-1 text-[10px] font-semibold">Overlay risultati spenti.</strong>{" "}
+            Esegui una statica o una modale da Solve per abilitarli.
           </div>
         )}
       </div>
@@ -293,7 +294,7 @@ function ViewStatusStrip({
   resultLayers: number;
 }) {
   return (
-    <div className="rounded-md border border-border bg-bg px-2 py-1.5 grid grid-cols-3 gap-2 text-[10px] font-mono">
+    <div className="border border-border bg-bg-panel px-2.5 py-2 grid grid-cols-3 gap-2 text-[10px] font-mono">
       <StatusCell label="preset" value={preset} />
       <StatusCell label="view" value={`${mode.slice(0, 5)} · ${projection === "orthographic" ? "orto" : "persp"}`} />
       <StatusCell label="layer" value={`${baseLayers}+${resultLayers} · ${engine ? "eng" : "leg"}`} />
@@ -304,8 +305,8 @@ function ViewStatusStrip({
 function StatusCell({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <div className="uppercase tracking-wider text-ink-dim">{label}</div>
-      <div className="truncate text-ink">{value}</div>
+      <div className="font-mono text-[9px] uppercase tracking-wide-2 text-ink-3 font-semibold">{label}</div>
+      <div className="truncate text-ink font-semibold tabular-nums mt-0.5">{value}</div>
     </div>
   );
 }
@@ -320,8 +321,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-md border border-border/80 bg-bg-panel">
-      <h3 className="h-7 px-2 border-b border-border/70 text-[10px] uppercase tracking-wider text-ink-muted font-semibold flex items-center gap-1.5">
+    <section className="border border-border bg-bg-panel">
+      <h3 className="h-7 px-2.5 border-b border-border font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold flex items-center gap-1.5 bg-bg-elevated">
         {icon}
         {title}
       </h3>
@@ -351,10 +352,10 @@ function PresetButton({
       data-testid={testId}
       aria-pressed={active}
       className={clsx(
-        "h-8 rounded-md border px-1.5 text-[11px] font-semibold transition-colors",
+        "h-8 border px-1.5 font-mono text-[10px] uppercase tracking-wide-1 font-semibold transition-colors",
         active
-          ? "bg-bg-info border-info/40 text-ink-info"
-          : "bg-bg border-border text-ink-muted hover:bg-bg-hover hover:text-ink",
+          ? "bg-accent text-white border-accent"
+          : "bg-bg-elevated border-border-light text-ink-3 hover:bg-bg-hover hover:text-ink",
       )}
     >
       {label}
@@ -382,15 +383,15 @@ function SegmentButton({
       data-testid={testId}
       aria-pressed={active}
       className={clsx(
-        "min-h-8 rounded-md border px-2 py-1 text-left transition-colors",
-        "focus-visible:ring-2 focus-visible:ring-accent/60",
+        "min-h-8 border px-2 py-1 text-left transition-colors",
+        "focus-visible:outline-none focus-visible:border-accent",
         active
-          ? "bg-bg-info border-info/40 text-ink-info"
-          : "bg-bg border-border text-ink-muted hover:bg-bg-hover hover:text-ink",
+          ? "bg-accent text-white border-accent"
+          : "bg-bg-elevated border-border-light text-ink-3 hover:bg-bg-hover hover:text-ink",
       )}
     >
       <div className="text-[11px] font-semibold leading-tight">{label}</div>
-      {description && <div className="text-[9px] font-mono opacity-75 leading-tight">{description}</div>}
+      {description && <div className="font-mono text-[9px] uppercase tracking-wide-1 opacity-80 leading-tight mt-0.5">{description}</div>}
     </button>
   );
 }
@@ -413,12 +414,12 @@ function Toggle({
   return (
     <label
       className={clsx(
-        "min-h-8 rounded-md border px-2 py-1.5 flex items-center gap-2 transition-colors",
+        "min-h-8 border px-2 py-1.5 flex items-center gap-2 transition-colors",
         disabled
-          ? "border-border/70 bg-bg/50 text-ink-dim opacity-60 cursor-not-allowed"
+          ? "border-border-light bg-bg-panel/50 text-ink-3 opacity-60 cursor-not-allowed"
           : checked
-            ? "border-info/35 bg-bg-info text-ink-info cursor-pointer"
-            : "border-border bg-bg text-ink-muted hover:bg-bg-hover hover:text-ink cursor-pointer",
+            ? "border-accent/40 bg-accent-subtle text-accent cursor-pointer"
+            : "border-border-light bg-bg-elevated text-ink-3 hover:bg-bg-hover hover:text-ink cursor-pointer",
       )}
     >
       <input
@@ -437,7 +438,7 @@ function Toggle({
       />
       <span className="text-[11px] font-medium truncate">{label}</span>
       {disabled && disabledHint && (
-        <span className="ml-auto text-[9px] font-mono text-ink-dim truncate">{disabledHint}</span>
+        <span className="ml-auto font-mono text-[9px] uppercase tracking-wide-1 text-ink-3 truncate">{disabledHint}</span>
       )}
     </label>
   );

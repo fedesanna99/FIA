@@ -185,7 +185,7 @@ function Section({
 }) {
   return (
     <div className="space-y-1.5">
-      <h3 className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-ink-muted font-semibold px-1 pt-1 pb-1.5">
+      <h3 className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold px-1 pt-1 pb-2">
         <Icon size={12} />
         {title}
       </h3>
@@ -197,9 +197,9 @@ function Section({
 
 function KV({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex justify-between px-2 py-1.5 rounded bg-bg-hover text-xs">
-      <span className="text-ink-muted">{label}</span>
-      <span className="numeric text-ink font-medium">{value}</span>
+    <div className="flex justify-between items-center px-2.5 py-1.5 bg-bg-panel border border-border text-sm">
+      <span className="font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 font-semibold">{label}</span>
+      <span className="font-mono text-ink font-semibold tabular-nums">{value}</span>
     </div>
   );
 }
@@ -207,9 +207,9 @@ function KV({ label, value }: { label: string; value: string }) {
 
 function Empty({ msg }: { msg: string }) {
   return (
-    <div className="flex flex-col items-center justify-center py-8 px-4 text-center gap-2">
-      <IconChartArea size={24} className="text-ink-faint" stroke={1.5} />
-      <p className="text-xs text-ink-muted leading-relaxed">{msg}</p>
+    <div className="flex flex-col items-center justify-center py-10 px-4 text-center gap-2">
+      <IconChartArea size={28} className="text-ink-4" stroke={1.5} />
+      <p className="text-sm text-ink-2 leading-relaxed max-w-[34ch]">{msg}</p>
     </div>
   );
 }

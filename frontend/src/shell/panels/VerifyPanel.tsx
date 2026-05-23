@@ -138,7 +138,7 @@ function Section({
 }) {
   return (
     <div>
-      <h3 className="flex items-center gap-1.5 text-[10px] uppercase tracking-wider text-ink-muted font-semibold px-1 pt-1 pb-1.5">
+      <h3 className="flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold px-1 pt-1 pb-2">
         <Icon size={12} />
         {title}
       </h3>

@@ -116,7 +116,12 @@ export function ToolsPanel() {
             {view === "accelerograms" && <AccelerogramsPanel />}
             {view === "compare" && <ComparePanel />}
             {view === "ai-copilot" && (
-              <Suspense fallback={<div className="p-4 text-xs text-ink-muted">Caricamento AI Copilot…</div>}>
+              <Suspense fallback={
+                <div className="p-4 inline-flex items-center gap-2 text-sm text-ink-3">
+                  <span className="inline-block w-3 h-3 border-[1.5px] border-ink-3/40 border-t-accent animate-spin" />
+                  Caricamento AI Copilot…
+                </div>
+              }>
                 <AICopilotPanel />
               </Suspense>
             )}
@@ -137,17 +142,17 @@ function ToolsBreadcrumb({
   onBack: () => void;
 }) {
   return (
-    <div className="px-3.5 py-2.5 border-b border-border flex items-center gap-1.5 text-[11px] flex-shrink-0">
+    <div className="px-3.5 py-2 border-b border-border flex items-center gap-2 font-mono text-[10px] uppercase tracking-wide-1 flex-shrink-0 bg-bg-panel">
       <button
         type="button"
         onClick={onBack}
         data-testid="tools-breadcrumb-back"
-        className="text-ink-muted hover:text-ink flex items-center gap-1 transition-colors"
+        className="text-ink-3 hover:text-accent inline-flex items-center gap-1 transition-colors font-semibold"
       >
         <ArrowLeft className="w-3 h-3" /> Strumenti
       </button>
-      <ChevronRight className="w-2.5 h-2.5 text-ink-dim" />
-      <span className="font-semibold text-ink">{SUBVIEW_LABELS[view]}</span>
+      <ChevronRight className="w-2.5 h-2.5 text-ink-4" />
+      <span className="font-semibold text-ink-2 normal-case tracking-normal">{SUBVIEW_LABELS[view]}</span>
     </div>
   );
 }
