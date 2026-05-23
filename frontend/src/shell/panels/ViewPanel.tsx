@@ -391,7 +391,9 @@ function SegmentButton({
       )}
     >
       <div className="text-[11px] font-semibold leading-tight">{label}</div>
-      {description && <div className="font-mono text-[9px] uppercase tracking-wide-1 opacity-80 leading-tight mt-0.5">{description}</div>}
+      {/* v2.2.2 audit-fix P5: text-[9px] → text-[10px] per leggibilità mobile
+          (era sotto soglia raccomandata WCAG per text descrittivo). */}
+      {description && <div className="font-mono text-[10px] uppercase tracking-wide-1 opacity-80 leading-tight mt-0.5">{description}</div>}
     </button>
   );
 }
@@ -438,7 +440,7 @@ function Toggle({
       />
       <span className="text-[11px] font-medium truncate">{label}</span>
       {disabled && disabledHint && (
-        <span className="ml-auto font-mono text-[9px] uppercase tracking-wide-1 text-ink-3 truncate">{disabledHint}</span>
+        <span className="ml-auto font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 truncate">{disabledHint}</span>
       )}
     </label>
   );

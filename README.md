@@ -3,15 +3,52 @@
 > Piattaforma FEM proprietaria, browser-first e cloud-aware, per modellare,
 > analizzare, verificare, capire e documentare strutture.
 >
-> **Stato attuale**: `v1.6.1-polish` (post Sprint 0 + viewport-engine GPU + smoke E2E)
+> **Stato attuale**: `v2.2.2-audit-deep` (auth gate + nav dedup + audit ingegneristico chiuso)
 > **Storia release**: vedi [CHANGELOG.md](CHANGELOG.md)
 > **Direzione prodotto**: vedi [ROADMAP.md](ROADMAP.md)
 
 ![Backend](https://img.shields.io/badge/Backend-660%2B%20pytest-brightgreen)
-![Frontend](https://img.shields.io/badge/Frontend-447%20vitest-brightgreen)
-![E2E](https://img.shields.io/badge/Playwright-4%20smoke-blue)
-![NAFEMS](https://img.shields.io/badge/NAFEMS-LE1%2FLE2%2FLE10%20PASS-brightgreen)
-![TS](https://img.shields.io/badge/TypeScript-clean-blue)
+![Frontend](https://img.shields.io/badge/Frontend-571%20vitest-brightgreen)
+![E2E](https://img.shields.io/badge/Smoke%20E2E-10%2F10%20live-brightgreen)
+![NAFEMS](https://img.shields.io/badge/NAFEMS-5%2F5%20PASS-brightgreen)
+![TS](https://img.shields.io/badge/TypeScript-strict-blue)
+![Live](https://img.shields.io/badge/Live-fea--pro.fly.dev-cyan)
+
+## Quickstart ingegnere · in 3 passi
+
+Vai su **https://fea-pro.fly.dev/** e segui:
+
+1. **Crea un account** — registrati con email + password (≥ 8 caratteri).
+   Non serve niente altro: l'app diventa subito attiva.
+
+2. **Apri il primo modello in 10 secondi** — tre vie:
+   - **Studio Pro** (CTA blu da home) → costruisci da zero
+   - **Percorsi** (CTA emerald da home) → wizard 6-step "Trave bi-appoggiata
+     UC1" con template precaricato + analisi statica + UC normativo
+     (S275/EC3/NTC) + bozza di report PDF, tutto end-to-end
+   - **Da template** (palette `Ctrl+K` → "template") → galleria di 9
+     modelli pronti (travi, telai 2D, reticoli 3D)
+
+3. **Pipeline tipica** dalla Studio Pro:
+   1. *Make* → mesh linea/shell + materiali (libreria 10 preset o
+      custom con E, ν, ρ) + sezioni (40+ profili: IPE/HEA/HEB/UPN/RHS/SHS/CHS
+      o custom con calcolo automatico A, Iy, Iz, J, Wel)
+   2. *Vincoli* → "Carrello — blocca uᵧ" per bi-appoggiata orizzontale
+   3. *Carichi* → nodale / distribuito / pressione / accelerogramma /
+      ΔT, oppure auto da `Loads location` (vento NTC, neve, sismica)
+   4. *Solve* (CTA verde topbar) → statica · modale · dinamica Newmark ·
+      buckling · pushover · sismica time-history · non-lineare
+      Newton-Raphson / arc-length Crisfield
+   5. *Verify* → EC3 (resistenza + stabilità + LTB) · EC2 · EC5 · EC8 ·
+      NTC 2018 · GPS Strutturale UC live
+   6. *Inspect/View* → deformata, colormap Von Mises, iso 3D, diagrammi
+      N/V/M, modi animati, drift time-history
+   7. *Tools* → Export PDF reportlab · XLSX multi-sheet (7 sheet) · DXF ·
+      IFC · CSV · validazione NAFEMS LE1/LE2/EC3/Cantilever/Euler
+
+> ⚠️ Convention vincoli: `ROLLER_X` = blocca uₓ (asse X vincolato). Per
+> trave bi-appoggiata orizzontale (lungo X, gravità −Y) il carrello a destra
+> è `ROLLER_Y` non `ROLLER_X`. Il dialog ha un hint dinamico esplicativo.
 
 ## Filosofia
 
@@ -20,17 +57,19 @@
 - Una sola verita' tecnica, tante lenti operative.
 - Niente sicurezza dietro paywall.
 
-## Stato attuale
+## Stato attuale (v2.2.2 audit-deep · 2026-05-23)
 
 | Area | Numeri |
 |---|---|
-| Backend | 660+ pytest verdi · NAFEMS LE1/LE2/LE10 PASS |
-| Frontend | 447 vitest verdi · build ~1.20 MB / gzip 358 kB |
-| Viewport | InstancedMesh GPU + 5 moduli pure-logic 100% testati (T4) |
-| E2E | 4 smoke Playwright (empty/workflow/palette/errori IT) |
+| Backend | 660+ pytest verdi · NAFEMS LE1/LE2 + Cantilever + SS + Euler 5/5 PASS |
+| Frontend | **571 vitest verdi** · build ~1.30 MB / gzip ~380 kB (xlsx lazy-loaded) |
+| Viewport | InstancedMesh GPU + 5 moduli pure-logic 100% testati |
+| E2E live | smoke 10/10 step PASS in 7.2s (auth → mesh → solve → verify → cleanup) |
+| Numerica | δ_static err < 6% · f₁ modal err < 0.04% vs formule teoriche |
+| Auth | gate full-screen + JWT bearer + 401 auto-logout |
 | Deploy | Live su https://fea-pro.fly.dev (Fly free, region `fra`) |
 
-Carry-over tecnici tracciati in **[BACKLOG.md](BACKLOG.md)** (9 voci).
+Carry-over tecnici tracciati in **[BACKLOG.md](BACKLOG.md)** (9 voci storiche; tutti i bug B1-B9 dell'audit ingegneristico sono chiusi in v2.2.1).
 
 ## Capacità
 

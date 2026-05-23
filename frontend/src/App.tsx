@@ -23,7 +23,7 @@
  *   - Viewport 3D occupa lo spazio principale tra i due rail.
  *   - Default theme = "light" per esposizione palette warm-neutral.
  */
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, lazy, Suspense } from "react";
 import { X } from "lucide-react";
 import { cn } from "./components/ui/cn";
 import { TopBar } from "./components/shell/TopBar";
@@ -32,8 +32,13 @@ import { ModelInfoCard } from "./components/shell/ModelInfoCard";
 import { AnalysisSummaryCard } from "./components/shell/AnalysisSummaryCard";
 import { ResultsOverviewCard } from "./components/shell/ResultsOverviewCard";
 import { ResultsInsightAuto } from "./components/shell/ResultsInsightAuto";
-import { PercorsoFullScreenDemo } from "./components/shell/PercorsoFullScreenDemo";
-import { ModelliBrowser } from "./components/shell/ModelliBrowser";
+// v2.2.2 audit-fix P3: lazy-load dei full-screen overlay raramente aperti.
+const PercorsoFullScreenDemo = lazy(() =>
+  import("./components/shell/PercorsoFullScreenDemo").then((m) => ({ default: m.PercorsoFullScreenDemo })),
+);
+const ModelliBrowser = lazy(() =>
+  import("./components/shell/ModelliBrowser").then((m) => ({ default: m.ModelliBrowser })),
+);
 import { ViewportCanvasTabs } from "./components/shell/ViewportCanvasTabs";
 import { LeftRail } from "./components/shell/LeftRail";
 import { LeftSlidePanel } from "./components/shell/LeftSlidePanel";
@@ -55,11 +60,25 @@ import { ElementDialog } from "./components/dialogs/ElementDialog";
 import { LoadDialog } from "./components/dialogs/LoadDialog";
 import { ConstraintDialog } from "./components/dialogs/ConstraintDialog";
 import { MeshWizardDialog } from "./components/dialogs/MeshWizardDialog";
-import { ImportWizard } from "./components/dialogs/wizards/ImportWizard";
-import { SismicaTHWizard } from "./components/dialogs/wizards/SismicaTHWizard";
-import { TemplateGalleryDialog } from "./components/dialogs/TemplateGalleryDialog";
-import { PercorsiBeamWizard } from "./components/dialogs/PercorsiBeamWizard";
-import { ReportExportDialog } from "./components/dialogs/ReportExportDialog";
+// v2.2.2 audit-fix P3: lazy-load dei 5 wizard/dialog pesanti (~80-120 KB
+// minified). Si caricano solo quando l'utente li apre (open=true). I
+// `<Suspense fallback={null}>` sotto evitano fallback visivi: i dialog
+// hanno già la loro animazione di mount via animate-fade-in + slide-up.
+const ImportWizard = lazy(() =>
+  import("./components/dialogs/wizards/ImportWizard").then((m) => ({ default: m.ImportWizard })),
+);
+const SismicaTHWizard = lazy(() =>
+  import("./components/dialogs/wizards/SismicaTHWizard").then((m) => ({ default: m.SismicaTHWizard })),
+);
+const TemplateGalleryDialog = lazy(() =>
+  import("./components/dialogs/TemplateGalleryDialog").then((m) => ({ default: m.TemplateGalleryDialog })),
+);
+const PercorsiBeamWizard = lazy(() =>
+  import("./components/dialogs/PercorsiBeamWizard").then((m) => ({ default: m.PercorsiBeamWizard })),
+);
+const ReportExportDialog = lazy(() =>
+  import("./components/dialogs/ReportExportDialog").then((m) => ({ default: m.ReportExportDialog })),
+);
 import { MobileTabbar } from "./components/shell/MobileTabbar";
 import { MobilePanel } from "./components/shell/MobilePanel";
 import { MobileMoreMenu } from "./components/shell/MobileMoreMenu";
@@ -608,51 +627,49 @@ export default function App() {
         open={openDialog === "mesh"}
         onClose={() => setDialog(null)}
       />
-      {/* v1.5 Task 29: ImportWizard 4-step (Fonte → File → Anteprima → Conferma).
-          Aperto da Dashboard "Importa file" + voci palette + custom event. */}
-      <ImportWizard
-        open={importWizardOpen}
-        onClose={() => setImportWizardOpen(false)}
-        initialSource={importWizardSource}
-      />
-      {/* v1.5 Task 34 follow-up: SismicaTHWizard governato dal wizardStore
-          (singleton al root, no piu' mount duplicato in SeismicTHPanel).
-          Aperto da: bottone "Configura analisi" nel panel sismica, voce
-          palette "Apri wizard sismica time-history". */}
-      <SismicaTHWizard
-        open={wizardActive === "sismica-th"}
-        onClose={() => useWizardStore.getState().close()}
-      />
-      {/* v1.6 S0 B01: galleria template dei modelli precaricati backend. */}
-      <TemplateGalleryDialog
-        open={templateGalleryOpen}
-        onClose={() => setTemplateGalleryOpen(false)}
-        models={models ?? []}
-        onSelect={(id) => setActiveId(id)}
-      />
-      {/* v1.9.0 T1: PercorsiBeamWizard 3-step (sostituisce placeholder).
-          Demo Slice GPS Strutturale: porta da CTA "Percorsi" a modello
-          attivo + analisi pronta da lanciare. */}
-      <PercorsiBeamWizard
-        open={percorsiPlaceholderOpen}
-        onClose={() => setPercorsiPlaceholderOpen(false)}
-        onLoadTemplate={(templateId) => {
-          setPercorsiPlaceholderOpen(false);
-          setActiveId(templateId);
-        }}
-      />
-      {/* v1.9.0 T4: ReportExportDialog (export PDF multi-sezione). */}
-      <ReportExportDialog
-        open={reportExportOpen}
-        onClose={() => setReportExportOpen(false)}
-      />
-      {/* v2.0 Precision PR15 T8: full-screen demo del 6-step Percorso
-          (PercorsoStep template) attivabile via custom event
-          feapro:open-percorso-fullscreen. */}
-      <PercorsoFullScreenDemo />
-      {/* v2.0 Precision PR16 T2: A2 Modelli browser full-screen overlay
-          attivabile via custom event feapro:open-models-list. */}
-      <ModelliBrowser />
+      {/* v2.2.2 audit-fix P3: i 7 dialog/wizard pesanti sono lazy-loadati.
+          Wrappiamo in un singolo <Suspense fallback={null}> perché i dialog
+          hanno animate-fade-in + slide-up interni che mascherano il delay
+          del chunk (mediamente 50-200ms al primo open). */}
+      <Suspense fallback={null}>
+        {/* v1.5 Task 29: ImportWizard 4-step (Fonte → File → Anteprima → Conferma).
+            Aperto da Dashboard "Importa file" + voci palette + custom event. */}
+        <ImportWizard
+          open={importWizardOpen}
+          onClose={() => setImportWizardOpen(false)}
+          initialSource={importWizardSource}
+        />
+        {/* v1.5 Task 34 follow-up: SismicaTHWizard governato dal wizardStore. */}
+        <SismicaTHWizard
+          open={wizardActive === "sismica-th"}
+          onClose={() => useWizardStore.getState().close()}
+        />
+        {/* v1.6 S0 B01: galleria template dei modelli precaricati backend. */}
+        <TemplateGalleryDialog
+          open={templateGalleryOpen}
+          onClose={() => setTemplateGalleryOpen(false)}
+          models={models ?? []}
+          onSelect={(id) => setActiveId(id)}
+        />
+        {/* v1.9.0 T1 + v2.2.0 B7: PercorsiBeamWizard 6-step end-to-end. */}
+        <PercorsiBeamWizard
+          open={percorsiPlaceholderOpen}
+          onClose={() => setPercorsiPlaceholderOpen(false)}
+          onLoadTemplate={(templateId) => {
+            setPercorsiPlaceholderOpen(false);
+            setActiveId(templateId);
+          }}
+        />
+        {/* v1.9.0 T4: ReportExportDialog (export PDF multi-sezione). */}
+        <ReportExportDialog
+          open={reportExportOpen}
+          onClose={() => setReportExportOpen(false)}
+        />
+        {/* v2.0 Precision PR15 T8: full-screen demo del 6-step Percorso. */}
+        <PercorsoFullScreenDemo />
+        {/* v2.0 Precision PR16 T2: A2 Modelli browser full-screen overlay. */}
+        <ModelliBrowser />
+      </Suspense>
     </div>
   );
 }

@@ -57,7 +57,7 @@ export type PaletteActionKind =
   | "openHelp"       // open HelpSheet
   | "openAccount"    // open AccountDialog
   | "openLocation"   // open LocationPickerDialog
-  | "openAuth"       // open AuthDialog
+  | "openAuth"       // legacy no-op (v2.1.4 AuthGate ha sostituito AuthDialog)
   | "openExport"     // open ExportMenu (workspace io)
   | "logout"         // auth logout
   | "focus-toggle"   // v1.5 Task 33: toggle modalita' focus (Shift+Space / F)

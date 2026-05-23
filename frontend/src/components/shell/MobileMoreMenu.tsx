@@ -44,11 +44,10 @@ export function MobileMoreMenu() {
   };
 
   const goVerify = () => {
-    // Su mobile non abbiamo rail laterali — apriamo il "verify" come tab
-    // mobile (riusa il MobilePanel wrapper). In App.tsx il render dei tab
-    // gestisce questa modalita'.
-    setTab("more"); // verify riuserebbe make tab? In MVP usiamo more come hub di scelta.
-    // TODO v1.5+: aggiungi VerifyPanel come sub-tab di "more" o nuovo tab.
+    // v2.2.2: drill-in via "more" tab + mobileMoreSub="verify" già gestito
+    // in App.tsx (v1.5 Task 30). MobilePanel wrapping mostra VerifyPanel
+    // full-screen con back smart e nav dedup (v2.1.6 panelHeaderStore).
+    setTab("more");
     window.dispatchEvent(new CustomEvent("feapro:mobile-open-verify"));
   };
 

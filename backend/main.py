@@ -1,4 +1,5 @@
 """FEA Pro — FastAPI entry point."""
+import os
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -36,9 +37,24 @@ app = FastAPI(
     version="1.0.0",
 )
 
+# v2.2.2 audit-fix P1 — CORS lockdown.
+# Prima: allow_origins=["*"] con allow_credentials=True (la spec CORS lo vieta,
+# i browser ignorano l'header credentials con wildcard, ma per produzione è
+# rischio open-CORS). Ora: lista esplicita configurabile via env-var.
+# Default include il deploy fly.io + localhost dev (porti Vite + preview).
+_default_origins = ",".join([
+    "https://fea-pro.fly.dev",
+    "http://localhost:5173",  # Vite dev
+    "http://localhost:5176",  # Vite preview
+    "http://localhost:4173",  # Vite preview alt
+    "http://127.0.0.1:5173",
+])
+_cors_env = os.environ.get("CORS_ALLOWED_ORIGINS", _default_origins).strip()
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=CORS_ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
