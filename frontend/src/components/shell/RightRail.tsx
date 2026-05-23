@@ -54,7 +54,7 @@ function RailButton({ item, disabled }: { item: RailItem; disabled: boolean }) {
         ) : (
           <div>
             <div className="font-semibold">{item.label}</div>
-            <div className="text-ink-muted text-[11px] mt-0.5">{item.description}</div>
+            <div className="text-ink-3 text-[11px] mt-0.5">{item.description}</div>
           </div>
         )
       }
@@ -69,20 +69,20 @@ function RailButton({ item, disabled }: { item: RailItem; disabled: boolean }) {
         aria-disabled={disabled}
         data-testid={`right-rail-${item.key}`}
         className={cn(
-          "relative w-9 h-9 rounded-md flex items-center justify-center",
-          "transition-colors duration-fast outline-none",
-          "focus-visible:ring-2 focus-visible:ring-accent/60",
+          "relative w-9 h-9 flex items-center justify-center",
+          "transition-colors outline-none",
+          "focus-visible:border focus-visible:border-accent",
           disabled
-            ? "opacity-30 cursor-not-allowed text-ink-muted"
+            ? "opacity-30 cursor-not-allowed text-ink-3"
             : active
               ? "bg-accent-subtle text-accent"
-              : "text-ink-muted hover:bg-bg-hover hover:text-ink",
+              : "text-ink-3 hover:bg-bg-hover hover:text-ink",
         )}
       >
         <Icon className="h-4 w-4" strokeWidth={1.8} />
         {active && !disabled && (
           <span
-            className="absolute right-0 top-1.5 bottom-1.5 w-[2px] rounded-l bg-accent"
+            className="absolute right-0 top-1.5 bottom-1.5 w-[2px] bg-accent"
             aria-hidden
           />
         )}

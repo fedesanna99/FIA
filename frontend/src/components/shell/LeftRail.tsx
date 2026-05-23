@@ -74,12 +74,12 @@ function RailButton({ item, disabled }: { item: RailItem; disabled: boolean }) {
             <div className="font-semibold flex items-center gap-2">
               {item.label}
               {item.shortcut && (
-                <kbd className="text-[10px] bg-bg-hover px-1 rounded border border-border">
+                <kbd className="font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">
                   {item.shortcut}
                 </kbd>
               )}
             </div>
-            <div className="text-ink-muted text-[11px] mt-0.5">{item.description}</div>
+            <div className="text-ink-3 text-[11px] mt-0.5">{item.description}</div>
           </div>
         )
       }
@@ -94,19 +94,19 @@ function RailButton({ item, disabled }: { item: RailItem; disabled: boolean }) {
         aria-disabled={disabled}
         data-testid={`left-rail-${item.key}`}
         className={cn(
-          "relative w-9 h-9 rounded-md flex items-center justify-center",
-          "transition-colors duration-fast outline-none",
-          "focus-visible:ring-2 focus-visible:ring-accent/60",
+          "relative w-9 h-9 flex items-center justify-center",
+          "transition-colors outline-none",
+          "focus-visible:border focus-visible:border-accent",
           disabled
-            ? "opacity-30 cursor-not-allowed text-ink-muted"
+            ? "opacity-30 cursor-not-allowed text-ink-3"
             : active
-              ? "bg-accent-subtle text-accent"
-              : "text-ink-muted hover:bg-bg-hover hover:text-ink",
+              ? "bg-accent-subtle text-accent border-r-2 border-accent"
+              : "text-ink-3 hover:bg-bg-hover hover:text-ink",
         )}
       >
         <Icon className="h-4 w-4" strokeWidth={1.8} />
         {active && !disabled && (
-          <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] rounded-r bg-accent" aria-hidden />
+          <span className="absolute left-0 top-1.5 bottom-1.5 w-[2px] bg-accent" aria-hidden />
         )}
       </button>
     </Tooltip>
@@ -135,13 +135,13 @@ export function LeftRail() {
 
       <SectionLabel text="CMD" />
       {/* Command palette */}
-      <Tooltip side="right" content={<>Comandi <kbd className="text-[10px] ml-1.5 bg-bg-hover px-1 rounded border border-border">Ctrl K</kbd></>}>
+      <Tooltip side="right" content={<>Comandi <kbd className="font-mono text-[10px] uppercase tracking-wide-1 ml-1.5 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">⌘ K</kbd></>}>
         <button
           type="button"
           onClick={togglePalette}
           aria-label="Apri comandi"
           data-testid="left-rail-palette"
-          className="w-9 h-9 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink transition-colors duration-fast"
+          className="w-9 h-9 flex items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink transition-colors"
         >
           <Search className="h-4 w-4" strokeWidth={1.8} />
         </button>
@@ -160,7 +160,7 @@ export function LeftRail() {
           onClick={() => useWorkspaceStore.getState().setHelp(true)}
           aria-label="Apri documentazione"
           data-testid="left-rail-help"
-          className="w-9 h-9 rounded-md flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink transition-colors duration-fast"
+          className="w-9 h-9 flex items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink transition-colors"
         >
           <HelpCircle className="h-4 w-4" strokeWidth={1.8} />
         </button>

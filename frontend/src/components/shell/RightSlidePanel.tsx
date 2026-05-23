@@ -50,24 +50,24 @@ export function RightSlidePanel() {
         "flex flex-col",
       ].join(" ")}
       role="complementary"
-      aria-label="History — Snapshot"
+      aria-label="History · Snapshot"
       data-testid="right-panel-history"
     >
-      <header className="h-9 flex items-center justify-between px-3 border-b border-border flex-shrink-0">
-        <h2 className="text-xs font-semibold uppercase tracking-wider text-ink">
-          History — Snapshot
+      <header className="h-11 flex items-center justify-between px-3 border-b border-border flex-shrink-0 bg-bg-elevated">
+        <h2 className="font-mono text-[10px] uppercase tracking-wide-2 font-semibold text-ink-2">
+          History · Snapshot
         </h2>
         <button
           type="button"
           onClick={close}
           aria-label="Chiudi pannello"
           data-testid="right-panel-close"
-          className="w-6 h-6 rounded flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink transition-colors"
+          className="w-6 h-6 flex items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink transition-colors"
         >
           <X className="h-3.5 w-3.5" />
         </button>
       </header>
-      <div className="flex-1 overflow-auto p-3 text-xs">
+      <div className="flex-1 overflow-auto p-3 text-sm">
         <HistoryPanelContent />
       </div>
     </aside>

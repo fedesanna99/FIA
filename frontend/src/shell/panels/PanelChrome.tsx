@@ -55,12 +55,12 @@ export function PanelChrome(props: PanelChromeProps) {
       )}
       data-testid={testId ?? `panel-${side}`}
     >
-      {/* Header */}
-      <header className="flex items-center px-3 h-10 gap-2 border-b border-border flex-shrink-0">
+      {/* Header Precision */}
+      <header className="flex items-center px-3 h-11 gap-2 border-b border-border flex-shrink-0 bg-bg-elevated">
         <Icon size={16} className="text-accent flex-shrink-0" />
-        <span className="text-sm font-semibold text-ink truncate">{title}</span>
+        <span className="font-display text-sm font-semibold tracking-tight-1 text-ink truncate">{title}</span>
         {subtitle && (
-          <span className="ml-1 text-[11px] font-mono font-normal text-ink-muted truncate">
+          <span className="ml-1 font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 truncate">
             · {subtitle}
           </span>
         )}
@@ -69,7 +69,7 @@ export function PanelChrome(props: PanelChromeProps) {
           onClick={onClose}
           aria-label="Chiudi pannello"
           data-testid={`${testId ?? `panel-${side}`}-close`}
-          className="ml-auto w-6 h-6 rounded flex items-center justify-center text-ink-muted hover:bg-bg-hover hover:text-ink transition-colors"
+          className="ml-auto w-6 h-6 flex items-center justify-center text-ink-3 hover:bg-bg-hover hover:text-ink transition-colors"
         >
           <IconX size={14} />
         </button>
@@ -91,11 +91,11 @@ export function PanelChrome(props: PanelChromeProps) {
               onClick={() => onTabChange?.(t.id)}
               data-testid={`${testId ?? `panel-${side}`}-tab-${t.id}`}
               className={clsx(
-                "text-[11px] px-2.5 py-2 cursor-pointer whitespace-nowrap font-medium",
+                "font-mono text-[10px] uppercase tracking-wide-1 px-2.5 py-2 cursor-pointer whitespace-nowrap font-semibold",
                 "border-b-2 -mb-px transition-colors",
                 activeTab === t.id
                   ? "text-accent border-accent"
-                  : "text-ink-muted hover:text-ink border-transparent",
+                  : "text-ink-3 hover:text-ink border-transparent",
               )}
             >
               {t.label}
