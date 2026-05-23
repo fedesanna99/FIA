@@ -547,3 +547,96 @@ a:not([data-no-transition]),
     grid-template-columns: 1fr !important;
   }
 }
+
+/* ── PR21 · Animazioni Claude Design avanzate ──────────────────────────── */
+
+/* Stagger fade-in: incremento ritardo automatico per children con
+   [data-stagger]. Effetto cascata sui cards sidebar / list items. */
+[data-stagger] > * {
+  animation: fade-in 220ms cubic-bezier(0.2, 0, 0, 1) backwards;
+}
+[data-stagger] > *:nth-child(1) { animation-delay: 0ms; }
+[data-stagger] > *:nth-child(2) { animation-delay: 60ms; }
+[data-stagger] > *:nth-child(3) { animation-delay: 120ms; }
+[data-stagger] > *:nth-child(4) { animation-delay: 180ms; }
+[data-stagger] > *:nth-child(5) { animation-delay: 240ms; }
+[data-stagger] > *:nth-child(6) { animation-delay: 300ms; }
+[data-stagger] > *:nth-child(7) { animation-delay: 360ms; }
+[data-stagger] > *:nth-child(8) { animation-delay: 420ms; }
+[data-stagger] > *:nth-child(n+9) { animation-delay: 480ms; }
+
+/* Tick animation: SVG stroke draw per checkmark (success) */
+@keyframes precision-tick {
+  0%   { stroke-dashoffset: 30; opacity: 0; }
+  30%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+.animate-tick path,
+[data-tick] path {
+  stroke-dasharray: 30;
+  animation: precision-tick 600ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+/* Sweep: linea che si estende da sinistra (per progress bars sharp) */
+@keyframes precision-sweep {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  100% { transform: scaleX(1); transform-origin: left; }
+}
+.animate-sweep,
+[data-sweep] {
+  animation: precision-sweep 400ms cubic-bezier(0.2, 0, 0, 1) forwards;
+}
+
+/* Spotlight: per onboarding tour highlight */
+@keyframes precision-spotlight {
+  0%   { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(8, 145, 178, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0); }
+}
+[data-tour-spotlight] {
+  animation: precision-spotlight 1.8s ease-out infinite;
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+/* Pulse on critical UC > 0.85 (ChecksRail) */
+@keyframes precision-pulse-warn {
+  0%, 100% { background-color: rgb(var(--c-bg-warn)); }
+  50%      { background-color: rgb(var(--c-warn) / 0.2); }
+}
+[data-uc-critical] {
+  animation: precision-pulse-warn 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Engine phases (LoadingScreen C5b mockup) */
+@keyframes precision-engine-phase {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+[data-engine-phase="active"] {
+  animation: precision-engine-phase 1.2s ease-in-out infinite;
+}
+
+/* Indeterminate progress bar (per loading senza percentuale) */
+@keyframes precision-indeterminate {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+.animate-indeterminate,
+[data-indeterminate]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  animation: precision-indeterminate 1.6s linear infinite;
+}
+
+/* Reduce motion compliance */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

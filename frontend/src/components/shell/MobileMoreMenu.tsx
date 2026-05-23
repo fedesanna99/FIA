@@ -145,16 +145,16 @@ export function MobileMoreMenu() {
             type="button"
             onClick={row.onClick}
             data-testid={`mobile-more-${row.id}`}
-            className="w-full flex items-center gap-3 p-3 rounded-lg border border-border bg-bg-panel hover:bg-bg-hover text-left transition"
+            className="w-full inline-flex items-center gap-3 p-3 border border-border bg-bg-elevated hover:bg-bg-hover hover:border-accent/50 text-left transition-colors group"
           >
-            <div className="w-9 h-9 rounded-md bg-bg-info text-ink-info flex items-center justify-center flex-shrink-0">
+            <div className="w-10 h-10 bg-bg-info text-accent border border-border-light flex items-center justify-center flex-shrink-0">
               <Icon className="w-4 h-4" />
             </div>
             <div className="flex-1 min-w-0">
-              <div className="text-sm font-semibold text-ink">{row.label}</div>
-              <div className="text-[11px] text-ink-3">{row.sub}</div>
+              <div className="font-display text-[15px] font-semibold tracking-tight-1 text-ink">{row.label}</div>
+              <div className="text-[12px] text-ink-3 mt-0.5">{row.sub}</div>
             </div>
-            <ChevronRight className="w-4 h-4 text-ink-3 flex-shrink-0" />
+            <ChevronRight className="w-4 h-4 text-ink-3 flex-shrink-0 group-hover:text-accent transition-colors" />
           </button>
         );
       })}

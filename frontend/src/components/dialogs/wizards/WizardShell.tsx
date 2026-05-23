@@ -65,41 +65,41 @@ export function WizardShell({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-dialog flex items-center justify-center bg-black/40 animate-fade-in"
       onClick={onClose}
-      role="dialog"
-      aria-label={title}
+      role="presentation"
     >
       <div
-        className="bg-bg-panel border border-border rounded-lg shadow-dialog w-[calc(100vw-24px)] max-h-[calc(100vh-48px)] flex flex-col overflow-hidden"
+        className="bg-bg-elevated border border-border-light shadow-dialog w-[calc(100vw-24px)] max-h-[calc(100vh-48px)] flex flex-col overflow-hidden animate-slide-up"
         style={{ maxWidth }}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
       >
-        {/* Header con breadcrumb + close */}
-        <header className="px-5 py-3.5 border-b border-border flex-shrink-0">
-          <div className="flex items-center justify-between mb-2.5">
-            <div className="flex items-center gap-1.5 text-[11px] text-ink-3">
+        {/* Header con breadcrumb */}
+        <header className="px-5 py-3.5 border-b border-border flex-shrink-0 bg-bg-panel">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 font-semibold">
               {breadcrumb.map((b, i) => {
                 const Icon = b.icon;
                 const isLastCrumb = i === breadcrumb.length - 1;
                 return (
                   <Fragment key={i}>
                     <span
-                      className={`flex items-center gap-1 ${isLastCrumb ? "text-ink font-semibold" : ""}`}
+                      className={`inline-flex items-center gap-1 ${isLastCrumb ? "text-ink" : ""}`}
                     >
                       <Icon className="w-3 h-3" /> {b.label}
                     </span>
-                    {!isLastCrumb && <ChevronRight className="w-2.5 h-2.5 text-ink-3" />}
+                    {!isLastCrumb && <ChevronRight className="w-2.5 h-2.5 text-ink-4" />}
                   </Fragment>
                 );
               })}
             </div>
-            {/* v1.7 T5: no crocetta X. Wizard chiudibile da ESC,
-                backdrop click, swipe-back mobile. */}
           </div>
 
-          {/* Step indicator (dot + connecting line) */}
-          <div className="flex items-center gap-1.5">
+          {/* Step indicator Precision (dot sharp + connecting line) */}
+          <div className="flex items-center gap-2">
             {steps.map((s, i) => {
               const done = i < currentStep;
               const current = i === currentStep;
@@ -107,14 +107,14 @@ export function WizardShell({
                 ? "bg-success"
                 : current
                 ? "bg-accent ring-2 ring-accent/30"
-                : "bg-bg-hover border border-border";
+                : "bg-bg-hover border border-border-light";
               return (
                 <Fragment key={s.id}>
                   <div className="flex items-center gap-1.5">
-                    <div className={`w-2 h-2 rounded-full ${dotClass} flex-shrink-0`} />
+                    <div className={`w-2 h-2 rounded-full ${dotClass} flex-shrink-0 transition-all`} />
                     <span
-                      className={`text-[10px] uppercase tracking-wider font-semibold ${
-                        current ? "text-ink" : done ? "text-ink-3" : "text-ink-3"
+                      className={`font-mono text-[10px] uppercase tracking-wide-2 font-semibold ${
+                        current ? "text-ink" : "text-ink-3"
                       }`}
                     >
                       {s.label}
@@ -122,29 +122,29 @@ export function WizardShell({
                   </div>
                   {i < steps.length - 1 && (
                     <div
-                      className={`flex-1 h-px ${done ? "bg-success" : "bg-border"}`}
+                      className={`flex-1 h-px transition-colors ${done ? "bg-success" : "bg-border"}`}
                     />
                   )}
                 </Fragment>
               );
             })}
           </div>
-          <div className="text-[10px] text-ink-3 mt-1 font-mono">
+          <div className="font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mt-2 font-semibold">
             Step {currentStep + 1} di {steps.length}
           </div>
         </header>
 
         {/* Content scrollabile */}
-        <div className="px-5 py-5 max-h-[60vh] overflow-y-auto flex-1 min-h-0">
+        <div className="px-5 py-5 max-h-[62vh] overflow-y-auto flex-1 min-h-0">
           {children}
         </div>
 
-        {/* Footer con back/next/submit */}
-        <footer className="px-5 py-3 border-t border-border flex items-center justify-between flex-shrink-0">
+        {/* Footer Precision */}
+        <footer className="px-5 py-3 border-t border-border flex items-center justify-between flex-shrink-0 bg-bg-panel">
           <button
             type="button"
             onClick={onBack || onClose}
-            className="text-[12px] text-ink-3 hover:text-ink transition-colors px-3 py-1.5"
+            className="px-3 py-1.5 text-sm font-medium text-ink-2 hover:text-ink hover:bg-bg-hover transition-colors"
             data-testid="wizard-back"
           >
             {currentStep > 0 ? "← Indietro" : "Annulla"}
@@ -155,9 +155,12 @@ export function WizardShell({
               type="button"
               onClick={onSubmit}
               disabled={!canProceed || isSubmitting}
-              className="flex items-center gap-1.5 bg-success hover:bg-success/90 text-white text-[12px] font-semibold px-3.5 py-1.5 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 bg-success hover:bg-success/90 text-white border border-success text-sm font-medium px-4 py-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               data-testid="wizard-submit"
             >
+              {isSubmitting && (
+                <span className="inline-block w-3 h-3 border-[1.5px] border-white/40 border-t-white animate-spin" />
+              )}
               {isSubmitting ? "Esecuzione…" : submitLabel}
               {!isSubmitting && <Play className="w-3 h-3" />}
             </button>
@@ -166,7 +169,7 @@ export function WizardShell({
               type="button"
               onClick={onNext}
               disabled={!canProceed}
-              className="flex items-center gap-1.5 bg-accent hover:bg-accent-hover text-white text-[12px] font-semibold px-3.5 py-1.5 rounded-md transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1.5 bg-accent hover:bg-accent-hover text-white border border-accent text-sm font-medium px-4 py-1.5 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               data-testid="wizard-next"
             >
               {nextLabel}

@@ -55,14 +55,16 @@ export function MobileTabbar() {
               data-testid={`mobile-tab-${tab.id}`}
               aria-current={isActive ? "page" : undefined}
               aria-label={`${tab.label}${isActive ? " (attivo)" : ""}`}
-              className={`flex-1 flex flex-col items-center justify-center gap-0.5 rounded-md mx-0.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+              className={`flex-1 inline-flex flex-col items-center justify-center gap-1 mx-0.5 transition-colors focus-visible:outline-none border-t-2 ${
                 isActive
-                  ? "text-ink-info bg-bg-info/40 font-semibold"
-                  : "text-ink-3 hover:text-ink hover:bg-bg-hover"
+                  ? "text-accent bg-bg-info border-accent"
+                  : "text-ink-3 hover:text-ink hover:bg-bg-hover border-transparent"
               }`}
             >
               <Icon className="w-4 h-4" aria-hidden="true" />
-              <span className="text-[10px]">{tab.label}</span>
+              <span className={`font-mono text-[10px] uppercase tracking-wide-1 ${isActive ? "font-semibold" : "font-medium"}`}>
+                {tab.label}
+              </span>
             </button>
           );
         })}
