@@ -8,4 +8,4 @@
 export const APP_VERSION = "v2.3";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v2.3.0-compare-undo";
+export const APP_TAG = "v2.3.1-snapshot-diff";

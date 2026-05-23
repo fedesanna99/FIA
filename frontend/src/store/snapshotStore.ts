@@ -22,6 +22,11 @@ interface SnapshotState {
     staticResults: StaticResults | null,
     modalResults: ModalResults | null,
   ) => void;
+  /**
+   * v2.3.1: rinomina inline uno snapshot esistente. Se la label è
+   * stringa vuota dopo trim, mantiene la label precedente.
+   */
+  renameSnapshot: (id: number, label: string) => void;
   removeSnapshot: (id: number) => void;
   clearAll: () => void;
 }
@@ -46,6 +51,16 @@ export const useSnapshotStore = create<SnapshotState>((set) => ({
         },
       ],
     })),
+  renameSnapshot: (id, label) =>
+    set((s) => {
+      const trimmed = label.trim();
+      if (!trimmed) return s; // no-op se label vuota
+      return {
+        snapshots: s.snapshots.map((x) =>
+          x.id === id ? { ...x, label: trimmed } : x,
+        ),
+      };
+    }),
   removeSnapshot: (id) => set((s) => ({ snapshots: s.snapshots.filter((x) => x.id !== id) })),
   clearAll: () => set({ snapshots: [] }),
 }));

@@ -1,5 +1,37 @@
 # Changelog FEA Pro
 
+## v2.3.1-snapshot-diff — Snapshot named + inline diff — 2026-05-23
+
+Feature di chiusura backlog: gestione completa snapshot.
+
+### #1 — Snapshot rename + diff
+- `snapshotStore.ts`: nuovo metodo `renameSnapshot(id, label)` che
+  trim'a label e ignora stringhe vuote. 7 nuovi vitest.
+- `HistoryPanelContent.tsx` (right rail · History):
+  - Bottone "Crea snapshot" sempre visibile in cima (disabled se non
+    c'è modello + risultati).
+  - Inline rename per ogni snapshot: pencil → input → blur/Enter
+    salva, ESC annulla. Auto-focus all'apertura.
+  - Bottone "Confronta" (visibile con ≥2 snapshot): apre panel
+    inline con 2 select + tabella Δ% per `max_u`, `max_σ`, `f₁`.
+    Codifica colorata: success per riduzione, warn per aumento,
+    muted per uguali (tolleranza `1e-9`).
+  - Empty state preservato (Camera + hint).
+
+### Quality gates
+- Build: verde 15.46s.
+- Vitest: **580/580 PASS** (era 573, +7 nuovi snapshotStore).
+- Version → v2.3 / `v2.3.1-snapshot-diff`.
+
+### Files toccati
+- `frontend/src/store/snapshotStore.ts` (renameSnapshot)
+- `frontend/src/store/snapshotStore.test.ts` (nuovo, 7 test)
+- `frontend/src/components/shell/panels/HistoryPanelContent.tsx` (refactor)
+- `frontend/src/lib/version.ts`
+- `CHANGELOG.md`
+
+---
+
 ## v2.3.0-compare-undo — Multi-model compare polish + Undo/Redo wiring — 2026-05-23
 
 Due feature attese dal backlog post-audit, consegnate insieme.
