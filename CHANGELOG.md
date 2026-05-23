@@ -1,5 +1,52 @@
 # Changelog FEA Pro
 
+## v2.2.2-audit-deep — Hardening prod + cleanup + bundle split + docs — 2026-05-23
+
+Sessione di **audit-deep dopo la chiusura del backlog**: 5 priorità
+identificate dal deep-audit, tutte implementate in singolo round.
+
+### P1 — CORS lockdown (sicurezza produzione)
+- `backend/main.py`: `allow_origins=["*"]` con `credentials=True` → env-var
+  `CORS_ALLOWED_ORIGINS` con default `["https://fea-pro.fly.dev",
+  "http://localhost:5173/5176/4173", "http://127.0.0.1:5173"]`.
+- Verificato live: origin `evil.example.com` riceve
+  `Access-Control-Allow-Origin: (vuoto)` invece di `*` → richiesta
+  cross-origin bloccata dal browser.
+
+### P2 — Cleanup dead code (9 file rimossi, 1139 LOC)
+- 7× `*.deprecated.tsx`: `WorkspacePanel`, `IOWorkspace`, `ResultsWorkspace`,
+  `PropertiesPanel`, `ResultsPanel`, `InspectPanelContent`, `ToolsPanelContent`
+- `AuthDialog.tsx` (sostituito da `AuthScreen` v2.1.4) + `AuthDialog.test.tsx`
+- Aggiornati commento stale in `paletteItems.ts` e TODO obsoleto in
+  `MobileMoreMenu.tsx`.
+
+### P3 — Lazy-load 7 dialog/wizard pesanti
+- `App.tsx`: `ImportWizard`, `SismicaTHWizard`, `TemplateGalleryDialog`,
+  `PercorsiBeamWizard`, `ReportExportDialog`, `PercorsoFullScreenDemo`,
+  `ModelliBrowser` → `React.lazy()` + `<Suspense fallback={null}>`
+- Main bundle: **1322 KB → 1257 KB** (−65 KB, −5%)
+- 7 chunk separati ≤ 13 KB cad. caricati solo on-demand
+
+### P4 — README + Quickstart ingegnere
+- Bump version `v1.6.1-polish` → `v2.2.2-audit-deep`
+- Test badges aggiornati: 660+ pytest · 571 vitest · NAFEMS 5/5 · smoke E2E 10/10
+- Nuova sezione **"Quickstart ingegnere · in 3 passi"** con flow concreto
+  (register → percorso/template/studio → pipeline tipica) + warning
+  sulla convention `ROLLER_<asse_bloccato>` documentata
+
+### P5 — Touch targets + leggibilità mobile WCAG 2.5.5
+- `ViewPanel.tsx`: 2 `text-[9px]` interattivi (description di `ToggleCard`,
+  `disabledHint` di `Toggle`) → `text-[10px]` per leggibilità mobile
+
+### Quality gates v2.2.2
+- ✅ Build verde 18.54s
+- ✅ **564/564 vitest verdi** (era 571: −7 test di `AuthDialog` rimosso)
+- ✅ Deploy fly.io HTTP 200
+- ✅ Smoke E2E live 10/10: max_u=2.564 mm errore <0.04% vs teoria
+- ✅ CORS lockdown verificato: origin esterno bloccato
+
+---
+
 ## v2.2.1-audit-complete — Auth gate + nav dedup + audit fixes end-to-end — 2026-05-23
 
 Sessione di **consolidamento finale**: tutti i placeholder "soon" dichiarati
