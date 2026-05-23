@@ -72,8 +72,7 @@ export function Dashboard({
   return (
     <div className="absolute inset-0 overflow-y-auto bg-bg">
       <div
-        className="grid gap-8 px-8 pt-9 pb-14 max-w-[1440px] mx-auto"
-        style={{ gridTemplateColumns: "minmax(0, 1fr) 304px" }}
+        className="grid gap-4 md:gap-6 lg:gap-8 px-3 sm:px-5 md:px-6 lg:px-8 pt-5 md:pt-7 lg:pt-9 pb-14 max-w-[1440px] mx-auto grid-cols-1 lg:grid-cols-[minmax(0,1fr)_304px]"
         data-testid="dashboard-root"
       >
         {/* ── COLONNA SINISTRA: content ────────────────────────────── */}
@@ -90,8 +89,7 @@ export function Dashboard({
                 : `${models.length} ${models.length === 1 ? "modello" : "modelli"} · ${nJobs} job in corso${authUser ? ` · ${authUser.email.split("@")[0]}` : ""}`}
             </span>
             <h1
-              className="font-display text-4xl font-semibold tracking-tight-4 text-ink"
-              style={{ lineHeight: "1.02", fontSize: "48px" }}
+              className="font-display font-semibold tracking-tight-4 text-ink text-[32px] sm:text-[40px] lg:text-[48px] leading-[1.02]"
             >
               Inizia un'analisi.
             </h1>
@@ -232,7 +230,7 @@ export function Dashboard({
                 Vedi tutti i template →
               </button>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <QuickAct
                 icon={<Plus className="w-3.5 h-3.5" />}
                 name="Nuovo modello"
@@ -291,7 +289,7 @@ export function Dashboard({
                   Vedi tutti →
                 </button>
               </div>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" data-stagger>
                 {recentModels.map((m) => (
                   <ProjCard key={m.id} model={m} onSelect={onSelect} />
                 ))}
@@ -313,7 +311,7 @@ export function Dashboard({
         </div>
 
         {/* ── COLONNA DESTRA: sidebar 304px ─────────────────────────── */}
-        <aside className="flex flex-col gap-4" data-testid="dashboard-sidebar">
+        <aside className="flex flex-col gap-4 min-w-0" data-testid="dashboard-sidebar" data-sidebar="right">
           {/* Crediti widget */}
           <div className="bg-bg-panel border border-border p-3.5 flex flex-col gap-2.5 animate-slide-up" data-testid="widget-credits">
             <div className="flex items-center justify-between">
