@@ -127,6 +127,31 @@ in test significativo (es. check `σ_yy(2p) = 2·σ_yy(p)`).
 
 ## Chiuso (v1.x → v2.x)
 
+### #30 · Engine NON ferma su matrice singolare
+**Chiuso**: v2.4.0-singular-matrix-fix (2026-05-24)
+**Implementazione**:
+- `backend/core/solver/errors.py` (nuovo): `SingularMatrixError` + `NumericalInstabilityError`
+- `backend/core/solver/static_solver.py`: wrap `spsolve` con catch `MatrixRankWarning` + check NaN/Inf + check magnitude > 10⁶ m
+- `backend/tests/test_solver_singular_matrix.py` (nuovo): 4 test regressione (4/4 verdi in 3.69s)
+
+**Comportamento ora**:
+- 2 nodi senza vincoli → `SingularMatrixError("rank_deficient")`
+- 5 nodi sottovincolati → `SingularMatrixError("huge_displacement" | "rank_deficient" | "nan_in_solution")`
+- 2 nodi sovrapposti → `ValueError("Beam2D ha lunghezza nulla")` già esistente (non regressione)
+
+**Messaggio utente italiano**: "Sistema non risolvibile: rank_deficient.
+Suggerimenti: Verifica che la struttura abbia vincoli sufficienti ·
+Controlla che non ci siano corpi rigidi liberi"
+
+**Bug origine**: audit `v2.3.5-nafems-truth-audit` sezione 4. Prima del fix,
+il solver restituiva NaN (Caso 1) o spostamenti di 1.76 × 10¹⁰ m (Caso 2)
+silenti, frontend riceveva dati invalidi marcati come "risolto".
+
+**Out-of-scope (fix futuri)**: stesso pattern di unprotected `spsolve` esiste
+in `arclength_solver.py` (3 occ.), `dynamic_solver.py` (1 occ.),
+`nonlinear_solver.py` (1 occ.). Da estendere `safe_spsolve` helper in sprint
+successivo (`v2.4.1+`).
+
 ### BL-1 · Newton-Raphson + Cable 2D/3D — non-linearità geometrica
 **Chiuso**: v1.5 (riconciliato in v2.3.3-docs-sync, 2026-05-23)
 **Implementazione**:
