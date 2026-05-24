@@ -50,7 +50,7 @@ export const DialogContent = forwardRef<HTMLDivElement, DialogContentProps>(
           className={cn(
             "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
             "z-40 w-[calc(100vw-32px)]",
-            "bg-bg-elevated border border-border rounded-lg shadow-dialog",
+            "bg-bg-elevated border border-border shadow-dialog",
             "animate-slide-up",
             "max-h-[calc(100vh-64px)] flex flex-col",
             "focus:outline-none",

@@ -39,7 +39,7 @@ export function Tooltip({ content, children, side = "top", align = "center", dis
           sideOffset={6}
           className={cn(
             "z-[60] max-w-xs",
-            "bg-bg-elevated border border-border rounded-md px-2.5 py-1.5",
+            "bg-bg-elevated border border-border px-2.5 py-1.5",
             "text-xs text-ink shadow-dropdown",
             "animate-fade-in",
           )}

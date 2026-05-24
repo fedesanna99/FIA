@@ -30,7 +30,7 @@ export const DropdownMenuContent = forwardRef<
         sideOffset={sideOffset}
         className={cn(
           "z-[30] min-w-[200px] p-1",
-          "bg-bg-elevated border border-border rounded-md shadow-dropdown",
+          "bg-bg-elevated border border-border shadow-dropdown",
           "animate-slide-up",
           className,
         )}
