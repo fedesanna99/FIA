@@ -1,0 +1,158 @@
+{
+  "screen": "truss3d_loaded",
+  "url": "/?model=ex_truss_3d",
+  "total": 21,
+  "alive": 19,
+  "dead": 1,
+  "errors": 0,
+  "skipped": 1,
+  "results": [
+    {
+      "selector": "[data-testid=\"skip-to-content\"]",
+      "text": "Vai al contenuto",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "skipped",
+      "evidence": "matched EXCLUDED_SELECTORS"
+    },
+    {
+      "selector": "[data-testid=\"topbar-model-menu\"]",
+      "text": "Nessun modello",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->2, focus:BODY#->DIV#radix-:r5:, dom:mutated"
+    },
+    {
+      "selector": "[data-testid=\"topbar-search\"]",
+      "text": "Cerca strumenti, modelli…Ctrl K",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->3, focus:BUTTON#radix-:r4:->INPUT#radix-:r1r:, dom:mutated, network:fired, console:4msg"
+    },
+    {
+      "selector": "[data-testid=\"topbar-ai\"]",
+      "text": "AI",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "focus:BODY#->BUTTON#, dom:mutated, network:fired, console:1msg"
+    },
+    {
+      "selector": "[data-testid=\"topbar-avatar-menu\"]",
+      "text": "QV",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->2, focus:BUTTON#->DIV#radix-:rd:, dom:mutated"
+    },
+    {
+      "selector": "[data-testid=\"left-rail-palette\"]",
+      "text": "",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->3, focus:BUTTON#radix-:rc:->INPUT#radix-:rch:, dom:mutated, console:4msg"
+    },
+    {
+      "selector": "button[aria-label=\"Tema: light. Segui sistema\"]",
+      "text": "",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "focus:BODY#->BUTTON#, dom:mutated"
+    },
+    {
+      "selector": "[data-testid=\"left-rail-help\"]",
+      "text": "",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->1, dom:mutated"
+    },
+    {
+      "selector": "[data-testid=\"home-cta-studio-pro\"]",
+      "text": "Apri Studio Pro",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->1, focus:BUTTON#->INPUT#, dom:mutated"
+    },
+    {
+      "selector": "[data-testid=\"home-cta-percorsi\"]",
+      "text": "Scegli un percorso",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->1, focus:BODY#->BUTTON#, dom:mutated"
+    },
+    {
+      "selector": "button:text(\"Vedi tutti i template →\")",
+      "text": "Vedi tutti i template →",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->1, dom:mutated"
+    },
+    {
+      "selector": "[data-testid=\"dashboard-action-new\"]",
+      "text": "Nuovo modelloDa zero · empty workspaceNEW⌘ N",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->1, focus:BUTTON#->INPUT#, dom:mutated"
+    },
+    {
+      "selector": "[data-testid=\"dashboard-action-template\"]",
+      "text": "Da template9 schemi resistenti pre-impostati9 TPL↗",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->1, focus:BODY#->BUTTON#, dom:mutated"
+    },
+    {
+      "selector": "[data-testid=\"dashboard-action-import\"]",
+      "text": "Importa IFC / DXFWizard 4 step · geometria + metadataIMPORT↗",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->1, dom:mutated"
+    },
+    {
+      "selector": "[data-testid=\"dashboard-action-examples\"]",
+      "text": "EsempiNAFEMS LE1 / LE2 / LE10 · benchmarkDEMO↗",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->1, dom:mutated"
+    },
+    {
+      "selector": "button:text(\"Vedi fatturazione\")",
+      "text": "Vedi fatturazione",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "focus:BUTTON#->BODY#"
+    },
+    {
+      "selector": "button:text(\"Apri Copilot\")",
+      "text": "Apri Copilot",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "dead",
+      "evidence": "no observable effect within 500ms"
+    },
+    {
+      "selector": "[data-testid=\"right-rail-view\"]",
+      "text": "",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "focus:BODY#->BUTTON#, dom:mutated, console:2msg"
+    },
+    {
+      "selector": "[data-testid=\"right-rail-tools\"]",
+      "text": "",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "dom:mutated, console:2msg"
+    },
+    {
+      "selector": "[data-testid=\"right-rail-history\"]",
+      "text": "",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "dom:mutated, console:2msg"
+    },
+    {
+      "selector": "[data-testid=\"statusbar-help\"]",
+      "text": "? · v2.3",
+      "url": "http://localhost:5173/?model=ex_truss_3d",
+      "status": "alive",
+      "evidence": "overlay:0->1, dom:mutated"
+    }
+  ]
+}
