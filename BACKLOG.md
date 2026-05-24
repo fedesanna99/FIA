@@ -43,33 +43,110 @@ Fix in sprint `v2.4.2-shell-formulation`. Dettaglio bug:
 `docs/nafems_truth_audit.md`.
 
 ### NEW-1 · LE1 anti-convergenza mesh fine
-**Stato**: aperto · **Complessità**: ~2-4 giorni
+**Stato**: diagnosticato post `v2.3.7-solver-internals-audit` · **Complessità**: ~2-3 giorni
 
-Mesh 12×12 errore −32% vs mesh 20×20 errore −76%. Possibili cause:
-mesh degenere (quarter_ellipse_with_hole), stress recovery sbagliato, o
-carichi nodali equivalenti mal distribuiti. Indagine in
-`v2.3.6-honesty-fix` precedente, fix in `v2.4.2`.
+**Root cause primaria**: stress recovery valutato al **centroide** in
+`backend/core/elements/shell_quad4.py:165` (Gauss point (0,0)). Raffinando
+la mesh, il centroide si avvicina al punto D ma resta sempre offset
+in una zona di gradient elevato (concentrazione di tensione al bordo del
+foro). Lettura al centroide sottostima il picco nodale → errore cresce
+da −32% (12×12) a −76% (20×20).
+
+**Root cause secondaria**: load distribution in
+`backend/tests/nafems/test_le1_elliptic_membrane.py::_build_le1`
+applica solo ~85-90% del carico atteso (proiezione normali su nodi non
+pesata per arc-length).
+
+**File chiave**:
+- `backend/core/elements/shell_quad4.py:153-200`
+- `backend/core/elements/shell_quad4_mitc.py:224` (analoga)
+- `backend/tests/nafems/test_le1_elliptic_membrane.py` (loads builder)
+
+**Prossimo sprint**: `v2.4.3c-shell-stress-recovery-nodal`
+
+Vedi `docs/solver_internals_audit.md` sezione 2 per dettaglio diagnostico.
 
 ### NEW-2 · SHELL_Q4 e SHELL_Q4_MITC identici su LE1
-**Stato**: aperto · **Complessità**: ~1-2 giorni
+**Stato**: diagnosticato post `v2.3.7-solver-internals-audit` · **Severity**: NESSUNA (falso positivo)
 
-Su LE1 i due element type danno errore identico ad ogni mesh (−58/−47/−40/−35/
-−32/−67/−75 %). MITC non sta cambiando la formulazione, oppure SHELL_Q4 già
-usa MITC internamente, oppure dispatch in `assembler.py` non distingue.
+**Diagnosi**: NON è un bug, è fisica corretta.
+
+LE1 è una **membrana piana**: vincoli bloccano `w` e rotazioni su tutti i
+nodi. Il contributo bending K_b è non significativo, solo K_m (membrana)
+governa. `_membrane_stiffness()` è **identica** fra Q4 e MITC
+(shell_quad4.py:56 ≡ shell_quad4_mitc.py:85), quindi i due element type
+restituiscono lo stesso risultato — atteso e corretto.
+
+Le formulazioni differiscono SOLO in `_bending_stiffness()` (MITC4 tying
+points Bathe-Dvorkin vs Mindlin standard).
+
+**Azione**: chiarire nel doc audit `v2.3.5`. Eventuale unit test
+`test_le1_q4_and_mitc_must_agree_within_1pct()` per documentare
+formalmente il comportamento atteso.
+
+Vedi `docs/solver_internals_audit.md` sezione 3.
 
 ### NEW-3 · SHELL_Q4_MITC max|uz|=0 su LE10
-**Stato**: aperto · **Complessità**: ~1 giorno
+**Stato**: diagnosticato post `v2.3.7-solver-internals-audit` · **Complessità**: ~1 ora · **Severity**: P1
 
-Su LE10 con pressure load, MITC produce `max|uz| = 0.000 mm` per ogni mesh.
-SHELL_Q4 normale invece dà valori non-zero crescenti con mesh. MITC è
-completamente rotto per pressure_load_vector.
+**Root cause**: `backend/core/solver/assembler.py:244`
+
+```python
+if el.type == ElementType.SHELL_Q4:   # ← solo SHELL_Q4!
+    A = inst._area()
+    ...
+# Nessun elif/branch per SHELL_Q4_MITC né SHELL_Q4_LAYERED
+```
+
+Per ogni elemento `SHELL_Q4_MITC` con `LoadType.PRESSURE`, il branch non
+si attiva → `F` non riceve forze → `K·u=F=0` → `u=0` → `max|uz|=0`.
+
+**Fix** (1 ora):
+```python
+if el.type in (ElementType.SHELL_Q4, ElementType.SHELL_Q4_MITC):
+    ...
+```
+
+**Test regressione** (2 nuovi):
+- LE10 con MITC: `max|uz|` ordine di grandezza atteso
+- Q4 vs MITC su piastra sottile: MITC > Q4 (locking-free)
+
+**Prossimo sprint**: `v2.4.3a-shell-pressure-mitc-fix`
+
+Vedi `docs/solver_internals_audit.md` sezione 3.
 
 ### NEW-4 · Postprocess shell σ_y solo membrana, non bending
-**Stato**: aperto · **Complessità**: ~1-2 giorni
+**Stato**: diagnosticato post `v2.3.7-solver-internals-audit` · **Complessità**: ~2-3 giorni · **Severity**: P1
 
-LE10 ha `element_stresses[*].sigma_y = 0` ovunque, ma `max|uz|` è non-zero.
-Significa che il postprocess legge solo componente membrana, non bending in
-fibra estrema (z=±t/2). Fix in `v2.4.2-postprocess-shell`.
+**Root cause confermato a riga**: `backend/core/elements/shell_quad4.py:156`
+
+```python
+u_membrane = np.array([u_local[6 * i + j] for i in range(4) for j in range(2)])
+# i in [0..3]: nodi  ·  j in [0,1]: solo ux, uy
+# uz, theta_x, theta_y, theta_z mai usati
+```
+
+Lo stesso pattern in `shell_quad4_mitc.py:224`.
+
+**Verifica empirica** (`scripts/le10_stress_diagnostics.py`):
+- `max|uz| = 6.4 mm`, `max|rx| = 2.8e-3 rad`, `max|ry| = 3.0e-3 rad`
+  → rotazioni esistono, solver calcola bending correttamente
+- `sigma_x = sigma_y = tau_xy = 0` per ogni elemento → postprocess ignora bending
+
+**Schema gap**: `backend/schemas/results.py::ElementStress` non ha campi
+`sigma_*_top`, `sigma_*_bot`, `M_x`, `M_y`, `M_xy`. Architetturalmente non
+c'è dove mettere il bending stress.
+
+**Fix** (~2-3 giorni):
+1. Estendere `ElementStress` con campi opzionali bending
+2. Estendere `ShellQuad4.stresses()` per estrarre rotazioni → curvature
+   → momenti → stress fibra estrema
+3. Idem per `ShellQuad4MITC.stresses()`
+4. Test parametrico LE10 con target NAFEMS
+
+**Prossimo sprint**: `v2.4.3b-shell-bending-stress-recovery`
+
+Vedi `docs/solver_internals_audit.md` sezione 4.
 
 ### NEW-5 · Helper assert_within_nafems_tolerance mai chiamato
 **Stato**: code smell P2 · **Complessità**: ~30 minuti
