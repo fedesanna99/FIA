@@ -220,18 +220,38 @@ class ShellQuad4:
         sigma_m_nodes = self._EXTRAP_GAUSS_TO_NODES @ sigma_m_gauss
         M_nodes = self._EXTRAP_GAUSS_TO_NODES @ M_gauss
 
-        # Costruisci dict per ogni nodo
+        # ── Costruisci dict per ogni nodo ────────────────────────────────────
+        # CONVENZIONE σ in fibra estrema (v2.4.4 NEW-4-followup-segno fix):
+        # Diagnostico in `scripts/shell_b_bending_convention_diagnostic.py`
+        # ha confermato che il solver usa **Mindlin Bathe §5.4** internamente
+        # (κ_x = +∂θ_x/∂x, M_x = +D·κ_x) e convenzione coordinata **z UP**
+        # (uz<0 sotto p>0).
+        #
+        # Per piastra in convenzione Mindlin/Reissner z up, la relazione
+        # corretta fra momento flettente e stress in fibra estrema è:
+        #     σ_x(z) = -(12·z/t³)·M_x
+        # cioè con un SEGNO MENO. Per z = +t/2:
+        #     σ_x_top = -6·M_x / t²
+        # Fisicamente: piastra concava verso l'alto (w_xx > 0) ha κ_x > 0
+        # e M_x > 0, ma fibra TOP (z = +t/2) in compressione → σ_top < 0.
+        #
+        # Pre-fix v2.4.4 usava σ_top = +6M/t² (convenzione "engineering"
+        # opposta) → segno sbagliato per piastre in flessione. Il bug
+        # NEW-4-followup-segno produceva σ_y_top = +22 MPa su LE10
+        # invece di −5.38 MPa target NAFEMS.
         b_factor = 6.0 / (t * t) if t > 0 else 0.0
         result = []
         for i in range(4):
             sx, sy, txy = sigma_m_nodes[i]
             Mx, My, Mxy = M_nodes[i]
-            sx_top = float(sx) + b_factor * float(Mx)
-            sy_top = float(sy) + b_factor * float(My)
-            txy_top = float(txy) + b_factor * float(Mxy)
-            sx_bot = float(sx) - b_factor * float(Mx)
-            sy_bot = float(sy) - b_factor * float(My)
-            txy_bot = float(txy) - b_factor * float(Mxy)
+            # σ_top = σ_membrana − 6M/t²  (z = +t/2, convention Mindlin z up)
+            sx_top = float(sx) - b_factor * float(Mx)
+            sy_top = float(sy) - b_factor * float(My)
+            txy_top = float(txy) - b_factor * float(Mxy)
+            # σ_bot = σ_membrana + 6M/t²  (z = -t/2, antisimmetrico)
+            sx_bot = float(sx) + b_factor * float(Mx)
+            sy_bot = float(sy) + b_factor * float(My)
+            txy_bot = float(txy) + b_factor * float(Mxy)
             result.append({
                 "sigma_x": float(sx), "sigma_y": float(sy), "tau_xy": float(txy),
                 "M_x": float(Mx), "M_y": float(My), "M_xy": float(Mxy),
@@ -305,14 +325,16 @@ class ShellQuad4:
         M = Db @ kappa
         Mx, My, Mxy = float(M[0]), float(M[1]), float(M[2])
 
-        # Stress fibra estrema z=±t/2:  σ_top = σ_membrana + 6·M / t²
+        # Stress fibra estrema z=±t/2 (v2.4.4 NEW-4-followup-segno fix).
+        # Convenzione Mindlin Bathe §5.4 z-up: σ_top = σ_membrana − 6M/t².
+        # Vedi `stresses_at_nodes` per spiegazione dettagliata e diagnostico.
         b_factor = 6.0 / (t * t) if t > 0 else 0.0
-        sx_top = float(sx) + b_factor * Mx
-        sy_top = float(sy) + b_factor * My
-        txy_top = float(txy) + b_factor * Mxy
-        sx_bot = float(sx) - b_factor * Mx
-        sy_bot = float(sy) - b_factor * My
-        txy_bot = float(txy) - b_factor * Mxy
+        sx_top = float(sx) - b_factor * Mx
+        sy_top = float(sy) - b_factor * My
+        txy_top = float(txy) - b_factor * Mxy
+        sx_bot = float(sx) + b_factor * Mx
+        sy_bot = float(sy) + b_factor * My
+        txy_bot = float(txy) + b_factor * Mxy
 
         # ── 3. Von Mises: max fra membrana, top, bot ─────────────────────────
         def _vm(sxx, syy, sxy):

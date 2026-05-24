@@ -287,6 +287,9 @@ class ShellQuad4MITC:
         sigma_m_nodes = self._EXTRAP_GAUSS_TO_NODES @ sigma_m_gauss
         M_nodes = self._EXTRAP_GAUSS_TO_NODES @ M_gauss
 
+        # Convenzione σ in fibra estrema z=±t/2 (v2.4.4 NEW-4-followup-segno fix):
+        # Mindlin Bathe §5.4, z up → σ_top = σ_m − 6M/t² (segno -).
+        # Vedi ShellQuad4.stresses_at_nodes per docstring completo.
         b_factor = 6.0 / (t * t) if t > 0 else 0.0
         result = []
         for i in range(4):
@@ -295,12 +298,14 @@ class ShellQuad4MITC:
             result.append({
                 "sigma_x": float(sx), "sigma_y": float(sy), "tau_xy": float(txy),
                 "M_x": float(Mx), "M_y": float(My), "M_xy": float(Mxy),
-                "sigma_x_top": float(sx) + b_factor * float(Mx),
-                "sigma_y_top": float(sy) + b_factor * float(My),
-                "tau_xy_top": float(txy) + b_factor * float(Mxy),
-                "sigma_x_bot": float(sx) - b_factor * float(Mx),
-                "sigma_y_bot": float(sy) - b_factor * float(My),
-                "tau_xy_bot": float(txy) - b_factor * float(Mxy),
+                # σ_top = σ_m − 6M/t² (z=+t/2, convenzione Mindlin Bathe z-up)
+                "sigma_x_top": float(sx) - b_factor * float(Mx),
+                "sigma_y_top": float(sy) - b_factor * float(My),
+                "tau_xy_top": float(txy) - b_factor * float(Mxy),
+                # σ_bot = σ_m + 6M/t² (z=-t/2, antisimmetrico)
+                "sigma_x_bot": float(sx) + b_factor * float(Mx),
+                "sigma_y_bot": float(sy) + b_factor * float(My),
+                "tau_xy_bot": float(txy) + b_factor * float(Mxy),
             })
         return result
 
@@ -365,13 +370,15 @@ class ShellQuad4MITC:
         M = Db @ kappa
         Mx, My, Mxy = float(M[0]), float(M[1]), float(M[2])
 
+        # v2.4.4 NEW-4-followup-segno fix: convenzione Mindlin Bathe z-up
+        # σ_top = σ_m − 6M/t² (vedi `stresses_at_nodes` per docstring).
         b_factor = 6.0 / (t * t) if t > 0 else 0.0
-        sx_top = float(sx) + b_factor * Mx
-        sy_top = float(sy) + b_factor * My
-        txy_top = float(txy) + b_factor * Mxy
-        sx_bot = float(sx) - b_factor * Mx
-        sy_bot = float(sy) - b_factor * My
-        txy_bot = float(txy) - b_factor * Mxy
+        sx_top = float(sx) - b_factor * Mx
+        sy_top = float(sy) - b_factor * My
+        txy_top = float(txy) - b_factor * Mxy
+        sx_bot = float(sx) + b_factor * Mx
+        sy_bot = float(sy) + b_factor * My
+        txy_bot = float(txy) + b_factor * Mxy
 
         def _vm(sxx, syy, sxy):
             return float(np.sqrt(sxx * sxx - sxx * syy + syy * syy + 3 * sxy * sxy))
