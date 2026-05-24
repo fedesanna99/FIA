@@ -174,6 +174,41 @@
   --font-sans:    "Inter", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
   --font-display: "Inter Tight", "Inter", -apple-system, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* v2.5.0 PR1: spacing scale (px-based, dense Precision) */
+  --s-px:   1px;
+  --s-0_5:  2px;
+  --s-1:    4px;
+  --s-2:    8px;
+  --s-3:   12px;
+  --s-4:   16px;
+  --s-5:   20px;
+  --s-6:   24px;
+  --s-8:   32px;
+  --s-10:  40px;
+  --s-12:  48px;
+  --s-16:  64px;
+
+  /* v2.5.0 PR1: z-index scale (layering canonico) */
+  --z-viewport: 0;
+  --z-panel:    10;
+  --z-toolbar:  20;
+  --z-dropdown: 30;
+  --z-popover:  35;
+  --z-dialog:   40;
+  --z-toast:    50;
+  --z-tooltip:  60;
+
+  /* v2.5.0 PR1: type scale (px-based, dense UI) */
+  --fs-xs:    11px;   --lh-xs:    15px;
+  --fs-sm:    12px;   --lh-sm:    16px;
+  --fs-base:  13px;   --lh-base:  19px;   /* body baseline */
+  --fs-md:    14px;   --lh-md:    20px;
+  --fs-lg:    16px;   --lh-lg:    22px;
+  --fs-xl:    18px;   --lh-xl:    24px;
+  --fs-2xl:   22px;   --lh-2xl:   28px;
+  --fs-3xl:   30px;   --lh-3xl:   34px;
+  --fs-4xl:   44px;   --lh-4xl:   46px;
 }
 
 /* ── 4 · Body baseline ─────────────────────────────────────────────────── */
@@ -263,12 +298,12 @@ textarea:focus-visible {
   outline-offset: 1px;
 }
 
-/* ── Typography helpers (Precision) ────────────────────────────────────── */
-h1, .h1 { font-family: var(--font-display); font-size: 30px; line-height: 34px; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); margin: 0; }
-h2, .h2 { font-family: var(--font-display); font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em;  color: var(--ink); margin: 0; }
-h3, .h3 { font-family: var(--font-display); font-size: 18px; line-height: 24px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink); margin: 0; }
-h4, .h4 { font-size: 16px; line-height: 22px; font-weight: 600; color: var(--ink); margin: 0; }
-h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); margin: 0; }
+/* ── Typography helpers (Precision · v2.5.0 PR1: tokens var-based) ─────── */
+h1, .h1 { font-family: var(--font-display); font-size: var(--fs-3xl); line-height: var(--lh-3xl); font-weight: 600; letter-spacing: -0.025em; color: var(--ink); margin: 0; }
+h2, .h2 { font-family: var(--font-display); font-size: var(--fs-2xl); line-height: var(--lh-2xl); font-weight: 600; letter-spacing: -0.02em;  color: var(--ink); margin: 0; }
+h3, .h3 { font-family: var(--font-display); font-size: var(--fs-xl);  line-height: var(--lh-xl);  font-weight: 600; letter-spacing: -0.015em; color: var(--ink); margin: 0; }
+h4, .h4 { font-size: var(--fs-lg); line-height: var(--lh-lg); font-weight: 600; color: var(--ink); margin: 0; }
+h5, .h5 { font-size: var(--fs-md); line-height: var(--lh-md); font-weight: 600; color: var(--ink); margin: 0; }
 
 .numeric, code, kbd, samp, pre {
   font-family: var(--font-mono);

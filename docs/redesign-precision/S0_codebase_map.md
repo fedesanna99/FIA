@@ -184,8 +184,21 @@ Anche i file singoli forniti direttamente da Federico in `C:\Users\fedes\Downloa
 
 - Branch: `test`
 - HEAD: `bd958de` (post `v2.4.x-followup-fixes`)
-- Frontend `APP_VERSION` constant: `"v2.3"` (outdated — da aggiornare a "v2.5.0-redesign" in S7)
+- Frontend `frontend/src/lib/version.ts`:
+  - `APP_VERSION = "v2.3"` (outdated, da aggiornare in **S2 sotto Policy C**)
+  - `APP_TAG = "v2.3.2-persist-ci"` (outdated, da aggiornare in **S2 sotto Policy C**)
 - Baseline: pytest 1675/2 · tsc 0 · vitest 584/584 ✓
+
+**Convenzione versioning storica del repo** (verificata su 10 commit `git log -- version.ts`):
+- `APP_VERSION` = short `major.minor` (es. `"v2.3"`)
+- `APP_TAG` = full release tag (es. `"v2.3.2-persist-ci"`)
+- Pattern: bump ad ogni alpha/release/PR significativo
+
+**S2 update (Federico instruction, Policy C)**:
+- `APP_VERSION = "v2.5"`
+- `APP_TAG = "v2.5.0-pr2-chrome"`
+
+Va inserito nel commit S2 (chrome navigazionale) e documentato nel report S2 sezione "Modifiche UI extra-scope (Policy C)".
 
 ---
 

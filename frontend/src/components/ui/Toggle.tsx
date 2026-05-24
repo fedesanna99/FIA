@@ -38,7 +38,9 @@ export function Toggle({ checked, onChange, label, disabled, className, ariaLabe
         disabled={disabled}
         onClick={() => !disabled && onChange(!checked)}
         className={cn(
-          "relative inline-block w-8 h-4 border transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+          // v2.5.0 PR1 Precision: focus outline (era ring).
+          "relative inline-block w-8 h-4 border transition-colors",
+          "focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1",
           checked
             ? "bg-accent border-accent"
             : "bg-bg-hover border-border",
