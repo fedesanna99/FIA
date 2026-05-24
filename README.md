@@ -11,7 +11,7 @@
 ![Backend](https://img.shields.io/badge/Backend-660%2B%20pytest-brightgreen)
 ![Frontend](https://img.shields.io/badge/Frontend-584%20vitest-brightgreen)
 ![E2E](https://img.shields.io/badge/Smoke%20E2E-10%2F10%20live-brightgreen)
-![NAFEMS](https://img.shields.io/badge/NAFEMS-5%2F5%20PASS-brightgreen)
+![Validation](https://img.shields.io/badge/Validation-LE2%2FCantilever%2FEuler%20OK%20-%20LE1%2FLE10%20in%20fix-yellow)
 ![TS](https://img.shields.io/badge/TypeScript-strict-blue)
 ![Live](https://img.shields.io/badge/Live-fea--pro.fly.dev-cyan)
 
@@ -45,7 +45,7 @@ Vai su **https://fea-pro.fly.dev/** e segui:
    6. *Inspect/View* → deformata, colormap Von Mises, iso 3D, diagrammi
       N/V/M, modi animati, drift time-history
    7. *Tools* → Export PDF reportlab · XLSX multi-sheet (7 sheet) · DXF ·
-      IFC · CSV · validazione NAFEMS LE1/LE2/EC3/Cantilever/Euler
+      IFC · CSV · validazione LE2/EC3/Cantilever/Euler (LE1/LE10 in fix, vedi sezione "Stato validazione")
 
 > ⚠️ Convention vincoli: `ROLLER_X` = blocca uₓ (asse X vincolato). Per
 > trave bi-appoggiata orizzontale (lungo X, gravità −Y) il carrello a destra
@@ -57,12 +57,66 @@ Vai su **https://fea-pro.fly.dev/** e segui:
 - Studio Pro per controllo esperto, Percorsi guidati per scenari ricorrenti.
 - Una sola verita' tecnica, tante lenti operative.
 - Niente sicurezza dietro paywall.
+- **Onestà sopra marketing** — quando un bug viene scoperto in audit interno,
+  viene comunicato subito (vedi `docs/nafems_truth_audit.md`).
+
+## ⚠ Stato validazione (v2.3.6 · audit 2026-05-24)
+
+**Avviso importante**: la versione `v2.3.x` corrente NON è raccomandata per
+progetti strutturali reali. Diversi bug emersi dall'audit interno
+[`v2.3.5-nafems-truth-audit`](docs/nafems_truth_audit.md) richiedono fix
+prima di un utilizzo professionale. Sprint di correzione `v2.4.x` in corso.
+
+### Cosa funziona oggi
+
+| Benchmark | Stato | Errore vs target |
+|---|---|---|
+| LE2 Cylindrical Cantilever | ✅ PASS | < 0.001% |
+| Cantilever tip load (Euler-Bernoulli) | ✅ PASS | < 0.001% |
+| Cantilever modal (frequenze flessionali) | ✅ PASS | < 2% |
+| Euler buckling (pinned-pinned + fixed-free) | ✅ PASS | < 0.001% |
+
+Beam 1D è solido. Tutte le verifiche EC2 / EC3 / EC5 / EC8 / NTC18 dove i
+test attuali hanno tolleranza stretta passano correttamente.
+
+### Cosa NON funziona ancora
+
+| Benchmark | Stato | Note |
+|---|---|---|
+| LE1 Elliptic membrane | ❌ FAIL | Errore reale −32% vs target ±5%; anti-convergenza con mesh fine |
+| LE10 Thick plate | ❌ FAIL | σ_yy nel punto D misurato 0.000 MPa vs target −5.38 MPa |
+| SHELL_Q4_MITC | ❌ FAIL | Su carico pressione produce max\|uz\| = 0 (dispatch rotto) |
+| Stress recovery shell (σ in punto specifico) | ❌ BUG | Componente bending non considerata in postprocess |
+| Matrice singolare / struttura labile | ❌ BUG | Solver restituisce NaN o spostamenti folli senza warning |
+| EC2 verifica staffe a taglio | ❌ BUG | `needs_stirrups` non confronta V_Ed con V_Rd_c |
+
+### Cosa serve fare
+
+Sprint `v2.4.x` in corso con priorità:
+1. Disclaimer + rimozione claim non verificate (`v2.3.6-honesty-fix` — questo sprint)
+2. Fix solver matrice singolare (`v2.4.0`)
+3. Fix EC2 staffe (`v2.4.1`)
+4. Fix SHELL_Q4_MITC + LE1 anti-convergenza + LE10 postprocess (`v2.4.2`)
+5. Fix EC3/EC5/EC8 coverage gaps (`v2.4.3`)
+6. Legal/security (GDPR, rate limit, headers) (`v2.4.4`)
+7. UI bugs da `v2.3.4-quality-checkpoint` (`v2.4.5`)
+
+Stima realistica: **3-4 settimane** di lavoro tecnico.
+
+### Cosa puoi fare oggi con FEA Pro
+
+- Studiare il prodotto, esplorare la UI
+- Provare i template precaricati per capire workflow
+- Usare LE2 / cantilever / buckling come esercizi didattici
+- NON usare per dimensionamenti reali con responsabilità professionale
+
+Per il rilascio "production-ready" attendere tag `v2.4.x` con tutti i fix sopra chiusi.
 
 ## Stato attuale (v2.3.2 persist-ci · 2026-05-23)
 
 | Area | Numeri |
 |---|---|
-| Backend | 660+ pytest verdi · NAFEMS LE1/LE2 + Cantilever + SS + Euler 5/5 PASS |
+| Backend | 660+ pytest verdi · LE2 + Cantilever + Modal + Euler PASS · LE1/LE10 in fix (vedi sezione "Stato validazione") |
 | Frontend | **584 vitest verdi** · build ~1.30 MB / gzip ~380 kB (xlsx lazy-loaded) |
 | Viewport | InstancedMesh GPU + 5 moduli pure-logic 100% testati |
 | E2E live | smoke 10/10 step PASS in 7.2s (auth → mesh → solve → verify → cleanup) |
