@@ -115,6 +115,35 @@ if el.type in (ElementType.SHELL_Q4, ElementType.SHELL_Q4_MITC):
 
 Vedi `docs/solver_internals_audit.md` sezione 3.
 
+### NEW-3-followup · MITC `_bending_stiffness` Bathe-Dvorkin K_s mal calibrato
+**Stato**: scoperto post `v2.4.3a-shell-pressure-mitc-fix` (commit `b9df9cb`) · **Complessità**: ~1 giorno post NEW-1 · **Severity**: P1
+
+Post-fix dispatch NEW-3, LE10 con SHELL_Q4_MITC produce
+`max|uz| ≈ 0.237 m` mentre SHELL_Q4 dà `max|uz| ≈ 6.4e-3 m`
+sullo stesso problema (`p=1MPa, t=0.6m, mesh 8×8`). Rapporto **~37×**.
+
+Per piastra con ratio `t/a ≈ 0.18` (non particolarmente sottile),
+ci si aspetterebbe MITC ~ Q4 entro ±20%. Lo scostamento massiccio
+indica **bug separato nella formulation MITC4**:
+- `backend/core/elements/shell_quad4_mitc.py::_bending_stiffness` (riga 133)
+  usa tying points Bathe-Dvorkin per interpolare `B_s` shear
+- Sospetto principale: coefficiente di shear correction `5/6` in `D_s`
+  e/o scaling dei tying points, che rendono la K_s troppo flessibile
+
+**Fix futuro** (~1 giorno):
+1. Test diretto contro NAFEMS LE10 thin plate analytical (Reissner-Mindlin)
+2. Verifica formulation tying points contro Bathe FEM Procedures §5.7.4
+3. Confronto con implementazione MITC4 reference (es. CalculiX, FEAP)
+4. Test parametrico Q4 vs MITC su 3 thickness ratios (0.05, 0.18, 0.5)
+
+**Sequenza**: post NEW-1 (`v2.4.3c-shell-stress-recovery-nodal`), perché
+NEW-1 chiude lo stress recovery che modifica il valore della
+calibrazione attesa di MITC. Brief candidato: `v2.4.x-mitc-formulation-calibration`.
+
+**Riferimenti**:
+- Smoke verifica: `docs/v2_4_3a_shell_pressure_mitc_fix_report.md` sezione "Anomalia inattesa"
+- Audit originale: `docs/solver_internals_audit.md` sezione 3
+
 ### NEW-4 · Postprocess shell σ_y solo membrana, non bending
 **Stato**: diagnosticato post `v2.3.7-solver-internals-audit` · **Complessità**: ~2-3 giorni · **Severity**: P1
 
