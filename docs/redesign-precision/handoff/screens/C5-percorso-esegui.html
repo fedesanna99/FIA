@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Percorso · Esegui analisi (C5)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  .c-main { padding: 24px 28px 48px; max-width: 1280px; margin: 0 auto; }
+  .c-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .c-head-title { display: flex; align-items: baseline; gap: 12px; }
+  .c-head-title h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.2; letter-spacing: -0.02em; }
+  .c-head-back { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
+  .stp-bar.stp-6 { grid-template-columns: repeat(6, 1fr); }
+  .c-form-section-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+</style>
+</head>
+<body data-screen-label="C5 Percorso Step Esegui">
+
+<div class="app">
+
+  <header class="app-topbar topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">F</div>
+      <span class="topbar-logo-name">FEA Pro</span>
+      <span class="topbar-version">v1.9</span>
+    </div>
+    <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Percorsi · Telaio 2D</span>
+    <div></div>
+    <button class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="topbar-search-placeholder">Cerca strumenti, modelli, impostazioni…</span>
+      <span class="kbd">⌘ K</span>
+    </button>
+    <button class="btn btn-ghost btn-sm">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      Apri in Studio Pro
+    </button>
+    <div class="topbar-credits"><b>47</b> / 100 cr</div>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="topbar-icon-dot">3</span></button>
+    <button class="topbar-avatar">GR</button>
+  </header>
+
+  <main class="app-main">
+    <div class="c-main">
+
+      <div class="c-head">
+        <div class="c-head-title">
+          <a href="C1-percorsi-galleria.html" class="c-head-back">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            PERCORSI
+          </a>
+          <span class="muted" style="font-family:var(--font-mono); font-size:11px">/</span>
+          <h1>Verifica telaio 2D</h1>
+          <span class="badge badge--ghost">DRAFT · v3</span>
+        </div>
+        <div class="muted" style="font-family:var(--font-mono); font-size:11px">
+          Auto-save · 30s fa
+        </div>
+      </div>
+
+      <div class="stp-shell">
+        <div class="stp-bar stp-6">
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Geometria</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Vincoli & Carichi</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Materiali & Sezioni</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-current">
+            <div class="stp-step-head"><span class="stp-step-num">4</span><span class="stp-step-name">Esegui analisi</span></div>
+            <span class="stp-step-meta">in corso</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">5</span><span class="stp-step-name">Risultati</span></div>
+            <span class="stp-step-meta">in attesa</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">6</span><span class="stp-step-name">Report</span></div>
+            <span class="stp-step-meta">PDF + Trust Layer</span>
+          </div>
+        </div>
+
+        
+        <div class="stp-body">
+          <div class="stp-content">
+            <span class="stp-eyebrow">STEP 4 · ESEGUI ANALISI</span>
+            <h2 class="stp-title">Scegli tipo di analisi e profilo di calcolo.</h2>
+            <p style="margin:0; font-size:13px; color:var(--ink-2); line-height:1.55">
+              Il modello è valido (geometria + vincoli + carichi + sezioni assegnate). Scegli il tipo di analisi e il profilo di calcolo: il costo è dichiarato in anticipo e dedotto dai crediti solo al successo del run.
+            </p>
+
+            <div>
+              <div class="c-form-section-title">Tipo di analisi</div>
+              <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px">
+                <div class="qact" style="background: var(--accent-subtle); border-color: var(--accent); cursor: default">
+                  <div class="qact-icon" style="color:var(--accent); border-color:var(--accent)"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 17 9 11 13 15 21 7"/></svg></div>
+                  <div><div class="qact-name">Linear Static</div><div class="qact-sub">k·u = F · solver diretto · default</div></div>
+                  <div class="qact-foot"><span style="color:var(--accent)">SCELTO</span><span>~6s</span></div>
+                </div>
+                <div class="qact">
+                  <div class="qact-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12c2-6 5-10 10-10s8 4 10 10c-2 6-5 10-10 10S4 18 2 12z"/></svg></div>
+                  <div><div class="qact-name">Modale</div><div class="qact-sub">Frequenze naturali · Lanczos</div></div>
+                  <div class="qact-foot"><span>+ M, M_struct</span><span>~28s</span></div>
+                </div>
+                <div class="qact">
+                  <div class="qact-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 22h20M4 22V10l8-6 8 6v12"/></svg></div>
+                  <div><div class="qact-name">Sismica EC8</div><div class="qact-sub">Spettro di risposta · NTC18</div></div>
+                  <div class="qact-foot"><span>+ accelerogramma</span><span>~45s</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div class="c-form-section-title">Compute profile · trasparenza costo</div>
+              <div class="cp-grid">
+                <div class="cp">
+                  <span class="cp-eyebrow">STANDARD</span>
+                  <div class="cp-name">Solver locale</div>
+                  <div class="cp-price"><span class="cp-price-big">0</span><span class="cp-price-unit">crediti</span></div>
+                  <div class="cp-meta">
+                    <div class="cp-meta-row"><span>ETA</span><b>~14s</b></div>
+                    <div class="cp-meta-row"><span>Hardware</span><b>CPU local</b></div>
+                    <div class="cp-meta-row"><span>Max DOF</span><b>10k</b></div>
+                  </div>
+                </div>
+                <div class="cp is-selected">
+                  <span class="cp-eyebrow">PRO</span>
+                  <div class="cp-name">Cloud solver</div>
+                  <div class="cp-price"><span class="cp-price-big">12</span><span class="cp-price-unit">cr · ~€1,20</span></div>
+                  <div class="cp-meta">
+                    <div class="cp-meta-row"><span>ETA</span><b>~6s</b></div>
+                    <div class="cp-meta-row"><span>Hardware</span><b>16-core · 64GB</b></div>
+                    <div class="cp-meta-row"><span>Max DOF</span><b>500k</b></div>
+                  </div>
+                </div>
+                <div class="cp">
+                  <span class="cp-eyebrow">MAX</span>
+                  <div class="cp-name">GPU cluster</div>
+                  <div class="cp-price"><span class="cp-price-big">38</span><span class="cp-price-unit">cr · ~€3,80</span></div>
+                  <div class="cp-meta">
+                    <div class="cp-meta-row"><span>ETA</span><b>~2s</b></div>
+                    <div class="cp-meta-row"><span>Hardware</span><b>A100 · 80GB</b></div>
+                    <div class="cp-meta-row"><span>Max DOF</span><b>5M</b></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="widget" style="padding: 14px 18px; border: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center">
+              <div style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); display: flex; gap: 22px">
+                <span><span style="color:var(--ink-3)">Profilo</span> <b style="color:var(--ink)">Pro</b></span>
+                <span><span style="color:var(--ink-3)">Costo</span> <b style="color:var(--ink)">12 cr · ~€1,20</b></span>
+                <span><span style="color:var(--ink-3)">ETA</span> <b style="color:var(--ink)">~6s</b></span>
+                <span><span style="color:var(--ink-3)">Crediti residui</span> <b style="color:var(--ink)">47 → 35</b></span>
+              </div>
+              <button class="btn btn-run btn-lg">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+                Esegui · F5
+              </button>
+            </div>
+          </div>
+
+          <div class="stp-side">
+            <span class="stp-eyebrow">PERCHÉ TE LO CHIEDIAMO</span>
+            <h4 class="stp-side-title">Profilo = trade-off tempo / costo.</h4>
+            <p class="stp-side-text">Per un telaio 2D con 42 DOF qualsiasi profilo va bene. Il default <b>Pro</b> è cloud — più veloce e più reattivo del solver locale, ma costa 12 crediti.</p>
+            <p class="stp-side-text">Se hai un modello grande (>100k DOF) o sismica con time-history, il profilo Max è obbligatorio. Il sistema te lo dirà esplicitamente.</p>
+            <div class="stp-side-note">Il costo è solo all'esecuzione riuscita. Errori = 0 crediti.</div>
+          </div>
+        </div>
+
+
+        <div class="stp-foot">
+          <div class="stp-validation">
+            <span class="stp-validation-dot"></span> Modello pronto · 42 DOF · profilo Pro selezionato · 12 cr
+          </div>
+          <div class="stp-foot-actions">
+            
+            <button class="btn btn-secondary">← Materiali & Sezioni</button>
+            <button class="btn btn-run">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21"/></svg>
+              Esegui · 12 cr
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="app-status statusbar">
+    <span><span class="statusbar-dot"></span> Online · WebSocket connesso</span>
+    <span>Step <b>4</b> / 6 · Esegui analisi</span>
+    <span>Auto-save · 30s fa</span>
+    <div class="statusbar-spacer"></div>
+    <span><b>47</b> / 100 cr</span>
+    <span>⌘ K · Cerca</span>
+    <span>v1.9.0-pa</span>
+  </footer>
+</div>
+
+<div id="tweaks-root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{ "theme": "light" }/*EDITMODE-END*/;
+function CTweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  React.useEffect(() => { document.documentElement.setAttribute('data-theme', t.theme); }, [t.theme]);
+  return (<TweaksPanel title="Tweaks"><TweakSection title="View">
+    <TweakRadio label="Tema" value={t.theme} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} onChange={v=>setTweak('theme',v)} />
+  </TweakSection></TweaksPanel>);
+}
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<CTweaks />);
+</script>
+</body>
+</html>

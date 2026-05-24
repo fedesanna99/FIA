@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Dashboard (A1)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  /* Page-local overrides */
+  .dash-main {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 304px;
+    gap: 32px;
+    padding: 36px 32px 56px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  .dash-content { display: flex; flex-direction: column; gap: 32px; min-width: 0; }
+  .dash-side    { display: flex; flex-direction: column; gap: 16px; }
+
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 10px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    border: 1px solid var(--border);
+    background: var(--bg-panel);
+    align-self: flex-start;
+  }
+  .hero-eyebrow .chip-dot { background: var(--warn); }
+  .hero-h1 {
+    font-family: var(--font-display);
+    font-size: 48px;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    font-weight: 600;
+  }
+  .hero-sub {
+    color: var(--ink-2);
+    font-size: 15px;
+    line-height: 1.55;
+    max-width: 56ch;
+  }
+</style>
+</head>
+<body data-screen-label="A1 Dashboard">
+
+<div class="app">
+
+  <!-- ── TopBar ── -->
+  <header class="app-topbar topbar" data-screen-label="A1 / TopBar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">F</div>
+      <span class="topbar-logo-name">FEA Pro</span>
+      <span class="topbar-version">v1.9</span>
+    </div>
+    <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Workspace</span>
+    <div></div>
+    <button class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="topbar-search-placeholder">Cerca strumenti, modelli, impostazioni…</span>
+      <span class="kbd">⌘ K</span>
+    </button>
+    <div class="topbar-credits"><b>47</b> / 100 cr</div>
+    <button class="topbar-icon-btn" title="Aiuto">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+    </button>
+    <button class="topbar-icon-btn" title="Notifiche">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+      <span class="topbar-icon-dot">3</span>
+    </button>
+    <button class="topbar-avatar" title="Account">GR</button>
+  </header>
+
+  <!-- ── LeftRail ── -->
+  <aside class="app-leftrail leftrail" data-screen-label="A1 / LeftRail">
+    <div class="rail-item is-active">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9 12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span>
+      <span class="rail-item-label">Home</span>
+    </div>
+
+    <div class="leftrail-section">Workspace</div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 7.5 12 2 3 7.5m18 0L12 13M21 7.5v9L12 22m0-9L3 7.5"/></svg></span>
+      <span class="rail-item-label">Modelli</span>
+    </div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      <span class="rail-item-label">Jobs</span>
+    </div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 12h4l3-9 4 18 3-9h4"/></svg></span>
+      <span class="rail-item-label">Cronologia</span>
+    </div>
+
+    <div class="leftrail-section">Solve</div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 17 9 11 13 15 21 7"/></svg></span>
+      <span class="rail-item-label">Lineare</span>
+    </div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 12a9 9 0 1 1-9-9c2.5 0 4.8 1 6.5 2.6"/><path d="M21 4v6h-6"/></svg></svg></span>
+      <span class="rail-item-label">Dinamica</span>
+    </div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 22h20M4 22V10l8-6 8 6v12"/></svg></span>
+      <span class="rail-item-label">Sismica</span>
+    </div>
+
+    <div class="leftrail-section">Verify</div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>
+      <span class="rail-item-label">Risultati</span>
+    </div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></span>
+      <span class="rail-item-label">Checks</span>
+    </div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 3v5h5M19 8 13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg></span>
+      <span class="rail-item-label">Report</span>
+    </div>
+
+    <div class="leftrail-section">Risorse</div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
+      <span class="rail-item-label">Template</span>
+    </div>
+    <div class="rail-item">
+      <span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg></span>
+      <span class="rail-item-label">Docs</span>
+    </div>
+
+    <div class="leftrail-foot" title="Comprimi (Ctrl+B)">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg>
+      Comprimi
+    </div>
+  </aside>
+
+  <!-- ── Main ── -->
+  <main class="app-main" data-screen-label="A1 / Main">
+    <div class="dash-main">
+
+      <div class="dash-content">
+
+        <!-- Hero -->
+        <section class="stack stack-gap-4" data-screen-label="A1 / Hero">
+          <span class="hero-eyebrow"><span class="chip-dot chip-dot--warn"></span>Nessun modello attivo</span>
+          <h1 class="hero-h1">Inizia un'analisi.</h1>
+          <p class="hero-sub">
+            Due modi per costruire e analizzare un modello strutturale.
+            Algoritmo prima, AI per accelerare — niente black box,
+            tutti i calcoli tracciabili a formule normative.
+          </p>
+        </section>
+
+        <!-- Hubs Studio Pro / Percorsi -->
+        <section class="hubs" data-screen-label="A1 / Hubs">
+          <div class="hub hub--studio">
+            <span class="hub-axis-tag">/ Studio Pro</span>
+            <h2 class="hub-title">Controllo totale<br/>sul modello.</h2>
+            <p class="hub-sub">Modalità expert. Tutti gli strumenti, qualsiasi ordine, senza guardrail. Per chi sa già cosa fare.</p>
+            <ul class="hub-bullets">
+              <li>Geometria · materiali · sezioni</li>
+              <li>Solver Lineare, Modale, Sismica, Non-lineare</li>
+              <li>Verifiche EC2 / EC3 / EC8 / NTC18</li>
+            </ul>
+            <div class="hub-cta">
+              <button class="btn btn-primary btn-lg">
+                Apri Studio Pro
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </div>
+          <div class="hub hub--percorsi">
+            <span class="hub-axis-tag">/ Percorsi</span>
+            <h2 class="hub-title">Guidato, senza<br/>perdere controllo.</h2>
+            <p class="hub-sub">Step persistenti, validation per step, sempre passabile a Studio Pro. Per chi vuole una traccia chiara.</p>
+            <ul class="hub-bullets">
+              <li>Verifica telaio 2D · Beam check</li>
+              <li>Smart defaults · best practice integrata</li>
+              <li>Lettura risultati assistita</li>
+            </ul>
+            <div class="hub-cta">
+              <button class="btn btn-secondary btn-lg">
+                Scegli un percorso
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <!-- Quick actions -->
+        <section data-screen-label="A1 / QuickActions">
+          <div class="section-head">
+            <h2>Inizia da qui</h2>
+            <a href="#">Vedi tutti i template →</a>
+          </div>
+          <div class="grid-4">
+            <div class="qact">
+              <div class="qact-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+              <div>
+                <div class="qact-name">Nuovo modello</div>
+                <div class="qact-sub">Da zero · empty workspace</div>
+              </div>
+              <div class="qact-foot"><span>NEW</span><span>⌘ N</span></div>
+            </div>
+            <div class="qact">
+              <div class="qact-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></div>
+              <div>
+                <div class="qact-name">Da template</div>
+                <div class="qact-sub">9 schemi resistenti pre-impostati</div>
+              </div>
+              <div class="qact-foot"><span>9 TPL</span><span>↗</span></div>
+            </div>
+            <div class="qact">
+              <div class="qact-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div>
+              <div>
+                <div class="qact-name">Importa IFC / DXF</div>
+                <div class="qact-sub">Wizard 4 step · geometria + metadata</div>
+              </div>
+              <div class="qact-foot"><span>IMPORT</span><span>↗</span></div>
+            </div>
+            <div class="qact">
+              <div class="qact-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></div>
+              <div>
+                <div class="qact-name">Esempi</div>
+                <div class="qact-sub">NAFEMS LE1 / LE2 / LE10 · benchmark</div>
+              </div>
+              <div class="qact-foot"><span>DEMO</span><span>↗</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent projects -->
+        <section data-screen-label="A1 / Recent">
+          <div class="section-head">
+            <h2>Modelli recenti</h2>
+            <a href="#">Vedi tutti →</a>
+          </div>
+          <div class="grid-4">
+            <div class="proj">
+              <div class="proj-thumb">
+                <div class="proj-thumb-grid"></div>
+                <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet">
+                  <g stroke="currentColor" stroke-width="1.5" fill="none" style="color:var(--ink-2)">
+                    <line x1="30" y1="90" x2="30" y2="30" />
+                    <line x1="170" y1="90" x2="170" y2="30" />
+                    <line x1="30" y1="30" x2="100" y2="14" />
+                    <line x1="100" y1="14" x2="170" y2="30" />
+                  </g>
+                </svg>
+              </div>
+              <div class="proj-body">
+                <div>
+                  <div class="proj-name">Industrial hall · L=24m</div>
+                  <div class="proj-sub">2h fa · 302 N · 256 E</div>
+                </div>
+                <span class="proj-status proj-status--run">RUN</span>
+              </div>
+            </div>
+
+            <div class="proj">
+              <div class="proj-thumb">
+                <div class="proj-thumb-grid"></div>
+                <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet">
+                  <g stroke="currentColor" stroke-width="1.5" fill="none" style="color:var(--ink-2)">
+                    <rect x="40" y="20" width="120" height="70"/>
+                    <line x1="40" y1="55" x2="160" y2="55"/>
+                    <line x1="100" y1="20" x2="100" y2="90"/>
+                  </g>
+                </svg>
+              </div>
+              <div class="proj-body">
+                <div>
+                  <div class="proj-name">Portal frame · 2D</div>
+                  <div class="proj-sub">ieri · UC max 0.88</div>
+                </div>
+                <span class="proj-status proj-status--ok">OK</span>
+              </div>
+            </div>
+
+            <div class="proj">
+              <div class="proj-thumb">
+                <div class="proj-thumb-grid"></div>
+                <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet">
+                  <g stroke="currentColor" stroke-width="1.5" fill="none" style="color:var(--ink-2)">
+                    <line x1="30" y1="92" x2="170" y2="92"/>
+                    <line x1="50" y1="92" x2="50" y2="30"/>
+                    <line x1="100" y1="92" x2="100" y2="30"/>
+                    <line x1="150" y1="92" x2="150" y2="30"/>
+                    <line x1="30" y1="62" x2="170" y2="62"/>
+                    <line x1="30" y1="30" x2="170" y2="30"/>
+                  </g>
+                </svg>
+              </div>
+              <div class="proj-body">
+                <div>
+                  <div class="proj-name">Office building · 4 piani</div>
+                  <div class="proj-sub">3g fa · 1,248 DOF</div>
+                </div>
+                <span class="proj-status proj-status--ok">OK</span>
+              </div>
+            </div>
+
+            <div class="proj">
+              <div class="proj-thumb">
+                <div class="proj-thumb-grid"></div>
+                <svg style="position:absolute;inset:0;width:100%;height:100%" viewBox="0 0 200 110" preserveAspectRatio="xMidYMid meet">
+                  <g stroke="currentColor" stroke-width="1.5" fill="none" style="color:var(--ink-2)">
+                    <path d="M20 80 L100 30 L180 80" />
+                    <line x1="20" y1="80" x2="180" y2="80"/>
+                    <line x1="60" y1="55" x2="140" y2="55"/>
+                  </g>
+                </svg>
+              </div>
+              <div class="proj-body">
+                <div>
+                  <div class="proj-name">Bridge deck · 28m</div>
+                  <div class="proj-sub">1w fa · sismica EC8</div>
+                </div>
+                <span class="proj-status proj-status--err">ERR</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Dropzone -->
+        <div class="dropzone" data-screen-label="A1 / Dropzone">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Trascina file <b>.fea · .ifc · .dxf · .json</b> in qualsiasi punto della pagina per importarli.
+        </div>
+      </div>
+
+      <!-- ── Side rail (Credits + Get started + AI Copilot + Tips) ── -->
+      <aside class="dash-side" data-screen-label="A1 / SideRail">
+
+        <div class="widget" data-screen-label="A1 / Credits">
+          <div class="widget-head">
+            <div class="widget-title">Crediti · Maggio</div>
+            <span class="badge badge--ghost">PRO</span>
+          </div>
+          <div class="credits-bar">
+            <span class="credits-big">47</span>
+            <span class="credits-total">/ 100</span>
+          </div>
+          <div class="credits-track"><div class="credits-track-fill" style="width:47%"></div></div>
+          <div class="credits-meta">
+            <span>€4,70 spesi</span>
+            <span>reset 1 giu</span>
+          </div>
+          <button class="btn btn-secondary" style="width:100%; justify-content:center">Vedi fatturazione</button>
+        </div>
+
+        <div class="widget" data-screen-label="A1 / GetStarted">
+          <div class="widget-head">
+            <div class="widget-title">Per iniziare</div>
+            <span class="eyebrow">2 / 4</span>
+          </div>
+          <div class="checklist">
+            <div class="checklist-item is-done">
+              <span class="checklist-icon">✓</span>
+              <div>
+                <div class="checklist-name">Crea o importa un modello</div>
+                <div class="checklist-sub">Da zero, template o file .ifc/.dxf</div>
+              </div>
+            </div>
+            <div class="checklist-item is-done">
+              <span class="checklist-icon">✓</span>
+              <div>
+                <div class="checklist-name">Definisci appoggi e carichi</div>
+                <div class="checklist-sub">Vincoli + casi di carico + combinazioni</div>
+              </div>
+            </div>
+            <div class="checklist-item">
+              <span class="checklist-icon">3</span>
+              <div>
+                <div class="checklist-name">Lancia l'analisi</div>
+                <div class="checklist-sub">Scegli solver e compute profile</div>
+              </div>
+            </div>
+            <div class="checklist-item">
+              <span class="checklist-icon">4</span>
+              <div>
+                <div class="checklist-name">Verifica risultati</div>
+                <div class="checklist-sub">UC, σ, δ + checks normativi</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="widget" data-screen-label="A1 / Copilot">
+          <div class="widget-head">
+            <div class="widget-title">Copilot</div>
+            <span class="badge--ghost badge">BETA</span>
+          </div>
+          <p class="muted" style="font-size:12px; line-height:1.55">
+            Chiedi spiegazioni su un risultato, una norma o un workflow.
+            L'algoritmo resta fonte di verità.
+          </p>
+          <button class="btn btn-secondary" style="width:100%; justify-content:center">
+            Apri Copilot
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+
+        <div class="widget" data-screen-label="A1 / Tips">
+          <div class="widget-head">
+            <div class="widget-title">Suggerimento</div>
+            <span class="eyebrow">⌘ K</span>
+          </div>
+          <p class="muted" style="font-size:12px; line-height:1.55">
+            La <b>command palette</b> esegue qualsiasi azione: cerca per nome
+            ("esegui", "ispeziona", "report") senza sapere dove sta nel menu.
+          </p>
+        </div>
+
+      </aside>
+
+    </div>
+  </main>
+
+  <!-- ── Status bar ── -->
+  <footer class="app-status statusbar" data-screen-label="A1 / StatusBar">
+    <span><span class="statusbar-dot"></span> Online · WebSocket connesso</span>
+    <span>Sync OK</span>
+    <span>0 modelli aperti</span>
+    <div class="statusbar-spacer"></div>
+    <span>47 / 100 cr</span>
+    <span>⌘ K · Cerca</span>
+    <span>v1.9.0-pa</span>
+  </footer>
+
+</div>
+
+<!-- ── Tweaks ── -->
+<div id="tweaks-root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "light",
+  "state": "populated"
+}/*EDITMODE-END*/;
+
+function A1Tweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', t.theme);
+  }, [t.theme]);
+
+  React.useEffect(() => {
+    // Empty state: hide recent + collapse credits etc.
+    const recent = document.querySelector('[data-screen-label="A1 / Recent"]');
+    if (recent) recent.style.display = t.state === 'empty' ? 'none' : '';
+    const eyebrowChip = document.querySelector('.hero-eyebrow');
+    if (eyebrowChip) {
+      eyebrowChip.innerHTML = t.state === 'empty'
+        ? '<span class="chip-dot chip-dot--warn"></span>Primo accesso · nessun modello'
+        : '<span class="chip-dot chip-dot--warn"></span>Nessun modello attivo';
+    }
+  }, [t.state]);
+
+  return (
+    <TweaksPanel title="Tweaks">
+      <TweakSection title="View">
+        <TweakRadio
+          label="Tema"
+          value={t.theme}
+          options={[
+            { value: 'light', label: 'Light' },
+            { value: 'dark', label: 'Dark' },
+          ]}
+          onChange={v => setTweak('theme', v)}
+        />
+        <TweakRadio
+          label="Stato"
+          value={t.state}
+          options={[
+            { value: 'populated', label: 'Con modelli' },
+            { value: 'empty', label: 'Empty' },
+          ]}
+          onChange={v => setTweak('state', v)}
+        />
+      </TweakSection>
+    </TweaksPanel>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<A1Tweaks />);
+</script>
+</body>
+</html>

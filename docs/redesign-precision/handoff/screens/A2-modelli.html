@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Modelli (A2)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  .a2-main { padding: 24px 28px 48px; max-width: 1400px; margin: 0 auto; }
+  .a2-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .a2-head h1 { font-family: var(--font-display); font-size: 28px; line-height: 1.15; letter-spacing: -0.025em; }
+  .a2-toolbar { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg-panel); border: 1px solid var(--border); margin-bottom: 0; }
+  .a2-tabs { display: flex; gap: 2px; }
+  .a2-tab { padding: 4px 10px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); letter-spacing: 0.04em; cursor: pointer; border: 1px solid transparent; }
+  .a2-tab.is-active { color: var(--accent); border-color: var(--accent); background: var(--accent-subtle); }
+  .a2-filters { display: flex; gap: 6px; margin-left: auto; }
+  .a2-filter { padding: 4px 10px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-2); border: 1px solid var(--border-light); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+  table.a2-table { width: 100%; border-collapse: collapse; background: var(--bg-panel); border: 1px solid var(--border); border-top: none; }
+  .a2-table thead { background: var(--bg); }
+  .a2-table th { text-align: left; padding: 10px 14px; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-3); font-weight: 500; border-bottom: 1px solid var(--border); }
+  .a2-table td { padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 13px; color: var(--ink); vertical-align: middle; }
+  .a2-table tr:last-child td { border-bottom: none; }
+  .a2-table tr:hover { background: var(--bg-hover); cursor: pointer; }
+  .a2-thumb { width: 56px; height: 36px; background: var(--bg-viewport); border: 1px solid var(--border); position: relative; flex: none; }
+  .a2-thumb-grid { position: absolute; inset: 0; background: var(--vp-grid); background-size: 8px 8px; opacity: 0.7; }
+  .a2-name-cell { display: flex; align-items: center; gap: 12px; }
+  .a2-uc { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-weight: 600; }
+  .a2-uc.high { color: var(--danger); }
+  .a2-uc.mid { color: var(--warn); }
+  .a2-uc.low { color: var(--success); }
+  .a2-mono { font-family: var(--font-mono); font-size: 11px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body data-screen-label="A2 Modelli Browser">
+<div class="app">
+
+  <header class="app-topbar topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">F</div>
+      <span class="topbar-logo-name">FEA Pro</span>
+      <span class="topbar-version">v1.9</span>
+    </div>
+    <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Modelli</span>
+    <div></div>
+    <button class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="topbar-search-placeholder">Cerca strumenti, modelli, impostazioni…</span>
+      <span class="kbd">⌘ K</span>
+    </button>
+    <div class="topbar-credits"><b>47</b> / 100 cr</div>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="topbar-icon-dot">3</span></button>
+    <button class="topbar-avatar">GR</button>
+  </header>
+  <aside class="app-leftrail leftrail">
+    <div class="rail-item"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9 12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span class="rail-item-label">Home</span></div>
+    <div class="leftrail-section">Workspace</div>
+    <div class="rail-item is-active"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 7.5 12 2 3 7.5m18 0L12 13M21 7.5v9L12 22m0-9L3 7.5"/></svg></span><span class="rail-item-label">Modelli</span></div>
+    <div class="rail-item"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="rail-item-label">Jobs</span></div>
+    <div class="leftrail-foot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg> Comprimi</div>
+  </aside>
+  <main class="app-main">
+    <div class="a2-main">
+      <div class="a2-head">
+        <div>
+          <span class="eyebrow">MODELLI · 24 TOTALI</span>
+          <h1>I tuoi modelli.</h1>
+        </div>
+        <div class="row row-gap-2">
+          <button class="btn btn-secondary">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Importa
+          </button>
+          <button class="btn btn-primary">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Nuovo modello
+          </button>
+        </div>
+      </div>
+
+      <div class="a2-toolbar">
+        <div class="a2-tabs">
+          <span class="a2-tab is-active">Tutti · 24</span>
+          <span class="a2-tab">Recenti · 8</span>
+          <span class="a2-tab">Job in corso · 1</span>
+          <span class="a2-tab">Bozze · 5</span>
+          <span class="a2-tab">Archiviati · 3</span>
+        </div>
+        <div class="a2-filters">
+          <span class="a2-filter">Tipo: tutti <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+          <span class="a2-filter">Status: tutti <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+          <span class="a2-filter">Norma: tutte <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg></span>
+          <span class="a2-filter">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            Cerca…
+          </span>
+        </div>
+      </div>
+
+      <table class="a2-table">
+        <thead><tr>
+          <th style="width: 36%">Modello</th>
+          <th>Tipo</th>
+          <th>Norma</th>
+          <th>UC max</th>
+          <th>DOF</th>
+          <th>Modificato</th>
+          <th>Status</th>
+          <th></th>
+        </tr></thead>
+        <tbody>
+          <tr>
+            <td>
+              <div class="a2-name-cell">
+                <div class="a2-thumb"><div class="a2-thumb-grid"></div>
+                  <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 56 36"><g stroke="currentColor" stroke-width="1" fill="none" style="color:var(--ink-2)"><line x1="14" y1="30" x2="14" y2="12"/><line x1="42" y1="30" x2="42" y2="12"/><line x1="14" y1="12" x2="28" y2="6"/><line x1="28" y1="6" x2="42" y2="12"/></g></svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500">Portal frame · 2D</div>
+                  <div class="a2-mono">v3 · 7 N · 5 E</div>
+                </div>
+              </div>
+            </td>
+            <td class="a2-mono">Lin. Static</td>
+            <td class="a2-mono">EC3 · NTC18</td>
+            <td><span class="a2-uc high">0.88</span></td>
+            <td class="a2-mono">42</td>
+            <td class="a2-mono">2 min fa</td>
+            <td><span class="proj-status proj-status--ok">OK</span></td>
+            <td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-3)"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="a2-name-cell">
+                <div class="a2-thumb"><div class="a2-thumb-grid"></div>
+                  <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 56 36"><g stroke="currentColor" stroke-width="1" fill="none" style="color:var(--ink-2)"><line x1="10" y1="30" x2="46" y2="30"/><line x1="14" y1="30" x2="14" y2="10"/><line x1="42" y1="30" x2="42" y2="10"/><line x1="14" y1="10" x2="42" y2="10"/></g></svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500">Industrial hall · L=24m</div>
+                  <div class="a2-mono">v8 · 302 N · 256 E</div>
+                </div>
+              </div>
+            </td>
+            <td class="a2-mono">Lin. Static</td>
+            <td class="a2-mono">EC3 · NTC18</td>
+            <td><span class="a2-uc mid">0.71</span></td>
+            <td class="a2-mono">1,248</td>
+            <td class="a2-mono">2h fa</td>
+            <td><span class="proj-status proj-status--run">RUN</span></td>
+            <td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-3)"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="a2-name-cell">
+                <div class="a2-thumb"><div class="a2-thumb-grid"></div>
+                  <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 56 36"><g stroke="currentColor" stroke-width="1" fill="none" style="color:var(--ink-2)"><line x1="10" y1="30" x2="46" y2="30"/><line x1="16" y1="30" x2="16" y2="6"/><line x1="28" y1="30" x2="28" y2="6"/><line x1="40" y1="30" x2="40" y2="6"/><line x1="16" y1="18" x2="40" y2="18"/><line x1="16" y1="6" x2="40" y2="6"/></g></svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500">Office building · 4 piani</div>
+                  <div class="a2-mono">v15 · 892 N · 1,420 E</div>
+                </div>
+              </div>
+            </td>
+            <td class="a2-mono">Modale + Sismica</td>
+            <td class="a2-mono">EC8 · NTC18</td>
+            <td><span class="a2-uc low">0.42</span></td>
+            <td class="a2-mono">5,684</td>
+            <td class="a2-mono">3g fa</td>
+            <td><span class="proj-status proj-status--ok">OK</span></td>
+            <td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-3)"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="a2-name-cell">
+                <div class="a2-thumb"><div class="a2-thumb-grid"></div>
+                  <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 56 36"><g stroke="currentColor" stroke-width="1" fill="none" style="color:var(--ink-2)"><path d="M6 28 L28 8 L50 28"/><line x1="6" y1="28" x2="50" y2="28"/><line x1="18" y1="18" x2="38" y2="18"/></g></svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500">Bridge deck · 28m</div>
+                  <div class="a2-mono">v2 · 4,920 N · 8,210 E</div>
+                </div>
+              </div>
+            </td>
+            <td class="a2-mono">Lin. Static</td>
+            <td class="a2-mono">EC2 · EC8</td>
+            <td><span class="a2-uc high">1.04</span></td>
+            <td class="a2-mono">29,520</td>
+            <td class="a2-mono">1w fa</td>
+            <td><span class="proj-status proj-status--err">ERR</span></td>
+            <td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-3)"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="a2-name-cell">
+                <div class="a2-thumb"><div class="a2-thumb-grid"></div>
+                  <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 56 36"><g stroke="currentColor" stroke-width="1" fill="none" style="color:var(--ink-2)"><line x1="6" y1="20" x2="50" y2="20"/><line x1="14" y1="14" x2="14" y2="20"/><line x1="28" y1="14" x2="28" y2="20"/><line x1="42" y1="14" x2="42" y2="20"/></g></svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500">Beam IPE 240 · L=8m</div>
+                  <div class="a2-mono">v1 · 2 N · 1 E</div>
+                </div>
+              </div>
+            </td>
+            <td class="a2-mono">Lin. Static</td>
+            <td class="a2-mono">EC3</td>
+            <td><span class="a2-uc low">0.34</span></td>
+            <td class="a2-mono">6</td>
+            <td class="a2-mono">1w fa</td>
+            <td><span class="proj-status proj-status--ok">OK</span></td>
+            <td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-3)"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td>
+          </tr>
+          <tr>
+            <td>
+              <div class="a2-name-cell">
+                <div class="a2-thumb"><div class="a2-thumb-grid"></div>
+                  <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 56 36"><g stroke="currentColor" stroke-width="1.5" fill="none" style="color:var(--ink-2)"><path d="M20 8 L36 8 L36 12 L28 12 L28 24 L36 24 L36 28 L20 28 L20 24 L28 24 L28 12 L20 12 Z"/></g></svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500">Sezione composta · HEA 200</div>
+                  <div class="a2-mono">v1 · sezione</div>
+                </div>
+              </div>
+            </td>
+            <td class="a2-mono">Sezione</td>
+            <td class="a2-mono">EC3 §6.2.5</td>
+            <td><span class="a2-uc low">—</span></td>
+            <td class="a2-mono">—</td>
+            <td class="a2-mono">2w fa</td>
+            <td><span class="proj-status">DRAFT</span></td>
+            <td><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ink-3)"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div style="display: flex; justify-content: space-between; padding: 12px 14px; font-family: var(--font-mono); font-size: 11px; color: var(--ink-3)">
+        <span>6 di 24 visualizzati</span>
+        <span>← 1 2 3 4 →</span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-status statusbar">
+    <span><span class="statusbar-dot"></span> Online · WebSocket connesso</span>
+    <span>24 modelli · 87% spazio usato</span>
+    <div class="statusbar-spacer"></div>
+    <span>47 / 100 cr</span>
+    <span>⌘ K · Cerca</span>
+    <span>v1.9.0-pa</span>
+  </footer>
+</div>
+
+<div id="tweaks-root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{ "theme": "light" }/*EDITMODE-END*/;
+function CTweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  React.useEffect(() => { document.documentElement.setAttribute('data-theme', t.theme); }, [t.theme]);
+  
+  return (<TweaksPanel title="Tweaks"><TweakSection title="View">
+    <TweakRadio label="Tema" value={t.theme} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} onChange={v=>setTweak('theme',v)} />
+  </TweakSection></TweaksPanel>);
+}
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<CTweaks />);
+</script>
+</body>
+</html>

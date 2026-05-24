@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Percorso · Materiali & Sezioni (C4)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  .c-main { padding: 24px 28px 48px; max-width: 1280px; margin: 0 auto; }
+  .c-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .c-head-title { display: flex; align-items: baseline; gap: 12px; }
+  .c-head-title h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.2; letter-spacing: -0.02em; }
+  .c-head-back { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
+  .stp-bar.stp-6 { grid-template-columns: repeat(6, 1fr); }
+  .c-form-section-title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+</style>
+</head>
+<body data-screen-label="C4 Percorso Step Materiali e Sezioni">
+
+<div class="app">
+
+  <header class="app-topbar topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">F</div>
+      <span class="topbar-logo-name">FEA Pro</span>
+      <span class="topbar-version">v1.9</span>
+    </div>
+    <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Percorsi · Telaio 2D</span>
+    <div></div>
+    <button class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="topbar-search-placeholder">Cerca strumenti, modelli, impostazioni…</span>
+      <span class="kbd">⌘ K</span>
+    </button>
+    <button class="btn btn-ghost btn-sm">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      Apri in Studio Pro
+    </button>
+    <div class="topbar-credits"><b>47</b> / 100 cr</div>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="topbar-icon-dot">3</span></button>
+    <button class="topbar-avatar">GR</button>
+  </header>
+
+  <main class="app-main">
+    <div class="c-main">
+
+      <div class="c-head">
+        <div class="c-head-title">
+          <a href="C1-percorsi-galleria.html" class="c-head-back">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            PERCORSI
+          </a>
+          <span class="muted" style="font-family:var(--font-mono); font-size:11px">/</span>
+          <h1>Verifica telaio 2D</h1>
+          <span class="badge badge--ghost">DRAFT · v3</span>
+        </div>
+        <div class="muted" style="font-family:var(--font-mono); font-size:11px">
+          Auto-save · 30s fa
+        </div>
+      </div>
+
+      <div class="stp-shell">
+        <div class="stp-bar stp-6">
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Geometria</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Vincoli & Carichi</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-current">
+            <div class="stp-step-head"><span class="stp-step-num">3</span><span class="stp-step-name">Materiali & Sezioni</span></div>
+            <span class="stp-step-meta">in corso</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">4</span><span class="stp-step-name">Esegui analisi</span></div>
+            <span class="stp-step-meta">in attesa</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">5</span><span class="stp-step-name">Risultati</span></div>
+            <span class="stp-step-meta">UC governing</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">6</span><span class="stp-step-name">Report</span></div>
+            <span class="stp-step-meta">PDF + Trust Layer</span>
+          </div>
+        </div>
+
+        
+        <div class="stp-body">
+          <div class="stp-content">
+            <span class="stp-eyebrow">STEP 3 · MATERIALI & SEZIONI</span>
+            <h2 class="stp-title">Assegna materiale e profilo a ogni elemento.</h2>
+            <p style="margin:0; font-size:13px; color:var(--ink-2); line-height:1.55">
+              Lo schema ha 5 beam. Puoi assegnare un materiale e un profilo per gruppo (colonne, travi, controventi) o singolarmente. I valori di tensione e modulo elastico vengono letti dalle EN 10025-2 (acciaio) o EC2 (c.a.).
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px">
+
+              <div>
+                <div class="c-form-section-title">Materiale</div>
+                <div class="widget" style="padding: 0; border: 1px solid var(--border)">
+                  <div style="padding: 12px 14px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 10px">
+                    <span class="badge">SCELTO</span>
+                    <div>
+                      <div style="font-weight: 600; font-family: var(--font-display)">S275 · acciaio</div>
+                      <div style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-3)">EN 10025-2 · f_yk = 275 MPa</div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm" style="margin-left:auto">Cambia →</button>
+                  </div>
+                  <div style="padding: 10px 14px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink-2)">
+                    <div><span style="color:var(--ink-3)">E</span> <b style="color:var(--ink)">210 000 MPa</b></div>
+                    <div><span style="color:var(--ink-3)">ν</span> <b style="color:var(--ink)">0.30</b></div>
+                    <div><span style="color:var(--ink-3)">γ</span> <b style="color:var(--ink)">78.5 kN/m³</b></div>
+                    <div><span style="color:var(--ink-3)">f_u</span> <b style="color:var(--ink)">430 MPa</b></div>
+                    <div><span style="color:var(--ink-3)">γ_M0</span> <b style="color:var(--ink)">1.05</b></div>
+                    <div><span style="color:var(--ink-3)">γ_M1</span> <b style="color:var(--ink)">1.05</b></div>
+                  </div>
+                </div>
+                <div class="muted" style="font-family: var(--font-mono); font-size: 10px; margin-top: 8px">
+                  Alternative: S235 · S355 · S420 · S460 · personalizzato
+                </div>
+              </div>
+
+              <div>
+                <div class="c-form-section-title">Profili (per gruppo)</div>
+                <div style="display: grid; gap: 8px">
+                  <div class="widget" style="padding: 12px 14px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--border)">
+                    <span class="chip"><b style="color:var(--ink)">COL</b></span>
+                    <div>
+                      <div style="font-weight: 600">HEA 200</div>
+                      <div style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-3)">A = 53.8 cm² · W_pl,y = 429 cm³</div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm">→</button>
+                  </div>
+                  <div class="widget" style="padding: 12px 14px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--border)">
+                    <span class="chip"><b style="color:var(--ink)">TRV</b></span>
+                    <div>
+                      <div style="font-weight: 600">IPE 240</div>
+                      <div style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-3)">A = 39.1 cm² · W_pl,y = 367 cm³</div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm">→</button>
+                  </div>
+                  <div class="widget" style="padding: 12px 14px; display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; border: 1px solid var(--border)">
+                    <span class="chip"><b style="color:var(--ink)">TIE</b></span>
+                    <div>
+                      <div style="font-weight: 600">IPE 160</div>
+                      <div style="font-family: var(--font-mono); font-size: 10px; color: var(--ink-3)">A = 20.1 cm² · W_pl,y = 124 cm³</div>
+                    </div>
+                    <button class="btn btn-ghost btn-sm">→</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: 16px">
+              <div class="c-form-section-title">Assegnazione per elemento</div>
+              <table style="width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: 11px">
+                <thead>
+                  <tr style="text-align: left; color: var(--ink-3); border-bottom: 1px solid var(--border)">
+                    <th style="padding: 6px 10px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase">ID</th>
+                    <th style="padding: 6px 10px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase">Tipo</th>
+                    <th style="padding: 6px 10px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase">Gruppo</th>
+                    <th style="padding: 6px 10px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase">Materiale</th>
+                    <th style="padding: 6px 10px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase">Profilo</th>
+                    <th style="padding: 6px 10px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase">L (m)</th>
+                    <th style="padding: 6px 10px; font-weight: 400; letter-spacing: 0.08em; text-transform: uppercase">Peso (kg)</th>
+                  </tr>
+                </thead>
+                <tbody style="color: var(--ink)">
+                  <tr style="border-bottom: 1px solid var(--border)"><td style="padding: 6px 10px">B1</td><td>Colonna</td><td>COL</td><td>S275</td><td>HEA 200</td><td>3.50</td><td>148</td></tr>
+                  <tr style="border-bottom: 1px solid var(--border)"><td style="padding: 6px 10px">B2</td><td>Tie</td><td>TIE</td><td>S275</td><td>IPE 160</td><td>6.00</td><td>95</td></tr>
+                  <tr style="border-bottom: 1px solid var(--border)"><td style="padding: 6px 10px">B3</td><td>Trave</td><td>TRV</td><td>S275</td><td>IPE 240</td><td>3.13</td><td>96</td></tr>
+                  <tr style="border-bottom: 1px solid var(--border)"><td style="padding: 6px 10px">B4</td><td>Trave</td><td>TRV</td><td>S275</td><td>IPE 240</td><td>3.13</td><td>96</td></tr>
+                  <tr><td style="padding: 6px 10px">B5</td><td>Colonna</td><td>COL</td><td>S275</td><td>HEA 200</td><td>3.50</td><td>148</td></tr>
+                </tbody>
+              </table>
+              <div style="display: flex; justify-content: space-between; padding: 10px 10px; border-top: 1px solid var(--border); font-family: var(--font-mono); font-size: 11px; color: var(--ink-2); margin-top: 8px">
+                <span><span style="color:var(--ink-3)">Totale beam</span> <b style="color:var(--ink)">5</b></span>
+                <span><span style="color:var(--ink-3)">Massa stimata</span> <b style="color:var(--ink)">583 kg</b></span>
+                <span><span style="color:var(--ink-3)">Costo materiale</span> <b style="color:var(--ink)">~€520</b></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="stp-side">
+            <span class="stp-eyebrow">PERCHÉ TE LO CHIEDIAMO</span>
+            <h4 class="stp-side-title">Materiale + sezione = momento resistente.</h4>
+            <p class="stp-side-text">La verifica EC3 dipende dalla classe di sezione (compatta, semi-compatta, snella) e dal momento plastico M_pl,Rd = W_pl · f_y / γ_M0. Cambiare sezione cambia tutto a valle.</p>
+            <p class="stp-side-text">Il default IPE 240 / HEA 200 è il punto di partenza tipico per un capannone L=6m H=3.5m con carichi medi. Adatta secondo necessità.</p>
+            <div class="stp-side-note">Riferimento: EC3 §6.2.5 · NTC18 §4.2</div>
+          </div>
+        </div>
+
+
+        <div class="stp-foot">
+          <div class="stp-validation">
+            <span class="stp-validation-dot"></span> Tutti gli elementi hanno materiale + profilo · 5/5
+          </div>
+          <div class="stp-foot-actions">
+            
+            <button class="btn btn-secondary">← Vincoli & Carichi</button>
+            <button class="btn btn-primary">
+              Avanti · Esegui analisi
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="app-status statusbar">
+    <span><span class="statusbar-dot"></span> Online · WebSocket connesso</span>
+    <span>Step <b>3</b> / 6 · Materiali & Sezioni</span>
+    <span>Auto-save · 30s fa</span>
+    <div class="statusbar-spacer"></div>
+    <span><b>47</b> / 100 cr</span>
+    <span>⌘ K · Cerca</span>
+    <span>v1.9.0-pa</span>
+  </footer>
+</div>
+
+<div id="tweaks-root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{ "theme": "light" }/*EDITMODE-END*/;
+function CTweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  React.useEffect(() => { document.documentElement.setAttribute('data-theme', t.theme); }, [t.theme]);
+  return (<TweaksPanel title="Tweaks"><TweakSection title="View">
+    <TweakRadio label="Tema" value={t.theme} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} onChange={v=>setTweak('theme',v)} />
+  </TweakSection></TweaksPanel>);
+}
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<CTweaks />);
+</script>
+</body>
+</html>

@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Percorso · Critical view (C6)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  .c-main { padding: 24px 28px 48px; max-width: 1280px; margin: 0 auto; }
+  .c-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .c-head-title { display: flex; align-items: baseline; gap: 12px; }
+  .c-head-title h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.2; letter-spacing: -0.02em; }
+  .c-head-back { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
+  .stp-bar.stp-6 { grid-template-columns: repeat(6, 1fr); }
+</style>
+</head>
+<body data-screen-label="C6 Percorso Critical View">
+
+<div class="app">
+
+  <header class="app-topbar topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">F</div>
+      <span class="topbar-logo-name">FEA Pro</span>
+      <span class="topbar-version">v1.9</span>
+    </div>
+    <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Percorsi · Telaio 2D · Risultati</span>
+    <div></div>
+    <button class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="topbar-search-placeholder">Cerca strumenti, modelli, impostazioni…</span>
+      <span class="kbd">⌘ K</span>
+    </button>
+    <button class="btn btn-ghost btn-sm">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      Apri in Studio Pro
+    </button>
+    <div class="topbar-credits"><b>35</b> / 100 cr</div>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="topbar-icon-dot">3</span></button>
+    <button class="topbar-avatar">GR</button>
+  </header>
+
+  <main class="app-main">
+    <div class="c-main">
+
+      <div class="c-head">
+        <div class="c-head-title">
+          <a href="C1-percorsi-galleria.html" class="c-head-back">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            PERCORSI
+          </a>
+          <span class="muted" style="font-family:var(--font-mono); font-size:11px">/</span>
+          <h1>Verifica telaio 2D</h1>
+          <span class="badge badge--warn">SOLVED · 5.8s</span>
+        </div>
+        <div class="muted" style="font-family:var(--font-mono); font-size:11px">
+          Risultati aggiornati 12s fa
+        </div>
+      </div>
+
+      <div class="stp-shell">
+        <div class="stp-bar stp-6">
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Geometria</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Vincoli & Carichi</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Materiali & Sezioni</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Esegui analisi</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-current">
+            <div class="stp-step-head"><span class="stp-step-num">5</span><span class="stp-step-name">Risultati</span></div>
+            <span class="stp-step-meta">in corso</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">6</span><span class="stp-step-name">Report</span></div>
+            <span class="stp-step-meta">in attesa</span>
+          </div>
+        </div>
+
+        
+        <div style="display: grid; grid-template-columns: 1fr 360px; gap: 0">
+
+          <!-- Center: viewport with deformed shape -->
+          <div style="position: relative; background: var(--bg-viewport); min-height: 520px; border-bottom: 1px solid var(--border)">
+            <div style="position: absolute; inset: 0; background: var(--vp-grid); background-size: 24px 24px"></div>
+
+            <div style="position: absolute; top: 14px; left: 14px; display: flex; gap: 6px">
+              <span class="chip"><span class="chip-dot"></span>Critical view · Live</span>
+              <span class="chip chip--accent">LC1 SLE · Direct Sparse</span>
+              <span class="chip"><b style="color:var(--ink)">5.8s</b></span>
+            </div>
+
+            <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 800 520" preserveAspectRatio="xMidYMid meet">
+              <defs><marker id="ar6" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--accent)"/></marker></defs>
+
+              <!-- Undeformed (dashed, dim) -->
+              <g stroke="currentColor" stroke-width="1" stroke-dasharray="3 4" fill="none" style="color:var(--ink-4)">
+                <line x1="180" y1="420" x2="180" y2="200"/>
+                <line x1="620" y1="420" x2="620" y2="200"/>
+                <line x1="180" y1="200" x2="400" y2="140"/>
+                <line x1="400" y1="140" x2="620" y2="200"/>
+                <line x1="180" y1="320" x2="620" y2="320"/>
+              </g>
+
+              <!-- Deformed (coloured by UC) -->
+              <g stroke-width="4" fill="none" stroke-linecap="round">
+                <line x1="180" y1="420" x2="190" y2="200" stroke="#DC2626"/>
+                <line x1="190" y1="200" x2="400" y2="148" stroke="#06b6d4"/>
+                <line x1="400" y1="148" x2="610" y2="200" stroke="#84cc16"/>
+                <line x1="610" y1="200" x2="620" y2="420" stroke="#06b6d4"/>
+                <line x1="190" y1="320" x2="610" y2="320" stroke="#2563eb"/>
+              </g>
+
+              <!-- Load arrows q -->
+              <g stroke="var(--accent)" stroke-width="1.2" fill="none">
+                <line x1="220" y1="90" x2="220" y2="110" marker-end="url(#ar6)"/>
+                <line x1="280" y1="80" x2="280" y2="100" marker-end="url(#ar6)"/>
+                <line x1="340" y1="70" x2="340" y2="90" marker-end="url(#ar6)"/>
+                <line x1="400" y1="60" x2="400" y2="80" marker-end="url(#ar6)"/>
+                <line x1="460" y1="70" x2="460" y2="90" marker-end="url(#ar6)"/>
+                <line x1="520" y1="80" x2="520" y2="100" marker-end="url(#ar6)"/>
+                <line x1="580" y1="90" x2="580" y2="110" marker-end="url(#ar6)"/>
+              </g>
+              <text x="400" y="44" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="var(--accent)">q = 2.00 kN/m</text>
+
+              <!-- Critical element B1 callout -->
+              <g>
+                <line x1="190" y1="310" x2="80" y2="280" stroke="var(--danger)" stroke-width="1.2"/>
+                <rect x="20" y="250" width="100" height="36" fill="var(--bg-panel)" stroke="var(--danger)" stroke-width="1.5"/>
+                <text x="35" y="266" font-family="JetBrains Mono" font-size="10" fill="var(--danger)">B1 · UC 0.88</text>
+                <text x="35" y="280" font-family="JetBrains Mono" font-size="9" fill="var(--ink-3)">at mid-height</text>
+              </g>
+
+              <!-- Supports -->
+              <g stroke="currentColor" stroke-width="1.4" fill="none" style="color:var(--ink-3)">
+                <line x1="150" y1="420" x2="210" y2="420"/>
+                <line x1="156" y1="428" x2="204" y2="428" stroke-dasharray="3 3"/>
+                <line x1="156" y1="436" x2="204" y2="436" stroke-dasharray="3 3"/>
+                <line x1="590" y1="420" x2="650" y2="420"/>
+                <line x1="596" y1="428" x2="644" y2="428" stroke-dasharray="3 3"/>
+                <line x1="596" y1="436" x2="644" y2="436" stroke-dasharray="3 3"/>
+              </g>
+
+              <!-- Labels -->
+              <g font-family="JetBrains Mono" font-size="10" fill="currentColor" style="color:var(--ink-2)">
+                <text x="290" y="184">B3</text>
+                <text x="490" y="184">B4</text>
+                <text x="625" y="320">B5</text>
+                <text x="395" y="338">B2</text>
+              </g>
+            </svg>
+
+            <!-- Legend -->
+            <div style="position: absolute; bottom: 14px; left: 14px; padding: 8px 12px; background: var(--bg-panel); border: 1px solid var(--border); display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 11px">
+              <span style="color: var(--ink-3); letter-spacing: 0.08em; text-transform: uppercase">UC ratio</span>
+              <div class="vp-legend-bar" style="width: 140px"></div>
+              <span style="color: var(--ink-2)">0.00</span>
+              <span style="color: var(--ink-2)">→</span>
+              <span style="color: var(--ink); font-weight: 600">1.00+</span>
+            </div>
+
+            <!-- View toggles bottom right -->
+            <div style="position: absolute; bottom: 14px; right: 14px; display: flex; gap: 6px">
+              <label class="toggle on"><span class="toggle-track"><span class="toggle-thumb"></span></span> Deformed</label>
+              <label class="toggle"><span class="toggle-track"><span class="toggle-thumb"></span></span> Valori</label>
+            </div>
+
+            <!-- Result selector top right -->
+            <div style="position: absolute; top: 14px; right: 14px; display: flex; gap: 6px">
+              <span class="chip chip--accent">UC ratio</span>
+              <span class="chip">Spostamento U</span>
+              <span class="chip">Sforzo N</span>
+              <span class="chip">Taglio V</span>
+              <span class="chip">Momento M</span>
+            </div>
+          </div>
+
+          <!-- Right rail: insight + actions -->
+          <div style="background: var(--bg-panel); border-left: 1px solid var(--border); padding: 18px; display: flex; flex-direction: column; gap: 14px; overflow: auto">
+
+            <!-- Insight card -->
+            <div class="ins-card" style="padding: 16px">
+              <span class="ins-eyebrow"><span class="ins-eyebrow-dot"></span>Elemento critico</span>
+              <div style="display: flex; align-items: baseline; gap: 18px">
+                <div class="ins-elem" style="font-size: 44px">B1</div>
+                <div class="ins-uc-block">
+                  <span class="ins-uc-label">UC max</span>
+                  <span class="ins-uc" style="font-size: 28px">0.88</span>
+                </div>
+              </div>
+              <div class="ins-uc-sub">a metà altezza · LC1 SLE quasi-perm.</div>
+              <p class="ins-text" style="font-size: 12.5px">
+                L'elemento più critico è <b>B1</b> con UC max 0.88. La verifica è soddisfatta (UC&nbsp;&lt;&nbsp;1.00) ma il margine è ridotto: una variazione del 14% sui carichi porterebbe oltre la resistenza di progetto. Rivedi prima del report.
+              </p>
+            </div>
+
+            <!-- Summary -->
+            <div>
+              <div class="eyebrow" style="margin-bottom: 8px">SOMMARIO RISULTATI</div>
+              <dl class="mic-rows" style="margin: 0">
+                <dt>Max UC</dt><dd style="color: var(--danger)">0.88</dd>
+                <dt>Avg UC</dt><dd>0.43</dd>
+                <dt>Members</dt><dd>5</dd>
+                <dt>σ_vm max</dt><dd>162,4 MPa</dd>
+                <dt>δ max</dt><dd>8,2 mm @ N3</dd>
+                <dt>Reazione N1</dt><dd>−12,1 kN</dd>
+                <dt>Reazione N5</dt><dd>−12,1 kN</dd>
+              </dl>
+            </div>
+
+            <!-- Next steps -->
+            <div>
+              <div class="ins-actions-label">PROSSIMO PASSO</div>
+              <div class="ins-actions">
+                <div class="ins-action">
+                  <div>
+                    <div class="ins-action-name">Ispeziona B1</div>
+                    <div class="ins-action-sub">forze interne · checks dettagliati</div>
+                  </div>
+                  <span class="ins-action-arrow">→</span>
+                </div>
+                <div class="ins-action">
+                  <div>
+                    <div class="ins-action-name">Apri in Studio Pro</div>
+                    <div class="ins-action-sub">raffina la sezione · rilancia</div>
+                  </div>
+                  <span class="ins-action-arrow">→</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+
+        <div class="stp-foot">
+          <div class="stp-validation">
+            <span class="stp-validation-dot"></span> Analisi completata · UC max 0.88 · margine 12% sui carichi
+          </div>
+          <div class="stp-foot-actions">
+            
+            <button class="btn btn-secondary">← Esegui</button>
+            <button class="btn btn-primary">
+              Genera report PDF →
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="app-status statusbar">
+    <span><span class="statusbar-dot"></span> Online · WebSocket connesso</span>
+    <span>Step <b>5</b> / 6 · Risultati · UC 0.88</span>
+    <span>Solver: Direct Sparse · 5.8s</span>
+    <div class="statusbar-spacer"></div>
+    <span><b>35</b> / 100 cr</span>
+    <span>⌘ K · Cerca</span>
+    <span>v1.9.0-pa</span>
+  </footer>
+</div>
+
+<div id="tweaks-root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{ "theme": "light" }/*EDITMODE-END*/;
+function CTweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  React.useEffect(() => { document.documentElement.setAttribute('data-theme', t.theme); }, [t.theme]);
+  return (<TweaksPanel title="Tweaks"><TweakSection title="View">
+    <TweakRadio label="Tema" value={t.theme} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} onChange={v=>setTweak('theme',v)} />
+  </TweakSection></TweaksPanel>);
+}
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<CTweaks />);
+</script>
+</body>
+</html>
