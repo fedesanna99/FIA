@@ -152,6 +152,31 @@ in `arclength_solver.py` (3 occ.), `dynamic_solver.py` (1 occ.),
 `nonlinear_solver.py` (1 occ.). Da estendere `safe_spsolve` helper in sprint
 successivo (`v2.4.1+`).
 
+> **UPDATE 2026-05-24**: scope esteso chiuso in `v2.4.0bis-safe-spsolve-extend`.
+> Vedi voce `#30-extended` qui sotto.
+
+### #30-extended · safe_spsolve esteso a tutti i solver
+**Chiuso**: v2.4.0bis-safe-spsolve-extend (2026-05-24)
+**Implementazione**:
+- `backend/core/solver/errors.py`: nuovo helper `safe_spsolve(K, F, *, context, check_magnitude)`
+- `backend/core/solver/static_solver.py`: refactor per usare helper (era inline)
+- `backend/core/solver/arclength_solver.py`: 3 chiamate `spsolve` → `safe_spsolve`
+- `backend/core/solver/dynamic_solver.py`: 1 chiamata Newmark initial-acceleration
+- `backend/core/solver/nonlinear_solver.py`: 1 chiamata NR iteration (con lstsq fallback preservato)
+- `backend/tests/test_solver_singular_matrix.py`: +4 test (arclength, dynamic, nonlinear, anti-regression meta-test)
+
+**Coverage**:
+- 6/6 chiamate `spsolve` nel codice ora protette (5 sostituite + 1 nel helper)
+- Bug #30 chiuso per static, arc-length, push-over (via NR), dinamica, non-lineare
+- Anti-regression meta-test garantisce che future PR non reintroducano `spla.spsolve` raw
+
+**Parametri `check_magnitude`**:
+- static, dynamic: `True` (spostamenti / accelerazioni fisici, soglia 10⁶)
+- arc-length, nonlinear: `False` (incrementi intermedi, possono essere grandi)
+
+**Test totale**: 8/8 PASS in 0.87s. Pytest backend complessivo: 1398 passed,
+12 failed pre-esistenti (numero non aumentato vs baseline pre-fix).
+
 ### BL-1 · Newton-Raphson + Cable 2D/3D — non-linearità geometrica
 **Chiuso**: v1.5 (riconciliato in v2.3.3-docs-sync, 2026-05-23)
 **Implementazione**:
