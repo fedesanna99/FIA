@@ -327,6 +327,37 @@ in test significativo (es. check `σ_yy(2p) = 2·σ_yy(p)`).
 
 ## 🟡 Media priorità
 
+### #pushover-7fail · 7 test pushover FAIL post safe_spsolve refactor
+**Stato**: diagnosticato in `v2.4.7-pushover-diagnostic` (2026-05-24) — **fix raccomandato**
+**Severity**: P1 — regression mascherata
+**Complessità fix**: ~30 minuti (1 file, ~3 righe)
+
+**Root cause unica** (per tutti i 7 test):
+- v2.4.0bis `safe_spsolve` traduce errori scipy in `SingularMatrixError`
+  (custom, `core.solver.errors`)
+- `PushoverSolver.solve()` (`pushover_solver.py:165`) cattura solo
+  `RuntimeError | MatrixRankWarning | LinAlgError` (vecchie scipy)
+- `SingularMatrixError` NON è sottoclasse di RuntimeError → bypassa
+  l'except → propaga al test
+
+**Test FAIL** (tutti `tests/test_pushover.py`):
+- `TestCantileverPlastic::test_first_hinge_at_clamp`
+- `TestCantileverPlastic::test_collapse_lambda_matches_analytical`
+- `TestCantileverPlastic::test_collapse_reason_set`
+- `TestCantileverPlastic::test_steps_curve_monotonic_until_hinge`
+- `TestParametricMaterials::test_s355_vs_s235`
+- `TestParametricMaterials::test_ipe300_vs_ipe200`
+- `TestResultsStructure::test_results_contain_required_fields`
+
+**Brief candidato**: `v2.4.7.1-pushover-fixes`
+- Aggiungere `SingularMatrixError` al tuple `except` in `pushover_solver.py:165`
+- Verifica 7 FAIL → 0 FAIL (baseline 1452 → 1459 PASS, 9 → 2 FAIL pre-esistenti)
+- Stima ~30 minuti
+
+**Riferimenti**:
+- Diagnostic completo: `docs/pushover_diagnostic.md`
+- Refactor origine bug: commit `2dc4498` (v2.4.0bis safe_spsolve)
+
 ### #22bis · GDPR cascade delete incomplete
 **Chiuso**: `v2.4.6-debt-22bis-gdpr-cascade` (2026-05-24)
 
