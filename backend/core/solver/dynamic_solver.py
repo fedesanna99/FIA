@@ -12,6 +12,7 @@ import scipy.sparse.linalg as spla
 from schemas import FEAModel, LoadType
 from schemas.results import DynamicResults
 from .assembler import GlobalAssembler, GLOBAL_DOFS_PER_NODE
+from .errors import SingularMatrixError, NumericalInstabilityError, safe_spsolve
 
 
 class DynamicSolver:
@@ -112,10 +113,18 @@ class DynamicSolver:
         u = np.zeros(n_free)
         v = np.zeros(n_free)
         a = np.zeros(n_free)
-        try:
-            a = spla.spsolve(M_ff.tocsc(), F_t_free[0] - C_ff @ v - K_ff @ u)
-        except Exception:
-            a = np.zeros(n_free)
+        # Accelerazione iniziale a(t=0): M·a = F(0) - C·v(0) - K·u(0).
+        # Se M_ff è singolare (struttura senza massa propria assegnata),
+        # safe_spsolve solleva SingularMatrixError bubble-up. Prima v2.4.0bis
+        # un except Exception generico ingoiava silentemente e a=0.
+        # check_magnitude=True: accelerazioni iniziali di una struttura reale
+        # NON devono superare 10^6 m/s² (= 10^5 g, fisicamente impossibile).
+        a = safe_spsolve(
+            M_ff,
+            F_t_free[0] - C_ff @ v - K_ff @ u,
+            context="dynamic_initial_acceleration",
+            check_magnitude=True,
+        )
         node_dofs = assembler.node_dofs
         store_node_ids = self.store_nodes or [n.id for n in self.model.nodes]
         node_history: dict[int, dict[str, list[float]]] = {

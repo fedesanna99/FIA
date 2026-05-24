@@ -37,6 +37,7 @@ import scipy.sparse.linalg as spla
 from schemas import FEAModel, ElementType
 from schemas.results import StaticResults, NodalDisplacement, ElementForces
 from .assembler import GlobalAssembler, _element_dofs
+from .errors import SingularMatrixError, NumericalInstabilityError, safe_spsolve
 
 
 @dataclass
@@ -261,14 +262,30 @@ class NonLinearStaticSolver:
                     converged = True
                     break
 
-                # Risolvi K_T_ff · Δu = r_f
+                # Risolvi K_T_ff · Δu = r_f.
+                # check_magnitude=False: Δu Newton intermedio può essere
+                # grande prima del line search / damping. Verifica magnitude
+                # solo sul cumulato u alla fine dello step (out of scope qui).
+                # Fallback lstsq preservato per K_T near-singular durante
+                # transizioni (es. plasticità, snap-through limitato);
+                # SingularMatrixError esce solo se ANCHE lstsq produce NaN/Inf.
                 K_ff = K_T[free_arr, :][:, free_arr]
                 try:
-                    du_f = spla.spsolve(K_ff.tocsc(), r_f)
-                except Exception:
-                    # Riprova con pseudo-inversa densa (small models only)
+                    du_f = safe_spsolve(
+                        K_ff,
+                        r_f,
+                        context=f"newton_step_{step}_iter_{k}",
+                        check_magnitude=False,
+                    )
+                except (SingularMatrixError, NumericalInstabilityError):
+                    # Fallback: pseudo-inversa densa (small models only)
                     K_ff_d = K_ff.toarray()
                     du_f, *_ = np.linalg.lstsq(K_ff_d, r_f, rcond=None)
+                    if not np.all(np.isfinite(du_f)):
+                        raise SingularMatrixError(
+                            cause="nan_in_solution",
+                            n_free_dofs=K_ff.shape[0],
+                        ) from None
                 # Espandi a tutti i dof
                 du = np.zeros(n, dtype=float)
                 du[free_arr] = du_f
