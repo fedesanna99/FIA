@@ -358,6 +358,49 @@ in test significativo (es. check `σ_yy(2p) = 2·σ_yy(p)`).
 - Diagnostic completo: `docs/pushover_diagnostic.md`
 - Refactor origine bug: commit `2dc4498` (v2.4.0bis safe_spsolve)
 
+### #14 · EC3 section class sistematico HEA/IPE
+**Parzialmente chiuso**: `v2.4.8-ec3-section-class-coverage` (2026-05-24)
+
+**Coverage estesa**:
+- Catalogo profili attualmente supportato: 8 IPE + 4 HEA + 4 HEB (16 totali)
+- Brief originale stimava 18 IPE + 19 HEA — discrepanza vs catalogo reale documentata
+- Tabelle expected calcolate a mano da EN 1993-1-1 Tab. 5.2 applicata alle
+  dimensioni reali del catalogo (`backend/schemas/material.py`)
+
+**Implementazione**:
+- `backend/tests/verification/_ec3_section_class_expected.py` (nuovo, ~75 righe):
+  6 liste expected (IPE/HEA/HEB × S235/S355) con (sid, fy, exp_comp, exp_bend)
+- `backend/tests/verification/test_ec3_section_classification.py` (nuovo, ~140 righe):
+  6 test parametrici + 6 sanity check = **38 test totali**
+
+**Profili coperti / classi attese chiave**:
+- IPE 100..240 S235: Cl 1 in both
+- IPE 270..360 S235: comp Cl 2 (anima borderline 33-38), bend Cl 1
+- IPE 400, 500 S235: comp Cl 3 (anima vicino limite 42), bend Cl 1
+- IPE 100..200 S355: comp Cl 1-2, bend Cl 1
+- IPE 270 S355: comp Cl 3 (>30.9 threshold)
+- IPE 300..500 S355: comp Cl 4 (anima troppo snella per Reissner-Mindlin con ε=0.814)
+- HEA 100..300 S235: Cl 1 in both
+- HEA 200..300 S355: la flange c_f/tf diventa decisive
+- HEB tutti S235/S355: Cl 1 (tozzi)
+
+**Quality gate v2.4.8**:
+- pytest: 1490 PASS (+38 nuovi, era 1452 baseline post v2.4.6), 9 FAIL pre-esistenti invariati
+- 38/38 nuovi test PASS al primo run (1 fix di tolleranza ε, non bug funzionale)
+- `classify_section` ritorna i valori attesi su tutti i 32 casi parametrici + 6 sanity
+
+**Resta aperto**:
+- Catalogo profili è sotto-fornito (~16/40+ profili standard arcelor)
+  → Brief candidato `v2.4.8.1-catalog-expansion-ipe-hea` quando serve copertura
+  Annex F intera (IPE 80/120/.../600, HEA fino a 1000, HEB fino a 1000, HEM)
+- HEM non incluso (non in catalogo). Add anche IPE 220 / IPE 330 / IPE 450 ecc. quando catalogo si espande.
+- Test pure compression + pure bending coperti; **combined** (M + N) e
+  flessione attorno asse debole sono fuori scope di questo coverage parametrico.
+
+**Riferimenti**:
+- Closure report: `docs/v2_4_8_ec3_section_class_coverage_report.md`
+- Bug originale: task harness #14 "BUG CRITICO: EC3 section class sistematico"
+
 ### #22bis · GDPR cascade delete incomplete
 **Chiuso**: `v2.4.6-debt-22bis-gdpr-cascade` (2026-05-24)
 
