@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Onboarding (E1)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  /* Dim background */
+  .e1-app { filter: blur(2px); pointer-events: none; opacity: 0.7; user-select: none; }
+
+  /* Overlay backdrop */
+  .e1-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 50; pointer-events: none; }
+  :root[data-theme="light"] .e1-backdrop { background: rgba(0,0,0,.35); }
+
+  /* Spotlight cut-out (just visual hint, no SVG mask) */
+  .e1-spotlight {
+    position: fixed;
+    top: 120px; left: 32px;
+    width: 720px; height: 240px;
+    border: 2px solid var(--accent);
+    background: transparent;
+    z-index: 51;
+    pointer-events: none;
+    box-shadow: 0 0 0 9999px rgba(0,0,0,.45);
+  }
+  :root[data-theme="light"] .e1-spotlight { box-shadow: 0 0 0 9999px rgba(15,23,42,.5); }
+
+  /* Tour card */
+  .e1-card {
+    position: fixed;
+    right: 32px; top: 140px;
+    width: 360px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    box-shadow: var(--shadow-dialog);
+    padding: 22px 24px;
+    display: flex; flex-direction: column; gap: 14px;
+    z-index: 60;
+  }
+  .e1-card-eyebrow {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .e1-card-title { font-family: var(--font-display); font-size: 20px; letter-spacing: -0.02em; font-weight: 600; line-height: 1.2; }
+  .e1-card-text { font-size: 13px; color: var(--ink-2); line-height: 1.55; }
+  .e1-progress { display: flex; gap: 3px; margin-top: 4px; }
+  .e1-progress-pip { flex: 1; height: 3px; background: var(--border); }
+  .e1-progress-pip.is-done { background: var(--accent); }
+  .e1-progress-pip.is-current { background: var(--accent); }
+  .e1-card-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 6px; }
+</style>
+</head>
+<body data-screen-label="E1 Onboarding Tour">
+
+<!-- Dimmed dashboard behind -->
+<div class="app e1-app">
+  <header class="app-topbar topbar">
+    <div class="topbar-logo"><div class="topbar-logo-mark">F</div><span class="topbar-logo-name">FEA Pro</span><span class="topbar-version">v1.9</span></div>
+    <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Workspace</span>
+    <div></div>
+    <button class="topbar-search"><svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="topbar-search-placeholder">Cerca strumenti, modelli, impostazioni…</span><span class="kbd">⌘ K</span></button>
+    <div class="topbar-credits"><b>50</b> / 100 cr</div>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button class="topbar-avatar">GR</button>
+  </header>
+  <aside class="app-leftrail leftrail">
+    <div class="rail-item is-active"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9 12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span class="rail-item-label">Home</span></div>
+    <div class="leftrail-section">Workspace</div>
+    <div class="rail-item"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 7.5 12 2 3 7.5"/></svg></span><span class="rail-item-label">Modelli</span></div>
+  </aside>
+  <main class="app-main">
+    <div style="padding: 36px 32px; max-width: 1280px; margin: 0 auto">
+      <div class="hubs" style="margin-top: 80px">
+        <div class="hub hub--studio">
+          <span class="hub-axis-tag">/ Studio Pro</span>
+          <h2 class="hub-title">Controllo totale<br/>sul modello.</h2>
+          <p class="hub-sub">Modalità expert. Tutti gli strumenti, qualsiasi ordine, senza guardrail.</p>
+        </div>
+        <div class="hub hub--percorsi">
+          <span class="hub-axis-tag">/ Percorsi</span>
+          <h2 class="hub-title">Guidato,<br/>senza perdere controllo.</h2>
+          <p class="hub-sub">Step persistenti, validation per step, sempre passabile a Studio Pro.</p>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Spotlight on the two hubs -->
+<div class="e1-backdrop"></div>
+<div class="e1-spotlight"></div>
+
+<!-- Tour card -->
+<div class="e1-card">
+  <div class="e1-card-eyebrow">
+    <span>TOUR · 3 / 8</span>
+    <span>Skip</span>
+  </div>
+  <h2 class="e1-card-title">Due assi sullo stesso modello.</h2>
+  <p class="e1-card-text">
+    <b>Studio Pro</b> ti dà tutti gli strumenti subito, senza guardrail. <b>Percorsi</b> ti accompagna step-by-step. <b>Il modello è lo stesso</b> — quando vuoi passi dall'uno all'altro senza perdere niente.
+  </p>
+  <div class="e1-progress">
+    <span class="e1-progress-pip is-done"></span>
+    <span class="e1-progress-pip is-done"></span>
+    <span class="e1-progress-pip is-current"></span>
+    <span class="e1-progress-pip"></span>
+    <span class="e1-progress-pip"></span>
+    <span class="e1-progress-pip"></span>
+    <span class="e1-progress-pip"></span>
+    <span class="e1-progress-pip"></span>
+  </div>
+  <div class="e1-card-foot">
+    <span class="muted" style="font-family: var(--font-mono); font-size: 10px">↑↓ tour · ESC chiudi</span>
+    <div class="row row-gap-2">
+      <button class="btn btn-secondary btn-sm">← Indietro</button>
+      <button class="btn btn-primary btn-sm">Avanti →</button>
+    </div>
+  </div>
+</div>
+
+<div id="tweaks-root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{ "theme": "light", "step": 3 }/*EDITMODE-END*/;
+function CTweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio, TweakSlider } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  React.useEffect(() => { document.documentElement.setAttribute('data-theme', t.theme); }, [t.theme]);
+  React.useEffect(() => {
+    const pips = document.querySelectorAll('.e1-progress-pip');
+    pips.forEach((p, i) => {
+      p.classList.remove('is-done', 'is-current');
+      if (i + 1 < t.step) p.classList.add('is-done');
+      else if (i + 1 === t.step) p.classList.add('is-current');
+    });
+    const eyebrow = document.querySelector('.e1-card-eyebrow span');
+    if (eyebrow) eyebrow.textContent = 'TOUR · ' + t.step + ' / 8';
+  }, [t.step]);
+  return (<TweaksPanel title="Tweaks"><TweakSection title="View">
+    <TweakRadio label="Tema" value={t.theme} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} onChange={v=>setTweak('theme',v)} />
+    <TweakSlider label="Tour step" value={t.step} min={1} max={8} step={1} onChange={v=>setTweak('step', v)} />
+  </TweakSection></TweaksPanel>);
+}
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<CTweaks />);
+</script>
+</body>
+</html>

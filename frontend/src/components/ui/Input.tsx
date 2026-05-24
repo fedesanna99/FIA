@@ -29,7 +29,11 @@ export function Field({ label, hint, error, required, htmlFor, children, classNa
   return (
     <div className={cn("flex flex-col gap-1", className)}>
       {label && (
-        <label htmlFor={htmlFor} className="text-xs font-medium text-ink-3">
+        // v2.5.0 PR1 Precision: label mono uppercase 10px (era xs medium).
+        <label
+          htmlFor={htmlFor}
+          className="text-[10px] font-mono font-semibold uppercase tracking-wide-1 text-ink-3"
+        >
           {label}
           {required && <span className="text-danger ml-0.5">*</span>}
         </label>
@@ -58,12 +62,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       <input
         ref={ref}
         className={cn(
-          "w-full h-8 px-2.5 rounded-md text-sm",
+          // v2.5.0 PR1 Precision: sharp (no rounded), hairline border, no ring (border-only focus).
+          "w-full h-8 px-2.5 text-sm",
           "bg-bg-elevated border text-ink",
-          "border-border focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30",
+          "border-border-light focus:border-accent focus:outline-none",
           "placeholder:text-ink-3",
           "disabled:opacity-40 disabled:cursor-not-allowed",
-          invalid && "border-danger focus:border-danger focus:ring-danger/30",
+          invalid && "border-danger focus:border-danger",
           unit && "pr-10",
           className,
         )}

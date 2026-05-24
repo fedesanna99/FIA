@@ -39,8 +39,9 @@ export const IconButton = forwardRef<HTMLButtonElement, Props>(function IconButt
       type="button"
       {...rest}
       className={cn(
+        // v2.5.0 PR1 Precision: sharp focus outline (era ring).
         "inline-flex items-center justify-center flex-shrink-0 transition-colors duration-fast",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1",
         "disabled:opacity-40 disabled:cursor-not-allowed",
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],

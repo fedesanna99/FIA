@@ -1,0 +1,292 @@
+/*
+ * FEA Pro — Design Tokens
+ * Colors + Type system, aligned to the FIA codebase
+ * (tailwind.config.js + index.css, design tokens v1.3).
+ *
+ * Dark is the default (CAE products are always dark). Light is
+ * provided for accessibility / printing. Theme is switched by
+ * setting [data-theme="light"] on :root.
+ *
+ * All colors are exposed as `--c-*` triples ("R G B") AND as ready-to-use
+ * `--<name>` aliases. The triples let you write `rgb(var(--c-accent) / 0.2)`
+ * for tinted surfaces, the aliases let you just say `color: var(--ink)`.
+ */
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 1 · Fonts (loaded from Google Fonts — substitution flagged in README)
+ * ──────────────────────────────────────────────────────────────────── */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 2 · Dark tokens (default)
+ * ──────────────────────────────────────────────────────────────────── */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Surfaces — warm dark, 5 elevations */
+  --c-bg:           22  22  24;   /* #161618 · page */
+  --c-bg-panel:     31  31  34;   /* #1F1F22 · sidebar, topbar, panels */
+  --c-bg-elevated:  42  42  46;   /* #2A2A2E · dialogs, dropdowns */
+  --c-bg-hover:     42  42  46;   /* #2A2A2E · hover (alias) */
+  --c-bg-viewport:  19  19  22;   /* #131316 · 3D canvas */
+  --c-bg-active:    26  58  95;   /* #1A3A5F · selected row */
+
+  /* Borders — 3 strengths */
+  --c-border:         58  58  62; /* #3A3A3E · default hairline */
+  --c-border-light:   74  74  80; /* #4A4A50 · hover hairline */
+  --c-border-strong:  95  98 110; /* #5F626E · structural divider */
+
+  /* Ink — 4 levels (matching mockup v1.3 ink-1..4) */
+  --c-ink:        230 230 232;    /* #E6E6E8 · primary text */
+  --c-ink-muted:  170 168 162;    /* #AAA8A2 · secondary */
+  --c-ink-dim:    120 119 113;    /* #787771 · tertiary / hints */
+  --c-ink-faint:   90  88  82;    /* #5A5852 · disabled / micro-label */
+
+  /* Accent — info blue, always the primary */
+  --c-accent:         90 177 238; /* #5AB1EE */
+  --c-accent-hover:  124 192 245; /* #7CC0F5 */
+  --c-accent-subtle:  12  37  64; /* #0C2540 · tinted bg for selected rail */
+
+  /* Semantic ink — 5 families */
+  --c-success:    132 196  70;    /* #84C446 · OK / pass */
+  --c-warn:       228 156  56;    /* #E49C38 · warning */
+  --c-coral:      217  93  53;    /* #D95D35 · collab / loads */
+  --c-purple:     140 132 230;    /* #8C84E6 · annotations / AI */
+  --c-danger:     239  68  68;    /* #EF4444 · errors */
+  --c-info:        90 177 238;    /* alias of accent */
+  --c-percorsi:    52 211 153;    /* #34D399 · "guided paths" emerald */
+
+  /* Semantic surface tints (low-saturation backgrounds for chips/cards) */
+  --c-bg-info:      12  37  64;   /* #0C2540 */
+  --c-bg-success:   26  48   9;   /* #1A3009 */
+  --c-bg-warn:      58  40   6;   /* #3A2806 */
+  --c-bg-coral:     58  24  16;   /* #3A1810 */
+  --c-bg-purple:    34  32  64;   /* #222040 */
+  --c-bg-percorsi:  16  53  39;   /* #103527 */
+
+  /* Shadows — pop (dropdown), elev (panel), dialog (modal) */
+  --shadow-pop:    0 2px 12px -4px rgba(0,0,0,.55), 0 8px 24px -6px rgba(0,0,0,.40);
+  --shadow-elev:   0 8px 24px -10px rgba(0,0,0,.65), 0 2px 6px -1px rgba(0,0,0,.30);
+  --shadow-dialog: 0 24px 64px -12px rgba(0,0,0,.85);
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 3 · Light tokens (warm neutral, opt-in)
+ * ──────────────────────────────────────────────────────────────────── */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --c-bg:          247 247 245;
+  --c-bg-panel:    255 255 255;
+  --c-bg-elevated: 255 255 255;
+  --c-bg-hover:    241 239 232;
+  --c-bg-viewport: 250 250 248;
+  --c-bg-active:   230 241 251;
+
+  --c-border:        228 226 219;
+  --c-border-light:  210 207 198;
+  --c-border-strong: 180 178 169;
+
+  --c-ink:          26  26  26;
+  --c-ink-muted:    95  94  90;
+  --c-ink-dim:     136 135 128;
+  --c-ink-faint:   180 178 169;
+
+  --c-accent:        24  95 165;  /* #185FA5 (darker for light bg contrast) */
+  --c-accent-hover:  18  72 130;
+  --c-accent-subtle: 230 241 251;
+
+  --c-success:    59 109  17;
+  --c-warn:      133  79  11;
+  --c-coral:     153  60  29;
+  --c-purple:     83  74 183;
+  --c-danger:    198  40  40;
+  --c-info:       24  95 165;
+  --c-percorsi:    5 150 105;
+
+  --c-bg-info:     230 241 251;
+  --c-bg-success:  234 243 222;
+  --c-bg-warn:     250 238 218;
+  --c-bg-coral:    250 236 231;
+  --c-bg-purple:   238 237 254;
+  --c-bg-percorsi: 236 253 245;
+
+  --shadow-pop:    0 2px 12px -4px rgba(0,0,0,.08), 0 8px 24px -6px rgba(0,0,0,.06);
+  --shadow-elev:   0 8px 24px -10px rgba(0,0,0,.12), 0 2px 6px -1px rgba(0,0,0,.04);
+  --shadow-dialog: 0 24px 64px -12px rgba(0,0,0,.18);
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 4 · Semantic aliases (use these in components)
+ * ──────────────────────────────────────────────────────────────────── */
+:root {
+  /* Surfaces */
+  --bg:           rgb(var(--c-bg));
+  --bg-panel:     rgb(var(--c-bg-panel));
+  --bg-elevated:  rgb(var(--c-bg-elevated));
+  --bg-hover:     rgb(var(--c-bg-hover));
+  --bg-viewport:  rgb(var(--c-bg-viewport));
+  --bg-active:    rgb(var(--c-bg-active));
+
+  /* Borders */
+  --border:        rgb(var(--c-border));
+  --border-light:  rgb(var(--c-border-light));
+  --border-strong: rgb(var(--c-border-strong));
+
+  /* Ink */
+  --ink:        rgb(var(--c-ink));
+  --ink-1:      rgb(var(--c-ink));
+  --ink-2:      rgb(var(--c-ink-muted));
+  --ink-3:      rgb(var(--c-ink-dim));
+  --ink-4:      rgb(var(--c-ink-faint));
+  --ink-muted:  rgb(var(--c-ink-muted));
+  --ink-dim:    rgb(var(--c-ink-dim));
+  --ink-faint:  rgb(var(--c-ink-faint));
+
+  /* Accent + semantic */
+  --accent:        rgb(var(--c-accent));
+  --accent-hover:  rgb(var(--c-accent-hover));
+  --accent-subtle: rgb(var(--c-accent-subtle));
+  --success:       rgb(var(--c-success));
+  --warn:          rgb(var(--c-warn));
+  --coral:         rgb(var(--c-coral));
+  --purple:        rgb(var(--c-purple));
+  --danger:        rgb(var(--c-danger));
+  --info:          rgb(var(--c-info));
+  --percorsi:      rgb(var(--c-percorsi));
+
+  --bg-info:      rgb(var(--c-bg-info));
+  --bg-success:   rgb(var(--c-bg-success));
+  --bg-warn:      rgb(var(--c-bg-warn));
+  --bg-coral:     rgb(var(--c-bg-coral));
+  --bg-purple:    rgb(var(--c-bg-purple));
+  --bg-percorsi:  rgb(var(--c-bg-percorsi));
+
+  /* Radii */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 10px;
+  --r-xl: 14px;
+  --r-full: 9999px;
+
+  /* Spacing scale (px) — terse names */
+  --s-px:  1px;
+  --s-0_5: 2px;
+  --s-1:   4px;
+  --s-2:   8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-8:  32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
+
+  /* Motion */
+  --d-fast: 120ms;
+  --d-mid:  220ms;
+  --d-slow: 360ms;
+  --ease-standard:    cubic-bezier(0.2, 0, 0, 1);
+  --ease-decelerate:  cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate:  cubic-bezier(0.4, 0, 1, 1);
+
+  /* z-index */
+  --z-viewport: 0;
+  --z-panel:    10;
+  --z-toolbar:  20;
+  --z-dropdown: 30;
+  --z-popover:  35;
+  --z-dialog:   40;
+  --z-toast:    50;
+  --z-tooltip:  60;
+
+  /* Fonts */
+  --font-sans:    "Inter", "IBM Plex Sans", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Inter", -apple-system, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 5 · Type scale — base values (do not write px in components, use these)
+ * ──────────────────────────────────────────────────────────────────── */
+:root {
+  --fs-xs:   11px;   --lh-xs:   16px;
+  --fs-sm:   12px;   --lh-sm:   16px;
+  --fs-base: 13px;   --lh-base: 18px;   /* body baseline — dense UI */
+  --fs-md:   14px;   --lh-md:   20px;
+  --fs-lg:   16px;   --lh-lg:   22px;
+  --fs-xl:   18px;   --lh-xl:   26px;
+  --fs-2xl:  22px;   --lh-2xl:  30px;
+  --fs-3xl:  28px;   --lh-3xl:  36px;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 6 · Semantic type — use these for HTML elements
+ * ──────────────────────────────────────────────────────────────────── */
+html, body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, .h1 {
+  font-family: var(--font-display);
+  font-size: var(--fs-3xl);
+  line-height: var(--lh-3xl);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+h2, .h2 {
+  font-family: var(--font-display);
+  font-size: var(--fs-2xl);
+  line-height: var(--lh-2xl);
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+}
+h3, .h3 {
+  font-size: var(--fs-xl);
+  line-height: var(--lh-xl);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+h4, .h4 {
+  font-size: var(--fs-lg);
+  line-height: var(--lh-lg);
+  font-weight: 600;
+  color: var(--ink);
+}
+h5, .h5 {
+  font-size: var(--fs-md);
+  line-height: var(--lh-md);
+  font-weight: 600;
+  color: var(--ink);
+}
+
+p { margin: 0 0 var(--s-2); color: var(--ink); }
+
+/* Panel header label — uppercase micro */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* Numeric — ALL numbers in the UI use this (currency, dimensions, ids) */
+.numeric, code, kbd, samp, pre {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+small, .small { font-size: var(--fs-xs); line-height: var(--lh-xs); color: var(--ink-muted); }

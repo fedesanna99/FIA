@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Percorsi · Galleria (C1)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  .c1-main { padding: 36px 32px 64px; max-width: 1280px; margin: 0 auto; }
+
+  /* Path card */
+  .path {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 12px;
+    padding: 18px;
+    min-height: 280px;
+    cursor: pointer;
+    position: relative;
+  }
+  .path:hover { border-color: var(--accent); }
+  .path-head {
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .path-num {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+  }
+  .path-difficulty {
+    display: inline-flex; gap: 3px;
+  }
+  .path-difficulty-pip {
+    width: 6px; height: 6px;
+    background: var(--ink-4);
+    border: 1px solid var(--ink-4);
+  }
+  .path-difficulty-pip.on { background: var(--accent); border-color: var(--accent); }
+
+  .path-thumb {
+    height: 96px;
+    background: var(--bg-viewport);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+  }
+  .path-thumb-grid { position: absolute; inset: 0; background: var(--vp-grid); background-size: 12px 12px; opacity: 0.7; }
+
+  .path-title {
+    font-family: var(--font-display);
+    font-size: 22px;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    font-weight: 600;
+    color: var(--ink);
+    margin: 0;
+  }
+  .path-desc {
+    font-size: 13px;
+    color: var(--ink-2);
+    line-height: 1.5;
+    margin: 0;
+  }
+  .path-meta {
+    display: flex; gap: 14px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+  }
+  .path-meta b { color: var(--ink); font-weight: 600; }
+
+  .path-tag-comingsoon {
+    position: absolute; top: 12px; right: 12px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-light);
+    padding: 2px 6px;
+  }
+</style>
+</head>
+<body data-screen-label="C1 Percorsi Galleria">
+
+<div class="app">
+
+  <header class="app-topbar topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">F</div>
+      <span class="topbar-logo-name">FEA Pro</span>
+      <span class="topbar-version">v1.9</span>
+    </div>
+    <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Percorsi</span>
+    <div></div>
+    <button class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="topbar-search-placeholder">Cerca strumenti, modelli, impostazioni…</span>
+      <span class="kbd">⌘ K</span>
+    </button>
+    <div class="topbar-credits"><b>47</b> / 100 cr</div>
+    <button class="topbar-icon-btn" title="Aiuto"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button class="topbar-icon-btn" title="Notifiche"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="topbar-icon-dot">3</span></button>
+    <button class="topbar-avatar">GR</button>
+  </header>
+
+  <aside class="app-leftrail leftrail">
+    <div class="rail-item"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 9 12 2l9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></span><span class="rail-item-label">Home</span></div>
+    <div class="leftrail-section">Percorsi</div>
+    <div class="rail-item is-active"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span><span class="rail-item-label">Galleria</span></div>
+    <div class="rail-item"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span><span class="rail-item-label">In corso</span></div>
+    <div class="leftrail-section">Workspace</div>
+    <div class="rail-item"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 7.5 12 2 3 7.5m18 0L12 13M21 7.5v9L12 22m0-9L3 7.5"/></svg></span><span class="rail-item-label">Studio Pro</span></div>
+    <div class="rail-item"><span class="rail-item-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span><span class="rail-item-label">Modelli</span></div>
+    <div class="leftrail-foot"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="15 18 9 12 15 6"/></svg> Comprimi</div>
+  </aside>
+
+  <main class="app-main">
+    <div class="c1-main">
+
+      <div class="page-head">
+        <span class="eyebrow">PERCORSI · 5 SCENARI</span>
+        <h1>Scegli un percorso guidato.</h1>
+        <p class="page-sub">
+          Step persistenti, validation per step, smart defaults da best practice italiana. La struttura del calcolo è la stessa di Studio Pro — quando vuoi passi all'altra modalità senza perdere il modello.
+        </p>
+      </div>
+
+      <div class="grid-3" style="gap: 16px">
+
+        <!-- 1 · Verifica telaio 2D -->
+        <article class="path">
+          <div class="path-head">
+            <span class="path-num">01</span>
+            <span class="path-difficulty" title="Difficoltà · Base">
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip"></span>
+              <span class="path-difficulty-pip"></span>
+            </span>
+          </div>
+          <div class="path-thumb">
+            <div class="path-thumb-grid"></div>
+            <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 240 96" preserveAspectRatio="xMidYMid meet">
+              <g stroke="currentColor" stroke-width="1.5" fill="none" style="color:var(--ink-2)">
+                <line x1="50" y1="78" x2="50" y2="28"/>
+                <line x1="190" y1="78" x2="190" y2="28"/>
+                <line x1="50" y1="28" x2="120" y2="14"/>
+                <line x1="120" y1="14" x2="190" y2="28"/>
+              </g>
+            </svg>
+          </div>
+          <h2 class="path-title">Verifica telaio 2D</h2>
+          <p class="path-desc">Portale piano in acciaio o c.a., 4 step lineari. Geometria, carichi, run, risultati con UC governing.</p>
+          <div class="path-meta">
+            <span><b>4</b> step</span>
+            <span><b>~8 min</b></span>
+            <span>NTC18 · EC3</span>
+          </div>
+        </article>
+
+        <!-- 2 · Beam check -->
+        <article class="path">
+          <div class="path-head">
+            <span class="path-num">02</span>
+            <span class="path-difficulty">
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip"></span>
+              <span class="path-difficulty-pip"></span>
+            </span>
+          </div>
+          <div class="path-thumb">
+            <div class="path-thumb-grid"></div>
+            <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 240 96" preserveAspectRatio="xMidYMid meet">
+              <g stroke="currentColor" stroke-width="1.5" fill="none" style="color:var(--ink-2)">
+                <line x1="30" y1="60" x2="210" y2="60"/>
+                <line x1="20" y1="60" x2="40" y2="60"/>
+                <line x1="200" y1="60" x2="220" y2="60"/>
+                <line x1="22" y1="68" x2="38" y2="68" stroke-dasharray="3 3"/>
+                <line x1="202" y1="68" x2="218" y2="68" stroke-dasharray="3 3"/>
+                <line x1="60" y1="30" x2="60" y2="56"/>
+                <line x1="100" y1="30" x2="100" y2="56"/>
+                <line x1="140" y1="30" x2="140" y2="56"/>
+                <line x1="180" y1="30" x2="180" y2="56"/>
+              </g>
+            </svg>
+          </div>
+          <h2 class="path-title">Beam check</h2>
+          <p class="path-desc">Singola trave appoggiata o continua. Carico distribuito + concentrato, verifica flessione + taglio + freccia.</p>
+          <div class="path-meta">
+            <span><b>3</b> step</span>
+            <span><b>~5 min</b></span>
+            <span>EC3 · NTC18</span>
+          </div>
+        </article>
+
+        <!-- 3 · Verifica sezione -->
+        <article class="path">
+          <div class="path-head">
+            <span class="path-num">03</span>
+            <span class="path-difficulty">
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip"></span>
+            </span>
+          </div>
+          <div class="path-thumb">
+            <div class="path-thumb-grid"></div>
+            <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 240 96" preserveAspectRatio="xMidYMid meet">
+              <g stroke="currentColor" stroke-width="2" fill="none" style="color:var(--ink-2)">
+                <path d="M80 18 L160 18 L160 30 L130 30 L130 66 L160 66 L160 78 L80 78 L80 66 L110 66 L110 30 L80 30 Z"/>
+              </g>
+            </svg>
+          </div>
+          <h2 class="path-title">Verifica sezione</h2>
+          <p class="path-desc">Sezione acciaio o c.a. con N, M, V combinati. Classe di sezione, interazione e momento resistente.</p>
+          <div class="path-meta">
+            <span><b>3</b> step</span>
+            <span><b>~6 min</b></span>
+            <span>EC2 · EC3</span>
+          </div>
+        </article>
+
+        <!-- 4 · Compare alternatives -->
+        <article class="path">
+          <div class="path-head">
+            <span class="path-num">04</span>
+            <span class="path-difficulty">
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip"></span>
+            </span>
+          </div>
+          <div class="path-thumb">
+            <div class="path-thumb-grid"></div>
+            <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 240 96" preserveAspectRatio="xMidYMid meet">
+              <g stroke="currentColor" stroke-width="1.5" fill="none" style="color:var(--ink-2)">
+                <line x1="40" y1="78" x2="100" y2="78"/>
+                <line x1="50" y1="78" x2="50" y2="38"/>
+                <line x1="90" y1="78" x2="90" y2="38"/>
+                <line x1="50" y1="38" x2="90" y2="38"/>
+                <line x1="140" y1="78" x2="200" y2="78"/>
+                <line x1="150" y1="78" x2="150" y2="38"/>
+                <line x1="190" y1="78" x2="190" y2="38"/>
+                <line x1="150" y1="38" x2="170" y2="22"/>
+                <line x1="170" y1="22" x2="190" y2="38"/>
+              </g>
+            </svg>
+          </div>
+          <h2 class="path-title">Compare alternatives</h2>
+          <p class="path-desc">Confronta 2–4 schemi resistenti sullo stesso carico. Tabella UC, peso, costo, freccia max.</p>
+          <div class="path-meta">
+            <span><b>5</b> step</span>
+            <span><b>~12 min</b></span>
+            <span>tutti i codici</span>
+          </div>
+        </article>
+
+        <!-- 5 · Sismica EC8 (coming soon) -->
+        <article class="path" style="opacity: 0.55; cursor: default">
+          <span class="path-tag-comingsoon">In arrivo</span>
+          <div class="path-head">
+            <span class="path-num">05</span>
+            <span class="path-difficulty">
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip on"></span>
+            </span>
+          </div>
+          <div class="path-thumb">
+            <div class="path-thumb-grid"></div>
+            <svg style="position:absolute; inset:0; width:100%; height:100%" viewBox="0 0 240 96" preserveAspectRatio="xMidYMid meet">
+              <g stroke="currentColor" stroke-width="1.5" fill="none" style="color:var(--ink-2)">
+                <line x1="40" y1="82" x2="200" y2="82"/>
+                <line x1="60" y1="82" x2="60" y2="24"/>
+                <line x1="120" y1="82" x2="120" y2="24"/>
+                <line x1="180" y1="82" x2="180" y2="24"/>
+                <line x1="60" y1="56" x2="180" y2="56"/>
+                <line x1="60" y1="24" x2="180" y2="24"/>
+                <path d="M30 50 Q40 40 30 30" stroke-dasharray="2 2"/>
+              </g>
+            </svg>
+          </div>
+          <h2 class="path-title">Verifica sismica</h2>
+          <p class="path-desc">Edificio 2–5 piani, analisi modale + spettro di risposta. EC8 + NTC18 Cap. 7.</p>
+          <div class="path-meta">
+            <span><b>6</b> step</span>
+            <span><b>~25 min</b></span>
+            <span>EC8 · NTC18</span>
+          </div>
+        </article>
+
+        <!-- 6 · Custom / Open in Studio Pro -->
+        <article class="path" style="background: transparent; border-style: dashed">
+          <div class="path-head">
+            <span class="path-num">06</span>
+            <span class="path-difficulty">
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip on"></span>
+              <span class="path-difficulty-pip on"></span>
+            </span>
+          </div>
+          <div class="path-thumb" style="display:grid; place-items:center; background: transparent; border-style:dashed">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" style="color:var(--ink-3)"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          </div>
+          <h2 class="path-title">Workflow custom</h2>
+          <p class="path-desc">Il tuo scenario non rientra in nessun percorso? Apri Studio Pro e costruiscilo a mano — controllo totale.</p>
+          <div class="path-meta">
+            <span><b>libero</b></span>
+            <span>Studio Pro</span>
+            <span style="margin-left:auto; color:var(--accent)">Apri →</span>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="app-status statusbar">
+    <span><span class="statusbar-dot"></span> Online · WebSocket connesso</span>
+    <span>5 percorsi disponibili</span>
+    <div class="statusbar-spacer"></div>
+    <span>47 / 100 cr</span>
+    <span>⌘ K · Cerca</span>
+    <span>v1.9.0-pa</span>
+  </footer>
+</div>
+
+<div id="tweaks-root"></div>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{ "theme": "light" }/*EDITMODE-END*/;
+function CTweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  React.useEffect(() => { document.documentElement.setAttribute('data-theme', t.theme); }, [t.theme]);
+  return (<TweaksPanel title="Tweaks"><TweakSection title="View">
+    <TweakRadio label="Tema" value={t.theme} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} onChange={v=>setTweak('theme',v)} />
+  </TweakSection></TweaksPanel>);
+}
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<CTweaks />);
+</script>
+</body>
+</html>

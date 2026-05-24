@@ -21,28 +21,23 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT: Record<ButtonVariant, string> = {
+  // v2.5.0 PR1 Precision: hairline-only borders, no shadow, sharp radius.
   primary:
-    "bg-accent text-white hover:bg-accent-hover active:bg-accent " +
-    "shadow-sm border border-accent-hover/30",
+    "bg-accent text-white hover:bg-accent-hover active:bg-accent border border-accent",
   secondary:
-    "bg-bg-elevated text-ink hover:bg-bg-hover border border-border",
+    "bg-bg-elevated text-ink hover:bg-bg-hover border border-border-light hover:border-ink-3",
   ghost:
-    "bg-transparent text-ink hover:bg-bg-hover border border-transparent",
+    "bg-transparent text-ink-2 hover:bg-bg-hover hover:text-ink border border-transparent",
   outline:
     "bg-transparent text-ink hover:bg-bg-hover border border-border",
   danger:
-    "bg-danger text-white hover:bg-danger/90 border border-danger/40",
+    "bg-transparent text-danger hover:bg-danger hover:text-white border border-danger",
   success:
-    "bg-success text-white hover:bg-success/90 border border-success/40",
-  // v1.7 T3: gradient emerald coerente con mockup_reference.html sezione 04
-  // (Solve drill-in bottone Esegui verde). Usa la palette Tailwind emerald
-  // standard invece di hex hardcoded.
+    "bg-success text-white hover:bg-success/90 border border-success",
+  // v2.5.0 PR1: Run button — Precision flat success (era gradient emerald
+  // v1.7 T3). Mantiene l'identità "Run verde" che gli utenti riconoscono.
   run:
-    "text-white border border-emerald-700 " +
-    "shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_1px_2px_rgba(0,0,0,0.1)] " +
-    "bg-gradient-to-b from-emerald-500 to-emerald-600 " +
-    "hover:from-emerald-600 hover:to-emerald-700 " +
-    "active:from-emerald-700 active:to-emerald-800",
+    "bg-success text-white font-semibold hover:brightness-110 border border-success",
 };
 
 const SIZE: Record<ButtonSize, string> = {
@@ -74,9 +69,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref as never}
       disabled={disabled || loading}
       className={cn(
-        "inline-flex items-center justify-center font-medium rounded-md",
+        // v2.5.0 PR1 Precision: sharp (no rounded), no shadow, hairline borders.
+        "inline-flex items-center justify-center font-medium",
         "transition-colors duration-fast outline-none",
-        "focus-visible:ring-2 focus-visible:ring-accent/60 focus-visible:ring-offset-1 focus-visible:ring-offset-bg",
+        "focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1",
         "disabled:opacity-40 disabled:cursor-not-allowed",
         "whitespace-nowrap select-none",
         VARIANT[variant],

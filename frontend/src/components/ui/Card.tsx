@@ -28,7 +28,7 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-md border border-border",
+        "border border-border",
         elevated ? "bg-bg-elevated" : "bg-bg-panel",
         className,
       )}

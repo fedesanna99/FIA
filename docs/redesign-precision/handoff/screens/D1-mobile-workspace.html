@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Mobile workspace (D1)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  body { background: #18191D; display: grid; place-items: center; min-height: 100vh; padding: 24px 16px; }
+  :root[data-theme="light"] body { background: #2a2c30; }
+
+  /* Mobile shell inside the iPhone */
+  .mob {
+    position: absolute;
+    inset: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    display: grid;
+    grid-template-rows: auto auto auto 1fr auto auto;
+    overflow: hidden;
+  }
+  /* status bar / nav placeholder spacing handled by IOSDevice */
+
+  /* Mobile mini topbar */
+  .mob-topbar {
+    display: grid;
+    grid-template-columns: auto auto 1fr auto auto;
+    gap: 8px;
+    padding: 10px 14px 8px;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .mob-topbar-mode {
+    padding: 3px 7px;
+    font-family: var(--font-mono);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-subtle);
+    border: 1px solid var(--accent);
+  }
+  .mob-back {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-family: var(--font-mono); font-size: 11px; color: var(--ink-2);
+  }
+
+  /* Mission strip */
+  .mob-mission {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px;
+    padding: 8px 14px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    align-items: center;
+  }
+  .mob-mission-title { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .mob-mission-sub { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); }
+
+  /* Viewport */
+  .mob-vp {
+    background: var(--bg-viewport);
+    position: relative;
+    overflow: hidden;
+    min-height: 0;
+  }
+  .mob-vp-grid { position: absolute; inset: 0; background: var(--vp-grid); background-size: 16px 16px; }
+
+  .mob-vp-hud {
+    position: absolute; top: 10px; left: 10px; display: flex; gap: 4px;
+  }
+  .mob-vp-tools {
+    position: absolute; right: 10px; top: 10px;
+    display: flex; flex-direction: column;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+  }
+  .mob-vp-tool { width: 36px; height: 36px; display: grid; place-items: center; color: var(--ink-2); border-bottom: 1px solid var(--border); }
+  .mob-vp-tool:last-child { border-bottom: none; }
+  .mob-vp-tool.is-active { color: var(--accent); background: var(--accent-subtle); }
+
+  .mob-vp-scale {
+    position: absolute; bottom: 10px; left: 10px;
+    padding: 3px 7px; background: var(--bg-panel); border: 1px solid var(--border);
+    font-family: var(--font-mono); font-size: 9px; color: var(--ink-2); letter-spacing: 0.06em;
+  }
+
+  /* Results strip */
+  .mob-results {
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    padding: 10px 14px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 12px;
+    align-items: center;
+  }
+  .mob-results-uc {
+    font-family: var(--font-mono);
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .mob-results-elem { font-family: var(--font-display); font-size: 16px; font-weight: 600; color: var(--ink); }
+  .mob-results-meta { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); }
+
+  /* Bottom tab bar */
+  .mob-tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    background: var(--bg-panel);
+    border-top: 1px solid var(--border);
+    padding-bottom: 14px;
+  }
+  .mob-tab {
+    display: flex; flex-direction: column;
+    align-items: center;
+    padding: 8px 4px 6px;
+    color: var(--ink-3);
+    gap: 3px;
+  }
+  .mob-tab.is-active { color: var(--accent); }
+  .mob-tab.is-active::before {
+    content: ""; position: absolute; top: 0; height: 2px; width: 28px; background: var(--accent);
+  }
+  .mob-tab { position: relative; }
+  .mob-tab-label { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.04em; }
+</style>
+</head>
+<body data-screen-label="D1 Mobile Workspace">
+
+<div id="frame-root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "light",
+  "deviceDark": false
+}/*EDITMODE-END*/;
+
+function MobAppContent() {
+  return (
+    <div className="mob">
+      {/* Spacer for iOS status bar (handled by IOSDevice top inset) */}
+      <div style={{height: 56}}></div>
+
+      {/* Compact TopBar */}
+      <div className="mob-topbar">
+        <a href="C1-percorsi-galleria.html" className="mob-back">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="15 18 9 12 15 6"/></svg>
+          Percorsi
+        </a>
+        <span className="mob-topbar-mode">Percorso · Telaio 2D</span>
+        <div></div>
+        <button className="topbar-icon-btn" style={{width: 28, height: 28}}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        </button>
+        <button className="topbar-avatar" style={{width: 28, height: 28}}>GR</button>
+      </div>
+
+      {/* Mission bar */}
+      <div className="mob-mission">
+        <div>
+          <div className="mob-mission-title">Step <b>5</b> / 6 · Risultati</div>
+          <div className="mob-mission-sub">Portal frame · 2D · LC1 SLE · solved 12s fa</div>
+        </div>
+        <span className="chip chip--accent" style={{fontSize: 9}}>SOLVED</span>
+      </div>
+
+      {/* Viewport */}
+      <div className="mob-vp">
+        <div className="mob-vp-grid"></div>
+        <svg style={{position: 'absolute', inset: 0, width: '100%', height: '100%'}} viewBox="0 0 360 480" preserveAspectRatio="xMidYMid meet">
+          {/* Undeformed dashed */}
+          <g stroke="currentColor" strokeWidth="1" strokeDasharray="3 4" fill="none" style={{color: 'var(--ink-4)'}}>
+            <line x1="80" y1="380" x2="80" y2="180"/>
+            <line x1="280" y1="380" x2="280" y2="180"/>
+            <line x1="80" y1="180" x2="180" y2="120"/>
+            <line x1="180" y1="120" x2="280" y2="180"/>
+            <line x1="80" y1="280" x2="280" y2="280"/>
+          </g>
+          {/* Deformed coloured */}
+          <g strokeWidth="3.5" fill="none" strokeLinecap="round">
+            <line x1="80" y1="380" x2="86" y2="180" stroke="#DC2626"/>
+            <line x1="86" y1="180" x2="180" y2="126" stroke="#06b6d4"/>
+            <line x1="180" y1="126" x2="274" y2="180" stroke="#84cc16"/>
+            <line x1="274" y1="180" x2="280" y2="380" stroke="#06b6d4"/>
+            <line x1="86" y1="280" x2="274" y2="280" stroke="#2563eb"/>
+          </g>
+          {/* Supports */}
+          <g stroke="currentColor" strokeWidth="1.4" fill="none" style={{color: 'var(--ink-3)'}}>
+            <line x1="50" y1="380" x2="110" y2="380"/>
+            <line x1="56" y1="388" x2="106" y2="388" strokeDasharray="3 3"/>
+            <line x1="250" y1="380" x2="310" y2="380"/>
+            <line x1="256" y1="388" x2="306" y2="388" strokeDasharray="3 3"/>
+          </g>
+          {/* Critical B1 marker */}
+          <rect x="68" y="270" width="36" height="22" fill="var(--bg-panel)" stroke="var(--danger)" strokeWidth="1.5"/>
+          <text x="86" y="286" textAnchor="middle" fontFamily="JetBrains Mono" fontSize="11" fontWeight="600" fill="var(--danger)">B1</text>
+        </svg>
+
+        <div className="mob-vp-hud">
+          <span className="chip" style={{fontSize: 9, padding: '2px 6px'}}>UC ratio</span>
+        </div>
+
+        <div className="mob-vp-tools">
+          <div className="mob-vp-tool is-active"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="3"/><path d="M21 12a9 9 0 0 1-9 9"/></svg></div>
+          <div className="mob-vp-tool"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></div>
+          <div className="mob-vp-tool"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 3h6M3 3v6M21 3h-6M21 3v6M3 21h6M3 21v-6M21 21h-6M21 21v-6"/></svg></div>
+        </div>
+
+        <div className="mob-vp-scale">1:50 · GPU</div>
+      </div>
+
+      {/* Critical results strip */}
+      <div className="mob-results">
+        <div>
+          <div className="mob-results-elem" style={{color: 'var(--danger)'}}>B1</div>
+          <div className="mob-results-meta">critical</div>
+        </div>
+        <div>
+          <div className="mob-results-meta" style={{textTransform: 'uppercase', letterSpacing: '0.1em', fontSize: 9}}>UC MAX</div>
+          <div className="mob-results-uc" style={{color: 'var(--danger)'}}>0.88</div>
+        </div>
+        <button className="btn btn-primary btn-sm">
+          Ispeziona →
+        </button>
+      </div>
+
+      {/* Bottom tab bar */}
+      <nav className="mob-tabbar">
+        <div className="mob-tab">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 7.5 12 2 3 7.5m18 0L12 13"/></svg>
+          <span className="mob-tab-label">Modello</span>
+        </div>
+        <div className="mob-tab">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="5" cy="19" r="2"/><circle cx="19" cy="5" r="2"/><line x1="6.5" y1="17.5" x2="17.5" y2="6.5"/></svg>
+          <span className="mob-tab-label">Make</span>
+        </div>
+        <div className="mob-tab">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><polygon points="5 3 19 12 5 21"/></svg>
+          <span className="mob-tab-label">Solve</span>
+        </div>
+        <div className="mob-tab is-active">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          <span className="mob-tab-label">Risultati</span>
+        </div>
+        <div className="mob-tab">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+          <span className="mob-tab-label">Altro</span>
+        </div>
+      </nav>
+    </div>
+  );
+}
+
+function App() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio, IOSDevice } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+
+  React.useEffect(() => {
+    document.documentElement.setAttribute('data-theme', t.theme);
+  }, [t.theme]);
+
+  return (<>
+    <div className="phone-frame">
+      <IOSDevice dark={t.deviceDark}>
+        <MobAppContent />
+      </IOSDevice>
+    </div>
+
+    <TweaksPanel title="Tweaks">
+      <TweakSection title="View">
+        <TweakRadio
+          label="Tema app"
+          value={t.theme}
+          options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]}
+          onChange={v=>setTweak('theme',v)}
+        />
+        <TweakRadio
+          label="Telaio device"
+          value={t.deviceDark ? 'dark' : 'light'}
+          options={[{value:'light',label:'Bianco'},{value:'dark',label:'Nero'}]}
+          onChange={v=>setTweak('deviceDark', v === 'dark')}
+        />
+      </TweakSection>
+    </TweaksPanel>
+  </>);
+}
+
+ReactDOM.createRoot(document.getElementById('frame-root')).render(<App />);
+</script>
+</body>
+</html>

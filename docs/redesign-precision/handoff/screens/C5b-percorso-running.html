@@ -1,0 +1,660 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8" />
+<title>FEA Pro · Percorso · Esecuzione (C5b)</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<link rel="stylesheet" href="../precision.css" />
+<script src="autoscale.js"></script>
+<style>
+  .c-main { padding: 24px 28px 48px; max-width: 1280px; margin: 0 auto; }
+  .c-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 18px; }
+  .c-head-title { display: flex; align-items: baseline; gap: 12px; }
+  .c-head-title h1 { font-family: var(--font-display); font-size: 24px; line-height: 1.2; letter-spacing: -0.02em; }
+  .c-head-back { font-family: var(--font-mono); font-size: 11px; color: var(--ink-3); display: inline-flex; align-items: center; gap: 6px; }
+  .stp-bar.stp-6 { grid-template-columns: repeat(6, 1fr); }
+
+  /* Two-col body: viewport + sidebar */
+  .run-body {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+  }
+  .run-vp-wrap {
+    position: relative;
+    background: var(--bg-viewport);
+    min-height: 480px;
+    border-bottom: 1px solid var(--border);
+  }
+  .run-vp-grid { position: absolute; inset: 0; background: var(--vp-grid); background-size: 24px 24px; }
+
+  /* Viewport overlay banner */
+  .run-banner {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: var(--bg-panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: center;
+    z-index: 2;
+  }
+  .run-banner-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .run-banner-phase {
+    font-family: var(--font-display);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+  }
+  .run-banner-eta {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-2);
+    text-align: right;
+  }
+  .run-banner-eta b { color: var(--ink); font-weight: 600; }
+
+  .run-progress {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--bg-hover);
+    border-top: 1px solid var(--border);
+    overflow: hidden;
+    z-index: 2;
+  }
+  .run-progress-fill {
+    position: absolute;
+    top: 0; bottom: 0; left: 0;
+    background: var(--accent);
+    width: 0%;
+    transition: width 0.25s linear;
+  }
+
+  /* Sidebar */
+  .run-side {
+    background: var(--bg-panel);
+    border-left: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .run-side-section { padding: 14px 16px; border-bottom: 1px solid var(--border); }
+  .run-side-section:last-child { border-bottom: none; }
+  .run-side-eyebrow { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 10px; }
+
+  /* Phase list */
+  .phase-list { display: flex; flex-direction: column; gap: 0; }
+  .phase {
+    display: grid;
+    grid-template-columns: 18px 1fr auto;
+    gap: 10px;
+    align-items: center;
+    padding: 7px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 12.5px;
+    color: var(--ink-3);
+  }
+  .phase:last-child { border-bottom: none; }
+  .phase-icon {
+    width: 18px; height: 18px;
+    border: 1px solid var(--border-light);
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-size: 9px;
+    color: var(--ink-3);
+  }
+  .phase.is-done .phase-icon  { background: var(--success); color: var(--success-on); border-color: var(--success); }
+  .phase.is-done .phase-name  { color: var(--ink); }
+  .phase.is-active .phase-icon { border-color: var(--accent); color: var(--accent); position: relative; }
+  .phase.is-active .phase-icon::before {
+    content: ""; position: absolute; inset: -2px; border: 1.5px solid var(--accent);
+    animation: precision-pulse 1.1s ease-in-out infinite;
+  }
+  .phase.is-active .phase-name { color: var(--ink); font-weight: 500; }
+  .phase-time { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); font-variant-numeric: tabular-nums; }
+
+  /* Counters grid */
+  .counters { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--border); border: 1px solid var(--border); }
+  .counter { background: var(--bg); padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .counter-lbl { font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-3); }
+  .counter-val { font-family: var(--font-mono); font-size: 18px; font-weight: 600; color: var(--ink); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+  .counter-unit { font-family: var(--font-mono); font-size: 10px; color: var(--ink-3); margin-left: 3px; font-weight: 400; }
+
+  /* Terminal log */
+  .term {
+    background: var(--bg-viewport);
+    border: 1px solid var(--border);
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    line-height: 1.55;
+    color: var(--ink-2);
+    padding: 10px 12px;
+    height: 168px;
+    overflow: hidden;
+    white-space: nowrap;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  .term-line { color: var(--ink-2); }
+  .term-line .ts { color: var(--ink-3); margin-right: 6px; }
+  .term-line .ok { color: var(--success); }
+  .term-line .key { color: var(--ink); font-weight: 500; }
+  .term-line.is-current::after {
+    content: "▌"; color: var(--accent); margin-left: 2px;
+    animation: precision-pulse 0.8s ease-in-out infinite;
+  }
+
+  /* Side foot — Cancel */
+  .run-side-foot {
+    margin-top: auto;
+    padding: 12px 16px;
+    border-top: 1px solid var(--border);
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .run-cost {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--ink-3);
+  }
+  .run-cost b { color: var(--ink); font-weight: 600; }
+</style>
+</head>
+<body data-screen-label="C5b Percorso Esecuzione">
+
+<div class="app">
+
+  <header class="app-topbar topbar">
+    <div class="topbar-logo">
+      <div class="topbar-logo-mark">F</div>
+      <span class="topbar-logo-name">FEA Pro</span>
+      <span class="topbar-version">v1.9</span>
+    </div>
+    <span class="topbar-modechip"><span class="topbar-modechip-dot"></span>Percorsi · Telaio 2D</span>
+    <div></div>
+    <button class="topbar-search">
+      <svg class="topbar-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span class="topbar-search-placeholder">Cerca strumenti, modelli, impostazioni…</span>
+      <span class="kbd">⌘ K</span>
+    </button>
+    <button class="btn btn-ghost btn-sm" disabled style="opacity: 0.5">
+      Apri in Studio Pro
+    </button>
+    <div class="topbar-credits"><b>35</b> / 100 cr</div>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg></button>
+    <button class="topbar-icon-btn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="topbar-icon-dot">3</span></button>
+    <button class="topbar-avatar">GR</button>
+  </header>
+
+  <main class="app-main">
+    <div class="c-main">
+
+      <div class="c-head">
+        <div class="c-head-title">
+          <a href="C1-percorsi-galleria.html" class="c-head-back">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+            PERCORSI
+          </a>
+          <span class="muted" style="font-family:var(--font-mono); font-size:11px">/</span>
+          <h1>Verifica telaio 2D</h1>
+          <span class="chip chip--accent"><span class="pulse-dot" style="background: var(--accent); width: 6px; height: 6px"></span> ESECUZIONE</span>
+        </div>
+        <div class="muted" style="font-family:var(--font-mono); font-size:11px">
+          12 cr · profilo Pro · solver Direct Sparse
+        </div>
+      </div>
+
+      <div class="stp-shell">
+        <div class="stp-bar stp-6">
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Geometria</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Vincoli & Carichi</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-done">
+            <div class="stp-step-head"><span class="stp-step-num">✓</span><span class="stp-step-name">Materiali & Sezioni</span></div>
+            <span class="stp-step-meta">completato</span>
+          </div>
+          <div class="stp-step is-current">
+            <div class="stp-step-head">
+              <span class="stp-step-num" style="background: transparent; color: var(--accent); border: none; padding: 0; width: 18px; height: 18px">
+                <span class="spin" style="width: 14px; height: 14px; border-top-color: var(--accent)"></span>
+              </span>
+              <span class="stp-step-name">Esegui analisi</span>
+            </div>
+            <span class="stp-step-meta" id="step-status">in esecuzione · 0%</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">5</span><span class="stp-step-name">Risultati</span></div>
+            <span class="stp-step-meta">in attesa</span>
+          </div>
+          <div class="stp-step is-todo">
+            <div class="stp-step-head"><span class="stp-step-num">6</span><span class="stp-step-name">Report</span></div>
+            <span class="stp-step-meta">in attesa</span>
+          </div>
+        </div>
+
+        <div class="run-body">
+
+          <!-- Center: viewport + banner -->
+          <div class="run-vp-wrap">
+
+            <!-- Top banner with phase name + ETA -->
+            <div class="run-banner">
+              <div>
+                <div class="run-banner-eyebrow">
+                  <span class="pulse-dot" style="width: 6px; height: 6px"></span>
+                  Solver running
+                </div>
+                <div class="run-banner-phase" id="phase-label">Assemblaggio matrice di rigidezza globale K</div>
+              </div>
+              <div></div>
+              <div class="run-banner-eta">
+                <div>ETA <b id="eta-val">~4.2s</b></div>
+                <div>passato <b id="elapsed-val">1.6s</b></div>
+              </div>
+            </div>
+
+            <!-- Viewport content -->
+            <div class="run-vp-grid"></div>
+            <svg style="position:absolute; inset:0; width:100%; height:100%; padding-top: 64px" viewBox="0 0 800 480" preserveAspectRatio="xMidYMid meet">
+              <defs>
+                <marker id="ar-run" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--accent)"/></marker>
+              </defs>
+
+              <!-- Static supports -->
+              <g stroke="currentColor" stroke-width="1.4" fill="none" style="color:var(--ink-3); opacity: 0.5">
+                <line x1="150" y1="380" x2="210" y2="380"/>
+                <line x1="156" y1="388" x2="204" y2="388" stroke-dasharray="3 3"/>
+                <line x1="156" y1="396" x2="204" y2="396" stroke-dasharray="3 3"/>
+                <line x1="590" y1="380" x2="650" y2="380"/>
+                <line x1="596" y1="388" x2="644" y2="388" stroke-dasharray="3 3"/>
+                <line x1="596" y1="396" x2="644" y2="396" stroke-dasharray="3 3"/>
+              </g>
+
+              <!-- Beam elements — each gets a class so JS can animate them -->
+              <g fill="none" stroke-width="3" id="beams">
+                <line class="beam" data-beam="B1" x1="180" y1="380" x2="180" y2="180" stroke="var(--ink-4)"/>
+                <line class="beam" data-beam="B3" x1="180" y1="180" x2="400" y2="120" stroke="var(--ink-4)"/>
+                <line class="beam" data-beam="B4" x1="400" y1="120" x2="620" y2="180" stroke="var(--ink-4)"/>
+                <line class="beam" data-beam="B5" x1="620" y1="180" x2="620" y2="380" stroke="var(--ink-4)"/>
+                <line class="beam" data-beam="B2" x1="180" y1="280" x2="620" y2="280" stroke="var(--ink-4)"/>
+              </g>
+
+              <!-- Nodes -->
+              <g fill="var(--bg-panel)" stroke-width="2" id="nodes">
+                <circle class="node" data-node="N1" cx="180" cy="380" r="6" stroke="var(--ink-3)"/>
+                <circle class="node" data-node="N2" cx="180" cy="280" r="6" stroke="var(--ink-3)"/>
+                <circle class="node" data-node="N3" cx="180" cy="180" r="6" stroke="var(--ink-3)"/>
+                <circle class="node" data-node="N4" cx="400" cy="120" r="6" stroke="var(--ink-3)"/>
+                <circle class="node" data-node="N5" cx="620" cy="180" r="6" stroke="var(--ink-3)"/>
+                <circle class="node" data-node="N6" cx="620" cy="280" r="6" stroke="var(--ink-3)"/>
+                <circle class="node" data-node="N7" cx="620" cy="380" r="6" stroke="var(--ink-3)"/>
+              </g>
+
+              <!-- Load arrows q -->
+              <g stroke="var(--accent)" stroke-width="1.4" fill="none" opacity="0.7">
+                <line x1="220" y1="60" x2="220" y2="84" marker-end="url(#ar-run)"/>
+                <line x1="280" y1="50" x2="280" y2="74" marker-end="url(#ar-run)"/>
+                <line x1="340" y1="40" x2="340" y2="64" marker-end="url(#ar-run)"/>
+                <line x1="400" y1="34" x2="400" y2="58" marker-end="url(#ar-run)"/>
+                <line x1="460" y1="40" x2="460" y2="64" marker-end="url(#ar-run)"/>
+                <line x1="520" y1="50" x2="520" y2="74" marker-end="url(#ar-run)"/>
+                <line x1="580" y1="60" x2="580" y2="84" marker-end="url(#ar-run)"/>
+              </g>
+
+              <!-- Animated "scanning" indicator: a moving point that traces the matrix being assembled -->
+              <g id="scan-cursor" opacity="0">
+                <circle cx="0" cy="0" r="10" fill="var(--accent)" opacity="0.18"/>
+                <circle cx="0" cy="0" r="5" fill="var(--accent)"/>
+              </g>
+            </svg>
+
+            <!-- Bottom progress bar -->
+            <div class="run-progress"><div class="run-progress-fill" id="progress-fill"></div></div>
+          </div>
+
+          <!-- Right sidebar -->
+          <aside class="run-side">
+
+            <div class="run-side-section">
+              <div class="run-side-eyebrow">Fasi del solver</div>
+              <div class="phase-list" id="phase-list">
+                <div class="phase" data-phase="0"><span class="phase-icon">1</span><span class="phase-name">Validazione mesh</span><span class="phase-time">—</span></div>
+                <div class="phase" data-phase="1"><span class="phase-icon">2</span><span class="phase-name">Discretizzazione</span><span class="phase-time">—</span></div>
+                <div class="phase" data-phase="2"><span class="phase-icon">3</span><span class="phase-name">Assemblaggio K</span><span class="phase-time">—</span></div>
+                <div class="phase" data-phase="3"><span class="phase-icon">4</span><span class="phase-name">Fattorizzazione LDLᵀ</span><span class="phase-time">—</span></div>
+                <div class="phase" data-phase="4"><span class="phase-icon">5</span><span class="phase-name">Solve K·u = F</span><span class="phase-time">—</span></div>
+                <div class="phase" data-phase="5"><span class="phase-icon">6</span><span class="phase-name">Post-processing</span><span class="phase-time">—</span></div>
+              </div>
+            </div>
+
+            <div class="run-side-section">
+              <div class="run-side-eyebrow">Live counters</div>
+              <div class="counters">
+                <div class="counter">
+                  <span class="counter-lbl">DOF processati</span>
+                  <span><span class="counter-val" id="ctr-dof">0</span><span class="counter-unit">/ 42</span></span>
+                </div>
+                <div class="counter">
+                  <span class="counter-lbl">Iterazioni</span>
+                  <span><span class="counter-val" id="ctr-iter">0</span></span>
+                </div>
+                <div class="counter">
+                  <span class="counter-lbl">Residuo</span>
+                  <span><span class="counter-val" id="ctr-res">—</span></span>
+                </div>
+                <div class="counter">
+                  <span class="counter-lbl">Memoria</span>
+                  <span><span class="counter-val" id="ctr-mem">2.1</span><span class="counter-unit">MB</span></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="run-side-section" style="flex: 1; display: flex; flex-direction: column; gap: 10px">
+              <div class="run-side-eyebrow">Solver log · stdout</div>
+              <div class="term" id="term">
+                <!-- lines injected by JS -->
+              </div>
+            </div>
+
+            <div class="run-side-foot">
+              <div class="run-cost">
+                <b>12 cr</b> · 35 → 23 (al successo)
+              </div>
+              <button class="btn btn-secondary btn-sm" id="cancel-btn">
+                Annulla
+              </button>
+            </div>
+          </aside>
+        </div>
+
+        <div class="stp-foot">
+          <div class="stp-validation" style="color: var(--accent)">
+            <span class="spin" style="width: 12px; height: 12px"></span>
+            Direct Sparse · LC1 SLE · DOF 42 · convergence 1e-9
+          </div>
+          <div class="stp-foot-actions">
+            <span class="muted" style="font-family: var(--font-mono); font-size: 11px">Non chiudere la finestra · l'analisi continua se il browser perde focus</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <footer class="app-status statusbar">
+    <span><span class="statusbar-dot"></span> Online · WebSocket connesso</span>
+    <span>Step <b>4</b> / 6 · Esecuzione · <b id="status-progress">0%</b></span>
+    <span><span class="spin" style="width: 8px; height: 8px; vertical-align: middle"></span> Solver Direct Sparse</span>
+    <div class="statusbar-spacer"></div>
+    <span>35 / 100 cr</span>
+    <span>⌘ K · Cerca</span>
+    <span>v1.9.0-pa</span>
+  </footer>
+</div>
+
+<!-- Tweaks -->
+<div id="tweaks-root"></div>
+
+<!-- Animation engine -->
+<script>
+(function() {
+  // ─── Phase definitions ─────────────────────────────────────────
+  const PHASES = [
+    { label: 'Validazione mesh',         pct: 5,   dur: 240,  msg: 'mesh validation · 7 nodes · 5 beam · connectivity OK' },
+    { label: 'Discretizzazione',         pct: 18,  dur: 380,  msg: 'discretizing model · 42 DOF · stiffness profile = sparse' },
+    { label: 'Assemblaggio matrice di rigidezza globale K',  pct: 48,  dur: 1200, msg: 'assembling K [42x42] · element contributions · BCs applied' },
+    { label: 'Fattorizzazione LDLᵀ',     pct: 70,  dur: 900,  msg: 'factorizing K via LDLᵀ decomposition · fill-in ratio 1.18' },
+    { label: 'Solve K·u = F',            pct: 88,  dur: 700,  msg: 'back-substitution · solving K·u = F · iteration 1 · residual 4.3e-10' },
+    { label: 'Post-processing',          pct: 100, dur: 580,  msg: 'computing element forces, von Mises, UC ratios for LC1 SLE' }
+  ];
+  const TOTAL_DUR = PHASES.reduce((s, p) => s + p.dur, 0); // ~4000ms
+  const RESET_PAUSE = 1800; // hold at 100% then loop
+
+  // Log lines that get streamed in
+  const LOG_LINES = [
+    'solver: Direct Sparse · backend NumPy 1.26 / SciPy 1.12',
+    'reading model: 7 nodes · 5 beam · 1 load case · 2 supports',
+    'applying boundary conditions: N1 fixed · N5 fixed · 6 DOF locked',
+    'assembling global stiffness matrix K [42 × 42] · sparse',
+    'memory allocated for K: 2.1 MB · profile = banded',
+    'applying load case LC1 (SLE quasi-perm.) · q = 2.00 kN/m on B3-B4',
+    'factorizing K via LDLᵀ · positive definite · fill-in 1.18',
+    'iteration 1 · residual 4.3e-10 · converged below 1e-9',
+    'computing element forces · B1..B5 · all 5 members',
+    'post-processing: σ_vm max = 162.4 MPa · UC max = 0.88 @ B1',
+    'writing results to .feares cache · 12 kB',
+    'solver done · 5.8s · all checks complete'
+  ];
+
+  // ─── DOM refs ──────────────────────────────────────────────────
+  const $ = (s) => document.querySelector(s);
+  const phaseLabel = $('#phase-label');
+  const progressFill = $('#progress-fill');
+  const statusProgress = $('#status-progress');
+  const stepStatus = $('#step-status');
+  const elapsedVal = $('#elapsed-val');
+  const etaVal = $('#eta-val');
+  const ctrDof = $('#ctr-dof');
+  const ctrIter = $('#ctr-iter');
+  const ctrRes = $('#ctr-res');
+  const ctrMem = $('#ctr-mem');
+  const term = $('#term');
+  const beams = document.querySelectorAll('#beams .beam');
+  const nodes = document.querySelectorAll('#nodes .node');
+  const phaseEls = document.querySelectorAll('.phase');
+  const scanCursor = $('#scan-cursor');
+
+  // ─── State ─────────────────────────────────────────────────────
+  let startedAt = performance.now();
+  let lastLineIdx = -1;
+  let paused = false;
+  let speed = 1;
+  let progressOverride = null;
+
+  // ─── Update fn ─────────────────────────────────────────────────
+  function pctFromTime(t) {
+    let acc = 0;
+    for (let i = 0; i < PHASES.length; i++) {
+      const p = PHASES[i];
+      if (t < acc + p.dur) {
+        const within = (t - acc) / p.dur;
+        const prev = i === 0 ? 0 : PHASES[i-1].pct;
+        return { pct: prev + (p.pct - prev) * within, phaseIdx: i };
+      }
+      acc += p.dur;
+    }
+    return { pct: 100, phaseIdx: PHASES.length - 1 };
+  }
+
+  function update() {
+    if (paused) { requestAnimationFrame(update); return; }
+    const now = performance.now();
+    let t = (now - startedAt) * speed;
+    if (t > TOTAL_DUR + RESET_PAUSE) {
+      // loop
+      startedAt = now;
+      lastLineIdx = -1;
+      term.innerHTML = '';
+      beams.forEach(b => b.setAttribute('stroke', 'var(--ink-4)'));
+      nodes.forEach(n => n.setAttribute('stroke', 'var(--ink-3)'));
+      t = 0;
+    }
+    if (t > TOTAL_DUR) t = TOTAL_DUR;
+
+    let pct, phaseIdx;
+    if (progressOverride !== null) {
+      pct = progressOverride;
+      // map override pct to phase
+      let acc = 0;
+      phaseIdx = PHASES.length - 1;
+      for (let i = 0; i < PHASES.length; i++) {
+        if (pct < PHASES[i].pct) { phaseIdx = i; break; }
+      }
+    } else {
+      const r = pctFromTime(t);
+      pct = r.pct; phaseIdx = r.phaseIdx;
+    }
+
+    progressFill.style.width = pct.toFixed(1) + '%';
+    statusProgress.textContent = Math.round(pct) + '%';
+    stepStatus.textContent = pct >= 100 ? 'completato' : 'in esecuzione · ' + Math.round(pct) + '%';
+
+    // Phase label
+    phaseLabel.textContent = PHASES[phaseIdx].label;
+
+    // Time counters
+    const elapsed = Math.min(t / 1000, 5.8);
+    elapsedVal.textContent = elapsed.toFixed(1) + 's';
+    const eta = Math.max(0, 5.8 - elapsed);
+    etaVal.textContent = '~' + eta.toFixed(1) + 's';
+
+    // Phase list states
+    phaseEls.forEach((el, i) => {
+      el.classList.remove('is-done', 'is-active');
+      const icon = el.querySelector('.phase-icon');
+      const timeEl = el.querySelector('.phase-time');
+      if (i < phaseIdx) {
+        el.classList.add('is-done');
+        icon.textContent = '✓';
+        if (timeEl && timeEl.textContent === '—') timeEl.textContent = (PHASES[i].dur / 1000).toFixed(2) + 's';
+      } else if (i === phaseIdx) {
+        el.classList.add('is-active');
+        icon.textContent = String(i + 1);
+        if (timeEl) timeEl.textContent = pct >= 100 ? (PHASES[i].dur / 1000).toFixed(2) + 's' : '…';
+      } else {
+        icon.textContent = String(i + 1);
+        if (timeEl) timeEl.textContent = '—';
+      }
+    });
+
+    // Counters
+    const dof = Math.min(42, Math.floor(pct / 100 * 42));
+    ctrDof.textContent = String(dof);
+    ctrIter.textContent = phaseIdx >= 4 ? '1' : '0';
+    ctrRes.textContent = phaseIdx >= 4 ? '4.3e-10' : (phaseIdx >= 3 ? '—' : '—');
+    ctrMem.textContent = (2.1 + (phaseIdx * 0.4)).toFixed(1);
+
+    // Beam highlighting (during assembly phase, beams light up one by one)
+    if (phaseIdx >= 2) {
+      const phaseStart = PHASES.slice(0, 2).reduce((s, p) => s + p.dur, 0);
+      const intoAssembly = (t - phaseStart) / PHASES[2].dur;
+      const beamsLit = Math.min(beams.length, Math.floor(intoAssembly * beams.length * 1.2));
+      beams.forEach((b, i) => {
+        if (i < beamsLit) b.setAttribute('stroke', 'var(--accent)');
+        else b.setAttribute('stroke', 'var(--ink-4)');
+      });
+      // After phase 4 (solve), all become coloured by UC (preview)
+      if (phaseIdx >= 5) {
+        const colors = ['#DC2626', '#06b6d4', '#06b6d4', '#84cc16', '#2563eb']; // B1, B3, B4, B5, B2 (DOM order)
+        beams.forEach((b, i) => b.setAttribute('stroke', colors[i] || 'var(--accent)'));
+      }
+    } else {
+      beams.forEach(b => b.setAttribute('stroke', 'var(--ink-4)'));
+    }
+
+    // Nodes light up during validation
+    const nodesLit = Math.min(nodes.length, Math.floor(pct / 100 * nodes.length * 2));
+    nodes.forEach((n, i) => {
+      if (i < nodesLit) n.setAttribute('stroke', 'var(--accent)');
+      else n.setAttribute('stroke', 'var(--ink-3)');
+    });
+
+    // Scan cursor (during assembly, moves along the diagonal of the K matrix → represented as moving across nodes)
+    if (phaseIdx === 2) {
+      const phaseStart = PHASES.slice(0, 2).reduce((s, p) => s + p.dur, 0);
+      const intoAssembly = (t - phaseStart) / PHASES[2].dur;
+      scanCursor.setAttribute('opacity', '1');
+      const positions = [[180,380],[180,280],[180,180],[400,120],[620,180],[620,280],[620,380]];
+      const idx = Math.min(positions.length - 1, Math.floor(intoAssembly * positions.length));
+      const [x, y] = positions[idx];
+      scanCursor.setAttribute('transform', 'translate(' + x + ',' + y + ')');
+    } else {
+      scanCursor.setAttribute('opacity', '0');
+    }
+
+    // Log line streaming — one per ~330ms
+    const targetLine = Math.min(LOG_LINES.length - 1, Math.floor(t / (TOTAL_DUR / LOG_LINES.length)));
+    while (lastLineIdx < targetLine) {
+      lastLineIdx++;
+      const line = LOG_LINES[lastLineIdx];
+      const ts = (elapsed).toFixed(3).padStart(6, '0');
+      const div = document.createElement('div');
+      div.className = 'term-line anim-tick';
+      div.innerHTML = '<span class="ts">[' + ts + ']</span>' + formatLine(line);
+      // mark previous as not-current
+      const prev = term.querySelector('.is-current');
+      if (prev) prev.classList.remove('is-current');
+      div.classList.add('is-current');
+      term.appendChild(div);
+      // trim to last 7 lines
+      while (term.children.length > 7) term.removeChild(term.firstChild);
+    }
+
+    requestAnimationFrame(update);
+  }
+
+  function formatLine(s) {
+    return s
+      .replace(/(solver done.*$)/i, '<span class="ok">$1</span>')
+      .replace(/(K)/g, '<span class="key">$1</span>');
+  }
+
+  requestAnimationFrame(update);
+
+  // expose for Tweaks
+  window.__c5b = {
+    setPaused: (v) => { paused = v; if (!paused) startedAt = performance.now() - (progressOverride !== null ? 0 : (performance.now() - startedAt)); },
+    setSpeed:  (v) => { speed = v; },
+    setProgress: (pct) => {
+      if (pct === null) { progressOverride = null; return; }
+      progressOverride = pct;
+      paused = true;
+    },
+    reset: () => { startedAt = performance.now(); lastLineIdx = -1; term.innerHTML = ''; }
+  };
+})();
+</script>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="../tweaks-panel.jsx"></script>
+<script type="text/babel">
+const DEFAULTS = /*EDITMODE-BEGIN*/{
+  "theme": "dark",
+  "speed": 2,
+  "paused": false
+}/*EDITMODE-END*/;
+function CTweaks() {
+  const { TweaksPanel, useTweaks, TweakSection, TweakRadio, TweakToggle, TweakSlider } = window;
+  const [t, setTweak] = useTweaks(DEFAULTS);
+  React.useEffect(() => { document.documentElement.setAttribute('data-theme', t.theme); }, [t.theme]);
+  React.useEffect(() => { if (window.__c5b) window.__c5b.setPaused(t.paused); }, [t.paused]);
+  React.useEffect(() => { if (window.__c5b) window.__c5b.setSpeed(t.speed); }, [t.speed]);
+  return (<TweaksPanel title="Tweaks"><TweakSection title="View">
+    <TweakRadio label="Tema" value={t.theme} options={[{value:'light',label:'Light'},{value:'dark',label:'Dark'}]} onChange={v=>setTweak('theme',v)} />
+    <TweakRadio label="Velocità" value={String(t.speed)} options={[{value:'0.5',label:'0.5×'},{value:'1',label:'1×'},{value:'2',label:'2×'}]} onChange={v=>setTweak('speed', Number(v))} />
+    <TweakToggle label="Pausa" value={t.paused} onChange={v=>setTweak('paused', v)} />
+  </TweakSection></TweaksPanel>);
+}
+ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<CTweaks />);
+</script>
+</body>
+</html>

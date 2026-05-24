@@ -3,20 +3,25 @@
 @tailwind utilities;
 
 /*
- * FEA Pro — Design tokens · Precision direction · v2.0
- * ─────────────────────────────────────────────────────────────────────────
- * Rifatto dal handoff `REDESIGN ARCHITETTI.zip` (2026-05-23).
+ * FEA Pro — Design Tokens (Precision direction · v1.9)
+ * ────────────────────────────────────────────────────────────────────────
+ * v2.5.0 PR1 — Destructive replace dal bundle handoff `tokens.css`
+ *               (vedi docs/redesign-precision/handoff/tokens.css).
  *
- * Light è ora default (era dark). Dark via [data-theme="dark"] su <html>.
- * Geometria sharp (radius 0). Hairline-only borders. Cyan singolo come
- * accento (Studio Pro e Percorsi si distinguono per layout, non colore).
+ * Formato compatibile col codebase:
+ *   --c-*   ⟶ RGB triple ("R G B") per usare con rgb(var(--c-*) / α)
+ *   --<n>   ⟶ alias ready-to-use (rgb-resolved)
  *
- * Format `--c-*` triple "R G B" preservato per compat Tailwind opacity
- * modifier (`bg-accent/20` espande in `rgb(var(--c-accent) / 0.2)`).
+ * Light è default. Dark via [data-theme="dark"] su <html>.
+ * Geometria sharp (radius 0). Hairline-only borders.
+ * Fonts: Inter (body), Inter Tight (display), JetBrains Mono (numerici).
  */
+
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap");
 
-/* ── 1 · LIGHT (canonical · Precision v2.0) ─────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────────────
+ * 1 · LIGHT (canonical)
+ * ──────────────────────────────────────────────────────────────────── */
 :root,
 :root[data-theme="light"] {
   color-scheme: light;
@@ -24,46 +29,41 @@
   /* Surfaces — 5 elevations */
   --c-bg:           250 250 250;   /* #FAFAFA · page */
   --c-bg-panel:     255 255 255;   /* #FFFFFF · sidebar, topbar, panels */
-  --c-bg-elevated:  255 255 255;   /* #FFFFFF · dialogs, dropdowns */
+  --c-bg-elevated:  255 255 255;   /* #FFFFFF · dialogs, dropdowns (use shadow) */
   --c-bg-hover:     244 245 247;   /* #F4F5F7 · hover state */
   --c-bg-viewport:  244 245 247;   /* #F4F5F7 · 3D canvas bg */
   --c-bg-active:    230 241 251;   /* #E6F1FB · selected row */
 
   /* Borders — 3 strengths */
-  --c-border:         229 230 232; /* #E5E6E8 */
-  --c-border-light:   212 214 218; /* #D4D6DA */
-  --c-border-strong:  168 172 179; /* #A8ACB3 */
+  --c-border:         229 230 232; /* #E5E6E8 · default hairline */
+  --c-border-light:   212 214 218; /* #D4D6DA · hover hairline */
+  --c-border-strong:  168 172 179; /* #A8ACB3 · structural divider */
 
   /* Ink — 4 levels */
-  --c-ink:        21  22  26;       /* #15161A */
-  --c-ink-muted:  74  79  87;       /* #4A4F57 */
-  --c-ink-dim:    123 128 138;      /* #7B808A */
-  --c-ink-faint:  176 181 189;      /* #B0B5BD */
+  --c-ink:        21  22  26;       /* #15161A · primary text */
+  --c-ink-muted:  74  79  87;       /* #4A4F57 · secondary */
+  --c-ink-dim:    123 128 138;      /* #7B808A · tertiary / hints */
+  --c-ink-faint:  176 181 189;      /* #B0B5BD · disabled / micro */
 
   /* Accent — cyan singolo (Precision: NO doppio asse) */
-  --c-accent:         8 145 178;    /* #0891B2 */
-  --c-accent-hover:  14 116 144;    /* #0E7490 */
-  --c-accent-subtle: 236 254 255;   /* #ECFEFF */
+  --c-accent:         8 145 178;    /* #0891B2 · primary */
+  --c-accent-hover:  14 116 144;    /* #0E7490 · hover */
+  --c-accent-subtle: 236 254 255;   /* #ECFEFF · tinted bg (selected, hub) */
 
   /* Semantic ink — 5 famiglie */
-  --c-success:    101 163  13;      /* #65A30D */
-  --c-warn:       180  83   9;      /* #B45309 */
-  --c-coral:      194  65  12;      /* #C2410C */
-  --c-purple:      83  74 183;      /* #534AB7 */
-  --c-danger:     220  38  38;      /* #DC2626 */
+  --c-success:    101 163  13;      /* #65A30D · OK / pass */
+  --c-warn:       180  83   9;      /* #B45309 · warning / Trust draft */
+  --c-coral:      194  65  12;      /* #C2410C · collab / loads */
+  --c-purple:      83  74 183;      /* #534AB7 · annotations / AI (riservato) */
+  --c-danger:     220  38  38;      /* #DC2626 · errors · critical UC */
   --c-info:         8 145 178;      /* alias di accent */
-  /* DEPRECATED v2.0: `--c-percorsi` ora aliasa accent cyan. Verra' rimosso
-     in PR3a quando le CTA Percorsi useranno direttamente bg-accent. */
-  --c-percorsi:     8 145 178;      /* alias di accent */
 
   /* Semantic surface tints */
-  --c-bg-success:  234 243 222;     /* #EAF3DE */
-  --c-bg-warn:     250 238 218;     /* #FAEEDA */
-  --c-bg-coral:    250 236 231;     /* #FAECE7 */
-  --c-bg-purple:   238 237 254;     /* #EEEDFE */
-  --c-bg-info:     230 241 251;     /* #E6F1FB */
-  --c-bg-danger:   254 232 232;     /* #FEE8E8 */
-  --c-bg-percorsi: 236 254 255;     /* #ECFEFF · alias accent-subtle */
+  --c-bg-success:  234 243 222;
+  --c-bg-warn:     250 238 218;
+  --c-bg-coral:    250 236 231;
+  --c-bg-purple:   238 237 254;
+  --c-bg-danger:   254 232 232;
 
   /* Shadows — hairline-only philosophy (nessun multi-layer gradient) */
   --shadow-pop:    0 0 0 1px rgba(0,0,0,.06);
@@ -71,16 +71,18 @@
   --shadow-dialog: 0 0 0 1px rgba(0,0,0,.08);
 }
 
-/* ── 2 · DARK (opt-in via [data-theme="dark"]) ──────────────────────────── */
+/* ────────────────────────────────────────────────────────────────────────
+ * 2 · DARK (opt-in)
+ * ──────────────────────────────────────────────────────────────────── */
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --c-bg:           11  12  14;     /* #0B0C0E */
-  --c-bg-panel:     20  21  26;     /* #14151A */
-  --c-bg-elevated:  28  30  36;     /* #1C1E24 */
-  --c-bg-hover:     28  30  36;     /* #1C1E24 */
-  --c-bg-viewport:   8   9  11;     /* #08090B */
-  --c-bg-active:    26  58  95;     /* #1A3A5F */
+  --c-bg:           11  12  14;     /* #0B0C0E · page */
+  --c-bg-panel:     20  21  26;     /* #14151A · sidebar, topbar */
+  --c-bg-elevated:  28  30  36;     /* #1C1E24 · dialogs, dropdowns */
+  --c-bg-hover:     28  30  36;     /* #1C1E24 · hover */
+  --c-bg-viewport:   8   9  11;     /* #08090B · 3D canvas bg */
+  --c-bg-active:    26  58  95;     /* #1A3A5F · selected row */
 
   --c-border:        35  37  41;    /* #232529 */
   --c-border-light:  48  50  57;    /* #303239 */
@@ -91,9 +93,9 @@
   --c-ink-dim:    107 114 128;      /* #6B7280 */
   --c-ink-faint:   75  82  96;      /* #4B5260 */
 
-  --c-accent:        93 215 242;    /* #5DD7F2 */
+  --c-accent:        93 215 242;    /* #5DD7F2 · cyan brighter for dark bg */
   --c-accent-hover: 136 226 245;    /* #88E2F5 */
-  --c-accent-subtle: 14  42  51;    /* #0E2A33 */
+  --c-accent-subtle: 14  42  51;    /* #0E2A33 · dark tinted bg */
 
   --c-success:    132 204  22;      /* #84CC16 */
   --c-warn:       245 158  11;      /* #F59E0B */
@@ -101,34 +103,36 @@
   --c-purple:     167 139 250;      /* #A78BFA */
   --c-danger:     248 113 113;      /* #F87171 */
   --c-info:        93 215 242;
-  --c-percorsi:    93 215 242;      /* alias accent (dark) */
 
-  --c-bg-success:  26  48   9;      /* #1A3009 */
-  --c-bg-warn:     58  40   6;      /* #3A2806 */
-  --c-bg-coral:    58  24  16;      /* #3A1810 */
-  --c-bg-purple:   34  32  64;      /* #222040 */
-  --c-bg-danger:   58  16  16;      /* #3A1010 */
-  --c-bg-info:     12  37  64;      /* #0C2540 */
-  --c-bg-percorsi: 14  42  51;      /* #0E2A33 · alias accent-subtle dark */
+  --c-bg-success:  26  48   9;
+  --c-bg-warn:     58  40   6;
+  --c-bg-coral:    58  24  16;
+  --c-bg-purple:   34  32  64;
+  --c-bg-danger:   58  16  16;
 
   --shadow-pop:    0 0 0 1px rgba(0,0,0,.5);
   --shadow-elev:   0 0 0 1px rgba(0,0,0,.4);
   --shadow-dialog: 0 0 0 1px rgba(0,0,0,.6);
 }
 
-/* ── 3 · Aliases (ready-to-use, CSS custom non-Tailwind) ─────────────────── */
+/* ────────────────────────────────────────────────────────────────────────
+ * 3 · Aliases (ready-to-use)
+ * ──────────────────────────────────────────────────────────────────── */
 :root {
-  --bg:            rgb(var(--c-bg));
-  --bg-panel:      rgb(var(--c-bg-panel));
-  --bg-elevated:   rgb(var(--c-bg-elevated));
-  --bg-hover:      rgb(var(--c-bg-hover));
-  --bg-viewport:   rgb(var(--c-bg-viewport));
-  --bg-active:     rgb(var(--c-bg-active));
+  /* Surfaces */
+  --bg:           rgb(var(--c-bg));
+  --bg-panel:     rgb(var(--c-bg-panel));
+  --bg-elevated:  rgb(var(--c-bg-elevated));
+  --bg-hover:     rgb(var(--c-bg-hover));
+  --bg-viewport:  rgb(var(--c-bg-viewport));
+  --bg-active:    rgb(var(--c-bg-active));
 
+  /* Borders */
   --border:        rgb(var(--c-border));
   --border-light:  rgb(var(--c-border-light));
   --border-strong: rgb(var(--c-border-strong));
 
+  /* Ink */
   --ink:        rgb(var(--c-ink));
   --ink-1:      rgb(var(--c-ink));
   --ink-2:      rgb(var(--c-ink-muted));
@@ -138,6 +142,7 @@
   --ink-dim:    rgb(var(--c-ink-dim));
   --ink-faint:  rgb(var(--c-ink-faint));
 
+  /* Accent + semantic */
   --accent:        rgb(var(--c-accent));
   --accent-hover:  rgb(var(--c-accent-hover));
   --accent-subtle: rgb(var(--c-accent-subtle));
@@ -154,13 +159,27 @@
   --bg-purple:    rgb(var(--c-bg-purple));
   --bg-danger:    rgb(var(--c-bg-danger));
 
-  /* Radii — TUTTI 0 (Precision: sharp). `--r-full` per cerchi puri. */
+  /* Radii — TUTTI 0 (Precision: sharp) */
   --r-none: 0;
   --r-sm:   0;
   --r-md:   0;
   --r-lg:   0;
   --r-xl:   0;
-  --r-full: 9999px;
+  --r-full: 9999px;  /* solo per cerchi puri: avatar, dot, pulse */
+
+  /* Spacing scale (px) */
+  --s-px:  1px;
+  --s-0_5: 2px;
+  --s-1:   4px;
+  --s-2:   8px;
+  --s-3:  12px;
+  --s-4:  16px;
+  --s-5:  20px;
+  --s-6:  24px;
+  --s-8:  32px;
+  --s-10: 40px;
+  --s-12: 48px;
+  --s-16: 64px;
 
   /* Motion */
   --d-fast: 120ms;
@@ -170,13 +189,83 @@
   --ease-decelerate:  cubic-bezier(0, 0, 0.2, 1);
   --ease-accelerate:  cubic-bezier(0.4, 0, 1, 1);
 
+  /* z-index */
+  --z-viewport: 0;
+  --z-panel:    10;
+  --z-toolbar:  20;
+  --z-dropdown: 30;
+  --z-popover:  35;
+  --z-dialog:   40;
+  --z-toast:    50;
+  --z-tooltip:  60;
+
   /* Fonts */
   --font-sans:    "Inter", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
   --font-display: "Inter Tight", "Inter", -apple-system, sans-serif;
   --font-mono:    "JetBrains Mono", ui-monospace, monospace;
 }
 
-/* ── 4 · Body baseline ─────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────────────────
+ * 4 · Type scale (px-based, dense UI)
+ * ──────────────────────────────────────────────────────────────────── */
+:root {
+  --fs-xs:   11px;   --lh-xs:   15px;
+  --fs-sm:   12px;   --lh-sm:   16px;
+  --fs-base: 13px;   --lh-base: 19px;  /* body baseline */
+  --fs-md:   14px;   --lh-md:   20px;
+  --fs-lg:   16px;   --lh-lg:   22px;
+  --fs-xl:   18px;   --lh-xl:   24px;
+  --fs-2xl:  22px;   --lh-2xl:  28px;
+  --fs-3xl:  30px;   --lh-3xl:  34px;
+  --fs-4xl:  44px;   --lh-4xl:  46px;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+ * 5 · Body baseline
+ * ──────────────────────────────────────────────────────────────────── */
+html, body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, .h1 { font-family: var(--font-display); font-size: var(--fs-3xl); line-height: var(--lh-3xl); font-weight: 600; letter-spacing: -0.025em; color: var(--ink); }
+h2, .h2 { font-family: var(--font-display); font-size: var(--fs-2xl); line-height: var(--lh-2xl); font-weight: 600; letter-spacing: -0.02em;  color: var(--ink); }
+h3, .h3 { font-family: var(--font-display); font-size: var(--fs-xl);  line-height: var(--lh-xl);  font-weight: 600; letter-spacing: -0.015em; color: var(--ink); }
+h4, .h4 { font-size: var(--fs-lg); line-height: var(--lh-lg); font-weight: 600; color: var(--ink); }
+h5, .h5 { font-size: var(--fs-md); line-height: var(--lh-md); font-weight: 600; color: var(--ink); }
+
+p { margin: 0 0 var(--s-2); }
+
+/* Numbers / mono — usa ovunque ci siano cifre tecniche */
+.numeric, code, kbd, samp, pre {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Eyebrow utility */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+/* =====================================================================
+ * APPENDICE codebase-specific (preservata da v2.5.0 PR1 destructive
+ * replace). Tutto ciò che non è nel bundle handoff `tokens.css` ma serve
+ * al codebase FEA Pro reale per: SPA chrome (#root, .app-shell), Tailwind
+ * @layer components legacy, animazioni Precision/PR21, scrollbar, focus,
+ * prefers-reduced-motion, safe-area, responsive, print, ::selection.
+ * ===================================================================== */
+
+/* ── SPA chrome — html/body/#root extension ────────────────────────────── */
 html,
 body,
 #root {
@@ -188,17 +277,10 @@ body,
 }
 
 body {
-  background: var(--bg);
-  color: var(--ink);
-  font-family: var(--font-sans);
-  font-size: 13px;
-  line-height: 19px;
   overflow: hidden;
   /* v1.8.5 T3: previene rubber-band scrolling iOS (preservato). */
   overscroll-behavior: contain;
   touch-action: manipulation;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -215,26 +297,6 @@ body {
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   background: var(--bg);
-}
-
-.app-shell-legacy {
-  width: 100vw;
-  height: 100vh;
-  background: var(--bg);
-}
-
-::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg);
-}
-::-webkit-scrollbar-thumb {
-  background: rgb(var(--c-border-light));
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--border-strong);
 }
 
 /* ── prefers-reduced-motion (a11y) ─────────────────────────────────────── */
@@ -263,27 +325,6 @@ textarea:focus-visible {
   outline-offset: 1px;
 }
 
-/* ── Typography helpers (Precision) ────────────────────────────────────── */
-h1, .h1 { font-family: var(--font-display); font-size: 30px; line-height: 34px; font-weight: 600; letter-spacing: -0.025em; color: var(--ink); margin: 0; }
-h2, .h2 { font-family: var(--font-display); font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em;  color: var(--ink); margin: 0; }
-h3, .h3 { font-family: var(--font-display); font-size: 18px; line-height: 24px; font-weight: 600; letter-spacing: -0.015em; color: var(--ink); margin: 0; }
-h4, .h4 { font-size: 16px; line-height: 22px; font-weight: 600; color: var(--ink); margin: 0; }
-h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink); margin: 0; }
-
-.numeric, code, kbd, samp, pre {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--ink-3);
-}
-
 /* ── Pulse animation (preservata per dot/status indicators) ────────────── */
 @keyframes feapro-pulse {
   0%, 100% { opacity: 1; }
@@ -305,14 +346,42 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
   0%   { transform: translateX(-100%); }
   100% { transform: translateX(100%); }
 }
+/* Tick animation: SVG stroke draw per checkmark (success) */
+@keyframes precision-tick {
+  0%   { stroke-dashoffset: 30; opacity: 0; }
+  30%  { opacity: 1; }
+  100% { stroke-dashoffset: 0; opacity: 1; }
+}
+/* Sweep: linea che si estende da sinistra (per progress bars sharp) */
+@keyframes precision-sweep {
+  0%   { transform: scaleX(0); transform-origin: left; }
+  100% { transform: scaleX(1); transform-origin: left; }
+}
+/* Spotlight: per onboarding tour highlight */
+@keyframes precision-spotlight {
+  0%   { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.4); }
+  70%  { box-shadow: 0 0 0 8px rgba(8, 145, 178, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0); }
+}
+/* Pulse on critical UC > 0.85 (ChecksRail) */
+@keyframes precision-pulse-warn {
+  0%, 100% { background-color: rgb(var(--c-bg-warn)); }
+  50%      { background-color: rgb(var(--c-warn) / 0.2); }
+}
+/* Engine phases (LoadingScreen C5b) */
+@keyframes precision-engine-phase {
+  0%, 100% { opacity: 0.3; }
+  50%      { opacity: 1; }
+}
+/* Indeterminate progress bar */
 @keyframes precision-indeterminate {
-  0%   { left: -40%; right: 100%; }
-  60%  { left: 100%; right: -10%; }
-  100% { left: 100%; right: -10%; }
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
 }
 
+/* ── @layer components Tailwind legacy ──────────────────────────────────── */
 @layer components {
-  /* Legacy helpers preservati ma con radius 0 (Precision sharp). */
+  /* Helpers preservati ma con radius 0 (Precision sharp). */
   .panel {
     @apply bg-bg-panel border border-border;
   }
@@ -323,16 +392,16 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
     @apply px-3 py-1.5 text-xs font-medium border border-border hover:bg-bg-hover hover:border-border-light transition;
   }
   .btn-primary {
-    @apply bg-accent text-white border-accent-hover/30 hover:bg-accent-hover;
+    @apply bg-accent text-white border-accent hover:bg-accent-hover;
   }
   .btn-success {
-    @apply bg-success text-white border-success/40 hover:opacity-90;
+    @apply bg-success text-white border-success hover:opacity-90;
   }
   .btn-danger {
-    @apply bg-danger text-white border-danger/40 hover:opacity-90;
+    @apply bg-danger text-white border-danger hover:opacity-90;
   }
   .input {
-    @apply bg-bg border border-border px-2 py-1 text-xs numeric focus:border-accent outline-none w-full;
+    @apply bg-bg border border-border-light px-2 py-1 text-xs numeric focus:border-accent outline-none w-full;
   }
   .label {
     @apply text-xs text-ink-3 uppercase tracking-wide;
@@ -348,7 +417,7 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
     color: var(--ink-2);
     border-color: var(--border);
   }
-  .chip-info    { background: rgb(var(--c-bg-info));    color: var(--accent); border-color: rgb(var(--c-bg-info)); }
+  .chip-info    { background: var(--accent-subtle); color: var(--accent); border-color: var(--accent-subtle); }
   .chip-success { background: rgb(var(--c-bg-success)); color: var(--success); border-color: rgb(var(--c-bg-success)); }
   .chip-warn    { background: rgb(var(--c-bg-warn));    color: var(--warn);    border-color: rgb(var(--c-bg-warn)); }
   .chip-coral   { background: rgb(var(--c-bg-coral));   color: var(--coral);   border-color: rgb(var(--c-bg-coral)); }
@@ -367,7 +436,7 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
   }
 }
 
-/* HelpSheet markdown — stile didattico compatto per react-markdown */
+/* ── HelpSheet markdown — stile didattico compatto per react-markdown ─── */
 .prose-help {
   font-size: 12px;
   line-height: 1.55;
@@ -421,7 +490,7 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
   padding: 1px 5px;
 }
 
-/* v1.5.2 Task 36: safe-area padding for fixed bottom mobile tabbar */
+/* ── Safe-area utility classes (mobile fixed tabbar etc.) ──────────────── */
 .safe-area-bottom {
   padding-bottom: max(6px, env(safe-area-inset-bottom));
 }
@@ -434,11 +503,6 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
 }
 
 /* ── PR17 T2 · Layer globale Precision — animazioni + sharp ─────────────── */
-/* Forza animate-fade-in/slide-up su tutti i dialog (anche quelli che non
-   passano per il wrapper Dialog.tsx) e sharp border-radius ovunque.
-   Questo permette di portare componenti legacy in Precision senza dover
-   riscrivere ogni file uno per uno. */
-
 /* Backdrop overlay di qualsiasi dialog/modal */
 [role="presentation"]:has(> [role="dialog"]),
 [role="dialog"]:not([role="dialog"] [role="dialog"]) {
@@ -470,17 +534,6 @@ h5, .h5 { font-size: 14px; line-height: 20px; font-weight: 600; color: var(--ink
   border-radius: 0 !important;
 }
 
-/* Sharp focus ring per ogni button/input — Precision: ring offset 1px */
-button:focus-visible,
-[role="button"]:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-a:focus-visible {
-  outline: 2px solid var(--accent) !important;
-  outline-offset: 1px;
-}
-
 /* Transition-colors di default su button + link per smooth hover */
 button:not([data-no-transition]),
 a:not([data-no-transition]),
@@ -499,7 +552,7 @@ a:not([data-no-transition]),
   background: rgb(var(--c-border-strong));
 }
 
-/* Eyebrow label generic helper */
+/* Eyebrow label generic helper (precision micro) */
 .precision-eyebrow {
   font-family: var(--font-mono);
   font-size: 10px;
@@ -509,14 +562,14 @@ a:not([data-no-transition]),
   color: var(--ink-3);
 }
 
-/* Backdrop variant: bg-black/40 con backdrop filter solo se supportato */
+/* Backdrop variant */
 .dialog-backdrop,
 [data-dialog-backdrop] {
   background: rgba(0, 0, 0, 0.40);
   animation: fade-in 120ms cubic-bezier(0.2, 0, 0, 1);
 }
 
-/* Skeleton shimmer placeholder */
+/* Skeleton shimmer placeholder (CSS-only version) */
 .skeleton {
   background: var(--bg-hover);
   position: relative;
@@ -533,7 +586,7 @@ a:not([data-no-transition]),
   background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.06) 50%, transparent 100%);
 }
 
-/* Responsive utility — hide mobile when desktop */
+/* ── Responsive utility ─────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .desktop-only { display: none !important; }
 }
@@ -550,8 +603,7 @@ a:not([data-no-transition]),
 
 /* ── PR21 · Animazioni Claude Design avanzate ──────────────────────────── */
 
-/* Stagger fade-in: incremento ritardo automatico per children con
-   [data-stagger]. Effetto cascata sui cards sidebar / list items. */
+/* Stagger fade-in: incremento ritardo automatico per children con [data-stagger] */
 [data-stagger] > * {
   animation: fade-in 220ms cubic-bezier(0.2, 0, 0, 1) backwards;
 }
@@ -565,63 +617,31 @@ a:not([data-no-transition]),
 [data-stagger] > *:nth-child(8) { animation-delay: 420ms; }
 [data-stagger] > *:nth-child(n+9) { animation-delay: 480ms; }
 
-/* Tick animation: SVG stroke draw per checkmark (success) */
-@keyframes precision-tick {
-  0%   { stroke-dashoffset: 30; opacity: 0; }
-  30%  { opacity: 1; }
-  100% { stroke-dashoffset: 0; opacity: 1; }
-}
 .animate-tick path,
 [data-tick] path {
   stroke-dasharray: 30;
   animation: precision-tick 600ms cubic-bezier(0.2, 0, 0, 1) forwards;
 }
 
-/* Sweep: linea che si estende da sinistra (per progress bars sharp) */
-@keyframes precision-sweep {
-  0%   { transform: scaleX(0); transform-origin: left; }
-  100% { transform: scaleX(1); transform-origin: left; }
-}
 .animate-sweep,
 [data-sweep] {
   animation: precision-sweep 400ms cubic-bezier(0.2, 0, 0, 1) forwards;
 }
 
-/* Spotlight: per onboarding tour highlight */
-@keyframes precision-spotlight {
-  0%   { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0.4); }
-  70%  { box-shadow: 0 0 0 8px rgba(8, 145, 178, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(8, 145, 178, 0); }
-}
 [data-tour-spotlight] {
   animation: precision-spotlight 1.8s ease-out infinite;
   outline: 2px solid var(--accent);
   outline-offset: 4px;
 }
 
-/* Pulse on critical UC > 0.85 (ChecksRail) */
-@keyframes precision-pulse-warn {
-  0%, 100% { background-color: rgb(var(--c-bg-warn)); }
-  50%      { background-color: rgb(var(--c-warn) / 0.2); }
-}
 [data-uc-critical] {
   animation: precision-pulse-warn 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-/* Engine phases (LoadingScreen C5b mockup) */
-@keyframes precision-engine-phase {
-  0%, 100% { opacity: 0.3; }
-  50%      { opacity: 1; }
-}
 [data-engine-phase="active"] {
   animation: precision-engine-phase 1.2s ease-in-out infinite;
 }
 
-/* Indeterminate progress bar (per loading senza percentuale) */
-@keyframes precision-indeterminate {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(400%); }
-}
 .animate-indeterminate,
 [data-indeterminate]::after {
   content: "";
@@ -630,15 +650,6 @@ a:not([data-no-transition]),
   width: 30%;
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
   animation: precision-indeterminate 1.6s linear infinite;
-}
-
-/* Reduce motion compliance */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
 }
 
 /* ── PR22 · Responsive audit finale + a11y polish ─────────────────────── */
@@ -679,7 +690,7 @@ a:not([data-no-transition]),
   }
 }
 
-/* Print stylesheet — report PDF generation context */
+/* ── Print stylesheet — report PDF generation context ─────────────────── */
 @media print {
   .topbar,
   .leftrail,
