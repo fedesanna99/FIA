@@ -54,6 +54,24 @@ class ElementStress(BaseModel):
     principal_dir1: list[float] = []   # versore 3D globale di σ1
     principal_dir2: list[float] = []   # versore 3D globale di σ2
 
+    # === Bending shell — additivo da v2.4.3b (NEW-4 audit v2.3.7) ============
+    # Campi Optional, None per elementi non-shell (beam, truss, solid).
+    # I campi `sigma_*` esistenti sopra restano la componente MEMBRANA
+    # (back-compat con frontend e test esistenti).
+    # `sigma_*_top/bot` sono stress in fibra estrema z = ±t/2:
+    #   sigma_top = sigma_membrana + 6 * M / t^2
+    #   sigma_bot = sigma_membrana - 6 * M / t^2
+    sigma_x_top: Optional[float] = None
+    sigma_y_top: Optional[float] = None
+    tau_xy_top: Optional[float] = None
+    sigma_x_bot: Optional[float] = None
+    sigma_y_bot: Optional[float] = None
+    tau_xy_bot: Optional[float] = None
+    # Momenti flettenti / torcente per unità di lunghezza [N·m/m]
+    M_x: Optional[float] = None
+    M_y: Optional[float] = None
+    M_xy: Optional[float] = None
+
 
 class StaticResults(BaseModel):
     analysis_type: str = "static"

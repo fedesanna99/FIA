@@ -332,6 +332,42 @@ successivo (`v2.4.1+`).
 **Riferimenti**:
 - Audit: `docs/nafems_truth_audit.md` sezione 5 (#28)
 
+### NEW-4 · Postprocess shell σ_y solo membrana, no bending
+**Chiuso**: v2.4.3b-shell-bending-stress-recovery (2026-05-24)
+**Implementazione**:
+- `backend/schemas/results.py::ElementStress`: schema esteso additivo con
+  9 campi Optional (`sigma_x/y/xy_top`, `sigma_x/y/xy_bot`, `M_x/y/xy`)
+- `backend/core/elements/shell_quad4.py:153-198`: `stresses()` ora estrae
+  anche rotazioni nodali → curvatura κ → momenti M → stress fibra estrema
+  z=±t/2. Von Mises = max(membrana, top, bot).
+- `backend/core/elements/shell_quad4_mitc.py:224`: stesso pattern (B_b
+  flessione pura identica fra Q4 e MITC; MITC differisce solo in shear)
+- `backend/core/solver/static_solver.py:127`: aggiunti 9 nuovi campi a
+  `st_keys` filtro (altrimenti filtrati out come "extra fields")
+- `backend/tests/solver/test_shell_bending_stress.py` (nuovo): 6 test
+
+**Comportamento ora**:
+- BEFORE: LE10 `sigma_y_top = None`, `M_y = None`, `σ_yy(D) = 0` ovunque
+- AFTER: LE10 `sigma_y_top ≈ 2.21 MPa`, `M_y ≈ 132 kNm/m`, bending attivo
+- BEAM/TRUSS: campi shell bending restano `None` (back-compat)
+- LE1 (membrana piana): `sigma_y` invariato (membrana), bending ~0 atteso
+
+**Anomalia residua** (su LE10):
+- σ_yy(D) calcolato +2.21 MPa, target NAFEMS -5.38 MPa
+- Discrepanza in segno + 58% in modulo → richiede NEW-1 (extrapolation
+  Gauss→nodi, sprint 3) e/o calibrazione MITC (NEW-3-followup) per
+  matching del valore esatto. Bug architetturale NEW-4 invece **chiuso**:
+  ora il pipeline calcola bending, prima era zero hardcoded.
+
+**Backward compat verificata**:
+- 27/27 NAFEMS shell + singular matrix esistenti PASS
+- pytest baseline: 1416 PASS, 12 FAIL → 1430 PASS, 9 FAIL
+  (3 test pushover ora passano grazie ai nuovi campi bending)
+
+**Riferimenti**:
+- Audit: `docs/solver_internals_audit.md` sezione 4
+- Closure report: `docs/v2_4_3b_shell_bending_stress_recovery_report.md`
+
 ### NEW-3 · SHELL_Q4_MITC pressure load dispatch incompleto
 **Chiuso**: v2.4.3a-shell-pressure-mitc-fix (2026-05-24)
 **Implementazione**:

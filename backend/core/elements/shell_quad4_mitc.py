@@ -222,11 +222,18 @@ class ShellQuad4MITC:
         )
 
     def stresses(self, u_global_24: np.ndarray) -> dict:
-        """Stress di membrana al baricentro (analogo a ShellQuad4)."""
+        """Stress di membrana + bending al baricentro.
+
+        v2.4.3b (NEW-4 audit v2.3.7): aggiunge bending stress in fibra
+        estrema z=±t/2 e momenti M_x/M_y/M_xy (back-compat: campi
+        ``sigma_*`` esistenti restano membrana).
+        """
         T = self._transformation_matrix()
         u_local = T @ u_global_24
+
+        # ── 1. Membrana (back-compat) ─────────────────────────────────────────
         u_membrane = np.array([u_local[6 * i + j] for i in range(4) for j in range(2)])
-        E, nu = self.E, self.nu
+        E, nu, t = self.E, self.nu, self.t
         D = (E / (1 - nu * nu)) * np.array([
             [1, nu, 0],
             [nu, 1, 0],
@@ -237,17 +244,56 @@ class ShellQuad4MITC:
         J = np.array([[dN_dxi @ xy[:, 0], dN_dxi @ xy[:, 1]],
                       [dN_deta @ xy[:, 0], dN_deta @ xy[:, 1]]])
         invJ = np.linalg.inv(J)
-        B = np.zeros((3, 8))
+        Bm = np.zeros((3, 8))
         for i in range(4):
             dN = invJ @ np.array([dN_dxi[i], dN_deta[i]])
-            B[0, 2 * i] = dN[0]
-            B[1, 2 * i + 1] = dN[1]
-            B[2, 2 * i] = dN[1]
-            B[2, 2 * i + 1] = dN[0]
-        eps = B @ u_membrane
+            Bm[0, 2 * i] = dN[0]
+            Bm[1, 2 * i + 1] = dN[1]
+            Bm[2, 2 * i] = dN[1]
+            Bm[2, 2 * i + 1] = dN[0]
+        eps = Bm @ u_membrane
         sigma = D @ eps
         sx, sy, txy = sigma
-        vm = float(np.sqrt(sx * sx - sx * sy + sy * sy + 3 * txy * txy))
+
+        # ── 2. Bending: curvature → momenti → stress fibra estrema ────────────
+        # NOTA: in MITC il B_b di flessione PURA è ancora la formulazione
+        # standard (i tying points modificano solo B_s = shear). Quindi B_b
+        # è identica a Q4 standard. La differenza fra Q4 e MITC è solo nel
+        # contributo shear (qui non incluso nel postprocess perché shear è
+        # già integrato implicitamente nel solver via K_s in _bending_stiffness).
+        u_bend = np.zeros(12)
+        for i in range(4):
+            u_bend[3 * i + 0] = u_local[6 * i + 2]
+            u_bend[3 * i + 1] = u_local[6 * i + 3]
+            u_bend[3 * i + 2] = u_local[6 * i + 4]
+        Bb = np.zeros((3, 12))
+        for i in range(4):
+            dN = invJ @ np.array([dN_dxi[i], dN_deta[i]])
+            Bb[0, 3 * i + 1] = dN[0]
+            Bb[1, 3 * i + 2] = dN[1]
+            Bb[2, 3 * i + 1] = dN[1]
+            Bb[2, 3 * i + 2] = dN[0]
+        kappa = Bb @ u_bend
+        Db = (E * t ** 3 / (12 * (1 - nu * nu))) * np.array([
+            [1, nu, 0],
+            [nu, 1, 0],
+            [0, 0, (1 - nu) / 2],
+        ])
+        M = Db @ kappa
+        Mx, My, Mxy = float(M[0]), float(M[1]), float(M[2])
+
+        b_factor = 6.0 / (t * t) if t > 0 else 0.0
+        sx_top = float(sx) + b_factor * Mx
+        sy_top = float(sy) + b_factor * My
+        txy_top = float(txy) + b_factor * Mxy
+        sx_bot = float(sx) - b_factor * Mx
+        sy_bot = float(sy) - b_factor * My
+        txy_bot = float(txy) - b_factor * Mxy
+
+        def _vm(sxx, syy, sxy):
+            return float(np.sqrt(sxx * sxx - sxx * syy + syy * syy + 3 * sxy * sxy))
+        vm = max(_vm(sx, sy, txy), _vm(sx_top, sy_top, txy_top), _vm(sx_bot, sy_bot, txy_bot))
+
         centroid = self.nodes.mean(axis=0)
         return {
             "sigma_x": float(sx), "sigma_y": float(sy), "tau_xy": float(txy),
@@ -257,4 +303,8 @@ class ShellQuad4MITC:
             "centroid": [float(centroid[0]), float(centroid[1]), float(centroid[2])],
             "principal_dir1": [1.0, 0.0, 0.0],
             "principal_dir2": [0.0, 1.0, 0.0],
+            # === Additivo v2.4.3b NEW-4 ============================
+            "sigma_x_top": sx_top, "sigma_y_top": sy_top, "tau_xy_top": txy_top,
+            "sigma_x_bot": sx_bot, "sigma_y_bot": sy_bot, "tau_xy_bot": txy_bot,
+            "M_x": Mx, "M_y": My, "M_xy": Mxy,
         }

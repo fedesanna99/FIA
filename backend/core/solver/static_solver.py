@@ -150,7 +150,11 @@ class StaticSolver:
                 st_keys = {"sigma_x", "sigma_y", "sigma_z", "tau_xy", "tau_yz",
                            "tau_xz", "von_mises", "sigma_max", "sigma_min",
                            "principal_angle_deg", "centroid",
-                           "principal_dir1", "principal_dir2"}
+                           "principal_dir1", "principal_dir2",
+                           # v2.4.3b bending fibra estrema + momenti shell
+                           "sigma_x_top", "sigma_y_top", "tau_xy_top",
+                           "sigma_x_bot", "sigma_y_bot", "tau_xy_bot",
+                           "M_x", "M_y", "M_xy"}
                 st_filtered = {k: v for k, v in st.items() if k in st_keys}
                 element_stresses.append(ElementStress(element_id=el.id, **st_filtered))
                 if st["von_mises"] > max_stress:

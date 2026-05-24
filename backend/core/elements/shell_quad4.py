@@ -151,10 +151,18 @@ class ShellQuad4:
         )
 
     def stresses(self, u_global_24: np.ndarray) -> dict:
+        """Calcola stress al centroide per membrana e bending.
+
+        v2.4.3b (NEW-4 audit v2.3.7): aggiunge bending stress in fibra
+        estrema z=±t/2. Pre-fix estraeva solo ``u_x, u_y`` ignorando le
+        rotazioni → tutti gli stress flessionali = 0 (es. LE10 σ_yy(D)=0).
+        """
         T = self._transformation_matrix()
         u_local = T @ u_global_24
+
+        # ── 1. Membrana (back-compat, invariato) ──────────────────────────────
         u_membrane = np.array([u_local[6 * i + j] for i in range(4) for j in range(2)])
-        E, nu = self.E, self.nu
+        E, nu, t = self.E, self.nu, self.t
         D = (E / (1 - nu * nu)) * np.array([
             [1, nu, 0],
             [nu, 1, 0],
@@ -165,17 +173,59 @@ class ShellQuad4:
         J = np.array([[dN_dxi @ xy[:, 0], dN_dxi @ xy[:, 1]],
                       [dN_deta @ xy[:, 0], dN_deta @ xy[:, 1]]])
         invJ = np.linalg.inv(J)
-        B = np.zeros((3, 8))
+        Bm = np.zeros((3, 8))
         for i in range(4):
             dN = invJ @ np.array([dN_dxi[i], dN_deta[i]])
-            B[0, 2 * i] = dN[0]
-            B[1, 2 * i + 1] = dN[1]
-            B[2, 2 * i] = dN[1]
-            B[2, 2 * i + 1] = dN[0]
-        eps = B @ u_membrane
+            Bm[0, 2 * i] = dN[0]
+            Bm[1, 2 * i + 1] = dN[1]
+            Bm[2, 2 * i] = dN[1]
+            Bm[2, 2 * i + 1] = dN[0]
+        eps = Bm @ u_membrane
         sigma = D @ eps
         sx, sy, txy = sigma
-        vm = float(np.sqrt(sx * sx - sx * sy + sy * sy + 3 * txy * txy))
+
+        # ── 2. Bending: curvature → momenti → stress fibra estrema ────────────
+        # Ordine DOF per nodo locale: [ux, uy, uz, rx, ry, rz] indici 0..5.
+        # B_b ricostruita coerentemente con _bending_stiffness (riga 81).
+        u_bend = np.zeros(12)
+        for i in range(4):
+            u_bend[3 * i + 0] = u_local[6 * i + 2]  # w (uz locale)
+            u_bend[3 * i + 1] = u_local[6 * i + 3]  # theta_x locale
+            u_bend[3 * i + 2] = u_local[6 * i + 4]  # theta_y locale
+        Bb = np.zeros((3, 12))
+        for i in range(4):
+            dN = invJ @ np.array([dN_dxi[i], dN_deta[i]])
+            Bb[0, 3 * i + 1] = dN[0]
+            Bb[1, 3 * i + 2] = dN[1]
+            Bb[2, 3 * i + 1] = dN[1]
+            Bb[2, 3 * i + 2] = dN[0]
+        kappa = Bb @ u_bend
+        Db = (E * t ** 3 / (12 * (1 - nu * nu))) * np.array([
+            [1, nu, 0],
+            [nu, 1, 0],
+            [0, 0, (1 - nu) / 2],
+        ])
+        M = Db @ kappa
+        Mx, My, Mxy = float(M[0]), float(M[1]), float(M[2])
+
+        # Stress fibra estrema z=±t/2:  σ_top = σ_membrana + 6·M / t²
+        b_factor = 6.0 / (t * t) if t > 0 else 0.0
+        sx_top = float(sx) + b_factor * Mx
+        sy_top = float(sy) + b_factor * My
+        txy_top = float(txy) + b_factor * Mxy
+        sx_bot = float(sx) - b_factor * Mx
+        sy_bot = float(sy) - b_factor * My
+        txy_bot = float(txy) - b_factor * Mxy
+
+        # ── 3. Von Mises: max fra membrana, top, bot ─────────────────────────
+        def _vm(sxx, syy, sxy):
+            return float(np.sqrt(sxx * sxx - sxx * syy + syy * syy + 3 * sxy * sxy))
+        vm_mem = _vm(sx, sy, txy)
+        vm_top = _vm(sx_top, sy_top, txy_top)
+        vm_bot = _vm(sx_bot, sy_bot, txy_bot)
+        vm = max(vm_mem, vm_top, vm_bot)
+
+        # Principal sulla membrana (back-compat UI esistente)
         radius = np.sqrt((0.5 * (sx - sy)) ** 2 + txy * txy)
         principal_max = 0.5 * (sx + sy) + radius
         principal_min = 0.5 * (sx + sy) - radius
@@ -195,4 +245,8 @@ class ShellQuad4:
             "centroid": [float(centroid[0]), float(centroid[1]), float(centroid[2])],
             "principal_dir1": [float(v) for v in dir1_global],
             "principal_dir2": [float(v) for v in dir2_global],
+            # === Additivo v2.4.3b NEW-4 ============================
+            "sigma_x_top": sx_top, "sigma_y_top": sy_top, "tau_xy_top": txy_top,
+            "sigma_x_bot": sx_bot, "sigma_y_bot": sy_bot, "tau_xy_bot": txy_bot,
+            "M_x": Mx, "M_y": My, "M_xy": Mxy,
         }
