@@ -155,6 +155,34 @@ successivo (`v2.4.1+`).
 > **UPDATE 2026-05-24**: scope esteso chiuso in `v2.4.0bis-safe-spsolve-extend`.
 > Vedi voce `#30-extended` qui sotto.
 
+### #22 · GDPR no DELETE /api/auth/me endpoint
+**Chiuso**: v2.4.2a-gdpr-delete-account (2026-05-24)
+**Implementazione**:
+- `backend/auth/users_db.py`: aggiunto metodo `delete(user_id) -> bool`
+- `backend/jobs/store.py`: aggiunto metodo `delete_for_user(user_id) -> int`
+- `backend/auth/cascade_delete.py` (nuovo): `delete_user_cascade(user_id)`
+  con ordine deliberato (jobs → billing stub → audit anonymize stub → user)
+- `backend/api/routes/auth.py`: `@router.delete("/me", status_code=204)`
+- `backend/tests/auth/test_delete_account_gdpr.py` (nuovo): 4 test regressione
+
+**Stats restituite** (dict):
+```
+user_id_hash, deleted_at, models_deleted, snapshots_deleted,
+jobs_deleted, billing_records_deleted, audit_entries_anonymized, user_deleted
+```
+
+**Gap pre-esistenti documentati nel docstring del modulo**:
+- `backend/data/models/*.json` non ha `owner_id` → no cascade su modelli
+- Snapshot client-side (localStorage) → no cascade server-side
+- Billing/audit stub: nessuna API user-keyed esistente
+
+Da estendere quando emergeranno moduli `models.owner_id`, `billing.storage`,
+`audit.log.anonymize_user_audit`.
+
+**Riferimenti**:
+- Audit: `docs/nafems_truth_audit.md` sezione 5 (#22 GDPR)
+- RULES: `docs/CLAUDE_CODE_OPERATING_RULES.md`
+
 ### #6 · EC2 staffe non nec. quando UR > 1.0
 **Chiuso**: v2.4.1-ec2-stirrups-fix (2026-05-24)
 **Implementazione**:

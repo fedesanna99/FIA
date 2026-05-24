@@ -98,3 +98,22 @@ def login(req: LoginRequest) -> AuthResponse:
 def get_me(current_user: User = Depends(get_current_user)) -> UserResponse:
     """Ritorna info dell'utente autenticato (richiede Bearer token valido)."""
     return UserResponse(user=current_user.to_public_dict())
+
+
+@router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
+def delete_account(current_user: User = Depends(get_current_user)):
+    """
+    GDPR Art. 17 — Right to erasure.
+
+    Hard delete dell'account utente e cascade su tutti i dati personali
+    collegati (vedi ``auth.cascade_delete.delete_user_cascade`` per dettaglio).
+
+    Irreversibile: il client DEVE confermare prima di chiamare.
+    Risposta: ``204 No Content`` se cancellazione riuscita.
+
+    Bug #22 dell'audit v2.3.5-nafems-truth-audit (P0 legal — UE GDPR).
+    """
+    from auth.cascade_delete import delete_user_cascade
+
+    delete_user_cascade(user_id=current_user.id)
+    return None

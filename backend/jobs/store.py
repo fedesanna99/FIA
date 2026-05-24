@@ -159,6 +159,15 @@ class JobStore:
         with self._lock, self._connect() as conn:
             conn.execute("DELETE FROM jobs")
 
+    def delete_for_user(self, user_id: str) -> int:
+        """Hard delete di tutti i job di un utente (GDPR cascade).
+
+        Returns numero di job eliminati. Irreversibile.
+        """
+        with self._lock, self._connect() as conn:
+            cur = conn.execute("DELETE FROM jobs WHERE user_id=?", (user_id,))
+            return cur.rowcount
+
 
 # Singleton
 job_store = JobStore()

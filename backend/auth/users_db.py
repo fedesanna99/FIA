@@ -148,6 +148,16 @@ class UsersDB:
         with self._connect() as conn:
             return conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
 
+    def delete(self, user_id: str) -> bool:
+        """Hard delete user record. Returns True se eliminato, False se non esisteva.
+
+        Usato esclusivamente dal cascade GDPR (DELETE /api/auth/me).
+        Irreversibile. Da NON chiamare in flussi normali.
+        """
+        with self._connect() as conn:
+            cur = conn.execute("DELETE FROM users WHERE id = ?", (user_id,))
+            return cur.rowcount > 0
+
 
 def _row_to_user(row: sqlite3.Row) -> User:
     return User(
