@@ -12,10 +12,16 @@ backend/data/
 # Sprint 1 runtime artifacts (v1.3)
 .cache/
 .quotas/
-audit/
+# v2.4.6 #22bis: pattern `audit/` originale anchored a root (era nello
+# scope di evitare runtime cache, non un eventuale package Python).
+/audit/
 backend/.cache/
 backend/.quotas/
-backend/audit/
+# v2.4.6 #22bis: backend/audit/ è un Python package (deve essere tracciato);
+# pattern selettivo per i soli runtime artifact JSONL/log.
+backend/audit/*.jsonl
+backend/audit/*.log
+backend/audit/jobs/
 backend/storage/results/
 venv/
 .env

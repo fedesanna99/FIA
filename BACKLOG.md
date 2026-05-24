@@ -328,24 +328,31 @@ in test significativo (es. check `σ_yy(2p) = 2·σ_yy(p)`).
 ## 🟡 Media priorità
 
 ### #22bis · GDPR cascade delete incomplete
-**Stato**: aperto · **Complessità**: ~1 giorno · **Severity**: P1
+**Chiuso**: `v2.4.6-debt-22bis-gdpr-cascade` (2026-05-24)
 
-`backend/auth/cascade_delete.py` ha 4 stub che ritornano 0 perché i moduli
-sottostanti non esistono ancora:
-- `billing.storage.delete_user_billing` — modulo billing è stub, no dato strutturato
-- `audit.log.anonymize_user_audit` — audit log esiste ma non ha API anonimizzazione
-- Modelli `backend/data/models/*.json` — manca `owner_id` mapping (gap pre-esistente)
-- Snapshot — collection senza scope utente
+**Implementazione**:
+- `backend/billing/storage.py` (nuovo): `delete_user_billing/get_user_billing/add_user_billing` su `data/billing.json`
+- `backend/audit/__init__.py` + `audit/log.py` (nuovi): `write_audit_entry`, `anonymize_user_audit` (non cancella entry — sostituisce `user_id` con hash per GDPR-compliant audit)
+- `backend/schemas/model.py:FEAModel.owner_id` (additivo, `Optional[str] = None`, backward-compat con modelli pre-migration)
+- `backend/scripts/migrate_models_add_owner_id.py` (nuovo): migration idempotente dry-run/apply — applicata a 10 modelli esistenti
+- `backend/api/routes/models.py`: POST/PUT/import/duplicate ora popolano `owner_id` via `Depends(get_current_user_optional)`; modelli con utente anonimo restano `owner_id=null`
+- `backend/auth/cascade_delete.py` refactor: 4 stub sostituiti con `_delete_user_models` (sweep filesystem by owner_id), `_delete_user_snapshots` (stub esplicito — feature server-side non implementata), `billing.storage.delete_user_billing`, `audit.log.anonymize_user_audit`
+- `backend/tests/auth/test_cascade_delete_complete.py` (nuovo): 3 test regressione
 
-**Conseguenza**: `DELETE /me` oggi cancella `auth` + `jobs` ma lascia tracce in
-3 punti. Non è GDPR-compliant al 100%. Va completato prima del primo utente
-reale UE.
+**Comportamento ora**:
+- BEFORE: `DELETE /api/auth/me` lasciava modelli orfani, audit log con `user_id` chiaro, billing records (se mai popolati) intatti
+- AFTER: cascade elimina modelli con `owner_id == user`, anonimizza audit, elimina billing records — GDPR Art. 17 compliant per i domini implementati
+- Snapshot resta stub esplicito (feature server-side non esiste — `backend/snapshots/` non presente, no schema, no API)
 
-**Fix futuro**:
-1. Aggiungere `owner_id` ai modelli (migration retroattiva su esistenti)
-2. Estendere `billing.storage` con `delete_user_billing()` reale
-3. Estendere `audit.log` con `anonymize_user_audit()` reale
-4. Cascade su snapshot (path TBD post v2.3.7)
+**Quality gate v2.4.6**:
+- pytest: 1452 PASS (+3 nuovi), 9 FAIL pre-esistenti invariati
+- 4 test #22 originali GDPR base: invariati (PASS)
+- Migration 10 modelli demo applicata, idempotente
+
+**Riferimenti**:
+- Investigation: `docs/v2_4_6_phase1_investigation.md`
+- Closure report: `docs/v2_4_6_debt_22bis_gdpr_cascade_report.md`
+- Audit originale: `docs/solver_internals_audit.md` (#22 v2.3.5)
 
 ### #28bis · Rate limit Redis-backed per multi-instance
 **Stato**: aperto · **Complessità**: ~half day · **Severity**: P2

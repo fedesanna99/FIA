@@ -1,7 +1,11 @@
 """CRUD modelli FEA."""
-from fastapi import APIRouter, HTTPException
+from typing import Optional
+
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
+from auth.dependencies import get_current_user_optional
+from auth.users_db import User
 from schemas import FEAModel, Node, Element, Load, Constraint
 from schemas.model import ModelUpdate
 from core.mesh import (
@@ -28,31 +32,47 @@ def list_all():
 
 
 @router.post("/", response_model=FEAModel)
-def create(req: CreateModelRequest):
+def create(
+    req: CreateModelRequest,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    # v2.4.6 #22bis: popola owner_id se utente autenticato (per GDPR cascade).
     model = FEAModel(
         id=storage.new_id(),
         name=req.name,
         description=req.description,
         is_3d=req.is_3d,
+        owner_id=current_user.id if current_user else None,
     )
     return storage.save_model(model)
 
 
 @router.post("/import", response_model=FEAModel)
-def import_model(payload: FEAModel):
+def import_model(
+    payload: FEAModel,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
     """Importa un modello da JSON: gli viene assegnato un nuovo id (no overwrite)."""
     payload.id = storage.new_id()
+    # v2.4.6 #22bis: imposta owner_id su import autenticato (override sicuro).
+    if current_user:
+        payload.owner_id = current_user.id
     return storage.save_model(payload)
 
 
 @router.post("/{model_id}/duplicate", response_model=FEAModel)
-def duplicate_model(model_id: str):
+def duplicate_model(
+    model_id: str,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
     m = storage.get_model(model_id)
     if not m:
         raise HTTPException(404, f"Modello {model_id} non trovato")
     copy = m.model_copy(deep=True)
     copy.id = storage.new_id()
     copy.name = f"{m.name} (copia)"
+    # v2.4.6 #22bis: la copia è dell'utente corrente (non eredita il proprietario).
+    copy.owner_id = current_user.id if current_user else None
     return storage.save_model(copy)
 
 
@@ -65,10 +85,18 @@ def get(model_id: str):
 
 
 @router.put("/{model_id}", response_model=FEAModel)
-def update(model_id: str, payload: FEAModel):
-    if not storage.get_model(model_id):
+def update(
+    model_id: str,
+    payload: FEAModel,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    existing = storage.get_model(model_id)
+    if not existing:
         raise HTTPException(404, f"Modello {model_id} non trovato")
     payload.id = model_id
+    # v2.4.6 #22bis: preserva owner_id esistente se presente; altrimenti
+    # adotta l'utente corrente (no orfani su modelli pre-migration).
+    payload.owner_id = existing.owner_id or (current_user.id if current_user else None)
     return storage.save_model(payload)
 
 

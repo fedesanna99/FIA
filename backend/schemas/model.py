@@ -116,6 +116,10 @@ class FEAModel(BaseModel):
     elements: list[Element] = Field(default_factory=list)
     loads: list[Load] = Field(default_factory=list)
     constraints: list[Constraint] = Field(default_factory=list)
+    # v2.4.6 #22bis: owner per GDPR cascade. Optional/None = modello
+    # pubblico/demo (es. esempi pre-popolati). Popolato al POST/PUT da
+    # API routes models quando l'utente è autenticato.
+    owner_id: Optional[str] = None
 
 
 class ModelUpdate(BaseModel):
