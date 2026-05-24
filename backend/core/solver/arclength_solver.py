@@ -43,6 +43,7 @@ import scipy.sparse.linalg as spla
 from schemas import FEAModel
 from schemas.results import NodalDisplacement
 from .assembler import GlobalAssembler
+from .errors import SingularMatrixError, NumericalInstabilityError, safe_spsolve
 from .nonlinear_solver import NonLinearStaticSolver
 
 
@@ -175,11 +176,17 @@ class ArcLengthSolver:
                     f_int[d] += kk * u[d]
                 K_T = K_T.tocsr()
             K_ff = K_T[free_arr, :][:, free_arr]
-            try:
-                du_t_f = spla.spsolve(K_ff.tocsc(), F_ext[free_arr])
-            except Exception:
-                results.diagnostics["error"] = f"K_T singolare a step {step}"
-                break
+            # Predictor tangente: δu_t = K_T^-1 · F_ext.
+            # check_magnitude=False perché δu_t è un modo tangente non
+            # normalizzato; viene riscalato sotto da Δλ_p in base a Δs.
+            # Soggetto a bug #30: lascia bubble up SingularMatrixError /
+            # NumericalInstabilityError invece di "silently break".
+            du_t_f = safe_spsolve(
+                K_ff,
+                F_ext[free_arr],
+                context=f"arclength_predictor_step_{step}",
+                check_magnitude=False,
+            )
 
             du_t = np.zeros(n)
             du_t[free_arr] = du_t_f
@@ -247,11 +254,23 @@ class ArcLengthSolver:
                     break
 
                 K_ff = K_T[free_arr, :][:, free_arr]
-                try:
-                    du_bar_f = spla.spsolve(K_ff.tocsc(), r_f)
-                    du_t_f = spla.spsolve(K_ff.tocsc(), F_ext_f)
-                except Exception:
-                    break
+                # Corrector Newton: δu_bar = K_T^-1 · r (residuo),
+                #                   δu_t   = K_T^-1 · F_ext (tangente).
+                # check_magnitude=False perché valori intermedi pre-correzione
+                # arc-length possono essere grandi.
+                # Bug #30: lascia bubble up.
+                du_bar_f = safe_spsolve(
+                    K_ff,
+                    r_f,
+                    context=f"arclength_corrector_step_{step}_iter_{k}_dbar",
+                    check_magnitude=False,
+                )
+                du_t_f = safe_spsolve(
+                    K_ff,
+                    F_ext_f,
+                    context=f"arclength_corrector_step_{step}_iter_{k}_dt",
+                    check_magnitude=False,
+                )
 
                 # Constraint quadratico (cylindrical, ψ=0):
                 # Δu_new = Du_f + δu_bar + δλ · δu_t
