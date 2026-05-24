@@ -6,7 +6,7 @@
 """
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
 
 from auth import (
@@ -68,18 +68,49 @@ def register(req: RegisterRequest) -> AuthResponse:
     return AuthResponse(token=token, user=user.to_public_dict())
 
 
+def _client_ip(request: Request) -> str:
+    """Estrae l'IP del client per il rate limiter.
+
+    Considera X-Forwarded-For se presente (Fly.io / reverse proxy) e fa
+    fallback su request.client.host. Restituisce ``"unknown"`` se non
+    determinabile (es. test senza client). NON usato per logica di
+    business — solo come chiave del rate limiter.
+    """
+    xff = request.headers.get("x-forwarded-for", "").split(",")[0].strip()
+    if xff:
+        return xff
+    if request.client is not None:
+        return request.client.host
+    return "unknown"
+
+
 @router.post("/login", response_model=AuthResponse)
-def login(req: LoginRequest) -> AuthResponse:
-    """Login con email + password. 401 se credenziali errate."""
+def login(request: Request, req: LoginRequest) -> AuthResponse:
+    """Login con email + password. 401 se credenziali errate.
+
+    Bug #28 dell'audit v2.3.5 (P0 security, brute force):
+    rate-limited a 5 tentativi falliti per IP in 15 min. Eccesso → 429.
+    """
+    from auth.login_rate_limiter import login_limiter
+
+    ip = _client_ip(request)
+    if login_limiter.is_blocked(ip):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Troppi tentativi di login. Riprova fra 15 minuti.",
+        )
+
     try:
         user = get_users_db().get_by_email(str(req.email))
     except UserNotFoundError as e:
         # NON rivelare se l'email esiste o no (info leak)
+        login_limiter.record_failure(ip)
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED, detail="invalid email or password"
         ) from e
 
     if not verify_password(req.password, user.password_hash):
+        login_limiter.record_failure(ip)
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED, detail="invalid email or password"
         )
@@ -89,6 +120,10 @@ def login(req: LoginRequest) -> AuthResponse:
         get_users_db().update_last_login(user.id)
     except Exception:  # noqa: BLE001
         pass
+
+    # Login riuscito → reset contatore IP (no penalty per utente legittimo
+    # che ha avuto qualche typo prima).
+    login_limiter.reset(ip)
 
     token = create_access_token(user.id, extra_claims={"email": user.email})
     return AuthResponse(token=token, user=user.to_public_dict())

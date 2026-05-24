@@ -155,6 +155,33 @@ successivo (`v2.4.1+`).
 > **UPDATE 2026-05-24**: scope esteso chiuso in `v2.4.0bis-safe-spsolve-extend`.
 > Vedi voce `#30-extended` qui sotto.
 
+### #28 · NO rate limiting su login brute force
+**Chiuso**: v2.4.2b-rate-limit-login (2026-05-24)
+**Implementazione**:
+- `backend/auth/login_rate_limiter.py` (nuovo): `LoginRateLimiter`
+  sliding-window in-memory (`deque[timestamp]` per IP, thread-safe lock,
+  zero dipendenze esterne)
+- `backend/api/routes/auth.py:login`: estratto IP via X-Forwarded-For
+  fallback `request.client.host`, blocco a 5 fail in 15 min → `429`,
+  reset su login riuscito
+- `backend/tests/auth/test_rate_limit_login.py` (nuovo): 3 test
+
+**Deviazione documentata vs brief**:
+- Brief suggeriva `slowapi==0.1.9` da PyPI, ma l'auto-mode classifier
+  ha negato `pip install`. Implementato custom in-memory limiter:
+  - Pro: zero dipendenze nuove, ~60 LOC, facilmente testabile
+  - Contro: in-process only — per multi-machine deploy futuro serve
+    Redis o equivalente. Documentato come limit nel modulo.
+
+**Comportamento ora**:
+- 5 tentativi falliti consecutivi su `POST /api/auth/login` da stesso IP
+  → 6° tentativo restituisce `429 Too Many Requests` con messaggio italiano
+- Login riuscito → reset contatore IP (no penalty per typo)
+- `POST /api/auth/register` NON rate-limited (solo `/login`)
+
+**Riferimenti**:
+- Audit: `docs/nafems_truth_audit.md` sezione 5 (#28)
+
 ### #22 · GDPR no DELETE /api/auth/me endpoint
 **Chiuso**: v2.4.2a-gdpr-delete-account (2026-05-24)
 **Implementazione**:
