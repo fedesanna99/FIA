@@ -93,13 +93,19 @@ class EC2ShearRequest(BaseModel):
 @router.post("/ec2/shear")
 def ec2_shear(req: EC2ShearRequest):
     try:
+        # v2.4.1 bug #6 fix: passa V_Ed cosi' shear_check calcola
+        # needs_stirrups strutturalmente (V_Ed > V_Rd_c) invece di
+        # ricavarlo solo dalla presenza di staffe modellate.
         res = shear_check(
             b_w=req.b_w, d=req.d, A_sl=req.A_sl, fck=req.fck,
             A_sw=req.A_sw, s=req.s, fywk=req.fywk,
             cot_theta=req.cot_theta, sigma_cp=req.sigma_cp,
+            V_Ed=req.V_Ed,
         )
     except ValueError as e:
         raise HTTPException(400, str(e))
+    # UR calcolato anche lato API per backward-compat con vecchie response
+    # (ora coincide con res.UR ma teniamo entrambi per stabilita' contratto).
     UR = req.V_Ed / res.V_Rd if res.V_Rd > 0 else 0.0
     return {
         "V_Rd": res.V_Rd,
