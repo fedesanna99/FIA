@@ -207,3 +207,38 @@ Va inserito nel commit S2 (chrome navigazionale) e documentato nel report S2 sez
 Lavoro nel **worktree** `crazy-hodgkin-86772d` (non nel main repo). Il branch `feature/redesign-precision` verrà creato qui, pushato su `origin`, visibile dal main repo.
 
 `backend/data/` è gitignored, già migrato a v2.4.6 con `owner_id` null. Niente da fare per setup.
+
+---
+
+## 14 · Alias legacy ANCORA VIVI (verifica pre-merge PR1)
+
+I 3 alias deprecati v2.0 PR1 (`--c-percorsi`, `--c-bg-info`, `--c-bg-percorsi`)
+**non possono essere rimossi ancora** — 4 occorrenze in 2 file consumano:
+
+| File | Riga | Pattern usato | Sprint che lo migrerà |
+|---|---|---|---|
+| `components/shell/panels/HistoryPanelContent.tsx` | 129, 148 | `bg-percorsi/15`, `border-percorsi/40`, `text-percorsi`, `bg-percorsi/5`, `border-percorsi/30` | S5 (inspect panel cluster) |
+| `components/shell/TopBar.tsx` | 371, 388 | `bg-bg-percorsi text-accent border-percorsi/30` (variant `pro` mode chip) | S2 (chrome) |
+
+**Plan**: dopo S2 (TopBar migrato a `bg-accent-subtle` esplicito) e S5
+(HistoryPanelContent migrato), aggiungere a S7 polish il task:
+- Rimuovere `--c-percorsi`, `--c-bg-info`, `--c-bg-percorsi` da `index.css`
+- Rimuovere alias `bg.percorsi`, `ink.percorsi`, `percorsi`, `bg.info` da `tailwind.config.js`
+
+---
+
+## 15 · Contestualizzazione "REDESIGN ARCHITETTI" precedente
+
+In `index.css` esisteva commento `"rifatto dal handoff REDESIGN ARCHITETTI.zip 2026-05-23"` —
+primo tentativo Precision **pre-brief v2.5.0**.
+
+**51 file** matchano `Precision v2.0` o `REDESIGN ARCHITETTI`:
+- 11 atom in `components/ui/`
+- 13 dialog files in `components/dialogs/`
+- 22+ shell files
+- `App.tsx`
+
+**Implicazione per S2-S7**: il commento `Precision v2.0` nel codice non
+è proof of migration. Per ogni file in scope di uno sprint, eseguire
+audit di residui (`bg-emerald|from-/to-|rounded-md/lg/xl|shadow-md/lg|
+border-zinc|text-slate|text-gray-N`) **prima** di considerarlo Precision-OK.

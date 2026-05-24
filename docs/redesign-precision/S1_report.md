@@ -119,6 +119,87 @@ Nessuna in S1. (Il bump APP_VERSION è confermato per S2 — vedi `S0_codebase_m
 
 ---
 
+## Verifiche pre-merge PR1 (Federico instruction)
+
+### 1 · Gap copertura test snapshot
+
+I 4 atom modificati nel commit fix `c78dbed` (Dialog, Card, DropdownMenu, Tooltip in `components/ui/`) **hanno copertura snapshot diretta minima**:
+
+- **1 test** importa direttamente uno dei 4 atom modificati:
+  - `frontend/src/components/shell/ClimateContextBadge.test.tsx:7` →
+    `import { TooltipProvider } from "../ui/Tooltip"`
+
+- **Altri 8 test** che matchano i nomi sono **false positive** (testano i `dialogs/*` co-locati, non gli atom `ui/*`):
+  - `shell/panels/SolvePanel.test.tsx`, `MakePanel.test.tsx`
+  - `shell/topbar/TopBarParts.test.tsx`
+  - `shell/RightRail.test.tsx`, `LeftRail.test.tsx`,
+    `ClimateContextBadge.test.tsx`, `CommandPalette.test.tsx`
+  - `layout/statusbar/StatusBarParts.test.tsx`
+  - `dialogs/Dialog.test.tsx` (testa `components/dialogs/Dialog.tsx`, file
+    diverso da `components/ui/Dialog.tsx`)
+
+**Conseguenza per S2-S7**: la verifica delle modifiche a Dialog/Card/
+DropdownMenu/Tooltip si basa principalmente su:
+1. visual review umana di Federico (PR-by-PR)
+2. test integrati indiretti (componenti che li USANO renderizzano OK)
+3. DOM inspection via `preview_inspect` (più accurata di JPEG)
+
+**Brief candidato post-redesign**: `v2.5.x-ui-atoms-snapshot-coverage` per
+aggiungere test snapshot dedicati per i 11 atom in `components/ui/` (~30
+test nuovi attesi). Bassa priorità, non bloccante per v2.5.0.
+
+### 2 · Alias `percorsi` vivi (NON rimuovere ora)
+
+`grep "var(--c-percorsi|var(--c-bg-percorsi|--percorsi|bg-percorsi|text-percorsi"`
+ha trovato **4 occorrenze in 2 file** — gli alias sono ANCORA VIVI:
+
+| File | Riga | Uso |
+|---|---|---|
+| `components/shell/panels/HistoryPanelContent.tsx` | 129 | `bg-percorsi/15 border-percorsi/40 text-percorsi` |
+| `components/shell/panels/HistoryPanelContent.tsx` | 148 | `border border-percorsi/30 bg-percorsi/5` |
+| `components/shell/TopBar.tsx` | 371 | commento `bg-bg-percorsi / text-accent (emerald, asse Percorsi)` |
+| `components/shell/TopBar.tsx` | 388 | `pro: "bg-bg-percorsi text-accent border-percorsi/30"` (variant mode chip) |
+
+**Decisione**: NON rimuovere gli alias da `index.css` né da `tailwind.config.js`.
+Riproveremo la rimozione dopo aver migrato `HistoryPanelContent.tsx` (S5+
+in scope inspect panel) e `TopBar.tsx` (S2 chrome) — quando entrambi
+useranno direttamente `bg-accent-subtle` invece del legacy `bg-percorsi`.
+
+Annotato dettaglio in `S0_codebase_map.md` §13 (alias legacy ancora vivi).
+
+### 3 · Verifica precedente "REDESIGN ARCHITETTI" — contestualizzazione
+
+**Verbale**: In `index.css` (pre-PR1) esisteva commento "rifatto dal handoff
+REDESIGN ARCHITETTI.zip 2026-05-23". Era un **primo tentativo Precision
+pre-questo brief v2.5.0**, eseguito in uno sprint backend precedente
+(probabilmente parte del compound v2.4.x-followup-fixes o prima).
+
+Questo spiega perché:
+- I tokens `--c-*` erano già allineati a Precision (`--c-accent: 8 145 178`)
+- Il `tailwind.config.js` aveva già `darkMode: [selector, '[data-theme="dark"]']`, radius 0, hairline shadow
+- 51 file (`grep "Precision v2.0|REDESIGN ARCHITETTI"`) hanno commenti
+  che dichiarano allineamento Precision:
+  - 11 atom in `components/ui/`
+  - 13 dialog files in `components/dialogs/`
+  - 22+ shell files in `components/shell/`
+  - `App.tsx`
+
+**Conseguenza per S2-S7**:
+- Il rischio "fork del lavoro precedente" è reale. Per ogni file con
+  commento `Precision v2.0`, **verificare se il codice è davvero migrato**
+  prima di darlo per fatto.
+- Non fidarsi del commento come single source of truth: ispezionare
+  classi Tailwind concrete vs precision.css patterns.
+- Se troviamo `bg-emerald-*`, `from-*-500 to-*-600`, `rounded-md/lg/xl`,
+  `shadow-md/lg`, `border-zinc-*`, `text-slate-*` in file con commento
+  "Precision v2.0", è probabile che il commento sia stato aggiunto come
+  promessa ma la patch non sia stata applicata in tutti i punti.
+
+**Strategia S2-S7**: per ogni file in scope di uno sprint, lanciare un
+mini-audit del tipo eseguito nel punto D di questa correzione post-review.
+
+---
+
 ## Prossimo passo
 
 **PR1 atomica** su `feature/redesign-precision` → review Federico → merge a `test`.
