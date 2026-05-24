@@ -39,8 +39,14 @@ class ShearResult:
     V_Rd_c: float          # senza staffe
     V_Rd_s: float          # con staffe (se presenti)
     V_Rd_max: float        # limite bielle
-    needs_stirrups: bool
+    needs_stirrups: bool   # True se richieste strutturalmente
+                           # (V_Ed > V_Rd_c quando V_Ed noto,
+                           #  altrimenti fallback legacy se A_sw > 0)
     notes: str = ""
+    # v2.4.1: campi opzionali valorizzati quando V_Ed è passato.
+    # Restano None per i caller capacity-side (es. test esistenti).
+    UR: float | None = None       # utilization ratio = V_Ed / V_Rd
+    V_Ed: float | None = None     # taglio sollecitante applicato [N]
 
 
 def V_Rd_c(
@@ -131,21 +137,55 @@ def shear_check(
     A_sw: float = 0.0, s: float = 1.0, fywk: float = 450e6,
     cot_theta: float = 2.5,
     sigma_cp: float = 0.0,
+    V_Ed: float | None = None,
 ) -> ShearResult:
-    """Verifica taglio completa (con o senza staffe)."""
+    """Verifica taglio completa (con o senza staffe).
+
+    Args:
+        b_w, d, A_sl, fck, sigma_cp: vedi ``V_Rd_c`` (EN 1992-1-1 §6.2.2).
+        A_sw, s, fywk, cot_theta: vedi ``V_Rd_s`` / ``V_Rd_max`` (§6.2.3).
+        V_Ed: sollecitazione di taglio applicata [N]. Quando passato,
+            ``needs_stirrups`` viene determinato strutturalmente come
+            ``V_Ed > V_Rd_c``. Quando ``None`` (default), si ricade sul
+            comportamento legacy (``A_sw > 0``) — usato solo dai test
+            capacity-side che non hanno V_Ed.
+
+    Returns:
+        ShearResult con ``UR`` e ``V_Ed`` valorizzati se V_Ed è stato passato,
+        altrimenti ``None``.
+
+    Note:
+        Bug #6 fix (audit v2.3.5): prima ``needs_stirrups = (A_sw > 0)``
+        diceva solo "ho modellato staffe?" anche con V_Ed > V_Rd_c. Ora
+        risponde correttamente "servono staffe per equilibrio?".
+    """
     Vc = V_Rd_c(b_w=b_w, d=d, A_sl=A_sl, fck=fck, sigma_cp=sigma_cp)
     Vmax = V_Rd_max(b_w=b_w, d=d, fck=fck, cot_theta=cot_theta)
     if A_sw > 0:
         Vs = V_Rd_s(b_w=b_w, d=d, A_sw=A_sw, s=s, fywk=fywk, cot_theta=cot_theta)
         # con staffe, V_Rd governato dal minimo fra V_Rd,s e V_Rd,max
         V_Rd = min(Vs, Vmax)
-        needs = True
     else:
         Vs = 0.0
         V_Rd = Vc
-        needs = False
+
+    # Logica needs_stirrups (v2.4.1 fix bug #6):
+    #   - se V_Ed noto (caso reale via API): semantica strutturale
+    #     "servono staffe per equilibrio?" = V_Ed > V_Rd_c
+    #   - se V_Ed=None (test capacity-side legacy): fallback "ho staffe?"
+    if V_Ed is not None:
+        needs = V_Ed > Vc
+        # Edge case V_Rd=0: in pratica V_Rd_c ha sempre v_min>0,
+        # ma protezione difensiva contro ZeroDivisionError.
+        UR = V_Ed / V_Rd if V_Rd > 0 else float("inf")
+    else:
+        needs = A_sw > 0
+        UR = None
+
     return ShearResult(
         V_Rd=V_Rd, V_Rd_c=Vc, V_Rd_s=Vs, V_Rd_max=Vmax,
         needs_stirrups=needs,
         notes=f"cot(θ)={cot_theta}",
+        UR=UR,
+        V_Ed=V_Ed,
     )
