@@ -115,6 +115,69 @@ if el.type in (ElementType.SHELL_Q4, ElementType.SHELL_Q4_MITC):
 
 Vedi `docs/solver_internals_audit.md` sezione 3.
 
+### NEW-4-followup-segno · LE10 σ_y_top sign opposto al target NAFEMS (Q4)
+**Stato**: verificato post `v2.4.3c-shell-stress-recovery-nodal` (commit `151a562`) · **resta aperto**
+**Complessità**: ~half day · **Severity**: P1
+
+Sprint 2 (v2.4.3b) aveva rilevato sintomo: LE10 `σ_y_top = +2.21 MPa` vs
+target NAFEMS `-5.38 MPa`. Sprint 3 (v2.4.3c) ha sistemato lo stress
+recovery al nodo (causa D). **Verifica empirica post-Sprint-3
+(`scripts/le10_sign_verification.py`)**:
+
+```
+SHELL_Q4 (mesh 8x8, punto D al bordo foro a r=0.5):
+  Target NAFEMS:                  -5.380e+06 Pa (compressione)
+  Method centroid (legacy):       +2.032e+07 Pa (+)
+  Method nodal @ D (v2.4.3c):     +2.203e+07 Pa (+) ← segno ANCORA SBAGLIATO
+  Errore vs NAFEMS:               509%
+
+SHELL_Q4_MITC (stesso problema):
+  Method nodal @ D:               -7.528e+07 Pa (-) ← segno OK
+  Errore vs NAFEMS:               1299% (magnitude enorme — bug NEW-3-followup)
+```
+
+**Diagnosi**:
+- Q4 produce σ_y_top **positivo** (trazione) al bordo del foro interno
+- Fisicamente, piastra sotto pressione p>0: fibra TOP in COMPRESSIONE → atteso negativo
+- MITC dà segno corretto (negativo) ma magnitude impossibile a causa di
+  NEW-3-followup (uz 37× Q4)
+- Lo sprint 3 ha **migliorato** la magnitude (era +0.221 MPa con bug NEW-4
+  pre-sprint-2, ora +22 MPa nodale = ordine di grandezza più verosimile),
+  ma il segno **non è risolto** dallo stress recovery
+
+**Cause candidate residue** (post-Sprint-3 esclusi causa D):
+- (A) Convenzione segno "top" = z=+t/2 invertita rispetto a NAFEMS
+- (B) θ_x / θ_y estratti con segno opposto in `stresses_at_nodes`
+  (riga `u_local[6*i+3]` vs `u_local[6*i+4]`)
+- (C) Errore segno in B_b matrix:
+  ```python
+  Bb[0, 3*i + 1] = dN[0]   # κ_x da θ_x ?  o segno opposto?
+  Bb[1, 3*i + 2] = dN[1]   # κ_y da θ_y ?
+  ```
+  La convenzione Mindlin/Kirchhoff: κ_x = -∂θ_y/∂x, κ_y = ∂θ_x/∂y. Il
+  codice attuale lega κ a θ con segno (+,+) — potrebbe essere (-,+)
+  o (+,-) per coerenza con la convenzione interna del solver.
+
+**Fix futuro** (~half day):
+1. Riformula `B_b` con convenzione segno coerente Kirchhoff: testare 4
+   combinazioni (++, +-, -+, --) cercando quella che restituisce σ_y_top
+   negativo su LE10 + preserva LE1 PASS (membrana puro, deve essere
+   insensibile a segno bending)
+2. Run `le10_sign_verification.py` per validare
+3. Run `test_le1_convergence.py` per regression
+4. Test cross-check con cantilever shell sotto carico noto (problema con
+   soluzione analitica chiusa)
+
+**Brief raccomandato**: `v2.4.x-shell-bending-sign-fix`, dipendenza
+preferenziale da `v2.4.x-mitc-shear-calibration` (perché la combinazione
+sign × shear-scale di MITC va fixata coerente).
+
+**Riferimenti**:
+- Sprint origine: `docs/v2_4_3b_shell_bending_stress_recovery_report.md`
+- Sprint che ha tentato chiusura: `docs/v2_4_3c_shell_stress_recovery_nodal_report.md`
+- Verifica: `backend/scripts/le10_sign_verification.py`
+- Report verification: `docs/v2_4_3c_1_sign_verification_report.md`
+
 ### NEW-3-followup · MITC `_bending_stiffness` Bathe-Dvorkin K_s mal calibrato
 **Stato**: scoperto post `v2.4.3a-shell-pressure-mitc-fix` (commit `b9df9cb`) · **Complessità**: ~1 giorno post NEW-1 · **Severity**: P1
 
