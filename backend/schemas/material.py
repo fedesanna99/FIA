@@ -106,6 +106,27 @@ MATERIALS_DB: dict[str, Material] = {
         id="concrete_c45", name="Calcestruzzo C45/55",
         E=36e9, nu=0.2, rho=2500, fck=45e6, alpha_t=1.0e-5, color="#606060",
     ),
+    # v2.4.8.2: estensione range EC2 (low-end + high-end)
+    "concrete_c12": Material(
+        id="concrete_c12", name="Calcestruzzo C12/15",
+        E=27e9, nu=0.2, rho=2400, fck=12e6, alpha_t=1.0e-5, color="#d8d8d8",
+    ),
+    "concrete_c16": Material(
+        id="concrete_c16", name="Calcestruzzo C16/20",
+        E=29e9, nu=0.2, rho=2450, fck=16e6, alpha_t=1.0e-5, color="#c8c8c8",
+    ),
+    "concrete_c50": Material(
+        id="concrete_c50", name="Calcestruzzo C50/60",
+        E=37e9, nu=0.2, rho=2500, fck=50e6, alpha_t=1.0e-5, color="#505050",
+    ),
+    "concrete_c55": Material(
+        id="concrete_c55", name="Calcestruzzo C55/67",
+        E=38e9, nu=0.2, rho=2500, fck=55e6, alpha_t=1.0e-5, color="#404040",
+    ),
+    "concrete_c60": Material(
+        id="concrete_c60", name="Calcestruzzo C60/75",
+        E=39e9, nu=0.2, rho=2500, fck=60e6, alpha_t=1.0e-5, color="#303030",
+    ),
     # Acciaio armatura (NTC 2018 §11.3)
     "rebar_b450c": Material(
         id="rebar_b450c", name="Acciaio armatura B450C",

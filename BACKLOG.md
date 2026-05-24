@@ -350,6 +350,30 @@ in test significativo (es. check `σ_yy(2p) = 2·σ_yy(p)`).
 - Diagnostic completo: `docs/pushover_diagnostic.md`
 - Refactor origine bug: commit `2dc4498` (v2.4.0bis safe_spsolve)
 
+### Materials catalog · estensione EN 10025 + EC2
+**Esteso**: `v2.4.8.2-catalog-materials-extension` (2026-05-24)
+
+**Stato corrente** (post v2.4.8.2):
+- Acciai EN 10025-2: **5/5** ✓ (S235, S275, S355, S420, S460 — già tutti presenti pre-v2.4.8.2)
+- Calcestruzzi EN 1992-1-1 Tab. 3.1: **11 grades** (era 6, +5 nuovi)
+  - Aggiunti: C12/15, C16/20 (low-end), **C50/60**, C55/67, C60/75 (high-end)
+  - Coverage Tab. 3.1: C12 fino a C60 (resta C70-C90 per applicazioni speciali)
+- Legni EN 338 + EN 14080: 4 grades (#15 ancora aperto per coverage estesa)
+
+**Implementazione**:
+- `backend/schemas/material.py`: +5 calcestruzzi a `MATERIALS_DB`
+- `backend/materials/__init__.py` (nuovo, ~115 righe): facade API canonica
+  con `get_steel_grade("S420")`, `get_concrete_grade("C50/60")`,
+  `get_timber_grade("C24")`, `list_*_grades()` + `MaterialNotFoundError`
+- `backend/tests/materials/test_catalog_extension.py` (nuovo, ~140 righe):
+  30 test (parametrici acciai + calcestruzzi + legni + error handling + backward compat)
+
+**Quality gate v2.4.8.2**:
+- pytest: 1675 PASS (+30 nuovi), 2 FAIL pre-esistenti invariati
+
+**Risolve Paoletto finding #7 (catalogo materiali scarso)** per acciai e
+calcestruzzi. Resta #15 timber EC5 (4/27, brief dedicato futuro).
+
 ### #14 · EC3 section class sistematico HEA/IPE/HEB/HEM
 **Parzialmente chiuso**: `v2.4.8-ec3-section-class-coverage` (2026-05-24)
 **Esteso a coverage completa Annex F**: `v2.4.8.1-catalog-expansion-ipe-hea-heb-hem` (2026-05-24)
