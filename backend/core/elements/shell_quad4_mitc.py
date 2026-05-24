@@ -111,9 +111,29 @@ class ShellQuad4MITC:
     def _Bs_at(self, xi: float, eta: float) -> np.ndarray:
         """Restituisce B_shear 2×12 al punto (ξ, η).
 
-        DOF order: per ogni nodo (w, rx, ry), totale 12 DOF.
-        γ_xz = ∂w/∂x + ry
-        γ_yz = ∂w/∂y - rx
+        DOF order locale per nodo: (w, rx, ry) → indici (0, 1, 2).
+
+        Convenzione (Mindlin Bathe FEM §5.4, coerente con Q4 ed entrambi i
+        B_b di Q4/MITC che hanno κ_x = ∂(DOF idx 1)/∂x):
+
+            γ_xz = ∂w/∂x − (DOF idx 1)
+            γ_yz = ∂w/∂y − (DOF idx 2)
+
+        ⚠ v2.4.5 Phase 2 fix (NEW-3-followup esteso):
+
+        Pre-fix (v2.4.3a..v2.4.4) usava DOF indici scambiati e segno opposto
+        sulla riga γ_xz:
+
+            Bs[0, 3*i + 2] = +N[i]     # γ_xz = ∂w/∂x + (DOF idx 2) ❌
+            Bs[1, 3*i + 1] = -N[i]     # γ_yz = ∂w/∂y − (DOF idx 1) ❌
+
+        Era incoerente con Q4 e con il proprio B_b. Pre-v2.4.4 il segno
+        opposto compensava fortuitamente la formula sbagliata σ_top = σ_m + 6M/t².
+        Post v2.4.4 (formula σ_top = σ_m − 6M/t² corretta) il segno MITC
+        diventava sbagliato (+75 MPa vs −75 MPa atteso su LE10).
+
+        Vedi `docs/v2_4_5_phase1_mitc_investigation.md` per diagnostic
+        numerico e analisi convenzione.
         """
         N, dN_dxi, dN_deta = self._shape_functions(xi, eta)
         xy = self.local_xy
@@ -124,9 +144,9 @@ class ShellQuad4MITC:
         for i in range(4):
             dN = invJ @ np.array([dN_dxi[i], dN_deta[i]])
             Bs[0, 3 * i]     = dN[0]    # ∂w/∂x
-            Bs[0, 3 * i + 2] = N[i]     # +ry
+            Bs[0, 3 * i + 1] = -N[i]    # −(DOF idx 1)   ← v2.4.5: era idx 2 con segno +
             Bs[1, 3 * i]     = dN[1]    # ∂w/∂y
-            Bs[1, 3 * i + 1] = -N[i]    # -rx
+            Bs[1, 3 * i + 2] = -N[i]    # −(DOF idx 2)   ← v2.4.5: era idx 1 con segno −
         return Bs
 
     # ─── bending + shear stiffness con MITC4 ────────────────────────────────
