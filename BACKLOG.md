@@ -91,7 +91,50 @@ in test significativo (es. check `σ_yy(2p) = 2·σ_yy(p)`).
 
 ## 🟡 Media priorità
 
-(Tutte le voci media priorità v1.0.0 sono chiuse — vedi `## Chiuso`.)
+### #22bis · GDPR cascade delete incomplete
+**Stato**: aperto · **Complessità**: ~1 giorno · **Severity**: P1
+
+`backend/auth/cascade_delete.py` ha 4 stub che ritornano 0 perché i moduli
+sottostanti non esistono ancora:
+- `billing.storage.delete_user_billing` — modulo billing è stub, no dato strutturato
+- `audit.log.anonymize_user_audit` — audit log esiste ma non ha API anonimizzazione
+- Modelli `backend/data/models/*.json` — manca `owner_id` mapping (gap pre-esistente)
+- Snapshot — collection senza scope utente
+
+**Conseguenza**: `DELETE /me` oggi cancella `auth` + `jobs` ma lascia tracce in
+3 punti. Non è GDPR-compliant al 100%. Va completato prima del primo utente
+reale UE.
+
+**Fix futuro**:
+1. Aggiungere `owner_id` ai modelli (migration retroattiva su esistenti)
+2. Estendere `billing.storage` con `delete_user_billing()` reale
+3. Estendere `audit.log` con `anonymize_user_audit()` reale
+4. Cascade su snapshot (path TBD post v2.3.7)
+
+### #28bis · Rate limit Redis-backed per multi-instance
+**Stato**: aperto · **Complessità**: ~half day · **Severity**: P2
+
+`backend/auth/login_rate_limiter.py` usa sliding window **in-memory**.
+Funziona oggi (single-container fly.io free tier) ma si rompe se mai
+scaliamo a 2+ container: un attacker può ruotare fra container e bypassare
+il limit.
+
+**Fix futuro**: backing store Redis (o equivalente). Da fare se/quando
+scaliamo a multi-instance.
+
+### #17bis · CSP report-only → enforcement promotion
+**Stato**: aperto · **Complessità**: ~half day · **Severity**: P2 reminder
+
+`backend/middleware/security_headers.py` invia CSP come
+`Content-Security-Policy-Report-Only`. Logga violazioni in
+`/api/csp-report` ma non blocca.
+
+**Fix futuro** (post 1-2 settimane di osservazione log):
+1. Verificare che le violazioni reali siano ≤ 1-2 sporadiche
+2. Restringere policy se serve (es. rimuovere `'unsafe-inline'` da
+   `script-src` se Tailwind non lo richiede)
+3. Cambiare header in `Content-Security-Policy` (enforcement)
+4. Mantenere `report-uri` per logging anche post-enforcement
 
 ---
 
