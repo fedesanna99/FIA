@@ -155,6 +155,34 @@ successivo (`v2.4.1+`).
 > **UPDATE 2026-05-24**: scope esteso chiuso in `v2.4.0bis-safe-spsolve-extend`.
 > Vedi voce `#30-extended` qui sotto.
 
+### #6 · EC2 staffe non nec. quando UR > 1.0
+**Chiuso**: v2.4.1-ec2-stirrups-fix (2026-05-24)
+**Implementazione**:
+- `backend/core/verification/ec2/shear.py`:
+  - `shear_check` accetta `V_Ed: float | None = None` (backward-compat)
+  - Logica strutturale: `needs_stirrups = (V_Ed > V_Rd_c)` quando V_Ed noto
+  - Fallback legacy `(A_sw > 0)` quando V_Ed=None (test capacity-side)
+  - `ShearResult` esteso con `UR` e `V_Ed` opzionali
+- `backend/api/routes/verify_ext.py:96`:
+  - Wiring `V_Ed=req.V_Ed` alla chiamata `shear_check`
+- `backend/tests/verification/test_ec2_shear_v_ed.py` (nuovo):
+  - 5 test regressione (true/false V_Ed cases, backward-compat,
+    API integration, edge V_Ed=0)
+
+**Caller migrati**:
+- `verify_ext.py` (1 caller produttivo) — passa V_Ed
+- 3 caller test capacity-side — restano su V_Ed=None (legittimo)
+
+**Comportamento ora**:
+- API riceve V_Ed=200kN, A_sw=0 → response `{needs_stirrups: true, UR: 2.665}`
+  (prima: `{needs_stirrups: false, UR: 2.665}` incoerente)
+- Frontend `EC2Panel.tsx` mostra response coerente senza modifiche frontend
+
+**Riferimenti**:
+- Audit: `docs/nafems_truth_audit.md` sezione 3 (EC2)
+- Investigation: `docs/v2_4_1_investigation_report.md`
+- Closure report: `docs/v2_4_1_ec2_stirrups_fix_report.md`
+
 ### #30-extended · safe_spsolve esteso a tutti i solver
 **Chiuso**: v2.4.0bis-safe-spsolve-extend (2026-05-24)
 **Implementazione**:
