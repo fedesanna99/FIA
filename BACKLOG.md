@@ -1,7 +1,11 @@
 # FEA Pro — Backlog tecnico
 
-> Stato aggiornato: **2026-05-23** (riconciliato in v2.3.3-docs-sync da
-> v1.0.0 audit del 2026-05-19).
+> Stato aggiornato: **2026-05-24** (post `v2.3.6-honesty-fix` da
+> `v2.3.3-docs-sync` del 2026-05-23).
+>
+> ⚠ **BL-6 NAFEMS riaperto** post audit `v2.3.5-nafems-truth-audit`.
+> Diversi bug strutturali identificati (shell formulation, postprocess,
+> matrice singolare, EC2 staffe). Sprint `v2.4.x` in corso.
 >
 > Voci storiche chiuse nelle versioni post v1.0.0 sono nella sezione
 > `## Chiuso (v1.x → v2.x)` in coda.
@@ -15,8 +19,73 @@ in tempo "a regime" (codice + test + validazione contro caso analitico).
 
 ## 🔴 Alta priorità (sbloccano classi di problemi)
 
-(Tutte le voci alta priorità del backlog v1.0.0 sono state chiuse in v1.3 → v2.3.
-Vedi sezione `## Chiuso (v1.x → v2.x)` in coda.)
+> Le voci alta priorità del backlog v1.0.0 erano state chiuse in v1.3 → v2.3,
+> ma l'audit `v2.3.5-nafems-truth-audit` (2026-05-24) ha riaperto BL-6 e
+> identificato 6 bug nuovi (NEW-1..6) sulla shell formulation e sul postprocess.
+
+### BL-6-bis · NAFEMS LE1/LE10 enforcement tolerance ufficiale
+**Stato**: riaperto post `v2.3.5-nafems-truth-audit` · **Complessità**: ~3-4 settimane
+
+LE2 cylindrical cantilever, cantilever tip, cantilever modal, Euler buckling:
+✅ PASS confermato (errore < 0.001%).
+
+LE1 Elliptic membrane: ❌ FAIL
+- Errore reale −32% (target ±5%)
+- Tolerance test attuale ±400% (`SIGMA_TARGET/5 ≤ ≤ SIGMA_TARGET*5`)
+- Anti-convergenza: mesh fine peggiora invece di migliorare
+
+LE10 Thick plate: ❌ FAIL
+- σ_yy(D) misurato 0.000 MPa (target −5.38 MPa, errore −100%)
+- Test misurano max|uz| invece di σ_yy
+- SHELL_Q4_MITC produce max|uz| = 0 (dispatch rotto su pressure load)
+
+Fix in sprint `v2.4.2-shell-formulation`. Dettaglio bug:
+`docs/nafems_truth_audit.md`.
+
+### NEW-1 · LE1 anti-convergenza mesh fine
+**Stato**: aperto · **Complessità**: ~2-4 giorni
+
+Mesh 12×12 errore −32% vs mesh 20×20 errore −76%. Possibili cause:
+mesh degenere (quarter_ellipse_with_hole), stress recovery sbagliato, o
+carichi nodali equivalenti mal distribuiti. Indagine in
+`v2.3.6-honesty-fix` precedente, fix in `v2.4.2`.
+
+### NEW-2 · SHELL_Q4 e SHELL_Q4_MITC identici su LE1
+**Stato**: aperto · **Complessità**: ~1-2 giorni
+
+Su LE1 i due element type danno errore identico ad ogni mesh (−58/−47/−40/−35/
+−32/−67/−75 %). MITC non sta cambiando la formulazione, oppure SHELL_Q4 già
+usa MITC internamente, oppure dispatch in `assembler.py` non distingue.
+
+### NEW-3 · SHELL_Q4_MITC max|uz|=0 su LE10
+**Stato**: aperto · **Complessità**: ~1 giorno
+
+Su LE10 con pressure load, MITC produce `max|uz| = 0.000 mm` per ogni mesh.
+SHELL_Q4 normale invece dà valori non-zero crescenti con mesh. MITC è
+completamente rotto per pressure_load_vector.
+
+### NEW-4 · Postprocess shell σ_y solo membrana, non bending
+**Stato**: aperto · **Complessità**: ~1-2 giorni
+
+LE10 ha `element_stresses[*].sigma_y = 0` ovunque, ma `max|uz|` è non-zero.
+Significa che il postprocess legge solo componente membrana, non bending in
+fibra estrema (z=±t/2). Fix in `v2.4.2-postprocess-shell`.
+
+### NEW-5 · Helper assert_within_nafems_tolerance mai chiamato
+**Stato**: code smell P2 · **Complessità**: ~30 minuti
+
+`backend/tests/nafems/conftest.py` definisce
+`assert_within_nafems_tolerance(value, target, tol_pct, name)` con logica
+corretta, ma nessun test NAFEMS lo chiama. Helper morto. Da rimuovere o da
+adottare nei test post-fix solver.
+
+### NEW-6 · Dead test linearità tautologica LE10
+**Stato**: code smell P1 · **Complessità**: ~15 minuti
+
+`test_le10_deflection_scales_linearly_with_pressure` testa che `w(2p) = 2·w(p)`.
+È un'identità algebrica del solver lineare — passerebbe anche se il solver
+restituisse sempre `42` indipendentemente dall'input. Da rimuovere o trasformare
+in test significativo (es. check `σ_yy(2p) = 2·σ_yy(p)`).
 
 ---
 
@@ -95,11 +164,15 @@ in v2.4.x come check di validazione mirato (vedi tech debt sopra).
 `backend/tests/nafems/`.
 
 ### BL-6 · NAFEMS LE1 / LE2 / LE10 con geometria ellittica
-**Chiuso**: v1.3 (D1) · 9 test verdi in `backend/tests/nafems/`
-- LE1 elliptic membrane Q4/Tri3 + convergenza
-- LE2 cantilever beam3D + convergenza + reazioni
-- LE10 thick plate Q4 + h-refinement + linear scaling
-Mesh generata via `quarter_ellipse_with_hole` (Coons patch transfinita).
+**Stato originale**: chiuso v1.3 (D1) · **RIAPERTO 2026-05-24 post `v2.3.5-nafems-truth-audit`**.
+
+Voce storica (mantenuta per tracciabilità):
+- LE2 cantilever beam3D + convergenza + reazioni → ✅ PASS confermato in audit
+- LE1 elliptic membrane Q4/Tri3 → ❌ tolerance test ±400% maschera errore reale −32%
+- LE10 thick plate Q4 → ❌ test misurano max|uz| invece di σ_yy(D)
+
+Continuazione attiva: vedi `### BL-6-bis · NAFEMS LE1/LE10 enforcement tolerance ufficiale`
+in sezione "🔴 Alta priorità".
 
 ### BL-7 · 3D iso-surfaces (marching tetra / cubes)
 **Chiuso**: v1.8 (riconciliato in v2.3.3-docs-sync, 2026-05-23)
