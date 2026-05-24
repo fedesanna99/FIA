@@ -1,24 +1,18 @@
 """Analisi statica lineare K u = F."""
 from __future__ import annotations
 import time
-import warnings
 import numpy as np
-import scipy.sparse.linalg as spla
-from scipy.sparse.linalg import MatrixRankWarning
 
 from schemas import FEAModel, ElementType
 from schemas.results import (
     StaticResults, NodalDisplacement, NodalReaction, ElementForces, ElementStress,
 )
 from .assembler import GlobalAssembler, GLOBAL_DOFS_PER_NODE
-from .errors import SingularMatrixError, NumericalInstabilityError
-
-
-# Soglia oltre cui consideriamo che siamo davanti a un meccanismo silente.
-# 10^6 m = 1000 km. Nessuna struttura civile reale supera questo limite,
-# nemmeno modelli cable molto stretchy. Scelta volutamente conservativa
-# per evitare falsi positivi su problemi geometricamente non-lineari.
-MAX_REASONABLE_DISPLACEMENT_M = 1.0e6
+from .errors import (
+    NumericalInstabilityError,
+    SingularMatrixError,
+    safe_spsolve,
+)
 
 
 def _element_dofs_for_internal(el, node_dofs):
@@ -49,41 +43,16 @@ class StaticSolver:
         else:
             if progress_cb: progress_cb(0.7, "Risoluzione del sistema K u = F...")
             # === SAFE solve · bug #30 audit v2.3.5-nafems-truth-audit ===
-            # Cattura MatrixRankWarning di scipy come eccezione + check NaN
-            # + check magnitude. Prima di v2.4.0 il solver restituiva
-            # silenziosamente NaN o spostamenti di 1.76e10 m.
-            with warnings.catch_warnings():
-                warnings.simplefilter("error", MatrixRankWarning)
-                try:
-                    u_free = spla.spsolve(K_ff.tocsc(), F_f)
-                except MatrixRankWarning:
-                    raise SingularMatrixError(
-                        cause="rank_deficient",
-                        n_free_dofs=K_ff.shape[0],
-                    ) from None
-                except RuntimeError as e:
-                    # scipy a volte solleva RuntimeError per matrici severamente singolari
-                    raise SingularMatrixError(
-                        cause="rank_deficient",
-                        n_free_dofs=K_ff.shape[0],
-                    ) from e
-
-            # Check 1: NaN/Inf nel risultato
-            if not np.all(np.isfinite(u_free)):
-                raise SingularMatrixError(
-                    cause="nan_in_solution",
-                    n_free_dofs=K_ff.shape[0],
-                )
-
-            # Check 2: spostamenti irrealistici (meccanismo silente)
-            max_abs = float(np.max(np.abs(u_free)))
-            if max_abs > MAX_REASONABLE_DISPLACEMENT_M:
-                raise SingularMatrixError(
-                    cause="huge_displacement",
-                    n_free_dofs=K_ff.shape[0],
-                    condition_estimate=max_abs,
-                )
-
+            # safe_spsolve cattura MatrixRankWarning, NaN/Inf, e spostamenti
+            # > 10^6 m. Prima di v2.4.0 il solver restituiva NaN o valori folli
+            # silenti. Refactor v2.4.0bis: helper riutilizzato anche da
+            # arclength / dynamic / nonlinear.
+            u_free = safe_spsolve(
+                K_ff,
+                F_f,
+                n_free_dofs=K_ff.shape[0],
+                context="static",
+            )
             u_full[free_dofs] = u_free
         if progress_cb: progress_cb(0.85, "Calcolo reazioni e tensioni...")
 
