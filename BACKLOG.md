@@ -332,6 +332,31 @@ successivo (`v2.4.1+`).
 **Riferimenti**:
 - Audit: `docs/nafems_truth_audit.md` sezione 5 (#28)
 
+### NEW-3 · SHELL_Q4_MITC pressure load dispatch incompleto
+**Chiuso**: v2.4.3a-shell-pressure-mitc-fix (2026-05-24)
+**Implementazione**:
+- `backend/core/solver/assembler.py:244`: branch dispatch esteso da
+  `if el.type == ElementType.SHELL_Q4:` a
+  `if el.type in (ElementType.SHELL_Q4, ElementType.SHELL_Q4_MITC):`
+- `backend/tests/solver/test_shell_mitc_pressure_load.py` (nuovo): 4 test
+
+**Comportamento ora**:
+- BEFORE: LE10 con `SHELL_Q4_MITC` → `max|uz| = 0.000 m` silente
+  (carico mai applicato, branch dispatch escludeva MITC)
+- AFTER: LE10 con `SHELL_Q4_MITC` → `max|uz| ≈ 0.237 m`
+- Q4 baseline invariato: `max|uz| ≈ 6.4e-3 m`
+
+**Anomalia inattesa scoperta (NEW-3-followup)**:
+Post-fix, MITC dà `uz ≈ 37×` Q4 su LE10. Sintomo di un **secondo bug**
+nella formulation `ShellQuad4MITC._bending_stiffness` (Bathe-Dvorkin
+tying points). Distinto da NEW-3 dispatch. Da indagare in brief separato
+`v2.4.x-mitc-formulation-calibration`. **Non bloccante** per questo
+sprint perché il bug originario (dispatch) è chiuso.
+
+**Riferimenti**:
+- Audit: `docs/solver_internals_audit.md` sezione 3
+- Closure report: `docs/v2_4_3a_shell_pressure_mitc_fix_report.md`
+
 ### #22 · GDPR no DELETE /api/auth/me endpoint
 **Chiuso**: v2.4.2a-gdpr-delete-account (2026-05-24)
 **Implementazione**:

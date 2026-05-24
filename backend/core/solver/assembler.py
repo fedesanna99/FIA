@@ -241,7 +241,13 @@ class GlobalAssembler:
                 p = load.pressure
                 if p == 0:
                     continue
-                if el.type == ElementType.SHELL_Q4:
+                if el.type in (ElementType.SHELL_Q4, ElementType.SHELL_Q4_MITC):
+                    # NEW-3 fix (v2.4.3a): SHELL_Q4_MITC condivide la stessa
+                    # signature di SHELL_Q4 (_area + R), quindi stesso lumping
+                    # uniforme sui 4 nodi. Prima il branch gestiva solo
+                    # SHELL_Q4 → MITC con pressure load produceva max|uz|=0
+                    # silent su LE10. Diagnosi: docs/solver_internals_audit.md
+                    # sezione 3.
                     A = inst._area()
                     normal = inst.R[2]
                     force_total = -p * A * normal
