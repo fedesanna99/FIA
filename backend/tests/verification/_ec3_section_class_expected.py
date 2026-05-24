@@ -1,86 +1,241 @@
 """Expected EC3 §5.5 section class — ground truth derivata manualmente
 da EN 1993-1-1 Tab. 5.2 applicata al catalogo profili reale di FEA Pro.
 
-Catalogo reale (`backend/schemas/material.py`):
-- IPE: 100, 200, 240, 270, 300, 360, 400, 500 (8 profili)
-- HEA: 100, 200, 240, 300 (4 profili)
-- HEB: 100, 200, 240, 300 (4 profili)
-
-NB: il brief v2.4.8 stimava 18 IPE + 19 HEA, ma il codebase ne ha 8+4+4.
-Coverage adattata al catalogo reale. Brief future quando catalogo verrà
-esteso (es. IPE 80/120/140/.../600 dal catalogo Arcelor completo).
+Catalogo (v2.4.8.1 expanded):
+- IPE: 80, 100, 120, 140, 160, 180, 200, 220, 240, 270, 300, 330, 360, 400, 450, 500, 550, 600 (18)
+- HEA: 100, 120..1000 (24)
+- HEB: 100, 120..1000 (24)
+- HEM: 100, 120..1000 (24)
+Totale 90 profili × 2 acciai (S235, S355) = 180 casi parametrici.
 
 Convenzione tupla: (sid, fy_MPa, expected_class_compression, expected_class_bending)
 
-Per ogni profilo i valori expected sono **calcolati a mano** applicando
-le formule EC3 §5.5 alle dimensioni del catalogo (h, b, tw, tf, r).
-Procedura:
+Per ogni profilo, i valori expected sono **derivati applicando le formule
+EC3 §5.5** alle dimensioni del catalogo (h, b, tw, tf, r):
     ε = √(235 / fy)
     c_f = (b - tw - 2r) / 2                 [ala outstand]
     c_w = h - 2 tf - 2 r                    [anima netta]
     flange_class = thresholds(c_f/tf, ε, "outstand")
     web_class = thresholds(c_w/tw, ε, loading)
     section_class = max(flange_class, web_class)
+
 Thresholds (Tab. 5.2 EN 1993-1-1):
-    Outstand flange (compr.): 9ε / 10ε / 14ε     (Cl 1 / 2 / 3, else 4)
+    Outstand flange (compr.): 9ε / 10ε / 14ε
     Web (compression):       33ε / 38ε / 42ε
     Web (bending):           72ε / 83ε / 124ε
+
+I cf/tf e cw/tw sotto i commenti sono valori effettivi calcolati
+dalle dimensioni del catalogo (per riferimento e audit futuro).
 """
 
-# IPE S235 (ε = 1.0) — manuale da EC3 Tab. 5.2
+# IPE S235 (ε = 1.0)
 IPE_S235 = [
-    # sid       fy   exp_comp  exp_bend
-    ("ipe_100", 235, 1, 1),   # c_f/tf=3.24, c_w/tw=18.2 → Cl 1
-    ("ipe_200", 235, 1, 1),   # c_f/tf=4.14, c_w/tw=28.4 → Cl 1
-    ("ipe_240", 235, 1, 1),   # c_f/tf=4.28, c_w/tw=30.7 → Cl 1
-    ("ipe_270", 235, 2, 1),   # c_w/tw=33.3 → comp Cl 2 (>33), bend Cl 1
-    ("ipe_300", 235, 2, 1),   # c_w/tw=35.0 → comp Cl 2
-    ("ipe_360", 235, 2, 1),   # c_w/tw=37.3 → comp Cl 2 (<38)
-    ("ipe_400", 235, 3, 1),   # c_w/tw=38.5 → comp Cl 3 (>38)
-    ("ipe_500", 235, 3, 1),   # c_w/tw=41.8 → comp Cl 3 (<42, borderline)
+    ("ipe_80",  235, 1, 1),  # cf/tf=3.10, cw/tw=15.68
+    ("ipe_100", 235, 1, 1),  # cf/tf=3.24, cw/tw=18.20
+    ("ipe_120", 235, 1, 1),  # cf/tf=3.62, cw/tw=21.23
+    ("ipe_140", 235, 1, 1),  # cf/tf=3.93, cw/tw=23.87
+    ("ipe_160", 235, 1, 1),  # cf/tf=3.99, cw/tw=25.44
+    ("ipe_180", 235, 1, 1),  # cf/tf=4.23, cw/tw=27.55
+    ("ipe_200", 235, 1, 1),  # cf/tf=4.14, cw/tw=28.39
+    ("ipe_220", 235, 1, 1),  # cf/tf=4.35, cw/tw=30.10
+    ("ipe_240", 235, 1, 1),  # cf/tf=4.28, cw/tw=30.71
+    ("ipe_270", 235, 2, 1),  # cf/tf=4.82, cw/tw=33.27 (web >33)
+    ("ipe_300", 235, 2, 1),  # cf/tf=5.28, cw/tw=35.01
+    ("ipe_330", 235, 2, 1),  # cf/tf=5.07, cw/tw=36.13
+    ("ipe_360", 235, 2, 1),  # cf/tf=4.96, cw/tw=37.33
+    ("ipe_400", 235, 3, 1),  # cf/tf=4.79, cw/tw=38.49 (web >38)
+    ("ipe_450", 235, 3, 1),  # cf/tf=4.75, cw/tw=40.30
+    ("ipe_500", 235, 3, 1),  # cf/tf=4.62, cw/tw=41.76 (borderline 42)
+    ("ipe_550", 235, 4, 1),  # cf/tf=4.39, cw/tw=42.13 (web >42 → Cl 4)
+    ("ipe_600", 235, 4, 1),  # cf/tf=4.21, cw/tw=42.83
 ]
 
 # HEA S235 (ε = 1.0)
 HEA_S235 = [
-    ("hea_100", 235, 1, 1),   # c_f/tf=4.44, c_w/tw=11.2 → Cl 1
-    ("hea_200", 235, 1, 1),   # c_f/tf=7.88, c_w/tw=20.6 → Cl 1
-    ("hea_240", 235, 1, 1),   # c_f/tf=7.94, c_w/tw=21.9 → Cl 1
-    ("hea_300", 235, 1, 1),   # c_f/tf=8.48, c_w/tw=24.5 → Cl 1
+    ("hea_100",  235, 1, 1),  # cf/tf=4.44, cw/tw=11.20
+    ("hea_120",  235, 1, 1),  # cf/tf=5.69, cw/tw=14.80
+    ("hea_140",  235, 1, 1),  # cf/tf=6.50, cw/tw=16.73
+    ("hea_160",  235, 1, 1),  # cf/tf=6.89, cw/tw=17.33
+    ("hea_180",  235, 1, 1),  # cf/tf=7.58, cw/tw=20.33
+    ("hea_200",  235, 1, 1),  # cf/tf=7.88, cw/tw=20.62
+    ("hea_220",  235, 1, 1),  # cf/tf=8.05, cw/tw=21.71
+    ("hea_240",  235, 1, 1),  # cf/tf=7.94, cw/tw=21.87
+    ("hea_260",  235, 1, 1),  # cf/tf=8.18, cw/tw=23.60
+    ("hea_280",  235, 1, 1),  # cf/tf=8.62, cw/tw=24.50
+    ("hea_300",  235, 1, 1),  # cf/tf=8.48, cw/tw=24.47
+    ("hea_320",  235, 1, 1),  # cf/tf=7.65, cw/tw=25.00
+    ("hea_340",  235, 1, 1),  # cf/tf=7.17, cw/tw=25.58
+    ("hea_360",  235, 1, 1),  # cf/tf=6.74, cw/tw=26.10
+    ("hea_400",  235, 1, 1),  # cf/tf=6.18, cw/tw=27.09
+    ("hea_450",  235, 1, 1),  # cf/tf=5.58, cw/tw=29.91
+    ("hea_500",  235, 1, 1),  # cf/tf=5.09, cw/tw=32.50
+    ("hea_550",  235, 2, 1),  # cf/tf=4.86, cw/tw=35.04 (web >33)
+    ("hea_600",  235, 2, 1),  # cf/tf=4.66, cw/tw=37.38
+    ("hea_650",  235, 3, 1),  # cf/tf=4.47, cw/tw=39.56 (web >38)
+    ("hea_700",  235, 3, 1),  # cf/tf=4.29, cw/tw=40.14
+    ("hea_800",  235, 4, 1),  # cf/tf=4.02, cw/tw=44.93 (web >42 → Cl 4)
+    ("hea_900",  235, 4, 1),  # cf/tf=3.73, cw/tw=48.12
+    ("hea_1000", 235, 4, 1),  # cf/tf=3.60, cw/tw=52.61
 ]
 
-# HEB S235 (ε = 1.0) — più tozzi di HEA, sempre Cl 1
+# HEB S235 (ε = 1.0)
 HEB_S235 = [
-    ("heb_100", 235, 1, 1),   # c_f/tf=3.50, c_w/tw=9.33 → Cl 1
-    ("heb_200", 235, 1, 1),   # c_f/tf=5.17, c_w/tw=14.9 → Cl 1
-    ("heb_240", 235, 1, 1),   # c_f/tf=5.53, c_w/tw=16.4 → Cl 1
-    ("heb_300", 235, 1, 1),   # c_f/tf=6.18, c_w/tw=18.9 → Cl 1
+    ("heb_100",  235, 1, 1),  # cf/tf=3.50, cw/tw=9.33
+    ("heb_120",  235, 1, 1),  # cf/tf=4.07, cw/tw=11.38
+    ("heb_140",  235, 1, 1),  # cf/tf=4.54, cw/tw=13.14
+    ("heb_160",  235, 1, 1),  # cf/tf=4.69, cw/tw=13.00
+    ("heb_180",  235, 1, 1),  # cf/tf=5.05, cw/tw=14.35
+    ("heb_200",  235, 1, 1),  # cf/tf=5.17, cw/tw=14.89
+    ("heb_220",  235, 1, 1),  # cf/tf=5.45, cw/tw=16.00
+    ("heb_240",  235, 1, 1),  # cf/tf=5.53, cw/tw=16.40
+    ("heb_260",  235, 1, 1),  # cf/tf=5.77, cw/tw=17.70
+    ("heb_280",  235, 1, 1),  # cf/tf=6.15, cw/tw=18.67
+    ("heb_300",  235, 1, 1),  # cf/tf=6.18, cw/tw=18.91
+    ("heb_320",  235, 1, 1),  # cf/tf=5.72, cw/tw=19.57
+    ("heb_340",  235, 1, 1),  # cf/tf=5.44, cw/tw=20.25
+    ("heb_360",  235, 1, 1),  # cf/tf=5.19, cw/tw=20.88
+    ("heb_400",  235, 1, 1),  # cf/tf=4.84, cw/tw=22.07
+    ("heb_450",  235, 1, 1),  # cf/tf=4.46, cw/tw=24.57
+    ("heb_500",  235, 1, 1),  # cf/tf=4.13, cw/tw=26.90
+    ("heb_550",  235, 1, 1),  # cf/tf=3.98, cw/tw=29.20
+    ("heb_600",  235, 1, 1),  # cf/tf=3.84, cw/tw=31.35
+    ("heb_650",  235, 2, 1),  # cf/tf=3.71, cw/tw=33.38 (web >33)
+    ("heb_700",  235, 2, 1),  # cf/tf=3.58, cw/tw=34.24
+    ("heb_800",  235, 3, 1),  # cf/tf=3.37, cw/tw=38.51 (web >38)
+    ("heb_900",  235, 3, 1),  # cf/tf=3.16, cw/tw=41.62
+    ("heb_1000", 235, 4, 1),  # cf/tf=3.07, cw/tw=45.68 (web >42)
 ]
 
-# IPE S355 (ε = √(235/355) = 0.814) — più severo per la compressione anima
-# Thresholds attesi: 33ε=26.9, 38ε=30.9, 42ε=34.2, 72ε=58.6, 83ε=67.5, 124ε=100.9
+# HEM S235 (ε = 1.0) — heavy profiles, mostly Cl 1
+HEM_S235 = [
+    ("hem_100",  235, 1, 1),  # cf/tf=1.75, cw/tw=4.67
+    ("hem_120",  235, 1, 1),  # cf/tf=2.13, cw/tw=5.92
+    ("hem_140",  235, 1, 1),  # cf/tf=2.48, cw/tw=7.08
+    ("hem_160",  235, 1, 1),  # cf/tf=2.65, cw/tw=7.43
+    ("hem_180",  235, 1, 1),  # cf/tf=2.95, cw/tw=8.41
+    ("hem_200",  235, 1, 1),  # cf/tf=3.10, cw/tw=8.93
+    ("hem_220",  235, 1, 1),  # cf/tf=3.36, cw/tw=9.81
+    ("hem_240",  235, 1, 1),  # cf/tf=2.94, cw/tw=9.11
+    ("hem_260",  235, 1, 1),  # cf/tf=3.11, cw/tw=9.83
+    ("hem_280",  235, 1, 1),  # cf/tf=3.36, cw/tw=10.59
+    ("hem_300",  235, 1, 1),  # cf/tf=3.01, cw/tw=9.90
+    ("hem_320",  235, 1, 1),  # cf/tf=2.92, cw/tw=10.71
+    ("hem_340",  235, 1, 1),  # cf/tf=2.92, cw/tw=11.57
+    ("hem_360",  235, 1, 1),  # cf/tf=2.91, cw/tw=12.43
+    ("hem_400",  235, 1, 1),  # cf/tf=2.90, cw/tw=14.19
+    ("hem_450",  235, 1, 1),  # cf/tf=2.86, cw/tw=15.95
+    ("hem_500",  235, 1, 1),  # cf/tf=2.80, cw/tw=17.64
+    ("hem_550",  235, 1, 1),  # cf/tf=2.74, cw/tw=19.73
+    ("hem_600",  235, 1, 1),  # cf/tf=2.73, cw/tw=21.91
+    ("hem_650",  235, 1, 1),  # cf/tf=2.73, cw/tw=24.09
+    ("hem_700",  235, 1, 1),  # cf/tf=2.82, cw/tw=27.02
+    ("hem_800",  235, 1, 1),  # cf/tf=2.77, cw/tw=32.10
+    ("hem_900",  235, 2, 1),  # cf/tf=2.76, cw/tw=36.67 (web >33)
+    ("hem_1000", 235, 3, 1),  # cf/tf=2.76, cw/tw=41.33 (web >38)
+]
+
+# IPE S355 (ε ≈ 0.814)
 IPE_S355 = [
-    ("ipe_100", 355, 1, 1),   # c_w/tw=18.2 → Cl 1 in compr (<26.9)
-    ("ipe_200", 355, 2, 1),   # c_w/tw=28.4 → comp Cl 2 (>26.9, <30.9)
-    ("ipe_240", 355, 2, 1),   # c_w/tw=30.7 → comp Cl 2 (borderline 30.9)
-    ("ipe_270", 355, 3, 1),   # c_w/tw=33.3 → comp Cl 3 (>30.9, <34.2)
-    ("ipe_300", 355, 4, 1),   # c_w/tw=35.0 → comp Cl 4 (>34.2)
-    ("ipe_360", 355, 4, 1),   # c_w/tw=37.3 → comp Cl 4
-    ("ipe_400", 355, 4, 1),   # c_w/tw=38.5 → comp Cl 4
-    ("ipe_500", 355, 4, 1),   # c_w/tw=41.8 → comp Cl 4
+    ("ipe_80",  355, 1, 1),  # cf/tf=3.10, cw/tw=15.68
+    ("ipe_100", 355, 1, 1),  # cf/tf=3.24, cw/tw=18.20
+    ("ipe_120", 355, 1, 1),  # cf/tf=3.62, cw/tw=21.23
+    ("ipe_140", 355, 1, 1),  # cf/tf=3.93, cw/tw=23.87
+    ("ipe_160", 355, 1, 1),  # cf/tf=3.99, cw/tw=25.44
+    ("ipe_180", 355, 2, 1),  # cf/tf=4.23, cw/tw=27.55 (web >26.9=33ε)
+    ("ipe_200", 355, 2, 1),  # cf/tf=4.14, cw/tw=28.39
+    ("ipe_220", 355, 2, 1),  # cf/tf=4.35, cw/tw=30.10
+    ("ipe_240", 355, 2, 1),  # cf/tf=4.28, cw/tw=30.71
+    ("ipe_270", 355, 3, 1),  # cf/tf=4.82, cw/tw=33.27 (web >30.9=38ε)
+    ("ipe_300", 355, 4, 1),  # cf/tf=5.28, cw/tw=35.01 (web >34.2=42ε → Cl 4)
+    ("ipe_330", 355, 4, 1),  # cf/tf=5.07, cw/tw=36.13
+    ("ipe_360", 355, 4, 1),  # cf/tf=4.96, cw/tw=37.33
+    ("ipe_400", 355, 4, 1),  # cf/tf=4.79, cw/tw=38.49
+    ("ipe_450", 355, 4, 1),  # cf/tf=4.75, cw/tw=40.30
+    ("ipe_500", 355, 4, 1),  # cf/tf=4.62, cw/tw=41.76
+    ("ipe_550", 355, 4, 1),  # cf/tf=4.39, cw/tw=42.13
+    ("ipe_600", 355, 4, 1),  # cf/tf=4.21, cw/tw=42.83
 ]
 
-# HEA S355 (ε = 0.814)
+# HEA S355 (ε ≈ 0.814)
 HEA_S355 = [
-    ("hea_100", 355, 1, 1),   # c_w/tw=11.2 → Cl 1
-    ("hea_200", 355, 2, 2),   # c_f/tf=7.88 (>7.32) → flange Cl 2; web Cl 1
-    ("hea_240", 355, 2, 2),   # c_f/tf=7.94 → flange Cl 2
-    ("hea_300", 355, 3, 3),   # c_f/tf=8.48 → flange Cl 3 (>8.14, <11.4)
+    ("hea_100",  355, 1, 1),  # cf/tf=4.44, cw/tw=11.20
+    ("hea_120",  355, 1, 1),  # cf/tf=5.69, cw/tw=14.80
+    ("hea_140",  355, 1, 1),  # cf/tf=6.50, cw/tw=16.73
+    ("hea_160",  355, 1, 1),  # cf/tf=6.89, cw/tw=17.33
+    ("hea_180",  355, 2, 2),  # cf/tf=7.58 (>7.32=9ε), Cl 2 flange
+    ("hea_200",  355, 2, 2),
+    ("hea_220",  355, 2, 2),
+    ("hea_240",  355, 2, 2),
+    ("hea_260",  355, 3, 3),  # cf/tf=8.18 (>8.14=10ε), Cl 3 flange
+    ("hea_280",  355, 3, 3),
+    ("hea_300",  355, 3, 3),
+    ("hea_320",  355, 2, 2),  # cf/tf=7.65, Cl 2
+    ("hea_340",  355, 1, 1),  # cf/tf=7.17
+    ("hea_360",  355, 1, 1),  # cf/tf=6.74
+    ("hea_400",  355, 2, 1),  # cf/tf=6.18, web >26.9 → Cl 2 comp
+    ("hea_450",  355, 2, 1),  # cf/tf=5.58
+    ("hea_500",  355, 3, 1),  # cw/tw=32.50 >30.9 → Cl 3 comp
+    ("hea_550",  355, 4, 1),
+    ("hea_600",  355, 4, 1),
+    ("hea_650",  355, 4, 1),
+    ("hea_700",  355, 4, 1),
+    ("hea_800",  355, 4, 1),
+    ("hea_900",  355, 4, 1),
+    ("hea_1000", 355, 4, 1),
 ]
 
-# HEB S355
+# HEB S355 (ε ≈ 0.814)
 HEB_S355 = [
-    ("heb_100", 355, 1, 1),
-    ("heb_200", 355, 1, 1),
-    ("heb_240", 355, 1, 1),
-    ("heb_300", 355, 1, 1),
+    ("heb_100",  355, 1, 1),
+    ("heb_120",  355, 1, 1),
+    ("heb_140",  355, 1, 1),
+    ("heb_160",  355, 1, 1),
+    ("heb_180",  355, 1, 1),
+    ("heb_200",  355, 1, 1),
+    ("heb_220",  355, 1, 1),
+    ("heb_240",  355, 1, 1),
+    ("heb_260",  355, 1, 1),
+    ("heb_280",  355, 1, 1),
+    ("heb_300",  355, 1, 1),
+    ("heb_320",  355, 1, 1),
+    ("heb_340",  355, 1, 1),
+    ("heb_360",  355, 1, 1),
+    ("heb_400",  355, 1, 1),
+    ("heb_450",  355, 1, 1),
+    ("heb_500",  355, 2, 1),  # cw/tw=26.90 (>26.9=33ε, borderline)
+    ("heb_550",  355, 2, 1),
+    ("heb_600",  355, 3, 1),
+    ("heb_650",  355, 3, 1),
+    ("heb_700",  355, 4, 1),
+    ("heb_800",  355, 4, 1),
+    ("heb_900",  355, 4, 1),
+    ("heb_1000", 355, 4, 1),
+]
+
+# HEM S355 (ε ≈ 0.814)
+HEM_S355 = [
+    ("hem_100",  355, 1, 1),
+    ("hem_120",  355, 1, 1),
+    ("hem_140",  355, 1, 1),
+    ("hem_160",  355, 1, 1),
+    ("hem_180",  355, 1, 1),
+    ("hem_200",  355, 1, 1),
+    ("hem_220",  355, 1, 1),
+    ("hem_240",  355, 1, 1),
+    ("hem_260",  355, 1, 1),
+    ("hem_280",  355, 1, 1),
+    ("hem_300",  355, 1, 1),
+    ("hem_320",  355, 1, 1),
+    ("hem_340",  355, 1, 1),
+    ("hem_360",  355, 1, 1),
+    ("hem_400",  355, 1, 1),
+    ("hem_450",  355, 1, 1),
+    ("hem_500",  355, 1, 1),
+    ("hem_550",  355, 1, 1),
+    ("hem_600",  355, 1, 1),
+    ("hem_650",  355, 1, 1),
+    ("hem_700",  355, 2, 1),
+    ("hem_800",  355, 3, 1),
+    ("hem_900",  355, 4, 1),
+    ("hem_1000", 355, 4, 1),
 ]

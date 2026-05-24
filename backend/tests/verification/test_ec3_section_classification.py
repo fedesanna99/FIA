@@ -29,8 +29,8 @@ from core.verification.ec3.section_classification import (
 )
 
 from verification._ec3_section_class_expected import (
-    IPE_S235, HEA_S235, HEB_S235,
-    IPE_S355, HEA_S355, HEB_S355,
+    IPE_S235, HEA_S235, HEB_S235, HEM_S235,
+    IPE_S355, HEA_S355, HEB_S355, HEM_S355,
 )
 
 
@@ -80,7 +80,19 @@ def test_hea_s235_classification(sid, fy, exp_comp, exp_bend):
 
 @pytest.mark.parametrize("sid,fy,exp_comp,exp_bend", HEB_S235)
 def test_heb_s235_classification(sid, fy, exp_comp, exp_bend):
-    """HEB S235 — pure compression + pure bending (profili tozzi → Cl 1)."""
+    """HEB S235 — pure compression + pure bending (profili tozzi → Cl 1 fino a HEB 600)."""
+    r_comp = _classify_from_catalog(sid, fy, "compression")
+    r_bend = _classify_from_catalog(sid, fy, "bending")
+    assert int(r_comp.section_class) == exp_comp
+    assert int(r_bend.section_class) == exp_bend
+
+
+# ── HEM S235 ──────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("sid,fy,exp_comp,exp_bend", HEM_S235)
+def test_hem_s235_classification(sid, fy, exp_comp, exp_bend):
+    """HEM S235 — sezioni a parete pesante, Cl 1 fino a HEM 800."""
     r_comp = _classify_from_catalog(sid, fy, "compression")
     r_bend = _classify_from_catalog(sid, fy, "bending")
     assert int(r_comp.section_class) == exp_comp
@@ -119,7 +131,19 @@ def test_hea_s355_classification(sid, fy, exp_comp, exp_bend):
 
 @pytest.mark.parametrize("sid,fy,exp_comp,exp_bend", HEB_S355)
 def test_heb_s355_classification(sid, fy, exp_comp, exp_bend):
-    """HEB S355 — restano Cl 1 in entrambe (tozzi)."""
+    """HEB S355 — Cl 1 fino a HEB 450, progressive degradazione poi."""
+    r_comp = _classify_from_catalog(sid, fy, "compression")
+    r_bend = _classify_from_catalog(sid, fy, "bending")
+    assert int(r_comp.section_class) == exp_comp
+    assert int(r_bend.section_class) == exp_bend
+
+
+# ── HEM S355 ──────────────────────────────────────────────────────────────
+
+
+@pytest.mark.parametrize("sid,fy,exp_comp,exp_bend", HEM_S355)
+def test_hem_s355_classification(sid, fy, exp_comp, exp_bend):
+    """HEM S355 — Cl 1 fino a HEM 650, web slender solo per HEM 800+."""
     r_comp = _classify_from_catalog(sid, fy, "compression")
     r_bend = _classify_from_catalog(sid, fy, "bending")
     assert int(r_comp.section_class) == exp_comp

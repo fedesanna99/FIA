@@ -350,8 +350,35 @@ in test significativo (es. check `σ_yy(2p) = 2·σ_yy(p)`).
 - Diagnostic completo: `docs/pushover_diagnostic.md`
 - Refactor origine bug: commit `2dc4498` (v2.4.0bis safe_spsolve)
 
-### #14 · EC3 section class sistematico HEA/IPE
+### #14 · EC3 section class sistematico HEA/IPE/HEB/HEM
 **Parzialmente chiuso**: `v2.4.8-ec3-section-class-coverage` (2026-05-24)
+**Esteso a coverage completa Annex F**: `v2.4.8.1-catalog-expansion-ipe-hea-heb-hem` (2026-05-24)
+
+**v2.4.8.1 — Catalogo completo EN 10365 / Annex F**:
+- IPE: 8 → **18 profili** (aggiunti 80, 120, 140, 160, 180, 220, 330, 450, 550, 600)
+- HEA: 4 → **24 profili** (aggiunti 120..1000 includendo 320, 340, 360, 400, 450, 500..1000)
+- HEB: 4 → **24 profili** (stesso elenco HEA)
+- HEM: 0 → **24 profili** (intera serie 100..1000, prima assente)
+- TOTALE: 16 → **90 profili I-section** (~ coverage 100% Annex F)
+
+**Test parametrico ESTESO**: 38 → **186 test** (90 profili × 2 acciai + sanity)
+Tutti PASS al primo run (validano consistenza `classify_section` su tutto il catalogo)
+
+**Coverage analisi**:
+- IPE 80..240 / IPE 80..160 S355 / HEA 100..520 S235: Cl 1 (compatti)
+- IPE 270..360 S235 / HEA 550..700 S235 / HEB 650..700 S235: Cl 2 comp (web borderline)
+- IPE 400..500 S235 / HEA 650..700 S235 / HEB 800..900: Cl 3 comp
+- IPE 550+ / HEA 800+ / HEB 1000+ / HEM 900+ S235: Cl 4 comp (web slender)
+- S355: classi progressivamente più alte come atteso (ε=0.814)
+
+**Risolve Paoletto finding #5 (catalogo sezioni scarso)**. Catalogo professionale completo.
+
+**Riferimenti**:
+- Investigation: `docs/v2_4_8_1_catalog_expansion_investigation.md`
+- Source dati: EN 10365:2017 + Arcelor Mittal European Sections handbook
+
+### #14 (entry originale v2.4.8)
+**Parzialmente chiuso (catalogo iniziale)**: `v2.4.8-ec3-section-class-coverage` (2026-05-24)
 
 **Coverage estesa**:
 - Catalogo profili attualmente supportato: 8 IPE + 4 HEA + 4 HEB (16 totali)
