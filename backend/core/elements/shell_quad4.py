@@ -150,12 +150,109 @@ class ShellQuad4:
             x[2] * (y[3] - y[1]) + x[3] * (y[0] - y[2])
         )
 
+    # Standard extrapolation matrix Gauss 2×2 → 4 nodi Q4
+    # (Hinton-Campbell, ZTM Vol.1 §6.6.2). Ordinamento nodi Q4 ξ-η:
+    #   nodo 0 (-1,-1)  nodo 1 (+1,-1)  nodo 2 (+1,+1)  nodo 3 (-1,+1)
+    # Ordinamento Gauss 2×2 da GAUSS_2:
+    #   gp0 (-g,-g)  gp1 (+g,-g)  gp2 (+g,+g)  gp3 (-g,+g)  con g=1/√3
+    # Vertice nodo i fattorizzato in coord locale ξ_node = ±√3 (zoom).
+    # Coefficienti: a = 1 + √3/2 ≈ 1.866, b = -0.5, c = 1 - √3/2 ≈ 0.134
+    _EXTRAP_GAUSS_TO_NODES = np.array([
+        [1.0 + np.sqrt(3.0) / 2.0, -0.5, 1.0 - np.sqrt(3.0) / 2.0, -0.5],
+        [-0.5, 1.0 + np.sqrt(3.0) / 2.0, -0.5, 1.0 - np.sqrt(3.0) / 2.0],
+        [1.0 - np.sqrt(3.0) / 2.0, -0.5, 1.0 + np.sqrt(3.0) / 2.0, -0.5],
+        [-0.5, 1.0 - np.sqrt(3.0) / 2.0, -0.5, 1.0 + np.sqrt(3.0) / 2.0],
+    ])
+
+    def stresses_at_nodes(self, u_global_24: np.ndarray) -> list[dict]:
+        """v2.4.3c (NEW-1 fix): stress ai 4 nodi via extrapolation Gauss 2×2.
+
+        Ritorna list di 4 dict {sigma_x, sigma_y, tau_xy, M_x, M_y, M_xy,
+        sigma_*_top, sigma_*_bot} ordinati come ``self.nodes`` (i 4 nodi
+        dell'elemento). Usato dal consistent average nodal recovery in
+        ``static_solver._build_results``.
+        """
+        T = self._transformation_matrix()
+        u_local = T @ u_global_24
+        u_membrane = np.array([u_local[6 * i + j] for i in range(4) for j in range(2)])
+        u_bend = np.zeros(12)
+        for i in range(4):
+            u_bend[3 * i + 0] = u_local[6 * i + 2]
+            u_bend[3 * i + 1] = u_local[6 * i + 3]
+            u_bend[3 * i + 2] = u_local[6 * i + 4]
+
+        E, nu, t = self.E, self.nu, self.t
+        Dm = (E / (1 - nu * nu)) * np.array([
+            [1, nu, 0],
+            [nu, 1, 0],
+            [0, 0, (1 - nu) / 2],
+        ])
+        Db = (E * t ** 3 / (12 * (1 - nu * nu))) * np.array([
+            [1, nu, 0],
+            [nu, 1, 0],
+            [0, 0, (1 - nu) / 2],
+        ])
+        xy = self.local_xy
+
+        sigma_m_gauss = np.zeros((4, 3))   # σ membrana ai 4 Gauss
+        M_gauss = np.zeros((4, 3))         # M flessione ai 4 Gauss
+        for k, (xi, eta) in enumerate(self.GAUSS_2):
+            _, dN_dxi, dN_deta = self._shape_functions(xi, eta)
+            J = np.array([[dN_dxi @ xy[:, 0], dN_dxi @ xy[:, 1]],
+                          [dN_deta @ xy[:, 0], dN_deta @ xy[:, 1]]])
+            invJ = np.linalg.inv(J)
+            Bm = np.zeros((3, 8))
+            Bb = np.zeros((3, 12))
+            for i in range(4):
+                dN = invJ @ np.array([dN_dxi[i], dN_deta[i]])
+                Bm[0, 2 * i] = dN[0]
+                Bm[1, 2 * i + 1] = dN[1]
+                Bm[2, 2 * i] = dN[1]
+                Bm[2, 2 * i + 1] = dN[0]
+                Bb[0, 3 * i + 1] = dN[0]
+                Bb[1, 3 * i + 2] = dN[1]
+                Bb[2, 3 * i + 1] = dN[1]
+                Bb[2, 3 * i + 2] = dN[0]
+            sigma_m_gauss[k] = Dm @ (Bm @ u_membrane)
+            M_gauss[k] = Db @ (Bb @ u_bend)
+
+        # Extrapolation Gauss → 4 nodi
+        sigma_m_nodes = self._EXTRAP_GAUSS_TO_NODES @ sigma_m_gauss
+        M_nodes = self._EXTRAP_GAUSS_TO_NODES @ M_gauss
+
+        # Costruisci dict per ogni nodo
+        b_factor = 6.0 / (t * t) if t > 0 else 0.0
+        result = []
+        for i in range(4):
+            sx, sy, txy = sigma_m_nodes[i]
+            Mx, My, Mxy = M_nodes[i]
+            sx_top = float(sx) + b_factor * float(Mx)
+            sy_top = float(sy) + b_factor * float(My)
+            txy_top = float(txy) + b_factor * float(Mxy)
+            sx_bot = float(sx) - b_factor * float(Mx)
+            sy_bot = float(sy) - b_factor * float(My)
+            txy_bot = float(txy) - b_factor * float(Mxy)
+            result.append({
+                "sigma_x": float(sx), "sigma_y": float(sy), "tau_xy": float(txy),
+                "M_x": float(Mx), "M_y": float(My), "M_xy": float(Mxy),
+                "sigma_x_top": sx_top, "sigma_y_top": sy_top, "tau_xy_top": txy_top,
+                "sigma_x_bot": sx_bot, "sigma_y_bot": sy_bot, "tau_xy_bot": txy_bot,
+            })
+        return result
+
     def stresses(self, u_global_24: np.ndarray) -> dict:
         """Calcola stress al centroide per membrana e bending.
 
         v2.4.3b (NEW-4 audit v2.3.7): aggiunge bending stress in fibra
         estrema z=±t/2. Pre-fix estraeva solo ``u_x, u_y`` ignorando le
         rotazioni → tutti gli stress flessionali = 0 (es. LE10 σ_yy(D)=0).
+
+        v2.4.3c (NEW-1): mantiene API esistente (back-compat) ma il valore
+        ritornato è ora la **media degli stress nodali** dell'elemento
+        invece del valore al centroide. Beneficio: stress recovery
+        consistente con extrapolation Gauss→nodi (vedi `stresses_at_nodes`).
+        L'ulteriore consistent average sui nodi condivisi è in
+        `static_solver._build_results` (pass 2).
         """
         T = self._transformation_matrix()
         u_local = T @ u_global_24

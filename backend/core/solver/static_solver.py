@@ -6,6 +6,7 @@ import numpy as np
 from schemas import FEAModel, ElementType
 from schemas.results import (
     StaticResults, NodalDisplacement, NodalReaction, ElementForces, ElementStress,
+    NodalShellStress,
 )
 from .assembler import GlobalAssembler, GLOBAL_DOFS_PER_NODE
 from .errors import (
@@ -104,6 +105,26 @@ class StaticSolver:
         element_forces: list[ElementForces] = []
         element_stresses: list[ElementStress] = []
         max_stress = 0.0
+
+        # v2.4.3c NEW-1: pre-pass nodal stress recovery per shell.
+        # Hinton-Campbell consistent averaging: extrapolation Gauss→nodi
+        # + media sui nodi condivisi fra elementi adiacenti. Riduce errore
+        # di stress recovery sui bordi (es. LE1 punto D al bordo foro).
+        from core.postprocess.nodal_stress_recovery import (
+            consistent_nodal_average,
+        )
+        _shell_per_el_node_stresses: dict[int, list[dict]] = {}
+        _shell_el_node_ids: dict[int, list[int]] = {}
+        for inst, dofs, el in assembler._element_cache:
+            if el.type in (ElementType.SHELL_Q4, ElementType.SHELL_Q4_MITC):
+                if hasattr(inst, "stresses_at_nodes"):
+                    u_el = u_full[dofs]
+                    _shell_per_el_node_stresses[el.id] = inst.stresses_at_nodes(u_el)
+                    _shell_el_node_ids[el.id] = list(el.nodes)
+        _shell_nodal_avg = consistent_nodal_average(
+            _shell_per_el_node_stresses, _shell_el_node_ids,
+        )
+
         for inst, dofs, el in assembler._element_cache:
             u_el = u_full[dofs]
             if el.type in (ElementType.BEAM2D,):
@@ -156,9 +177,37 @@ class StaticSolver:
                            "sigma_x_bot", "sigma_y_bot", "tau_xy_bot",
                            "M_x", "M_y", "M_xy"}
                 st_filtered = {k: v for k, v in st.items() if k in st_keys}
+
+                # v2.4.3c NEW-1: sostituisci i campi membrana+bending con
+                # la media dei valori nodali consistent-averaged.
+                # Il centroide e le direzioni principali restano puntuali
+                # all'elemento (calcolati su sigma membrana al centroide).
+                if el.id in _shell_per_el_node_stresses:
+                    node_ids_list = _shell_el_node_ids[el.id]
+                    avg_nodal_stresses = [
+                        _shell_nodal_avg[nid] for nid in node_ids_list
+                        if nid in _shell_nodal_avg
+                    ]
+                    if avg_nodal_stresses:
+                        from core.postprocess.nodal_stress_recovery import (
+                            element_value_from_nodal_average,
+                        )
+                        nodal_avg = element_value_from_nodal_average(avg_nodal_stresses)
+                        # Override solo i campi mediati; mantieni il resto
+                        for k_field, v_field in nodal_avg.items():
+                            st_filtered[k_field] = v_field
+                        # Ricalcola von_mises sul valore nodal-averaged
+                        sx = st_filtered.get("sigma_x", 0.0)
+                        sy = st_filtered.get("sigma_y", 0.0)
+                        txy = st_filtered.get("tau_xy", 0.0)
+                        import math as _math
+                        st_filtered["von_mises"] = float(_math.sqrt(
+                            sx * sx - sx * sy + sy * sy + 3 * txy * txy
+                        ))
                 element_stresses.append(ElementStress(element_id=el.id, **st_filtered))
-                if st["von_mises"] > max_stress:
-                    max_stress = st["von_mises"]
+                vm_now = st_filtered.get("von_mises", st["von_mises"])
+                if vm_now > max_stress:
+                    max_stress = vm_now
             elif el.type == ElementType.TRI3:
                 st = inst.stresses(u_el)
                 element_stresses.append(ElementStress(element_id=el.id, **st))
@@ -169,12 +218,19 @@ class StaticSolver:
                 element_stresses.append(ElementStress(element_id=el.id, **st))
                 if st["von_mises"] > max_stress:
                     max_stress = st["von_mises"]
+        # v2.4.3c NEW-1: esponi consistent-averaged stress ai nodi shell
+        # come array in StaticResults. Vuoto se nessuno shell nel modello.
+        shell_nodal_stresses: list[NodalShellStress] = []
+        for nid, vals in _shell_nodal_avg.items():
+            shell_nodal_stresses.append(NodalShellStress(node_id=nid, **vals))
+
         return StaticResults(
             model_id=model.id,
             displacements=displacements,
             reactions=reactions,
             element_forces=element_forces,
             element_stresses=element_stresses,
+            shell_nodal_stresses=shell_nodal_stresses,
             max_displacement=max_disp,
             max_stress=max_stress,
         )

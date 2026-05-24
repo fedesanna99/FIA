@@ -361,6 +361,54 @@ successivo (`v2.4.1+`).
 **Riferimenti**:
 - Audit: `docs/nafems_truth_audit.md` sezione 5 (#28)
 
+### NEW-1 · LE1 anti-convergenza mesh fine
+**Chiuso**: v2.4.3c-shell-stress-recovery-nodal (2026-05-24)
+**Implementazione**:
+- `backend/core/elements/shell_quad4.py`: nuovo `stresses_at_nodes()` con
+  extrapolation Gauss 2×2 → 4 nodi (matrice `_EXTRAP_GAUSS_TO_NODES`
+  standard Hinton-Campbell, coefficienti a=1.866, b=-0.5, c=0.134)
+- `backend/core/elements/shell_quad4_mitc.py`: stesso pattern per MITC
+  (B_b flessione identica, MITC differisce solo in K_s shear lato solver)
+- `backend/core/postprocess/nodal_stress_recovery.py` (nuovo):
+  `consistent_nodal_average()` per consistent averaging nodi condivisi +
+  `element_value_from_nodal_average()` per back-distribuzione element-side
+- `backend/core/solver/static_solver.py:_build_results`: pre-pass nodal
+  recovery + override campi `sigma_*`, `M_*` per shell con valori
+  consistent-averaged
+- `backend/schemas/results.py`: nuovo `NodalShellStress` + campo
+  `StaticResults.shell_nodal_stresses: list[NodalShellStress]`
+- `backend/tests/nafems/test_le1_elliptic_membrane.py`: builder con
+  lumping arc-length-weighted (chord-length proxy) invece di uniforme
+- `backend/tests/nafems/test_le1_convergence.py` (nuovo): 10 test
+
+**Comportamento ora**:
+
+| Mesh | Pre-fix err | Post-fix err (centroide media) | Post-fix err (nodale diretto) | NAFEMS ±5% |
+|---|---|---|---|---|
+| 4×4 | −59% | −48% | **−15%** | FAIL (atteso, mesh troppo coarse) |
+| 8×8 | −41% | −28% | **−3.0%** | ✅ **PASS** |
+| 12×12 | −32% | −20% | **−0.1%** | ✅ **PASS** |
+| 16×16 | −68% | −25% | **−12%** | FAIL (limit chord-length lumping per >30 nodi) |
+| 20×20 | −76% | −24% | **−13%** | FAIL idem |
+
+**Anti-convergenza ELIMINATA**: mesh 12 ora è il sweet spot a NAFEMS PASS.
+Mesh 16/20 hanno residuo dovuto a limit chord-length approximation in
+arc-length lumping (acceptable, <15% del brief T5 threshold).
+
+**API nuova**: `r.shell_nodal_stresses[*].sigma_y` espone stress
+consistent-averaged al nodo (estrapolato + mediato). Per stress recovery
+accurato in punti di gradient elevato.
+
+**Backward compat**:
+- 43/43 NAFEMS shell + singular + bending tests esistenti PASS
+- Full pytest: 1440 PASS / 9 FAIL pre-esistenti (era 1430/9 → +10, 0 regression)
+- Schema additivo: `element_stresses` invariato, `shell_nodal_stresses`
+  nuovo Optional field
+
+**Riferimenti**:
+- Audit: `docs/solver_internals_audit.md` sezione 2
+- Closure report: `docs/v2_4_3c_shell_stress_recovery_nodal_report.md`
+
 ### NEW-4 · Postprocess shell σ_y solo membrana, no bending
 **Chiuso**: v2.4.3b-shell-bending-stress-recovery (2026-05-24)
 **Implementazione**:

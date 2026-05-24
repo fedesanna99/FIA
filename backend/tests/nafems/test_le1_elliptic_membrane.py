@@ -79,25 +79,44 @@ def _build_le1(nx: int, ny: int, et: ElementType = ElementType.SHELL_Q4) -> FEAM
             ))
             cid += 1
 
-    # Bordo esterno: forze nodali equivalenti sigma * t * (perimetro/N_edge)
-    edge_nodes = [
+    # Bordo esterno: forze nodali equivalenti con lumping arc-length-weighted.
+    # v2.4.3c (NEW-1 causa B fix): pre-fix usava `F_total / N_edge_nodes`
+    # uniforme, perdendo 10-15% del carico totale e producendo
+    # distribuzione non bilanciata su archi non uniformi. Ora ogni nodo
+    # riceve forza proporzionale a (semi-arco-left + semi-arco-right).
+    edge_nodes_raw = [
         n for n in nodes
         if abs((n.x / a_o) ** 2 + (n.y / b_o) ** 2 - 1.0) < 0.05
     ]
-    perim = (math.pi / 2.0) * math.sqrt((a_o ** 2 + b_o ** 2) / 2.0)
-    F_total = sigma_edge * t * perim
-    F_per_node = F_total / max(1, len(edge_nodes))
+    # Ordina lungo l'arco (angolo polare parametrico ellisse: atan2(y/b, x/a))
+    edge_nodes = sorted(
+        edge_nodes_raw,
+        key=lambda nd: math.atan2(nd.y / b_o, nd.x / a_o),
+    )
+
+    def _arc_chord(n1, n2):
+        # Chord-length approximation (sufficiente per archi piccoli)
+        return math.hypot(n2.x - n1.x, n2.y - n1.y)
+
+    n_edges = len(edge_nodes)
     loads: list[Load] = []
     for i, nd in enumerate(edge_nodes):
+        arc_left = _arc_chord(edge_nodes[i - 1], nd) / 2.0 if i > 0 else 0.0
+        arc_right = _arc_chord(nd, edge_nodes[i + 1]) / 2.0 if i < n_edges - 1 else 0.0
+        arc_tot = arc_left + arc_right
+        # Forza normale uscente all'ellisse: gradient ∇((x/a)² + (y/b)²)
+        # = (2x/a², 2y/b²), normalizzato.
         nx_v = nd.x / (a_o ** 2)
         ny_v = nd.y / (b_o ** 2)
         mag = math.hypot(nx_v, ny_v)
         if mag < 1e-9:
             continue
         nx_v, ny_v = nx_v / mag, ny_v / mag
+        # Forza nodale = σ · t · arco_rappresentato_dal_nodo
+        f_mag = sigma_edge * t * arc_tot
         loads.append(Load(
             id=i + 1, type=LoadType.NODAL, target_id=nd.id,
-            fx=F_per_node * nx_v, fy=F_per_node * ny_v,
+            fx=f_mag * nx_v, fy=f_mag * ny_v,
         ))
 
     return FEAModel(

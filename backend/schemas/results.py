@@ -73,6 +73,29 @@ class ElementStress(BaseModel):
     M_xy: Optional[float] = None
 
 
+class NodalShellStress(BaseModel):
+    """v2.4.3c: stress shell consistent-averaged a un nodo specifico.
+
+    Differente da ElementStress (che è per-elemento). Qui ogni entry è
+    un nodo + valori membrana + bending mediati sugli elementi adiacenti.
+    Usato per stress recovery accurato in punti di gradient (es. NAFEMS LE1
+    punto D al bordo del foro).
+    """
+    node_id: int
+    sigma_x: float = 0.0
+    sigma_y: float = 0.0
+    tau_xy: float = 0.0
+    sigma_x_top: Optional[float] = None
+    sigma_y_top: Optional[float] = None
+    tau_xy_top: Optional[float] = None
+    sigma_x_bot: Optional[float] = None
+    sigma_y_bot: Optional[float] = None
+    tau_xy_bot: Optional[float] = None
+    M_x: Optional[float] = None
+    M_y: Optional[float] = None
+    M_xy: Optional[float] = None
+
+
 class StaticResults(BaseModel):
     analysis_type: str = "static"
     model_id: str
@@ -80,6 +103,10 @@ class StaticResults(BaseModel):
     reactions: list[NodalReaction] = Field(default_factory=list)
     element_forces: list[ElementForces] = Field(default_factory=list)
     element_stresses: list[ElementStress] = Field(default_factory=list)
+    # v2.4.3c (NEW-1): stress shell consistent-averaged ai nodi. Vuoto
+    # quando il modello non contiene shell elements. Usato per stress
+    # recovery accurato in punti di gradient elevato.
+    shell_nodal_stresses: list[NodalShellStress] = Field(default_factory=list)
     max_displacement: float = 0.0
     max_stress: float = 0.0
     n_dofs: int = 0

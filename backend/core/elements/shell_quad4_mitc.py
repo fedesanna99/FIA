@@ -221,6 +221,89 @@ class ShellQuad4MITC:
             x[2] * (y[3] - y[1]) + x[3] * (y[0] - y[2])
         )
 
+    # v2.4.3c: matrice extrapolation Gauss 2×2 → 4 nodi (identica a Q4
+    # standard, perché MITC modifica solo K_s shear, non K_b bending).
+    _EXTRAP_GAUSS_TO_NODES = np.array([
+        [1.0 + np.sqrt(3.0) / 2.0, -0.5, 1.0 - np.sqrt(3.0) / 2.0, -0.5],
+        [-0.5, 1.0 + np.sqrt(3.0) / 2.0, -0.5, 1.0 - np.sqrt(3.0) / 2.0],
+        [1.0 - np.sqrt(3.0) / 2.0, -0.5, 1.0 + np.sqrt(3.0) / 2.0, -0.5],
+        [-0.5, 1.0 - np.sqrt(3.0) / 2.0, -0.5, 1.0 + np.sqrt(3.0) / 2.0],
+    ])
+
+    def stresses_at_nodes(self, u_global_24: np.ndarray) -> list[dict]:
+        """v2.4.3c (NEW-1 fix): stress ai 4 nodi via extrapolation Gauss 2×2.
+
+        Logica identica a ShellQuad4 (membrana + bending standard). Il
+        contributo MITC al taglio shear K_s NON entra nel postprocess
+        sigma membrana/bending → MITC e Q4 ritornano gli stessi valori
+        nominali su problemi con bending puro. Differenza Q4/MITC sui
+        risultati finali emerge dalla diversa rigidezza K (e quindi dai
+        diversi displacements u).
+        """
+        T = self._transformation_matrix()
+        u_local = T @ u_global_24
+        u_membrane = np.array([u_local[6 * i + j] for i in range(4) for j in range(2)])
+        u_bend = np.zeros(12)
+        for i in range(4):
+            u_bend[3 * i + 0] = u_local[6 * i + 2]
+            u_bend[3 * i + 1] = u_local[6 * i + 3]
+            u_bend[3 * i + 2] = u_local[6 * i + 4]
+
+        E, nu, t = self.E, self.nu, self.t
+        Dm = (E / (1 - nu * nu)) * np.array([
+            [1, nu, 0],
+            [nu, 1, 0],
+            [0, 0, (1 - nu) / 2],
+        ])
+        Db = (E * t ** 3 / (12 * (1 - nu * nu))) * np.array([
+            [1, nu, 0],
+            [nu, 1, 0],
+            [0, 0, (1 - nu) / 2],
+        ])
+        xy = self.local_xy
+
+        sigma_m_gauss = np.zeros((4, 3))
+        M_gauss = np.zeros((4, 3))
+        for k, (xi, eta) in enumerate(self.GAUSS_2):
+            _, dN_dxi, dN_deta = self._shape_functions(xi, eta)
+            J = np.array([[dN_dxi @ xy[:, 0], dN_dxi @ xy[:, 1]],
+                          [dN_deta @ xy[:, 0], dN_deta @ xy[:, 1]]])
+            invJ = np.linalg.inv(J)
+            Bm = np.zeros((3, 8))
+            Bb = np.zeros((3, 12))
+            for i in range(4):
+                dN = invJ @ np.array([dN_dxi[i], dN_deta[i]])
+                Bm[0, 2 * i] = dN[0]
+                Bm[1, 2 * i + 1] = dN[1]
+                Bm[2, 2 * i] = dN[1]
+                Bm[2, 2 * i + 1] = dN[0]
+                Bb[0, 3 * i + 1] = dN[0]
+                Bb[1, 3 * i + 2] = dN[1]
+                Bb[2, 3 * i + 1] = dN[1]
+                Bb[2, 3 * i + 2] = dN[0]
+            sigma_m_gauss[k] = Dm @ (Bm @ u_membrane)
+            M_gauss[k] = Db @ (Bb @ u_bend)
+
+        sigma_m_nodes = self._EXTRAP_GAUSS_TO_NODES @ sigma_m_gauss
+        M_nodes = self._EXTRAP_GAUSS_TO_NODES @ M_gauss
+
+        b_factor = 6.0 / (t * t) if t > 0 else 0.0
+        result = []
+        for i in range(4):
+            sx, sy, txy = sigma_m_nodes[i]
+            Mx, My, Mxy = M_nodes[i]
+            result.append({
+                "sigma_x": float(sx), "sigma_y": float(sy), "tau_xy": float(txy),
+                "M_x": float(Mx), "M_y": float(My), "M_xy": float(Mxy),
+                "sigma_x_top": float(sx) + b_factor * float(Mx),
+                "sigma_y_top": float(sy) + b_factor * float(My),
+                "tau_xy_top": float(txy) + b_factor * float(Mxy),
+                "sigma_x_bot": float(sx) - b_factor * float(Mx),
+                "sigma_y_bot": float(sy) - b_factor * float(My),
+                "tau_xy_bot": float(txy) - b_factor * float(Mxy),
+            })
+        return result
+
     def stresses(self, u_global_24: np.ndarray) -> dict:
         """Stress di membrana + bending al baricentro.
 
