@@ -18,8 +18,10 @@ from api.routes import (
     geocoding as geocoding_routes,
     terrain as terrain_routes,
     auth as auth_routes,
+    security as security_routes,
 )
 from api.websocket import router as ws_router
+from middleware.security_headers import SecurityHeadersMiddleware
 from storage import seed_examples
 from jobs.worker import get_worker
 from services.providers.registration import register_all
@@ -52,6 +54,13 @@ _default_origins = ",".join([
 _cors_env = os.environ.get("CORS_ALLOWED_ORIGINS", _default_origins).strip()
 CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_env.split(",") if o.strip()]
 
+# v2.4.2c security headers (bug #17 audit v2.3.5)
+# HSTS + X-Frame-Options + X-Content-Type-Options + CSP report-only +
+# Referrer-Policy. Aggiunti PRIMA del CORS perché Starlette eseguendo i
+# middleware in ordine LIFO (l'ultimo aggiunto è il più esterno) garantisce
+# che gli header arrivino al client (CORS già processato).
+app.add_middleware(SecurityHeadersMiddleware)
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=CORS_ALLOWED_ORIGINS,
@@ -82,6 +91,7 @@ app.include_router(loads_routes.router, prefix="/api/loads", tags=["loads"])
 app.include_router(geocoding_routes.router, prefix="/api/geocoding", tags=["geocoding"])
 app.include_router(terrain_routes.router, prefix="/api/terrain", tags=["terrain"])
 app.include_router(auth_routes.router, prefix="/api/auth", tags=["auth"])
+app.include_router(security_routes.router, prefix="/api", tags=["security"])
 app.include_router(ws_router, tags=["websocket"])
 
 

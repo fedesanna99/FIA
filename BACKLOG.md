@@ -155,6 +155,36 @@ successivo (`v2.4.1+`).
 > **UPDATE 2026-05-24**: scope esteso chiuso in `v2.4.0bis-safe-spsolve-extend`.
 > Vedi voce `#30-extended` qui sotto.
 
+### #17 · Security headers mancanti (HSTS / CSP / X-Frame / X-Content-Type)
+**Chiuso**: v2.4.2c-security-headers (2026-05-24)
+**Implementazione**:
+- `backend/middleware/security_headers.py` (nuovo): Starlette middleware
+  che aggiunge 5 header a ogni response:
+  - `Strict-Transport-Security: max-age=31536000; includeSubDomains`
+  - `X-Frame-Options: DENY`
+  - `X-Content-Type-Options: nosniff`
+  - `Content-Security-Policy-Report-Only` (con `report-uri /api/csp-report`)
+  - `Referrer-Policy: strict-origin-when-cross-origin`
+- `backend/api/routes/security.py` (nuovo): endpoint `POST /api/csp-report`
+  per ricezione violazioni CSP (logga via `logging.warning`)
+- `backend/main.py`: `add_middleware(SecurityHeadersMiddleware)` PRIMA del CORS
+  + `include_router(security_routes.router, prefix="/api")`
+- `backend/tests/middleware/test_security_headers.py` (nuovo): 7 test
+
+**Strategia CSP**:
+- Iniziata in modalità `report-only` (logga, non blocca) per evitare di
+  rompere la SPA esistente
+- Da promuovere a `Content-Security-Policy` enforcement quando le
+  violazioni reali sono zero per qualche sprint
+
+**Comportamento ora**:
+- Tutte le risposte HTTP includono i 5 header
+- Browser moderni: HTTPS forzato, no iframe embedding, no MIME sniff,
+  CSP loggato, referrer minimo cross-origin
+
+**Riferimenti**:
+- Audit: `docs/nafems_truth_audit.md` sezione 5 (#17)
+
 ### #28 · NO rate limiting su login brute force
 **Chiuso**: v2.4.2b-rate-limit-login (2026-05-24)
 **Implementazione**:
