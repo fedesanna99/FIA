@@ -31,6 +31,7 @@ from schemas import (
     FEAModel, ElementType, MATERIALS_DB, SECTIONS_DB,
 )
 from schemas.results import StaticResults
+from .errors import SingularMatrixError
 from .static_solver import StaticSolver
 
 
@@ -162,7 +163,8 @@ class PushoverSolver:
                     el.releases = rel
             try:
                 static = StaticSolver(m_step).solve()
-            except (RuntimeError, spla.MatrixRankWarning, np.linalg.LinAlgError) as e:
+            except (RuntimeError, SingularMatrixError,
+                    spla.MatrixRankWarning, np.linalg.LinAlgError) as e:
                 results.collapse_lambda = lam - self.lambda_step
                 results.collapse_reason = f"K singolare (meccanismo): {e}"
                 break

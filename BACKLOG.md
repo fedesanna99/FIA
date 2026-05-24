@@ -328,31 +328,23 @@ in test significativo (es. check `σ_yy(2p) = 2·σ_yy(p)`).
 ## 🟡 Media priorità
 
 ### #pushover-7fail · 7 test pushover FAIL post safe_spsolve refactor
-**Stato**: diagnosticato in `v2.4.7-pushover-diagnostic` (2026-05-24) — **fix raccomandato**
-**Severity**: P1 — regression mascherata
-**Complessità fix**: ~30 minuti (1 file, ~3 righe)
+**Chiuso**: `v2.4.7.1-pushover-fixes` (2026-05-24)
+**Severity (era)**: P1 regression mascherata
+**Implementazione**: 2 righe modificate in `backend/core/solver/pushover_solver.py`
+- import: `from .errors import SingularMatrixError`
+- except: aggiunta `SingularMatrixError` al tuple del blocco try/except che cattura
+  matrici singolari durante il solve del passo statico interno
 
-**Root cause unica** (per tutti i 7 test):
-- v2.4.0bis `safe_spsolve` traduce errori scipy in `SingularMatrixError`
-  (custom, `core.solver.errors`)
-- `PushoverSolver.solve()` (`pushover_solver.py:165`) cattura solo
-  `RuntimeError | MatrixRankWarning | LinAlgError` (vecchie scipy)
-- `SingularMatrixError` NON è sottoclasse di RuntimeError → bypassa
-  l'except → propaga al test
+**Comportamento**:
+- BEFORE: 7 test crashavano con uncaught `SingularMatrixError` (la cui causa
+  era il refactor v2.4.0bis `safe_spsolve` che wrappa scipy errors in
+  custom exception type non catturato downstream)
+- AFTER: 7 test PASS — matrice singolare riconosciuta come segnale di
+  collapse e gestita via `results.collapse_reason = "K singolare (meccanismo): ..."`
 
-**Test FAIL** (tutti `tests/test_pushover.py`):
-- `TestCantileverPlastic::test_first_hinge_at_clamp`
-- `TestCantileverPlastic::test_collapse_lambda_matches_analytical`
-- `TestCantileverPlastic::test_collapse_reason_set`
-- `TestCantileverPlastic::test_steps_curve_monotonic_until_hinge`
-- `TestParametricMaterials::test_s355_vs_s235`
-- `TestParametricMaterials::test_ipe300_vs_ipe200`
-- `TestResultsStructure::test_results_contain_required_fields`
-
-**Brief candidato**: `v2.4.7.1-pushover-fixes`
-- Aggiungere `SingularMatrixError` al tuple `except` in `pushover_solver.py:165`
-- Verifica 7 FAIL → 0 FAIL (baseline 1452 → 1459 PASS, 9 → 2 FAIL pre-esistenti)
-- Stima ~30 minuti
+**Quality gate v2.4.7.1**:
+- pytest: 1497 PASS (era 1490 baseline, +7 da pushover che ora passano)
+- 2 FAIL pre-esistenti residui (estimator + elevation, fuori scope solver)
 
 **Riferimenti**:
 - Diagnostic completo: `docs/pushover_diagnostic.md`
