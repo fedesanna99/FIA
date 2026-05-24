@@ -1,5 +1,48 @@
 # Changelog FEA Pro
 
+## [v2.3.6-honesty-fix] · 2026-05-24
+
+**Documentazione onesta post-audit v2.3.5.** Nessuna modifica al codice di produzione.
+
+### Changed
+- README.md: rimosso claim "NAFEMS LE1/LE2/LE10 PASS" non verificato
+- README.md: aggiunto sezione "⚠ Stato validazione" con tabella bug noti
+- CHANGELOG.md: questa voce + disclaimer su release passate (vedi sotto)
+- BACKLOG.md: BL-6 riaperto come "BL-6-bis NAFEMS LE1/LE10 enforcement"
+- BACKLOG.md: aggiunti bug NEW-1..6 emersi da truth audit
+
+### Disclaimer su release passate
+Le release v1.3.0 → v2.3.5 contenevano claim "NAFEMS LE1/LE2/LE10 PASS" che,
+in seguito all'audit `v2.3.5-nafems-truth-audit`, risultano **non
+sufficientemente verificate**:
+- LE2 / Cantilever / Euler: **PASS confermato** (errore < 0.001%)
+- LE1 / LE10: **NON verificato** (errore reale: LE1 −32%, LE10 σ_yy=0)
+
+Per dettagli vedi [`docs/nafems_truth_audit.md`](docs/nafems_truth_audit.md).
+
+## [v2.3.5-nafems-truth-audit] · 2026-05-24
+
+**Diagnostic-only audit.** Nessuna modifica al codice di produzione.
+
+### Diagnosi prodotta
+- `docs/nafems_truth_audit.md` (883 righe): inventario suite NAFEMS, misurazione
+  vera vs target, audit verifiche normative, check matrice singolare, trace
+  documenti audit v2.3.2
+- `backend/scripts/nafems_truth_measurement.py`: script riproducibile
+
+### Findings principali
+- LE1 errore reale −32% (target ±5%), tolerance test ±400%, anti-convergenza
+- LE10 σ_yy(D) = 0 MPa (target −5.38 MPa) — test misurano max|uz| invece di σ_yy
+- LE2 / Cantilever / Euler: PASS confermato (errore < 0.001%)
+- #30 matrice singolare: solver non gestisce (NaN o spostamenti folli silent)
+- #6 EC2 staffe: needs_stirrups non confronta V_Ed con V_Rd_c
+- 6 bug NEW emersi (anti-convergenza, MITC dispatch identico Q4, postprocess
+  shell, helper morto, dead test linearità tautologica)
+
+### Stima sforzo fix
+3-4 settimane realistico per v2.4.x (singular matrix + EC2 + shell formulation
++ postprocess + EC3/EC5/EC8 coverage + legal/security + UI bugs).
+
 ## v2.3.2-persist-ci — Snapshot persistence + CI hardening — 2026-05-23
 
 Due fix di robustezza richiesti dopo v2.3.1.
