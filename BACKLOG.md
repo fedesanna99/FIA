@@ -217,52 +217,62 @@ sign × shear-scale di MITC va fixata coerente).
 - Verifica: `backend/scripts/le10_sign_verification.py`
 - Report verification: `docs/v2_4_3c_1_sign_verification_report.md`
 
-### NEW-3-followup · MITC `_bending_stiffness` Bathe-Dvorkin K_s mal calibrato + sign incoerenza θ
-**Stato**: scoperto post `v2.4.3a-shell-pressure-mitc-fix` (commit `b9df9cb`) · **scope esteso post v2.4.4** · **Complessità**: ~1-1.5 giorni · **Severity**: P1
+### NEW-3-followup esteso · MITC magnitude 37× + sign hidden
+**Chiuso**: `v2.4.5-mitc-shear-and-sign-calibration` (2026-05-24)
 
-Post-fix dispatch NEW-3, LE10 con SHELL_Q4_MITC produce
-`max|uz| ≈ 0.237 m` mentre SHELL_Q4 dà `max|uz| ≈ 6.4e-3 m`
-sullo stesso problema (`p=1MPa, t=0.6m, mesh 8×8`). Rapporto **~37×**.
+**Root cause identificata** (Phase 1 diagnostic):
+`ShellQuad4MITC._Bs_at` aveva **DOF index swap (idx 1 ↔ idx 2) + sign
+flip su γ_xz** rispetto a `ShellQuad4._bending_stiffness`. Pre-fix:
+```python
+Bs[0, 3*i + 2] = +N[i]   # γ_xz = ∂w/∂x + (DOF idx 2)  ❌
+Bs[1, 3*i + 1] = -N[i]   # γ_yz = ∂w/∂y − (DOF idx 1)  ❌
+```
+Post-fix (aligned to Q4 Mindlin Bathe §5.4):
+```python
+Bs[0, 3*i + 1] = -N[i]   # γ_xz = ∂w/∂x − (DOF idx 1)  ✓
+Bs[1, 3*i + 2] = -N[i]   # γ_yz = ∂w/∂y − (DOF idx 2)  ✓
+```
 
-Per piastra con ratio `t/a ≈ 0.18` (non particolarmente sottile),
-ci si aspetterebbe MITC ~ Q4 entro ±20%. Lo scostamento massiccio
-indica **bug nella formulation MITC4**:
-- `backend/core/elements/shell_quad4_mitc.py::_bending_stiffness` (riga 133)
-  usa tying points Bathe-Dvorkin per interpolare `B_s` shear
-- Sospetto principale: coefficiente di shear correction `5/6` in `D_s`
-  e/o scaling dei tying points, che rendono la K_s troppo flessibile
+Magnitude bug 37× e sign bug erano la **stessa root cause**: il DOF
+sbagliato veniva caricato dal contributo shear, generando un campo di
+rotazioni mal-orientato che propagava a K_total producendo sia
+displacement sbagliato (37×) sia momento con segno invertito.
 
-**Scope esteso post v2.4.4 (sign discrepancy)**:
-Phase 3 di v2.4.4 ha applicato lo stesso fix sign Q4 anche a MITC
-(`σ_top = σ_m − 6M/t²` invece di `σ_m + 6M/t²`). Risultato inatteso:
-- Q4 LE10 σ_y_top post-fix: **−22.03 MPa** (segno OK)
-- MITC LE10 σ_y_top post-fix: **+75 MPa** (segno SBAGLIATO, opposto a Q4)
+**Implementazione**:
+- `backend/core/elements/shell_quad4_mitc.py`: 2 righe modificate in
+  `_Bs_at` (riga 126-129). Tying points ereditano automaticamente
+  perché invocano `_Bs_at` ai 4 punti predefiniti.
+- `backend/tests/elements/test_shell_mitc_calibration.py` (nuovo,
+  ~280 righe): 6 test regression (consistency LE10, sign+magnitude,
+  3 thickness ratios parametrici, anti shear-locking)
+- `backend/scripts/mitc_kshear_diagnostic.py` (nuovo, diagnostic
+  permanente con probe `w(x)=x lineare` che ha provato numericamente
+  la convenzione di Q4 e MITC fuori e dentro fix)
 
-Interpretazione: MITC pre-fix aveva **segno fortuito** per via di una
-doppia incoerenza interna che si auto-compensava. Concretamente:
-- `_Bs_at` (riga 110-120) usa convenzione `(w, rx, ry)` con
-  `γ_xz = ∂w/∂x + ry` (non `−θ_y` come Mindlin standard)
-- `_bending_stiffness` (riga 133-178) usa convenzione θ identica a Q4
-- Quando i due si combinano l'errore di segno θ in MITC dà
-  M_x_mitc con segno opposto a M_x_q4
+**Comportamento BEFORE / AFTER**:
+- LE10 mesh 8×8 (p=1 MPa, t=0.6 m):
+  - BEFORE v2.4.5: `w_max = 0.237 m` (**37× Q4**), `σ_y_top = +75 MPa` (sign sbagliato)
+  - AFTER  v2.4.5: `w_max = 6.99e-3 m` (**1.09× Q4**), `σ_y_top = −25.5 MPa` (sign OK)
+- Calibrazione 3 thickness ratios (piastra quadrata 10×10 m, p=1 MPa):
+  - `t/L=0.05`: w err <30%, σ err <30%
+  - `t/L=0.18`: w err <30%, σ err <30%
+  - `t/L=0.50`: w err <100% (Reissner additivo prima ordine), σ err <40%
 
-**Fix futuro esteso** (~1-1.5 giorno):
-1. Audit completo convenzione θ_x/θ_y/rx/ry tra `_Bs_at` e `_bending_stiffness`
-   → unificare a Bathe Mindlin §5.4 (`(w, θ_x, θ_y)` con `γ_xz = ∂w/∂x − θ_y`)
-2. Test diretto contro NAFEMS LE10 thin plate analytical (Reissner-Mindlin)
-3. Verifica formulation tying points contro Bathe FEM Procedures §5.7.4
-4. Confronto con implementazione MITC4 reference (es. CalculiX, FEAP)
-5. Test parametrico Q4 vs MITC su 3 thickness ratios (0.05, 0.18, 0.5)
-6. Test sign σ_y_top MITC (analogo a `test_shell_bending_sign.py` per Q4)
-
-**Sequenza**: post NEW-1 e post v2.4.4. Brief candidato:
-`v2.4.x-mitc-shear-and-sign-calibration`.
+**Cluster shell ora COMPLETAMENTE CHIUSO (5 bug originali + 2 followup)**:
+| Bug | Sprint chiusura |
+|---|---|
+| NEW-1 · LE1 anti-convergenza | `v2.4.3c` |
+| NEW-3 · MITC pressure dispatch | `v2.4.3a` |
+| NEW-4 · postprocess no bending | `v2.4.3b` |
+| NEW-4-followup-segno · Q4 σ_top sign | `v2.4.4` |
+| **NEW-3-followup esteso · MITC magnitude+sign** | **`v2.4.5`** |
 
 **Riferimenti**:
-- Smoke verifica: `docs/v2_4_3a_shell_pressure_mitc_fix_report.md` sezione "Anomalia inattesa"
-- Audit originale: `docs/solver_internals_audit.md` sezione 3
-- v2.4.4 closure (Q4 sign fix che ha esposto sign MITC):
-  `docs/v2_4_4_shell_sign_and_mitc_cluster_report.md`
+- Sintomo origine 37×: `docs/v2_4_3a_shell_pressure_mitc_fix_report.md`
+- Estensione scope sign: `docs/v2_4_4_shell_sign_and_mitc_cluster_report.md`
+- Diagnostic Phase 1: `docs/v2_4_5_phase1_mitc_investigation.md`
+- Closure report: `docs/v2_4_5_mitc_shear_and_sign_calibration_report.md`
+- Diagnostic permanente: `backend/scripts/mitc_kshear_diagnostic.py`
 
 ### NEW-4 · Postprocess shell σ_y solo membrana, non bending
 **Stato**: diagnosticato post `v2.3.7-solver-internals-audit` · **Complessità**: ~2-3 giorni · **Severity**: P1
