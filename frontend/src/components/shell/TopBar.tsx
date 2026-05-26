@@ -143,7 +143,20 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   // (prima px-2/gap-1.5). Elementi non-essenziali gia' nascosti via
   // hidden sm:inline / hidden md:flex.
   return (
-    <header className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-2 px-3 min-w-0 overflow-hidden">
+    <header
+      className="h-12 flex-shrink-0 border-b border-border bg-bg-panel flex items-center gap-2 px-3 min-w-0 overflow-hidden"
+      data-testid="topbar-legacy"
+    >
+      {/* v2.6.6 E.4: eyebrow WORKSPACE per mockup A1 (font mono uppercase
+          tracking-wide-4). Visibile prima del brand mark, fonte semantica
+          "stai usando la workspace di FEA Pro". */}
+      <span
+        className="hidden md:inline font-mono text-[10px] uppercase tracking-wide-4 text-ink-3 font-semibold border-r border-border pr-3 h-7 leading-7"
+        data-testid="topbar-eyebrow"
+      >
+        WORKSPACE
+      </span>
+
       {/* Logo + version + tier badge (Precision v2.0) */}
       <div className="flex items-center gap-2 pr-3 border-r border-border h-7 flex-shrink-0">
         <div className="w-6 h-6 bg-accent/10 border border-accent/40 flex items-center justify-center">
@@ -151,6 +164,9 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         </div>
         <span className="font-display font-semibold text-sm text-ink hidden sm:inline tracking-tight-1">FEA Pro</span>
         <TopBarTierBadge />
+        {/* v2.6.6 E.4: crediti inline (sostituisce solo-tooltip pre-v2.6.6).
+            Visibile da sm in su per accessibilità diretta. */}
+        <TopBarCreditsInline />
         <span className="font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 hidden md:inline">{APP_VERSION}</span>
       </div>
 
@@ -442,6 +458,43 @@ function TopBarTierBadge() {
       >
         {tier}
       </span>
+    </Tooltip>
+  );
+}
+
+
+/**
+ * TopBarCreditsInline (v2.6.6 E.4) — crediti inline visibili accanto al
+ * brand mark (mockup A1). Sostituisce il pattern pre-v2.6.6 dove i crediti
+ * erano dentro al tooltip del TopBarTierBadge (non visibili senza hover).
+ *
+ * Pattern: `{used}/{cap} cr` font-mono uppercase tracking-wide-1 ink-3.
+ * Cliccabile = apre AccountDialog billing tab (via custom event).
+ */
+function TopBarCreditsInline() {
+  const user = useAuthStore((s) => s.user);
+  const userId = user?.id ?? "demo_user";
+  const { data: quota } = useQuery({
+    queryKey: ["billing-quota", userId],
+    queryFn: () => getQuota(userId),
+    retry: false,
+    staleTime: 60_000,
+  });
+  const used = quota?.used_credits ?? 0;
+  const cap = (quota?.cap_credits ?? 100) + (quota?.bonus_credits ?? 0);
+
+  return (
+    <Tooltip content="Crediti mensili · clicca per fatturazione">
+      <button
+        type="button"
+        className="hidden sm:inline-flex items-center font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 font-medium hover:text-ink transition-colors"
+        onClick={() => window.dispatchEvent(new CustomEvent("feapro:open-billing"))}
+        data-testid="topbar-credits"
+        aria-label={`${used} su ${cap} crediti usati`}
+      >
+        <span className="tabular-nums">{used}/{cap}</span>
+        <span className="ml-0.5">cr</span>
+      </button>
     </Tooltip>
   );
 }
