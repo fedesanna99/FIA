@@ -33,11 +33,8 @@ import { useNavigationCommands } from "../../hooks/useNavigationCommands";
 import { useSelectionStore } from "../../store/selectionStore";
 import { useWizardStore, type WizardKind } from "../../store/wizardStore";
 import { toast } from "../../store/toastStore";
-import {
-  exportModelJson, exportResultsJson,
-  exportDisplacementsCSV, exportModesCSV,
-} from "../../utils/export";
-import { generateReport, viewportCanvasDataUrl } from "../../utils/reportPdf";
+import { viewportCanvasDataUrl } from "../../utils/reportPdf";
+import { quickExport } from "../../lib/quickExport";
 import {
   PALETTE_ITEMS, SECTION_LABELS, SECTION_ORDER,
   type PaletteItem, type PaletteSection,
@@ -253,49 +250,20 @@ export function CommandPalette() {
         break;
       }
       case "quick-export": {
-        // v1.5 Task 34: shortcut export rapido. Riusa utils/export.ts.
+        // v2.5.3 fix bug #2: handler estratto in `lib/quickExport.ts` per
+        // testabilità + lazy code-split di SheetJS (xlsx). Toast feedback per
+        // PDF (prima silente) + xlsx ora usa exportModelToXlsx multi-sheet
+        // invece di CSV piatti (codice obsoleto).
         const m = useModelStore.getState().model;
         if (!m) { toast("error", "Nessun modello caricato."); break; }
         const r = useResultsStore.getState();
         const payload = item.payload as { format: string; scope?: string };
-        try {
-          switch (payload.format) {
-            case "pdf": {
-              const viewportPng = viewportCanvasDataUrl();
-              void generateReport({
-                model: m,
-                staticResults: r.staticResults,
-                modalResults: r.modalResults,
-                viewportPng,
-              });
-              break;
-            }
-            case "xlsx":
-              if (r.staticResults) exportDisplacementsCSV(m, r.staticResults);
-              if (r.modalResults) exportModesCSV(m, r.modalResults);
-              toast("success", "Export Excel: scaricati CSV piatti.");
-              break;
-            case "csv-nodes":
-              if (!r.staticResults) { toast("error", "Servono risultati statica."); break; }
-              exportDisplacementsCSV(m, r.staticResults);
-              break;
-            case "csv-modes":
-              if (!r.modalResults) { toast("error", "Servono risultati modale."); break; }
-              exportModesCSV(m, r.modalResults);
-              break;
-            case "json":
-              exportModelJson(m);
-              if (r.staticResults) exportResultsJson(m.name, r.staticResults);
-              break;
-            case "dxf":
-              toast("info", "Export DXF: usa il pannello Tools → Esporta.");
-              break;
-            default:
-              toast("info", `Format "${payload.format}" non riconosciuto.`);
-          }
-        } catch (e) {
-          toast("error", `Errore export: ${(e as Error).message}`);
-        }
+        void quickExport(
+          payload,
+          m,
+          { staticResults: r.staticResults, modalResults: r.modalResults },
+          { toast, getViewportPng: viewportCanvasDataUrl },
+        );
         break;
       }
       case "goto-node": {
