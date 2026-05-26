@@ -1,22 +1,33 @@
 // v2.6.2 Shell · Command Palette
 //
-// Replica del mockup §3.6 con cmdk + Radix Dialog. NON riscrive il registry
-// (paletteItems.ts): import e re-use della lista esistente, solo rendering UI
-// nuovo.
+// v2.6.2.1 polish F2: ora legge il registry centrale `lib/paletteItems.ts`
+// (~140 voci) e usa `usePaletteDispatch` come single source of truth per
+// l'execution. Niente più 7 voci hardcoded.
 //
-// Toggle Ctrl+K / Cmd+K via App.tsx (workspaceStore.togglePalette).
-// Esc chiude; ↑↓ naviga (cmdk auto); ↵ esegue (cmdk auto + listener).
+// UI cmdk + Radix Dialog secondo §3.6 DESIGN_HANDOFF. Toggle Ctrl+K/Cmd+K
+// via App.tsx (workspaceStore.togglePalette). Esc chiude; ↑↓ naviga; ↵ esegue.
 
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { Command } from "cmdk";
 import * as Dialog from "@radix-ui/react-dialog";
 import { useWorkspaceStore } from "../store/workspaceStore";
+import { useModelStore } from "../store/modelStore";
+import {
+  PALETTE_ITEMS,
+  SECTION_LABELS,
+  SECTION_ORDER,
+  type PaletteItem,
+  type PaletteSection,
+} from "../lib/paletteItems";
+import { usePaletteDispatch } from "../lib/usePaletteDispatch";
 
 export function ShellCommandPalette() {
   const open = useWorkspaceStore((s) => s.paletteOpen);
   const setOpen = useWorkspaceStore((s) => s.setPalette);
+  const model = useModelStore((s) => s.model);
+  const dispatch = usePaletteDispatch();
 
-  // Toggle via Ctrl+K / Cmd+K (handler globale)
+  // Toggle Ctrl+K / Cmd+K
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
@@ -30,6 +41,17 @@ export function ShellCommandPalette() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [setOpen]);
+
+  // Grouping per section (escluso favorites che è runtime-driven nel legacy)
+  const grouped = useMemo(() => {
+    const out = new Map<PaletteSection, PaletteItem[]>();
+    for (const it of PALETTE_ITEMS) {
+      const arr = out.get(it.section) ?? [];
+      arr.push(it);
+      out.set(it.section, arr);
+    }
+    return out;
+  }, []);
 
   return (
     <Dialog.Root open={open} onOpenChange={setOpen}>
@@ -56,112 +78,52 @@ export function ShellCommandPalette() {
                 </svg>
               </span>
               <Command.Input
-                placeholder="Cerca azioni, modelli, norme… o chiedi al Copilot"
+                placeholder={`Cerca tra ${PALETTE_ITEMS.length} comandi · workspace · analisi · verifiche…`}
                 autoFocus
+                data-testid="shell-palette-input"
               />
               <span className="cmd-esc">esc</span>
             </div>
 
             <Command.List className="cmd-list">
               <Command.Empty style={{ padding: 16, color: "var(--ink-dim)", fontSize: 13 }}>
-                Nessun risultato. Prova un'altra query.
+                Nessun risultato. Prova "model", "run", "theme", "help"…
               </Command.Empty>
 
-              {/* Suggerito ora */}
-              <Command.Group heading="Suggerito ora">
-                <div className="cmd-group-head">Suggerito ora</div>
-                <Command.Item
-                  value="ai-ask Chiedi al Copilot"
-                  onSelect={() => {
-                    // TODO Fase 3+: dispatch evento feapro:open-ai-copilot
-                    setOpen(false);
-                  }}
-                >
-                  <span
-                    className="cmd-item-icon"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, rgba(8,145,178,0.2), rgba(8,145,178,0.05))",
-                      borderColor: "rgba(8,145,178,0.4)",
-                      color: "var(--accent)",
-                    }}
+              {SECTION_ORDER.filter((s) => s !== "favorites").map((section) => {
+                const items = grouped.get(section) ?? [];
+                if (items.length === 0) return null;
+                return (
+                  <Command.Group
+                    key={section}
+                    heading={`${SECTION_LABELS[section]} · ${items.length}`}
                   >
-                    ✨
-                  </span>
-                  <div>
-                    <div className="cmd-item-name">Chiedi al Copilot</div>
-                    <div className="cmd-item-sub">AI · usa contesto modello attivo</div>
-                  </div>
-                  <span className="cmd-item-kbd">↵</span>
-                </Command.Item>
-                <Command.Item
-                  value="export-pdf esporta report"
-                  onSelect={() => {
-                    window.dispatchEvent(new Event("feapro:open-export-pdf"));
-                    setOpen(false);
-                  }}
-                >
-                  <span className="cmd-item-icon">⬇</span>
-                  <div>
-                    <div className="cmd-item-name">Esporta report PDF</div>
-                    <div className="cmd-item-sub">reportlab · 7 sezioni</div>
-                  </div>
-                  <span className="cmd-item-kbd">⌘P</span>
-                </Command.Item>
-              </Command.Group>
-
-              {/* Workspace navigation */}
-              <Command.Group heading="Workspace">
-                <div className="cmd-group-head">Workspace</div>
-                <PaletteWorkspaceItem label="Vai a Modello" kbd="1" workspace="model" onClose={() => setOpen(false)} />
-                <PaletteWorkspaceItem label="Vai a Analisi" kbd="2" workspace="analysis" onClose={() => setOpen(false)} />
-                <PaletteWorkspaceItem label="Vai a Verifiche" kbd="3" workspace="verify" onClose={() => setOpen(false)} />
-              </Command.Group>
-
-              {/* Analisi */}
-              <Command.Group heading="Analisi">
-                <div className="cmd-group-head">Analisi</div>
-                <Command.Item
-                  value="run-static esegui statica"
-                  onSelect={() => {
-                    window.dispatchEvent(new Event("feapro:run-static"));
-                    setOpen(false);
-                  }}
-                >
-                  <span className="cmd-item-icon">▶</span>
-                  <div>
-                    <div className="cmd-item-name">Esegui statica</div>
-                    <div className="cmd-item-sub">K u = F</div>
-                  </div>
-                  <span className="cmd-item-kbd">F5</span>
-                </Command.Item>
-              </Command.Group>
-
-              {/* Sistema */}
-              <Command.Group heading="Sistema">
-                <div className="cmd-group-head">Sistema</div>
-                <Command.Item
-                  value="undo annulla"
-                  onSelect={() => {
-                    // Dispatch su modelStore
-                    import("../store/modelStore").then((m) => m.useModelStore.getState().undo());
-                    setOpen(false);
-                  }}
-                >
-                  <span className="cmd-item-icon">↶</span>
-                  <div>
-                    <div className="cmd-item-name">Annulla ultima mutation</div>
-                    <div className="cmd-item-sub">modelStore history</div>
-                  </div>
-                  <span className="cmd-item-kbd">⌘Z</span>
-                </Command.Item>
-              </Command.Group>
+                    <div className="cmd-group-head">
+                      {SECTION_LABELS[section]} · {items.length}
+                    </div>
+                    {items.map((item) => (
+                      <ShellPaletteRow
+                        key={item.id}
+                        item={item}
+                        disabled={(item.needsModel && !model) || !!item.soon}
+                        onSelect={() => dispatch(item, () => setOpen(false))}
+                      />
+                    ))}
+                  </Command.Group>
+                );
+              })}
             </Command.List>
 
             <div className="cmd-foot">
-              <span><kbd>↑↓</kbd> navigazione</span>
-              <span><kbd>↵</kbd> esegui</span>
-              <span><kbd>esc</kbd> chiudi</span>
+              <span>
+                <kbd>↑↓</kbd> navigazione
+              </span>
+              <span>
+                <kbd>↵</kbd> esegui
+              </span>
+              <span>
+                <kbd>esc</kbd> chiudi
+              </span>
               <span className="cmd-ai">✨ Inizia con "?" per il Copilot</span>
             </div>
           </Command>
@@ -171,31 +133,67 @@ export function ShellCommandPalette() {
   );
 }
 
-function PaletteWorkspaceItem({
-  label,
-  kbd,
-  workspace,
-  onClose,
-}: {
-  label: string;
-  kbd: string;
-  workspace: "model" | "analysis" | "verify";
-  onClose: () => void;
-}) {
+interface ShellPaletteRowProps {
+  item: PaletteItem;
+  onSelect: () => void;
+  disabled?: boolean;
+}
+
+function ShellPaletteRow({ item, onSelect, disabled }: ShellPaletteRowProps) {
+  const Icon = item.icon;
+  // Aliases concatenati nel `value` per cmdk fuzzy match
+  const matchValue = [item.label, item.description, ...(item.aliases ?? [])]
+    .filter(Boolean)
+    .join(" ");
+
   return (
     <Command.Item
-      value={label}
-      onSelect={() => {
-        useWorkspaceStore.getState().setWorkspace(workspace);
-        onClose();
-      }}
+      value={matchValue}
+      onSelect={() => !disabled && onSelect()}
+      disabled={disabled}
+      data-testid={`shell-palette-item-${item.id}`}
+      className="cmd-item"
     >
-      <span className="cmd-item-icon">→</span>
-      <div>
-        <div className="cmd-item-name">{label}</div>
-        <div className="cmd-item-sub">workspace switch</div>
+      <span className="cmd-item-icon">
+        {Icon ? <Icon size={13} strokeWidth={1.8} /> : "·"}
+      </span>
+      <div style={{ minWidth: 0, flex: 1 }}>
+        <div className="cmd-item-name">
+          {item.label}
+          {item.soon && (
+            <span
+              style={{
+                marginLeft: 6,
+                fontSize: 9,
+                fontFamily: "JetBrains Mono, monospace",
+                color: "var(--purple)",
+                background: "var(--bg-purple)",
+                padding: "1px 5px",
+                borderRadius: 4,
+                textTransform: "uppercase",
+                letterSpacing: 0.06,
+                fontWeight: 600,
+              }}
+            >
+              soon
+            </span>
+          )}
+          {item.group && (
+            <span
+              style={{
+                marginLeft: 6,
+                fontFamily: "JetBrains Mono, monospace",
+                fontSize: 10,
+                color: "var(--ink-dim)",
+              }}
+            >
+              · {item.group}
+            </span>
+          )}
+        </div>
+        {item.description && <div className="cmd-item-sub">{item.description}</div>}
       </div>
-      <span className="cmd-item-kbd">{kbd}</span>
+      {item.shortcut && <span className="cmd-item-kbd">{item.shortcut}</span>}
     </Command.Item>
   );
 }
