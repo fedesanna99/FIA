@@ -36,7 +36,7 @@ export function ViewportControls() {
               className={`btn ${viewportMode === m ? "btn-primary" : ""}`}
               onClick={() => setViewportMode(m)}
             >
-              {m === "wireframe" ? "Wire" : m === "solid" ? "Solid" : "Transp"}
+              {m === "wireframe" ? "Wireframe" : m === "solid" ? "Solido" : "Trasparente"}
             </button>
           ))}
         </div>

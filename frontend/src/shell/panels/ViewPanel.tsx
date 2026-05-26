@@ -126,7 +126,7 @@ export function ViewPanel() {
             {(["wireframe", "solid", "transparent"] as const).map((mode) => (
               <SegmentButton
                 key={mode}
-                label={mode === "wireframe" ? "Wire" : mode === "solid" ? "Solid" : "Transp"}
+                label={mode === "wireframe" ? "Wireframe" : mode === "solid" ? "Solido" : "Trasparente"}
                 active={viewportMode === mode}
                 onClick={() => setViewportMode(mode)}
                 testId={`view-mode-${mode}`}
@@ -147,18 +147,18 @@ export function ViewPanel() {
           </div>
         </Section>
 
-        <Section title="Engine" icon={<Gauge className="w-3 h-3" />}>
+        <Section title="Motore di rendering" icon={<Gauge className="w-3 h-3" />}>
           <div className="grid grid-cols-[1fr_1fr_auto] gap-1 items-stretch">
             <SegmentButton
-              label="Legacy"
+              label="Classico"
               description="stabile"
               active={!useViewportEngine}
               onClick={() => useViewportEngine && toggleViewportEngine()}
               testId="view-engine-legacy"
             />
             <SegmentButton
-              label="Engine"
-              description="GPU"
+              label="Accelerato GPU"
+              description="WebGL"
               active={useViewportEngine}
               onClick={() => !useViewportEngine && toggleViewportEngine()}
               testId="view-engine-new"

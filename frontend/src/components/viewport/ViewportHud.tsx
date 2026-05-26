@@ -40,7 +40,7 @@ export function ViewportHud() {
   const nElems = model.elements?.length ?? 0;
   const stats = createViewportEngineStats(model);
   const activeBaseLayers = [showGrid, showLoads, showConstraints, showNodeLabels].filter(Boolean).length;
-  const renderLabel = viewportMode === "wireframe" ? "Wire" : viewportMode === "transparent" ? "Transp" : "Solid";
+  const renderLabel = viewportMode === "wireframe" ? "Wireframe" : viewportMode === "transparent" ? "Trasparente" : "Solido";
   const cameraLabel = projection === "orthographic" ? "Orto" : "Persp";
   // v1.7-polish T3: ora `materials?` esiste in FEAModel — cast unsafe rimosso.
   const material = model.materials?.[0]?.name ?? "—";

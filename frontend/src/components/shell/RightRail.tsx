@@ -28,14 +28,17 @@ interface RailItem {
 }
 
 
+// v2.5.8 cluster E (BUG-018): label rail destro in italiano user-facing.
+// "Inspect" → "Ispeziona", "View" → "Vista", "Tools" → "Strumenti", "History"
+// → "Cronologia". Le `key` restano contract interno (workspaceStore).
 const TOP_ITEMS: RailItem[] = [
-  { key: "inspect", label: "Inspect", description: "Statica · modale · iso 3D · fatica", icon: Eye },
-  { key: "view",    label: "View",    description: "Layer · scala def. · colormap · annotazioni", icon: Layers },
-  { key: "tools",   label: "Tools",   description: "Compare · misure · cost preview · BIM viewer", icon: Wrench },
+  { key: "inspect", label: "Ispeziona",  description: "Statica · modale · iso 3D · fatica", icon: Eye },
+  { key: "view",    label: "Vista",      description: "Layer · scala deformata · colormap · annotazioni", icon: Layers },
+  { key: "tools",   label: "Strumenti",  description: "Confronta · misure · stima costi · BIM viewer", icon: Wrench },
 ];
 
 const BOTTOM_ITEMS: RailItem[] = [
-  { key: "history", label: "History", description: "Snapshot e undo timeline", icon: History },
+  { key: "history", label: "Cronologia", description: "Snapshot e timeline annulla/ripeti", icon: History },
 ];
 
 

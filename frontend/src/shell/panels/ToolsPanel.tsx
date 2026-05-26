@@ -95,7 +95,7 @@ export function ToolsPanel() {
   return (
     <PanelChrome
       side="right"
-      title="Tools"
+      title="Strumenti"
       Icon={IconTool}
       subtitle={view === "hub" ? "Strumenti" : SUBVIEW_LABELS[view]}
       onClose={handleClose}
