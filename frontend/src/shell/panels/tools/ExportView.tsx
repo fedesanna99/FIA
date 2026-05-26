@@ -17,6 +17,7 @@ import {
 } from "../../../utils/export";
 import { generateReport, viewportCanvasDataUrl } from "../../../utils/reportPdf";
 import { toast } from "../../../store/toastStore";
+import { toastApiError } from "../../../lib/apiErrors";
 
 
 export function ExportView() {
@@ -33,7 +34,7 @@ export function ExportView() {
       await generateReport({ model, staticResults, modalResults, viewportPng });
       toast("success", "Report PDF generato.");
     } catch (e) {
-      toast("error", `Errore export PDF: ${(e as Error)?.message ?? e}`);
+      toastApiError(e, "Errore export PDF");
     } finally {
       setBusy(null);
     }
@@ -56,7 +57,7 @@ export function ExportView() {
         toast("warning", "Workbook non generato (modello non disponibile).");
       }
     } catch (e) {
-      toast("error", `Errore export XLSX: ${(e as Error)?.message ?? e}`);
+      toastApiError(e, "Errore export XLSX");
     } finally {
       setBusy(null);
     }

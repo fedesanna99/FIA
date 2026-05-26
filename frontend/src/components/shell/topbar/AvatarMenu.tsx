@@ -41,6 +41,7 @@ import {
   exportDisplacementsCSV, exportModesCSV,
 } from "../../../utils/export";
 import { generateReport, viewportCanvasDataUrl } from "../../../utils/reportPdf";
+import { toastApiError } from "../../../lib/apiErrors";
 import { Tooltip } from "../../ui/Tooltip";
 import { CollabAvatars } from "./CollabAvatars";
 
@@ -89,7 +90,7 @@ function doExportPdf() {
     generateReport({ model, staticResults, modalResults, viewportPng });
     toast("success", "Report PDF generato");
   } catch (e) {
-    toast("error", `Errore PDF: ${(e as Error).message}`);
+    toastApiError(e, "Errore PDF");
   }
 }
 

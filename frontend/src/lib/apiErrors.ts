@@ -18,6 +18,8 @@
  */
 
 
+import { toast, type ToastLevel } from "../store/toastStore";
+
 /** Forma del body errore strutturato lato backend. */
 type BackendErrorKind =
   | "missing_constraints"
@@ -71,6 +73,31 @@ const ERROR_TRANSLATIONS: Record<string, (err: BackendErrorBody) => string> = {
 export interface TranslatedError {
   title: string;
   description?: string;
+}
+
+
+/**
+ * v2.5.5 cluster B (BUG-011+012+013) — helper che traduce un errore via
+ * `translateApiError` e lo mostra come toast italiano con prefisso "azione".
+ *
+ * Pattern d'uso: `toastApiError(e, "Errore generazione PDF")` invece di
+ * `toast("error", \`Errore generazione PDF: ${(e as Error).message}\`)`.
+ * Risultato: messaggi italiani umani anche per axios error / payload JSON
+ * strutturati / FastAPI 422 / null/undefined / Error nativi.
+ *
+ * @param err qualunque cosa propagata da catch / onError (axios, fetch, throw locale)
+ * @param action descrizione breve dell'azione fallita (titolo del toast)
+ * @param toastFn override del toast handler (default: `toast` reale). Iniettabile
+ *                per test o per moduli pure-DI come `lib/quickExport.ts`.
+ */
+export function toastApiError(
+  err: unknown,
+  action: string,
+  toastFn: (level: ToastLevel, message: string, ttlMs?: number) => void = toast,
+): void {
+  const { title, description } = translateApiError(err);
+  const full = description ? `${action}: ${title} · ${description}` : `${action}: ${title}`;
+  toastFn("error", full);
 }
 
 

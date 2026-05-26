@@ -22,6 +22,7 @@ import type { FEAModel } from "../types/model";
 import type { StaticResults, ModalResults } from "../types/results";
 import type { ToastLevel } from "../store/toastStore";
 import { generateReport } from "../utils/reportPdf";
+import { toastApiError } from "./apiErrors";
 import {
   exportModelJson,
   exportResultsJson,
@@ -113,6 +114,8 @@ export async function quickExport(
         toast("info", `Format "${payload.format}" non riconosciuto.`);
     }
   } catch (e) {
-    toast("error", `Errore export: ${(e as Error).message}`);
+    // v2.5.5 cluster B: traduce via translateApiError. Inietta `toast`
+    // per rispettare il pattern pure-DI di questo modulo.
+    toastApiError(e, "Errore export", toast);
   }
 }

@@ -15,6 +15,7 @@ import { useResultsStore } from "../../store/resultsStore";
 import { generateReport } from "../../utils/reportPdf";
 import { notify } from "../../store/notificationsStore";
 import { toast } from "../../store/toastStore";
+import { toastApiError } from "../../lib/apiErrors";
 import { TrustLayerBadge } from "../shell/TrustLayerBadge";
 
 interface Props {
@@ -98,7 +99,7 @@ export function ReportExportDialog({ open, onClose }: Props) {
       onClose();
     } catch (e) {
       setDownloading(false);
-      toast("error", `Errore generazione PDF: ${(e as Error).message}`);
+      toastApiError(e, "Errore generazione PDF");
     }
   }
 
