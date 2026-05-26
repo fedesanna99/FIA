@@ -27,7 +27,7 @@ import { PanelChrome } from "./PanelChrome";
 import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
 import { InsightPanel } from "../../components/shell/InsightPanel";
 import { GPS_FYD } from "../../lib/gpsTrust";
-import { Check, AlertTriangle, Circle } from "lucide-react";
+import { Check, AlertTriangle, Circle, Sparkles } from "lucide-react";
 import { NodeDetail } from "./inspect/NodeDetail";
 import { DriftPanel } from "../../components/panels/DriftPanel";
 import { ConvergencePanel } from "../../components/panels/ConvergencePanel";
@@ -109,6 +109,8 @@ export function InspectPanel() {
         {/* v2.6.4 A.3 UC3/3b/4 (c6 spec): post-statica InsightPanel
             switching dinamico per soglia UR_max (success/warn/danger). */}
         {staticRes && <ResultsInsightHero setTab={setTab} />}
+        {/* v2.6.4 B.1 (empty-states-catalog § 2.4): nessun risultato disponibile. */}
+        {!staticRes && <ResultsEmptyState />}
         <PanelHub
           cards={HUB_CARDS}
           onSelect={(id) => setTab(id)}
@@ -337,7 +339,7 @@ function ResultsInsightHero({ setTab }: { setTab: (id: string) => void }) {
     );
   }
 
-  // UC3 — success (UR < 0.70)
+  /* UC3 — success */
   return (
     <div className="px-3 pt-3" data-testid="results-insight-uc3">
       <InsightPanel
@@ -353,6 +355,40 @@ function ResultsInsightHero({ setTab }: { setTab: (id: string) => void }) {
           label: "Genera report",
           onClick: () => window.dispatchEvent(new Event("feapro:open-export-pdf")),
         }}
+      />
+    </div>
+  );
+}
+
+
+/**
+ * v2.6.4 B.1 (empty-states-catalog § 2.4) — Inspect/ResultsPanel quando
+ * non c'è ancora staticResults. Diagnostica nel body (perché è vuoto)
+ * + action rerun analisi statica.
+ */
+function ResultsEmptyState() {
+  const setAnalysisType = useAnalysisStore((s) => s.setAnalysisType);
+  const runAnalysis = useRunAnalysis();
+  return (
+    <div className="px-3 pt-3" data-testid="results-empty-state">
+      <EmptyState
+        icon={<Sparkles className="w-5 h-5" />}
+        title="Risultati non disponibili"
+        description="Lancia un'analisi statica per popolare risultati e verifiche. I diagrammi e gli UR sono derivati live dal solver."
+        action={
+          <FeatureButton
+            featureId="run-static"
+            variant="run"
+            size="md"
+            onClick={() => {
+              setAnalysisType("static");
+              void runAnalysis();
+            }}
+            data-testid="results-empty-run-static"
+          >
+            Esegui analisi statica
+          </FeatureButton>
+        }
       />
     </div>
   );
