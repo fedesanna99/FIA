@@ -29,7 +29,8 @@ type BackendErrorKind =
   | "convergence_failed"
   | "quota_exceeded"
   | "model_not_found"
-  | "validation_failed";
+  | "validation_failed"
+  | "solver_not_dispatched";
 
 
 interface BackendErrorBody {
@@ -62,6 +63,8 @@ const ERROR_TRANSLATIONS: Record<string, (err: BackendErrorBody) => string> = {
     "Modello non trovato. Potrebbe essere stato eliminato in un'altra sessione.",
   validation_failed: () =>
     "Il modello contiene errori di validazione. Apri il pannello 'Tools → Validazione' per dettagli.",
+  solver_not_dispatched: () =>
+    "Il solver richiesto non e' registrato nel sistema. Contatta l'assistenza con il codice tecnico riportato.",
 };
 
 

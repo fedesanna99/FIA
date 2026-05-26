@@ -135,6 +135,7 @@ const EXPECTED_BACKEND_ERROR_KINDS = [
   "quota_exceeded",
   "model_not_found",
   "validation_failed",
+  "solver_not_dispatched",
 ] as const;
 
 describe("contract BackendErrorKind ↔ ERROR_TRANSLATIONS (v2.5.1 T6)", () => {
