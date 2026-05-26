@@ -40,16 +40,60 @@ const makeModel = (id: string, name: string, is3d = false, nodes = 5) => ({
   constraints: [],
 });
 
-describe("RecentModelsGrid (v2.6.5 D.2)", () => {
-  it("renders nothing when 0 user models (no empty state)", async () => {
+describe("RecentModelsGrid (v2.6.5 D.2 + v2.6.6 E.3)", () => {
+  // v2.6.6 E.3: empty state esplicito invece di auto-hide su 0 modelli.
+  it("renders empty state when 0 user models (v2.6.6 E.3 fix composition)", async () => {
     listMock.mockResolvedValue([]);
-    const { container } = render(<RecentModelsGrid onSelect={vi.fn()} />, { wrapper });
-    // Aspetta query risolvi
+    render(<RecentModelsGrid onSelect={vi.fn()} />, { wrapper });
     await waitFor(() => {
-      expect(listMock).toHaveBeenCalled();
+      expect(screen.getByTestId("recent-models-empty")).toBeInTheDocument();
     });
-    // La sezione NON renderizza nulla quando empty
-    expect(container.querySelector("[data-testid='recent-models-grid']")).toBeNull();
+    // Title sempre visibile
+    expect(screen.getByText("Modelli recenti")).toBeInTheDocument();
+    // CTA presenti
+    expect(screen.getByTestId("recent-empty-cta-templates")).toBeInTheDocument();
+    expect(screen.getByTestId("recent-empty-cta-new")).toBeInTheDocument();
+  });
+
+  it("v2.6.6 E.3: empty state CTA 'Apri galleria template' dispatches feapro:open-template-gallery", async () => {
+    listMock.mockResolvedValue([]);
+    const listener = vi.fn();
+    window.addEventListener("feapro:open-template-gallery", listener);
+    render(<RecentModelsGrid onSelect={vi.fn()} />, { wrapper });
+    await waitFor(() => {
+      expect(screen.getByTestId("recent-empty-cta-templates")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId("recent-empty-cta-templates"));
+    expect(listener).toHaveBeenCalledTimes(1);
+    window.removeEventListener("feapro:open-template-gallery", listener);
+  });
+
+  it("v2.6.6 E.3: empty state CTA 'Nuovo modello da zero' dispatches feapro:open-new-model", async () => {
+    listMock.mockResolvedValue([]);
+    const listener = vi.fn();
+    window.addEventListener("feapro:open-new-model", listener);
+    render(<RecentModelsGrid onSelect={vi.fn()} />, { wrapper });
+    await waitFor(() => {
+      expect(screen.getByTestId("recent-empty-cta-new")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByTestId("recent-empty-cta-new"));
+    expect(listener).toHaveBeenCalledTimes(1);
+    window.removeEventListener("feapro:open-new-model", listener);
+  });
+
+  it("v2.6.6 E.3: loading state renders skeleton placeholder (4 cards)", async () => {
+    // Promise mai risolta → resta in loading
+    listMock.mockImplementation(() => new Promise(() => { /* never */ }));
+    render(<RecentModelsGrid onSelect={vi.fn()} />, { wrapper });
+    // Skeleton wrapper presente
+    expect(screen.getByTestId("recent-models-skeleton")).toBeInTheDocument();
+    // 4 skeleton card placeholder
+    expect(screen.getByTestId("recent-model-skeleton-0")).toBeInTheDocument();
+    expect(screen.getByTestId("recent-model-skeleton-1")).toBeInTheDocument();
+    expect(screen.getByTestId("recent-model-skeleton-2")).toBeInTheDocument();
+    expect(screen.getByTestId("recent-model-skeleton-3")).toBeInTheDocument();
+    // aria-busy per accessibility
+    expect(screen.getByTestId("recent-models-skeleton").getAttribute("aria-busy")).toBe("true");
   });
 
   it("filters out demo models (id starts with 'ex_')", async () => {
