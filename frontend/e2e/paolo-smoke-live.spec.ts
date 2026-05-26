@@ -54,8 +54,49 @@ async function login(page: Page): Promise<void> {
   await page.waitForSelector('[data-testid="dashboard-root"]', { timeout: 20_000 });
 }
 
+/**
+ * Dismiss onboarding tour 10-step (`OnboardingTour.tsx`).
+ * Strategia layered:
+ *   1. Preferita: localStorage seed `feapro-onboarding-seen-v4="skipped"` in beforeEach.
+ *   2. Fallback runtime: click button "Salta" se il modal compare comunque.
+ *   3. Last resort: dispatch event "feapro:close-onboarding" (App.tsx listener).
+ */
+async function dismissOnboardingTour(page: Page): Promise<void> {
+  const skipButton = page.getByRole("button", { name: /^salta$/i });
+  const skipVisible = await skipButton.isVisible({ timeout: 2_000 }).catch(() => false);
+  if (skipVisible) {
+    await skipButton.click();
+    await skipButton.waitFor({ state: "hidden", timeout: 5_000 }).catch(() => {});
+    return;
+  }
+
+  // Last resort: emit close event direttamente.
+  const overlayStill = await page
+    .locator('[role="dialog"]')
+    .first()
+    .isVisible({ timeout: 500 })
+    .catch(() => false);
+  if (overlayStill) {
+    await page.evaluate(() => {
+      window.dispatchEvent(new Event("feapro:close-onboarding"));
+    });
+    await page.waitForTimeout(500);
+  }
+}
+
 test.describe("Smoke E2E live · flow Paolo", () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ context, page }) => {
+    // v2.5.0 fix Finding #2 (onboarding tour 10-step modal blocca selettori).
+    // Chiave reale: `OnboardingTour.tsx:27` → STORAGE_KEY = "feapro-onboarding-seen-v4"
+    // Setta valore "skipped" che è uno dei due valori accettati dal componente.
+    await context.addInitScript(() => {
+      try {
+        localStorage.setItem("feapro-onboarding-seen-v4", "skipped");
+      } catch {
+        /* alcune fasi pre-load non hanno accesso a localStorage */
+      }
+    });
+
     page.on("pageerror", (err) => console.error("[browser error]", err.message));
     page.on("console", (msg) => {
       if (msg.type() === "error") console.error("[browser console error]", msg.text());
@@ -65,6 +106,7 @@ test.describe("Smoke E2E live · flow Paolo", () => {
   test("flow completo: telaio 2D → statica → deformata → export PDF", async ({ page }) => {
     // ───── STEP 0 · Login ─────
     await login(page);
+    await dismissOnboardingTour(page);
     await page.screenshot({ path: path.join(ARTIFACTS_DIR, "01-post-login.png"), fullPage: true });
 
     // ───── STEP 1 · Apri template "Telaio portale 2D" ─────
