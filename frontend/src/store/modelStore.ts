@@ -67,20 +67,79 @@ function applyModelAndPush(
   useModelHistory.getState().push(newModel);
 }
 
+/**
+ * v2.5.4 fix bug #9 — confronto strutturale rapido fra due snapshot del modello,
+ * usato da `setModel` per decidere se un refetch dello stesso `model.id` ha
+ * effettivamente alterato il contenuto rispetto all'ultimo snapshot in history.
+ *
+ * Fast path: stessa reference o id diverso → decisione immediata.
+ * Slow path: confronto length delle 4 liste mutabili, poi stringify mirato
+ * (per cogliere le `update*` mutations che non cambiano i conteggi).
+ * `materials?` è escluso (non mutato dai dialog di modello, escluderlo evita
+ * false-positivi di divergenza quando il backend lo normalizza).
+ */
+function modelSnapshotsEqual(a: FEAModel, b: FEAModel): boolean {
+  if (a === b) return true;
+  if (a.id !== b.id) return false;
+  if (a.nodes.length !== b.nodes.length) return false;
+  if (a.elements.length !== b.elements.length) return false;
+  if (a.constraints.length !== b.constraints.length) return false;
+  if (a.loads.length !== b.loads.length) return false;
+  return (
+    JSON.stringify(a.nodes) === JSON.stringify(b.nodes) &&
+    JSON.stringify(a.elements) === JSON.stringify(b.elements) &&
+    JSON.stringify(a.constraints) === JSON.stringify(b.constraints) &&
+    JSON.stringify(a.loads) === JSON.stringify(b.loads)
+  );
+}
+
 export const useModelStore = create<ModelState>((set, get) => ({
   model: null,
   setModel: (m) => {
+    const current = get().model;
+    const history = useModelHistory.getState();
+
+    // Reset (logout/no-op): wipe esplicito, niente push.
+    if (m === null) {
+      set({
+        model: null,
+        selectedNodeIds: new Set(),
+        selectedElementIds: new Set(),
+        lastSavedAt: null,
+      });
+      history.clear();
+      return;
+    }
+
     set({
       model: m,
       selectedNodeIds: new Set(),
       selectedElementIds: new Set(),
-      lastSavedAt: m ? new Date() : null,
+      lastSavedAt: new Date(),
     });
-    // v2.3.0: nuova history a ogni load di modello. Snapshot 0 = baseline
-    // (loaded from server / wizard). Le mutations successive aggiungono.
-    const history = useModelHistory.getState();
-    history.clear();
-    if (m) history.push(m);
+
+    // v2.3.0 baseline behavior — clear + push:
+    //   - primo load (current === null)
+    //   - switch ad altro modello (m.id !== current.id)
+    const isSameModel = current !== null && current.id === m.id;
+    if (!isSameModel) {
+      history.clear();
+      history.push(m);
+      return;
+    }
+
+    // v2.5.4 fix bug #9 — refetch dello stesso modello post-mutation:
+    // preserva la history. La mutation ha già pushato lo snapshot aggiornato;
+    // pusha di nuovo solo se il refetched diverge dall'ultimo (defensive vs
+    // normalizzazioni server).
+    if (history.past.length === 0) {
+      history.push(m);
+      return;
+    }
+    const last = history.past[history.past.length - 1] as FEAModel;
+    if (!modelSnapshotsEqual(last, m)) {
+      history.push(m);
+    }
   },
 
   lastSavedAt: null,

@@ -122,3 +122,78 @@ describe("modelStore undo/redo wiring (v2.3.0)", () => {
     expect(useModelHistory.getState().canRedo()).toBe(false);
   });
 });
+
+
+describe("setModel · history preservation (v2.5.4 fix bug #9)", () => {
+  beforeEach(() => {
+    useModelStore.getState().setModel(null);
+    useModelHistory.getState().clear();
+  });
+
+  it("setModel con id diverso azzera la history", () => {
+    const m1 = makeBaseModel();
+    useModelStore.getState().setModel(m1);
+    useModelStore.getState().addNode({ id: 3, x: 2, y: 0, z: 0 });
+    expect(useModelHistory.getState().past.length).toBe(2);
+
+    const m2: FEAModel = { ...makeBaseModel(), id: "m2", name: "Other" };
+    useModelStore.getState().setModel(m2);
+    expect(useModelHistory.getState().past.length).toBe(1);
+    expect((useModelHistory.getState().past[0] as FEAModel).id).toBe("m2");
+  });
+
+  it("setModel con stesso id e snapshot identico NON pusha (refetch idempotente)", () => {
+    const baseline = makeBaseModel();
+    useModelStore.getState().setModel(baseline);
+    expect(useModelHistory.getState().past.length).toBe(1);
+
+    // Simula la mutation: addNode pusha già internamente lo snapshot post-mutation
+    useModelStore.getState().addNode({ id: 3, x: 2, y: 0, z: 0 });
+    expect(useModelHistory.getState().past.length).toBe(2);
+
+    // Simula il refetch post-invalidate: stesso id, stesso contenuto dell'ultimo snapshot
+    const refetched = useModelStore.getState().model!;
+    useModelStore.getState().setModel(refetched);
+
+    // refetched coincide con last snapshot → no push, no clear
+    expect(useModelHistory.getState().past.length).toBe(2);
+    expect(useModelHistory.getState().canUndo()).toBe(true);
+  });
+
+  it("setModel con stesso id e snapshot divergente pusha (refetch divergente)", () => {
+    const baseline = makeBaseModel();
+    useModelStore.getState().setModel(baseline);
+    expect(useModelHistory.getState().past.length).toBe(1);
+
+    // Simula refetch divergente (es. backend ha aggiunto un nodo non nello store locale)
+    const divergent: FEAModel = {
+      ...baseline,
+      nodes: [...baseline.nodes, { id: 99, x: 10, y: 0, z: 0 }],
+    };
+    useModelStore.getState().setModel(divergent);
+
+    // diverge da last → push, history estesa
+    expect(useModelHistory.getState().past.length).toBe(2);
+    expect(useModelHistory.getState().canUndo()).toBe(true);
+  });
+
+  it("undo dopo refetch post-mutation rimuove davvero la modifica", () => {
+    const baseline = makeBaseModel();
+    useModelStore.getState().setModel(baseline);
+    const baselineNodeCount = baseline.nodes.length;
+    expect(useModelHistory.getState().past.length).toBe(1);
+
+    useModelStore.getState().addNode({ id: 3, x: 2, y: 0, z: 0 });
+    expect(useModelStore.getState().model!.nodes.length).toBe(baselineNodeCount + 1);
+    expect(useModelHistory.getState().past.length).toBe(2);
+
+    // Simula refetch TanStack Query post-invalidate (passa lo stesso modello)
+    useModelStore.getState().setModel(useModelStore.getState().model!);
+    expect(useModelHistory.getState().past.length).toBe(2);
+
+    // Undo: ora funziona davvero (era il bug #9 broken in produzione)
+    const ok = useModelStore.getState().undo();
+    expect(ok).toBe(true);
+    expect(useModelStore.getState().model!.nodes.length).toBe(baselineNodeCount);
+  });
+});
