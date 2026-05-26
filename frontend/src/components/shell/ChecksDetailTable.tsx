@@ -20,13 +20,45 @@ import { useEffect, useState } from "react";
 import { Chip } from "../ui";
 import { cn } from "../ui/cn";
 
+/**
+ * v2.6.4 B.2: element type per header dinamico (vedi b3-checks-content-spec.md).
+ *   - beam2D: N | V | M (default)
+ *   - beam3D: N | Vy | Vz | My | Mz | T
+ *   - shell:  σ_x_top | σ_y_top | τ_xy | σ_VM
+ *   - solid:  σ_x | σ_y | σ_z | τ_xy | σ_VM
+ *   - truss:  N only
+ */
+export type ChecksElementType = "beam2D" | "beam3D" | "shell" | "solid" | "truss";
+
 export interface CheckRow {
   /** Es. "B1", "B5", "shell-12". */
   elementId: string;
   /** Es. "HEA 200", "C25/30 · IPE 240". */
   section: string;
-  /** Sforzi normalizzati (può lasciare undefined per i check che non li usano). */
-  forces?: { N?: number; V?: number; M?: number };
+  /** Sforzi normalizzati (può lasciare undefined per i check che non li usano).
+   *  Per beam2D: usa N/V/M scalari. Per beam3D: usa N/Vy/Vz/My/Mz/T. */
+  forces?: {
+    N?: number;
+    V?: number;   // alias per Vy in beam2D
+    M?: number;   // alias per Mz in beam2D
+    Vy?: number;
+    Vz?: number;
+    My?: number;
+    Mz?: number;
+    T?: number;   // torsione (beam3D only)
+  };
+  /** v2.6.4 B.2: tensioni per shell/solid (MPa). */
+  stresses?: {
+    sigmaX?: number;
+    sigmaY?: number;
+    sigmaZ?: number;
+    sigmaXTop?: number;   // shell: fibra superiore
+    sigmaYTop?: number;
+    tauXY?: number;
+    sigmaVM?: number;      // Von Mises equivalent
+  };
+  /** v2.6.4 B.2: spessore shell (mm). */
+  thickness?: number;
   /** UC ratio. > 1 = critico. */
   uc: number;
   /** Note libere (es. "buckling controlled"). */
@@ -44,6 +76,71 @@ interface Props {
   /** UC limite (default 1.0). */
   ucLimit?: number;
   className?: string;
+  /**
+   * v2.6.4 B.2: tipo elemento prevalente per header dinamico. Default "beam2D"
+   * per backward compat con consumer pre-v2.6.4 (es. VerifyChecksLive).
+   */
+  elementType?: ChecksElementType;
+}
+
+// v2.6.4 B.2: column definitions per element type (vedi b3 § 2).
+interface ColumnDef {
+  key: string;
+  label: string;
+  suffix?: string;
+  align?: "left" | "right";
+  width?: string;
+  /** Render value da CheckRow (undefined → "—"). */
+  value: (r: CheckRow) => number | undefined;
+}
+
+const FORCE_COLS: Record<ChecksElementType, ColumnDef[]> = {
+  beam2D: [
+    { key: "N", label: "N",  suffix: "kN",  align: "right", value: (r) => r.forces?.N },
+    { key: "V", label: "V",  suffix: "kN",  align: "right", value: (r) => r.forces?.V ?? r.forces?.Vy },
+    { key: "M", label: "M",  suffix: "kNm", align: "right", value: (r) => r.forces?.M ?? r.forces?.Mz },
+  ],
+  beam3D: [
+    { key: "N",  label: "N",  suffix: "kN",  align: "right", value: (r) => r.forces?.N },
+    { key: "Vy", label: "Vy", suffix: "kN",  align: "right", value: (r) => r.forces?.Vy },
+    { key: "Vz", label: "Vz", suffix: "kN",  align: "right", value: (r) => r.forces?.Vz },
+    { key: "My", label: "My", suffix: "kNm", align: "right", value: (r) => r.forces?.My },
+    { key: "Mz", label: "Mz", suffix: "kNm", align: "right", value: (r) => r.forces?.Mz },
+    { key: "T",  label: "T",  suffix: "kNm", align: "right", value: (r) => r.forces?.T },
+  ],
+  shell: [
+    { key: "sigmaXTop", label: "σ_x_top", suffix: "MPa", align: "right", value: (r) => r.stresses?.sigmaXTop },
+    { key: "sigmaYTop", label: "σ_y_top", suffix: "MPa", align: "right", value: (r) => r.stresses?.sigmaYTop },
+    { key: "tauXY",     label: "τ_xy",    suffix: "MPa", align: "right", value: (r) => r.stresses?.tauXY },
+    { key: "sigmaVM",   label: "σ_VM",    suffix: "MPa", align: "right", value: (r) => r.stresses?.sigmaVM },
+  ],
+  solid: [
+    { key: "sigmaX",  label: "σ_x",  suffix: "MPa", align: "right", value: (r) => r.stresses?.sigmaX },
+    { key: "sigmaY",  label: "σ_y",  suffix: "MPa", align: "right", value: (r) => r.stresses?.sigmaY },
+    { key: "sigmaZ",  label: "σ_z",  suffix: "MPa", align: "right", value: (r) => r.stresses?.sigmaZ },
+    { key: "tauXY",   label: "τ_xy", suffix: "MPa", align: "right", value: (r) => r.stresses?.tauXY },
+    { key: "sigmaVM", label: "σ_VM", suffix: "MPa", align: "right", value: (r) => r.stresses?.sigmaVM },
+  ],
+  truss: [
+    { key: "N", label: "N", suffix: "kN", align: "right", value: (r) => r.forces?.N },
+  ],
+};
+
+/** v2.6.4 B.2: prima colonna varia per shell (Spessore invece di Sezione). */
+function firstCol(type: ChecksElementType): { label: string; suffix?: string; value: (r: CheckRow) => string } {
+  if (type === "shell") {
+    return {
+      label: "Spessore",
+      suffix: "mm",
+      value: (r) => (r.thickness !== undefined ? r.thickness.toFixed(1) : r.section),
+    };
+  }
+  if (type === "solid") {
+    // Solid: skip "Sezione" intermedia, l'elemento ID basta. Mostriamo
+    // comunque la sezione per coerenza con beam (mat/cl. specifica).
+    return { label: "Sezione", value: (r) => r.section };
+  }
+  return { label: "Sezione", value: (r) => r.section };
 }
 
 function ucTone(uc: number, limit: number): "success" | "warn" | "danger" {
@@ -52,7 +149,15 @@ function ucTone(uc: number, limit: number): "success" | "warn" | "danger" {
   return "success";
 }
 
-export function ChecksDetailTable({ checkId, title, subtitle, rows, ucLimit = 1.0, className }: Props) {
+export function ChecksDetailTable({
+  checkId,
+  title,
+  subtitle,
+  rows,
+  ucLimit = 1.0,
+  className,
+  elementType = "beam2D",
+}: Props) {
   // Animation key — quando `checkId` cambia, ri-monto le righe.
   const [criticalPulse, setCriticalPulse] = useState(true);
   useEffect(() => {
@@ -62,6 +167,10 @@ export function ChecksDetailTable({ checkId, title, subtitle, rows, ucLimit = 1.
   }, [checkId]);
 
   const maxUc = rows.reduce((m, r) => Math.max(m, r.uc), 0);
+
+  // v2.6.4 B.2: column definitions dinamiche per element type prevalente.
+  const forceCols = FORCE_COLS[elementType];
+  const firstColDef = firstCol(elementType);
 
   return (
     <section
@@ -90,18 +199,24 @@ export function ChecksDetailTable({ checkId, title, subtitle, rows, ucLimit = 1.
         </div>
       </header>
 
-      {/* Table — wrapped in scroll container so 7 colonne non spingono il
-          pannello fuori dal viewport mobile 375px. Mobile: l'utente scrolla
-          orizzontalmente nella tabella mentre il pannello resta fixed. */}
+      {/* Table — wrapped in scroll container so le colonne non spingono il
+          pannello fuori dal viewport mobile 375px. v2.6.4 B.2: numero
+          di colonne varia per element type (3 force per beam2D fino a 6 per
+          beam3D); min-width scala di conseguenza. */}
       <div className="overflow-x-auto -mx-px">
-      <table className="w-full min-w-[560px] border-collapse">
+      <table className={cn(
+        "w-full border-collapse",
+        elementType === "beam3D" ? "min-w-[720px]" : "min-w-[560px]",
+      )}>
         <thead>
-          <tr className="bg-bg border-b border-border">
+          <tr className="bg-bg border-b border-border" data-element-type={elementType}>
             <Th>Elemento</Th>
-            <Th>Sezione</Th>
-            <Th align="right">N (kN)</Th>
-            <Th align="right">V (kN)</Th>
-            <Th align="right">M (kNm)</Th>
+            <Th>{firstColDef.label}{firstColDef.suffix ? ` (${firstColDef.suffix})` : ""}</Th>
+            {forceCols.map((col) => (
+              <Th key={col.key} align={col.align}>
+                {col.label}{col.suffix ? ` (${col.suffix})` : ""}
+              </Th>
+            ))}
             <Th align="right" className="w-[140px]">UC</Th>
             <Th>Status</Th>
           </tr>
@@ -123,16 +238,18 @@ export function ChecksDetailTable({ checkId, title, subtitle, rows, ucLimit = 1.
                 data-critical={isCritical || undefined}
               >
                 <td className="px-3 py-2 font-mono text-xs font-semibold text-ink tabular-nums">{r.elementId}</td>
-                <td className="px-3 py-2 font-mono text-xs text-ink-2">{r.section}</td>
-                <td className="px-3 py-2 text-right font-mono text-xs tabular-nums text-ink-2">
-                  {r.forces?.N !== undefined ? r.forces.N.toFixed(1) : "—"}
-                </td>
-                <td className="px-3 py-2 text-right font-mono text-xs tabular-nums text-ink-2">
-                  {r.forces?.V !== undefined ? r.forces.V.toFixed(1) : "—"}
-                </td>
-                <td className="px-3 py-2 text-right font-mono text-xs tabular-nums text-ink-2">
-                  {r.forces?.M !== undefined ? r.forces.M.toFixed(1) : "—"}
-                </td>
+                <td className="px-3 py-2 font-mono text-xs text-ink-2">{firstColDef.value(r)}</td>
+                {forceCols.map((col) => {
+                  const v = col.value(r);
+                  return (
+                    <td
+                      key={col.key}
+                      className="px-3 py-2 text-right font-mono text-xs tabular-nums text-ink-2"
+                    >
+                      {v !== undefined ? v.toFixed(1) : "—"}
+                    </td>
+                  );
+                })}
                 <td className="px-3 py-2">
                   <div className="flex items-center justify-end gap-2">
                     <UcBar value={r.uc} limit={ucLimit} />
