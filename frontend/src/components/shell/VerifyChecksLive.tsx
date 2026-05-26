@@ -14,9 +14,14 @@
  * empty state.
  */
 import { useMemo, useState } from "react";
+import { IconActivity } from "@tabler/icons-react";
 import { useResultsStore } from "../../store/resultsStore";
 import { useModelStore } from "../../store/modelStore";
+import { useAnalysisStore } from "../../store/analysisStore";
+import { useRunAnalysis } from "../../hooks/useAnalysis";
 import { GPS_FYD } from "../../lib/gpsTrust";
+import { EmptyState } from "../ui/EmptyState";
+import { FeatureButton } from "../ui/FeatureButton";
 import { ChecksRail, type CheckItem } from "./ChecksRail";
 import { ChecksDetailTable, type CheckRow } from "./ChecksDetailTable";
 
@@ -67,6 +72,8 @@ function stateOf(uc: number): CheckItem["state"] {
 export function VerifyChecksLive() {
   const staticRes = useResultsStore((s) => s.staticResults);
   const model = useModelStore((s) => s.model);
+  const setAnalysisType = useAnalysisStore((s) => s.setAnalysisType);
+  const runAnalysis = useRunAnalysis();
   const [activeId, setActiveId] = useState<string>("s275");
 
   const checks = useMemo<readonly CheckItem[]>(() => {
@@ -104,15 +111,31 @@ export function VerifyChecksLive() {
   }, [staticRes, model, activeId]);
 
   if (!staticRes) {
+    // v2.5.6 cluster F (BUG-031+058+061): EmptyState con CTA actionable.
+    // FeatureButton featureId="run-static" applica le precondizioni complete
+    // (modello + vincoli + carichi). Se mancano → tooltip italiano che spiega
+    // cosa serve, invece di mostrare empty state senza guidance.
     return (
-      <div className="p-6 bg-bg-panel border border-border" data-testid="verify-checks-live-empty">
-        <h3 className="font-display text-lg font-semibold tracking-tight-1 text-ink mb-2">
-          Nessuna verifica disponibile
-        </h3>
-        <p className="text-md text-ink-2 leading-relaxed max-w-[56ch]">
-          Lancia un&apos;analisi statica per popolare le verifiche normative.
-          I check vengono calcolati live dai risultati post-solve.
-        </p>
+      <div data-testid="verify-checks-live-empty">
+        <EmptyState
+          icon={<IconActivity className="w-5 h-5" />}
+          title="Nessuna verifica disponibile"
+          description="Lancia un'analisi statica per popolare le verifiche normative. I check vengono calcolati live dai risultati post-solve."
+          action={
+            <FeatureButton
+              featureId="run-static"
+              variant="run"
+              size="md"
+              onClick={() => {
+                setAnalysisType("static");
+                runAnalysis();
+              }}
+              data-testid="verify-empty-run-static"
+            >
+              Esegui analisi statica
+            </FeatureButton>
+          }
+        />
       </div>
     );
   }

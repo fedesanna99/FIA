@@ -18,6 +18,11 @@ import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useRightRailStore } from "../../store/rightRailStore";
 import { useResultsStore } from "../../store/resultsStore";
 import { useSelectionStore } from "../../store/selectionStore";
+import { useAnalysisStore } from "../../store/analysisStore";
+import { useRunAnalysis } from "../../hooks/useAnalysis";
+import { EmptyState } from "../../components/ui/EmptyState";
+import { FeatureButton } from "../../components/ui/FeatureButton";
+import type { FeatureId } from "../../lib/preconditions";
 import { PanelChrome } from "./PanelChrome";
 import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
 import { NodeDetail } from "./inspect/NodeDetail";
@@ -60,6 +65,8 @@ export function InspectPanel() {
   const staticRes = useResultsStore((s) => s.staticResults);
   const modalRes = useResultsStore((s) => s.modalResults);
   const dynamicRes = useResultsStore((s) => s.dynamicResults);
+  const setAnalysisType = useAnalysisStore((s) => s.setAnalysisType);
+  const runAnalysis = useRunAnalysis();
 
   const selectedNodeId = useSelectionStore((s) => s.selectedNodeId);
 
@@ -130,7 +137,29 @@ export function InspectPanel() {
                 <KV label="Solve time" value={`${staticRes.solve_time_ms.toFixed(0)} ms`} />
               </Section>
             ) : (
-              <Empty msg="Nessun risultato statica. Esegui da Solve → Lineari." />
+              /* v2.5.6 cluster F (BUG-058+061): EmptyState con CTA actionable
+                 invece di solo messaggio. FeatureButton applica precondizioni
+                 complete (modello+vincoli+carichi); tooltip italiano spiega
+                 cosa manca se non disponibile. */
+              <EmptyState
+                icon={<IconArrowRight className="w-5 h-5" />}
+                title="Nessun risultato statica"
+                description="Esegui un'analisi statica per popolare i risultati: Max u, Max σ, solve time."
+                action={
+                  <FeatureButton
+                    featureId={"run-static" as FeatureId}
+                    variant="run"
+                    size="md"
+                    onClick={() => {
+                      setAnalysisType("static");
+                      runAnalysis();
+                    }}
+                    data-testid="inspect-empty-run-static"
+                  >
+                    Esegui analisi statica
+                  </FeatureButton>
+                }
+              />
             )
           )}
 
@@ -142,7 +171,25 @@ export function InspectPanel() {
                 ))}
               </Section>
             ) : (
-              <Empty msg="Nessun risultato modale. Esegui da Solve → Modale." />
+              <EmptyState
+                icon={<IconWaveSine className="w-5 h-5" />}
+                title="Nessun risultato modale"
+                description="Esegui un'analisi modale (Lanczos) per popolare modi propri, frequenze e masse modali."
+                action={
+                  <FeatureButton
+                    featureId={"run-modal" as FeatureId}
+                    variant="run"
+                    size="md"
+                    onClick={() => {
+                      setAnalysisType("modal");
+                      runAnalysis();
+                    }}
+                    data-testid="inspect-empty-run-modal"
+                  >
+                    Esegui analisi modale
+                  </FeatureButton>
+                }
+              />
             )
           )}
 
