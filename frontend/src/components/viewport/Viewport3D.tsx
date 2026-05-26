@@ -28,6 +28,7 @@ import { ClickPlane } from "./ClickPlane";
 import { ToolHUD } from "./ToolHUD";
 import { ViewportHud } from "./ViewportHud";
 import { ScaleIndicator } from "./ScaleIndicator";
+import { CameraTracker } from "./CameraTracker";
 import { EmptyModelOverlay } from "./EmptyModelOverlay";
 
 export function Viewport3D() {
@@ -80,6 +81,10 @@ export function Viewport3D() {
         <ambientLight intensity={0.6} />
         <directionalLight position={[10, 20, 10]} intensity={0.7} />
         <directionalLight position={[-10, -10, -5]} intensity={0.3} />
+        {/* v2.5.7 cluster A (BUG-043): pubblica metersPerScreenHeight allo
+            store, throttled a 10Hz. ScaleIndicator legge dallo store e
+            sceglie il break in 8 livelli dinamici vs camera zoom. */}
+        <CameraTracker />
 
         <Suspense fallback={null}>
           {model && (
