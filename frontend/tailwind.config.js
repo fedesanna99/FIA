@@ -165,6 +165,10 @@ export default {
         decelerate: "cubic-bezier(0, 0, 0.2, 1)",
         accelerate: "cubic-bezier(0.4, 0, 1, 1)",
       },
+      // v2.6.3.0 precision-tokens: caret per Input/cmdk con accent cyan
+      caretColor: {
+        accent: "rgb(var(--c-accent))",
+      },
       screens: {
         sm: "768px",
         md: "1024px",
@@ -204,6 +208,12 @@ export default {
                              "40%":  { strokeDashoffset: "0",   opacity: "1" },
                              "60%":  { strokeDashoffset: "0",   opacity: "1" },
                              "100%": { strokeDashoffset: "-100", opacity: "0.3" } },
+        // v2.6.3.0 precision-tokens — onboarding spotlight ring
+        // (Sprint 5 T2: applicato a [data-tour-target="active"])
+        "precision-pulse-ring": {
+          "0%, 100%": { boxShadow: "0 0 0 0 rgba(var(--accent-rgb), 0.4)" },
+          "50%":      { boxShadow: "0 0 0 6px rgba(var(--accent-rgb), 0)" },
+        },
       },
       animation: {
         "fade-in":     "fade-in 120ms cubic-bezier(0.2, 0, 0, 1)",
@@ -218,6 +228,8 @@ export default {
         // PR16 T10
         "tick":          "precision-tick 0.18s ease-out",
         "sweep":         "precision-sweep 2s cubic-bezier(.4,0,.2,1) infinite",
+        // v2.6.3.0 precision-tokens
+        "precision-pulse-ring": "precision-pulse-ring 1.2s cubic-bezier(.4,0,.2,1) infinite",
       },
     },
   },
