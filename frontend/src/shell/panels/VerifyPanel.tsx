@@ -18,6 +18,12 @@ import { EC5Panel } from "../../components/panels/EC5Panel";
 import { EC8Panel } from "../../components/panels/EC8Panel";
 import { NTCCombinationsPanel } from "../../components/panels/NTCCombinationsPanel";
 import { VerifyChecksLive } from "../../components/shell/VerifyChecksLive";
+// v2.6.4 A.3 UC5: InsightPanel summary normative live
+import { InsightPanel } from "../../components/shell/InsightPanel";
+import { useResultsStore } from "../../store/resultsStore";
+import { useModelStore } from "../../store/modelStore";
+import { GPS_FYD } from "../../lib/gpsTrust";
+import { Check, ArrowRight } from "lucide-react";
 
 
 // v1.8 (post-T6): TABS rimosso — Verify drill-in usa solo PanelBreadcrumb
@@ -83,6 +89,8 @@ export function VerifyPanel({ fullArea = false }: VerifyPanelProps = {}) {
         testId="panel-verify"
         fullWidth={fullArea}
       >
+        {/* v2.6.4 A.3 UC5 (c6 spec): summary normative live sopra le hub cards. */}
+        <VerifySummaryInsight setTab={setTab} />
         <PanelHub
           cards={HUB_CARDS}
           onSelect={(id) => setTab(id)}
@@ -120,5 +128,66 @@ export function VerifyPanel({ fullArea = false }: VerifyPanelProps = {}) {
         {tab === "ntc18" && <NTCCombinationsPanel />}
       </div>
     </PanelChrome>
+  );
+}
+
+
+/**
+ * v2.6.4 A.3 UC5 (c6 spec) — summary normative live nel hub Verifiche.
+ *
+ * Sempre tone="info" perché è summary, non outcome. Outcome reali (PASS/WARN/FAIL)
+ * sono in ChecksRail+ChecksDetailTable wirati via tab="live".
+ *
+ * Quando staticRes è null → mostra placeholder "Esegui analisi per popolare
+ * verifiche" con action verso run-static. Quando i risultati ci sono → mostra
+ * 3 voci summary (EC3 / NTC18 / S275) con UR derivati live.
+ */
+function VerifySummaryInsight({ setTab }: { setTab: (id: string) => void }) {
+  const staticRes = useResultsStore((s) => s.staticResults);
+  const model = useModelStore((s) => s.model);
+
+  if (!staticRes || !model) {
+    return (
+      <div className="px-3 pt-3" data-testid="verify-insight-empty">
+        <InsightPanel
+          tone="info"
+          eyebrow="VERIFICHE NORMATIVE"
+          title="Nessuna verifica disponibile"
+          items={[
+            { icon: ArrowRight, text: "Lancia un'analisi statica per popolare le verifiche" },
+            { icon: ArrowRight, text: "I check (S275 / EC3 / NTC18) sono calcolati live dai risultati" },
+          ]}
+          action={{
+            label: "Apri Verifiche live",
+            onClick: () => setTab("live"),
+          }}
+        />
+      </div>
+    );
+  }
+
+  const sigmaMPa = staticRes.max_stress / 1e6;
+  const urS275 = sigmaMPa / GPS_FYD.s275;
+  const urEC3 = sigmaMPa / GPS_FYD.ec3;
+  const urNTC = sigmaMPa / GPS_FYD.ntc;
+  const nElems = model.elements.length;
+
+  return (
+    <div className="px-3 pt-3" data-testid="verify-insight-summary">
+      <InsightPanel
+        tone="info"
+        eyebrow="VERIFICHE NORMATIVE · 3 NORME"
+        title="3 normative calcolate"
+        items={[
+          { icon: Check, text: `EC3 § 6.2.1 — ${nElems} elementi · UR ${urEC3.toFixed(2)}` },
+          { icon: Check, text: `NTC18 § 4.2.4.1 — UR ${urNTC.toFixed(2)}` },
+          { icon: ArrowRight, text: `S275 — UR ${urS275.toFixed(2)} (riferimento base)` },
+        ]}
+        action={{
+          label: "Apri Verifiche live",
+          onClick: () => setTab("live"),
+        }}
+      />
+    </div>
   );
 }

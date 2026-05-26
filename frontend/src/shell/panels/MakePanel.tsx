@@ -19,12 +19,15 @@ import { useUIStore } from "../../store/uiStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
 import { useModelStore } from "../../store/modelStore";
+import { useRunAnalysis } from "../../hooks/useAnalysis";
+import { useAnalysisStore } from "../../store/analysisStore";
 import { ModelTree } from "../../components/panels/ModelTree";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ModelStatsBadge } from "../../components/ui/ModelStatsBadge";
 import { PanelChrome } from "./PanelChrome";
 import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
-import { Box, Layers as LayersIcon, ArrowDownToLine, Anchor, ArrowRightLeft as Swap } from "lucide-react";
+import { InsightPanel } from "../../components/shell/InsightPanel";
+import { Box, Layers as LayersIcon, ArrowDownToLine, Anchor, ArrowRightLeft as Swap, Check, AlertTriangle, Circle, Play } from "lucide-react";
 
 
 // v1.8 (post-T6): rimosso TABS array — Make drill-in usa solo
@@ -84,6 +87,8 @@ export function MakePanel() {
         onClose={closeLeft}
         testId="panel-make"
       >
+        {/* v2.6.4 A.3 UC1/UC2: status insight sopra le hub-cards (solo se modello caricato). */}
+        {model && <MakeStatusInsight />}
         <PanelHub
           cards={HUB_CARDS}
           onSelect={(id) => setTab(id)}
@@ -286,5 +291,111 @@ function SecondaryButton({
       <Icon size={14} className="text-ink-3" />
       <span className="flex-1 text-left">{label}</span>
     </button>
+  );
+}
+
+
+/**
+ * v2.6.4 A.3 UC1+UC2 (c6 spec): InsightPanel status sopra le hub-cards.
+ *
+ * Logica di switching dinamico tra UC1 (warn, modello in costruzione) e UC2
+ * (success, modello pronto al solve). Item glyph mapping da spec a LucideIcon:
+ *   - ✓  → Check
+ *   - ⚠  → AlertTriangle
+ *   - ○  → Circle
+ *
+ * Action della UC1 punta al primo gap bloccante (vincoli > carichi > materiali).
+ * Action della UC2 lancia direttamente l'analisi statica.
+ */
+function MakeStatusInsight() {
+  const model = useModelStore((s) => s.model);
+  const setTab = useWorkspaceStore((s) => s.setLeftTab);
+  const setAnalysisType = useAnalysisStore((s) => s.setAnalysisType);
+  const runAnalysis = useRunAnalysis();
+  if (!model) return null;
+
+  const nNodes = model.nodes.length;
+  const nElems = model.elements.length;
+  const nConstraints = model.constraints.length;
+  const nLoads = model.loads.length;
+  // FEAModel.elements ha materialId opzionale; un elemento è "assegnato"
+  // se ha un materialId truthy (può essere null/undefined/empty string).
+  const assignedMaterials = model.elements.filter(
+    (e) => Boolean((e as { material_id?: unknown }).material_id) ||
+           Boolean((e as { materialId?: unknown }).materialId),
+  ).length;
+
+  const hasConstraints = nConstraints > 0;
+  const hasLoads = nLoads > 0;
+  const allMaterialsAssigned = assignedMaterials === nElems && nElems > 0;
+  const isReady = hasConstraints && hasLoads && allMaterialsAssigned && nNodes >= 2;
+
+  if (isReady) {
+    return (
+      <div className="px-3 pt-3" data-testid="make-insight-ready">
+        <InsightPanel
+          tone="success"
+          eyebrow="MODELLO · PRONTO AL SOLVE"
+          title="Modello pronto"
+          items={[
+            { icon: Check, text: `${nNodes} nodi · ${nElems} elementi` },
+            { icon: Check, text: `${nConstraints} vincoli definiti` },
+            { icon: Check, text: `${nLoads} carichi applicati` },
+            { icon: Check, text: `Materiali assegnati a ${assignedMaterials}/${nElems} elementi` },
+          ]}
+          action={{
+            label: "Esegui analisi statica",
+            onClick: () => {
+              setAnalysisType("static");
+              void runAnalysis();
+            },
+          }}
+        />
+      </div>
+    );
+  }
+
+  // UC1 — incompleto. Primo gap bloccante (vincoli > carichi > materiali).
+  const firstGap: "vincoli" | "carichi" | "geometria" =
+    !hasConstraints ? "vincoli"
+    : !hasLoads ? "carichi"
+    : "geometria"; // materiali sotto "geometria" tab
+
+  return (
+    <div className="px-3 pt-3" data-testid="make-insight-incomplete">
+      <InsightPanel
+        tone="warn"
+        eyebrow="MODELLO · IN COSTRUZIONE"
+        title="Modello incompleto"
+        items={[
+          {
+            icon: nNodes > 0 ? Check : Circle,
+            text: `${nNodes} nodi · ${nElems} elementi`,
+          },
+          {
+            icon: hasConstraints ? Check : AlertTriangle,
+            text: hasConstraints
+              ? `${nConstraints} vincoli definiti`
+              : "0 vincoli definiti · obbligatorio",
+          },
+          {
+            icon: hasLoads ? Check : Circle,
+            text: hasLoads ? `${nLoads} carichi applicati` : "0 carichi applicati",
+          },
+          {
+            icon: allMaterialsAssigned ? Check : Circle,
+            text: `Materiali assegnati a ${assignedMaterials}/${nElems} elementi`,
+          },
+        ]}
+        action={{
+          label: firstGap === "vincoli"
+            ? "Vai a Vincoli"
+            : firstGap === "carichi"
+            ? "Vai a Carichi"
+            : "Vai a Geometria",
+          onClick: () => setTab(firstGap),
+        }}
+      />
+    </div>
   );
 }
