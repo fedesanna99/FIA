@@ -105,3 +105,45 @@ describe("translateAxiosError", () => {
     expect(r.title).toContain("carico");
   });
 });
+
+
+/**
+ * Contract test BackendErrorKind ↔ ERROR_TRANSLATIONS (v2.5.1 T6, ARCH-4).
+ *
+ * Protegge da rimozioni accidentali del mapping italiano per i kind che il
+ * frontend si aspetta dal backend. Forma scelta: snapshot frontend (opzione b
+ * del brief v2.5.1), perché il backend NON espone un enum `BackendErrorKind`
+ * consolidato — i kind sono emessi come stringhe sparse nei body di errore:
+ *   - `backend/jobs/worker.py:219`  → "model_not_found"
+ *   - `backend/jobs/worker.py:231`  → "solver_not_dispatched" (NON in lista
+ *                                      frontend: traduzione mancante, finding
+ *                                      aperto da segnalare a parte)
+ *   - `backend/billing/middleware.py:27` → "quota_exceeded" (via "code")
+ *
+ * TODO (v2.5.x roadmap): consolidare un enum runtime `BackendErrorKind` nel
+ * backend (es. `backend/core/errors_kinds.py`) e promuovere questo a contract
+ * test runtime backend→frontend (opzione a del brief).
+ */
+const EXPECTED_BACKEND_ERROR_KINDS = [
+  "missing_constraints",
+  "singular_matrix",
+  "missing_material",
+  "missing_section",
+  "no_loads",
+  "invalid_solver_params",
+  "convergence_failed",
+  "quota_exceeded",
+  "model_not_found",
+  "validation_failed",
+] as const;
+
+describe("contract BackendErrorKind ↔ ERROR_TRANSLATIONS (v2.5.1 T6)", () => {
+  it.each(EXPECTED_BACKEND_ERROR_KINDS)(
+    "kind '%s' ha traduzione italiana dedicata (no fallback generico)",
+    (kind) => {
+      const result = translateApiError({ error: kind });
+      expect(result.title).not.toBe("Errore del solver");
+      expect(result.title.length).toBeGreaterThan(0);
+    },
+  );
+});
