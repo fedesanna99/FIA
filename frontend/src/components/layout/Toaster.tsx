@@ -52,15 +52,17 @@ export function Toaster() {
   const toasts = useToastStore((s) => s.toasts);
   const dismiss = useToastStore((s) => s.dismiss);
 
+  // v2.5.5 cluster B (BUG-046+047): position bottom-center, max-width 480px,
+  // z-index 9999 sopra dialog/sheet. Stack verticale newest in fondo (gap-2).
   return (
-    <div className="fixed bottom-12 right-6 z-[200] flex flex-col gap-2">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 w-[calc(100vw-3rem)] max-w-[480px] pointer-events-none">
       {toasts.map((t) => {
         const tone = TONE[t.level];
         const { title, description } = splitMessage(t.message);
         return (
           <div
             key={t.id}
-            className="bg-bg-elevated border border-border-light shadow-dialog p-3.5 min-w-[300px] max-w-[360px] flex items-start gap-2.5 animate-slide-up"
+            className="bg-bg-elevated border border-border-light shadow-dialog p-3.5 flex items-start gap-2.5 animate-slide-up pointer-events-auto"
             role="status"
             aria-live="polite"
           >
