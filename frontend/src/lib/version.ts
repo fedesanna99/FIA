@@ -8,4 +8,4 @@
 export const APP_VERSION = "v2.6";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v2.6.3.1-precision-wiring-fix";
+export const APP_TAG = "v2.6.4-precision-completion";

@@ -3,11 +3,11 @@
 > Stato vivo del progetto. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-26 (sera)
-**Versione corrente**: `v2.6.3.1-precision-wiring-fix`
+**Ultimo aggiornamento**: 2026-05-26 (sera tardi)
+**Versione corrente**: `v2.6.4-precision-completion`
 **Branch attivo**: `design-rebuild/v2.6` (= `origin/test`)
-**Ultimo SHA**: post-tag rollup wiring-fix (vedi `git rev-parse HEAD`)
-**⚠ Decisione strategica attiva**: Wiring fix architettonico applicato (BUG-#1 ChecksDetailTable + BUG-#2 PercorsoStep). Handoff Precision v2.0 ora visibile come da design.
+**Ultimo SHA**: post-tag rollup precision-completion (vedi `git rev-parse HEAD`)
+**⚠ Decisione strategica attiva**: Handoff Precision v2.0 al 100%. Aggiunti TrustLayer watermark PDF, OnboardingTour spotlight + backend setting, InsightPanel 5 UC content, ChecksDetailTable dynamic header per element type, WCAG 2.1 AA statement + solver aria-live.
 
 ---
 
@@ -70,14 +70,15 @@ Aggiornato dopo compound v2.6.3-precision-handoff:
 | `v2.6.3.4-precision-anim-responsive` | docs | Animations+responsive validation |
 | `v2.6.3-precision-handoff` (rollup) | rollup | Tag finale + sync test↔main + deploy + smoke E2E live |
 | `v2.6.3.1-precision-wiring-fix` | fix P0 ×2 | VerifyPanel → workspace takeover (ChecksDetailTable readable). PercorsiBeamWizard → full-page overlay con PercorsoStep template wrap. Fix architettonico post-audit BUG-#1+#2. |
+| `v2.6.4-precision-completion` | feat compound (A+B+C) | 6 sprint atomici: TrustLayer watermark PDF + OnboardingTour autoplay 8-step backend setting + InsightPanel 5 UC + Empty states + ChecksDetailTable dynamic header per element type + WCAG 2.1 AA statement. Handoff Precision 85% → 100%. |
 
 ## 4. Baseline test (aggiornata)
 
-- **pytest**: 1677 collected (invariato, no backend changes)
-- **vitest**: **732/732 PASS** (92 file, +6 nuovi vs v2.6.3 stato 726)
+- **pytest**: 1688 collected (1677 baseline + 11 nuovi onboarding A.2)
+- **vitest**: **750/750 PASS** (94 file, +18 nuovi vs v2.6.3.1 stato 732)
 - **tsc**: 0 errori
-- **build**: ~1301 kB main (gzip ~382 kB, delta +0.12 kB gzip)
-- **smoke E2E live**: pending verifica post-deploy v90+
+- **build**: pending stima post-build T_last
+- **smoke E2E live**: pending verifica post-deploy v92+
 
 ## 5. Carry-over P1/P2 (NON in scope di questo compound)
 
