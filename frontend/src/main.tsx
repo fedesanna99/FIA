@@ -5,6 +5,7 @@ import App from "./App";
 import { AuthGate } from "./components/auth/AuthGate";
 import { Toaster } from "./components/layout/Toaster";
 import { TooltipProvider } from "./components/ui/Tooltip";
+import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import "./index.css";
 
 const queryClient = new QueryClient({
@@ -13,16 +14,18 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        {/* v2.1.4 auth-gate: AuthGate decide se mostrare AuthScreen (login
-            obbligatorio) o l'App. Toaster fuori dal gate così i toast
-            "Benvenuto …" sono visibili anche durante l'AuthScreen. */}
-        <Toaster />
-        <AuthGate>
-          <App />
-        </AuthGate>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          {/* v2.1.4 auth-gate: AuthGate decide se mostrare AuthScreen (login
+              obbligatorio) o l'App. Toaster fuori dal gate così i toast
+              "Benvenuto …" sono visibili anche durante l'AuthScreen. */}
+          <Toaster />
+          <AuthGate>
+            <App />
+          </AuthGate>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </React.StrictMode>,
 );
