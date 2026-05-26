@@ -3,12 +3,13 @@
 > Stato vivo del progetto. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-26 (notte · post v2.6.5 D.1+D.2+D.3)
+**Ultimo aggiornamento**: 2026-05-26 (notte · post-deploy v92)
 **Versione corrente**: `v2.6.5-dashboard-a1-composition`
-**Branch attivo**: `design-rebuild/v2.6` (= `origin/test` = `origin/main`)
-**Ultimo SHA**: rollup compound v2.6.5
-**Deploy live**: release v91 ancora, pending redeploy v92+ per v2.6.5
-**⚠ Decisione strategica attiva**: Handoff Precision v2.0 al 100% REALE. Composition home dashboard A1 ora live (LeftRail expanded + Modelli recenti refactor + Topbar/Statusbar enrichment).
+**Branch attivo**: `design-rebuild/v2.6` (= `origin/test` = `origin/main` = `865fae9`)
+**Ultimo SHA**: `865fae9` (rollup compound v2.6.5)
+**Deploy live**: release **v92** su https://fea-pro.fly.dev/ (image `01KSK0TVPYGNS4A585A8J5TQW8`)
+**Smoke E2E live**: 3/3 PASS in 27.7s ✅
+**⚠ Decisione strategica attiva**: Handoff Precision v2.0 al **100% REALE**. Composition home dashboard A1 live (LeftRail expanded + Modelli recenti refactor + Topbar/Statusbar enrichment).
 
 ---
 
@@ -79,8 +80,8 @@ Aggiornato dopo compound v2.6.3-precision-handoff:
 - **pytest**: 1688 collected (invariato vs v2.6.4 — no backend changes in v2.6.5)
 - **vitest**: **770/770 PASS** (95 file, +20 nuovi vs v2.6.4 stato 750)
 - **tsc**: 0 errori
-- **build**: pending stima post-build T_last
-- **smoke E2E live**: pending verifica post-deploy v92+
+- **build**: main 1312.00 kB / gzip 386.52 kB (delta +1.76 kB gzip vs v2.6.4)
+- **smoke E2E live**: **3/3 PASS** in 27.7s contro v92 ✅
 
 ## 5. Carry-over P1/P2 (NON in scope di questo compound)
 
