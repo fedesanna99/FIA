@@ -28,6 +28,9 @@ import { SolvePanel } from "./panels/SolvePanel";
 import { VerifyPanel } from "./panels/VerifyPanel";
 import { InspectPanel } from "./panels/InspectPanel";
 import { ToolsPanel } from "./panels/ToolsPanel";
+// v2.6.5 D.1: rail expanded vs collapsed (single source of truth) per
+// sincronizzare grid `--rail-w` con il render del rail.
+import { useRailExpansion } from "./useRailExpansion";
 
 type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io";
 
@@ -70,12 +73,16 @@ export function Shell({ children }: ShellProps) {
   const [activeWs, setActiveWs] = useState<ShellWorkspaceId>("modello");
   const isTakeover = VIEWPORT_TAKEOVER_WORKSPACES.includes(activeWs);
   const takeoverContent = isTakeover ? WORKSPACE_CONTENT_TAKEOVER[activeWs] : null;
+  // v2.6.5 D.1: rail expanded mode → grid `--rail-w: 200px`. Single source
+  // of truth via hook localStorage-backed (default true). Niente override
+  // via prop perché la grid CSS deve essere sincrona col rail render.
+  const { isExpanded: railExpanded } = useRailExpansion();
 
   return (
     <div
       className={`shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-light${
         isTakeover ? " shell-takeover-on" : ""
-      }`}
+      }${railExpanded ? " shell-rail-expanded" : ""}`}
     >
       <ShellTopBar />
 

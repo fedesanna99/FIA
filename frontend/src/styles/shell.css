@@ -101,6 +101,12 @@ body.shell-panel-w-320 .shell { --panel-w: 320px; }
 body.shell-panel-w-420 .shell { --panel-w: 420px; }
 body.shell-density-compact { font-size: 12px; }
 
+/* v2.6.5 D.1: rail expanded mode (default v2.6.5+, persistito in localStorage).
+   Override --rail-w da 56px (icon-only) a 200px (sezioni testuali per
+   mockup Dashboard A1). Lo style del rail interno si adatta via
+   [data-expanded] selector. */
+.shell-rail-expanded { --rail-w: 200px; }
+
 /* v2.6.3.1 BUG-#1 fix: workspace takeover mode — quando il workspace
    attivo è in VIEWPORT_TAKEOVER_WORKSPACES (Shell.tsx), la grid passa
    da 3-col (rail+viewport+panel) a 2-col (rail+takeover-content). Il
@@ -380,6 +386,98 @@ body.shell-sharp .rail-btn .rail-tooltip { border-radius: 0; }
   height: 1px; background: var(--border); margin: 6px 8px;
 }
 .rail-spacer { flex: 1; }
+
+/* v2.6.5 D.1: rail expanded — sezioni testuali con eyebrow mono uppercase
+   + 12 voci cliccabili, layout per mockup Dashboard A1. */
+.shell-rail[data-expanded="true"] {
+  padding: 14px 0 10px;
+  gap: 0;
+}
+.rail-section {
+  margin-bottom: 14px;
+}
+.rail-section:last-of-type {
+  margin-bottom: 8px;
+}
+.rail-section-eyebrow {
+  padding: 0 16px 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.rail-section-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.rail-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 14px 6px 14px;
+  background: transparent;
+  border: 0;
+  border-left: 2px solid transparent;
+  color: var(--ink-muted);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 120ms cubic-bezier(0.2, 0, 0, 1),
+              color 120ms cubic-bezier(0.2, 0, 0, 1),
+              border-left-color 120ms cubic-bezier(0.2, 0, 0, 1);
+}
+.rail-item:hover {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+.rail-item:focus-visible {
+  outline: none;
+  background: var(--bg-hover);
+  color: var(--ink);
+  box-shadow: inset 0 0 0 2px var(--accent);
+}
+.rail-item[data-active="true"] {
+  background: var(--accent-subtle);
+  border-left-color: var(--accent);
+  color: var(--accent);
+}
+.rail-item-icon {
+  flex-shrink: 0;
+  color: currentColor;
+}
+.rail-item-label {
+  flex: 1;
+  letter-spacing: -0.005em;
+}
+.rail-collapse {
+  margin: 6px 14px 0;
+  padding: 6px 4px;
+  background: transparent;
+  border: 0;
+  color: var(--ink-dim);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: left;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 120ms;
+}
+.rail-collapse:hover {
+  color: var(--ink);
+}
+.rail-collapse-icon {
+  flex-shrink: 0;
+}
 
 /* ── Viewport area ────────────────────────────────────────────── */
 .shell-viewport {
