@@ -66,7 +66,7 @@ export function Viewport3D() {
   );
 
   return (
-    <div className="absolute inset-0">
+    <div className="absolute inset-0" onContextMenu={(e) => e.preventDefault()}>
       <Canvas
         // v1.6 S0 · B15: includere model?.id nel key forza remount del Canvas
         // quando si carica un modello diverso → la camera si ri-inizializza
@@ -127,6 +127,11 @@ export function Viewport3D() {
           target={bounds.center}
           makeDefault
           enableDamping dampingFactor={0.1}
+          mouseButtons={{
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.DOLLY,
+            RIGHT: undefined as unknown as THREE.MOUSE,
+          }}
         />
         <GizmoHelper alignment="bottom-right" margin={[80, 100]}>
           <GizmoViewport
