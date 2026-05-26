@@ -11,7 +11,6 @@
  * Wrappa componenti v1.2 esistenti, non duplica logica. La maggior parte
  * dei tab usa "shortcut buttons" che aprono i dialog modali esistenti.
  */
-import { useMemo } from "react";
 import {
   IconShape3, IconHierarchy, IconWand, IconLoader, IconLock,
   IconArrowsLeftRight, IconPlus,
@@ -19,10 +18,10 @@ import {
 import { useUIStore } from "../../store/uiStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
-import { useRightRailStore } from "../../store/rightRailStore";
 import { useModelStore } from "../../store/modelStore";
 import { ModelTree } from "../../components/panels/ModelTree";
 import { EmptyState } from "../../components/ui/EmptyState";
+import { ModelStatsBadge } from "../../components/ui/ModelStatsBadge";
 import { PanelChrome } from "./PanelChrome";
 import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
 import { Box, Layers as LayersIcon, ArrowDownToLine, Anchor, ArrowRightLeft as Swap } from "lucide-react";
@@ -33,14 +32,16 @@ import { Box, Layers as LayersIcon, ArrowDownToLine, Anchor, ArrowRightLeft as S
 // Tab bar orizzontale eliminata per evitare ridondanza con breadcrumb.
 
 
-// v1.5.2 Task 39: hub-first navigation per Make. 4 card primarie + 1
-// "I/O" mantenuto come tab secondario raggiungibile dal tab bar.
+// v2.5.8 cluster E (BUG-016+017+018): hub-first navigation. Sub-text in
+// italiano user-facing, niente jargon dev ("Albero", "Wizard", "Fixed",
+// "Climate apply"). Card "I/O" rinominata "Importa modello" — l'export è
+// solo nel rail destro Strumenti (chiude doppia destinazione I/O).
 const HUB_CARDS: HubCard[] = [
-  { id: "geometria", label: "Geometria",  sub: "Albero · nodi · elementi · materiali",   icon: Box,             tone: "info" },
-  { id: "mesh",      label: "Mesh",       sub: "Wizard discretizzazione (line/quad/h8)", icon: LayersIcon,      tone: "success" },
-  { id: "carichi",   label: "Carichi",    sub: "Nodali · distribuiti · climate apply",   icon: ArrowDownToLine, tone: "purple" },
-  { id: "vincoli",   label: "Vincoli",    sub: "Fixed · pinned · rollers · springs",     icon: Anchor,          tone: "coral" },
-  { id: "io",        label: "Import / Export", sub: "Wizard DXF/IFC/JSON · Tools export", icon: Swap,           tone: "warn" },
+  { id: "geometria", label: "Geometria",         sub: "Vista gerarchica · nodi, elementi, materiali",     icon: Box,             tone: "info" },
+  { id: "mesh",      label: "Mesh",              sub: "Genera mesh strutturate (beam · piastra · solido)", icon: LayersIcon,      tone: "success" },
+  { id: "carichi",   label: "Carichi",           sub: "Concentrati · distribuiti · climatici (neve/vento)", icon: ArrowDownToLine, tone: "purple" },
+  { id: "vincoli",   label: "Vincoli",           sub: "Incastri · cerniere · carrelli · molle elastiche", icon: Anchor,          tone: "coral" },
+  { id: "io",        label: "Importa modello",   sub: "Da file DXF · IFC · JSON FEA Pro",                 icon: Swap,            tone: "warn" },
 ];
 
 
@@ -49,7 +50,7 @@ const TAB_LABELS: Record<string, string> = {
   mesh:      "Mesh",
   carichi:   "Carichi",
   vincoli:   "Vincoli",
-  io:        "I/O",
+  io:        "Importa",
 };
 
 
@@ -67,13 +68,11 @@ export function MakePanel() {
   const tab       = tabRaw ?? "geometria";
   const model     = useModelStore((s) => s.model);
   const setDialog = useUIStore((s) => s.setOpenDialog);
-
-  const counts = useMemo(() => ({
-    nodes:       model?.nodes.length ?? 0,
-    elements:    model?.elements.length ?? 0,
-    loads:       model?.loads.length ?? 0,
-    constraints: model?.constraints.length ?? 0,
-  }), [model]);
+  // v2.5.8 cluster E: `counts` derivati ora vivono in <ModelStatsBadge>,
+  // niente più CountsRow locale. Tengo solo `loads` e `constraints` count
+  // per i titoli "Carichi (N)" / "Vincoli (N)" dei tab.
+  const loadsCount = model?.loads.length ?? 0;
+  const constraintsCount = model?.constraints.length ?? 0;
 
   if (isHub) {
     return (
@@ -118,8 +117,14 @@ export function MakePanel() {
             />
           ) : (
             <>
-              <Section title="Albero modello">
-                <CountsRow counts={counts} />
+              <Section title="Struttura del modello">
+                {/* v2.5.8 cluster E (BUG-039+045): CountsRow inline sostituito
+                    da <ModelStatsBadge> centralizzato in components/ui. */}
+                <ModelStatsBadge
+                  variant="detailed"
+                  show={["nodes", "elements", "loads", "constraints"]}
+                  data-testid="make-stats-badge"
+                />
               </Section>
               <div className="flex-1 overflow-auto px-2 pb-2">
                 <ModelTree />
@@ -152,7 +157,7 @@ export function MakePanel() {
       {/* CARICHI */}
       {tab === "carichi" && (
         <div className="p-3 space-y-3">
-          <Section title={`Carichi (${counts.loads})`}>
+          <Section title={`Carichi (${loadsCount})`}>
             <PrimaryButton
               icon={IconLoader}
               label="Aggiungi carico…"
@@ -175,7 +180,7 @@ export function MakePanel() {
       {/* VINCOLI */}
       {tab === "vincoli" && (
         <div className="p-3 space-y-3">
-          <Section title={`Vincoli (${counts.constraints})`}>
+          <Section title={`Vincoli (${constraintsCount})`}>
             <PrimaryButton
               icon={IconLock}
               label="Aggiungi vincolo…"
@@ -191,31 +196,26 @@ export function MakePanel() {
         </div>
       )}
 
-      {/* I/O */}
+      {/* IMPORTA · v2.5.8 cluster E (BUG-016): card "Import / Export" diventa
+          solo "Importa modello". Export totalmente delegato al rail destro
+          Strumenti (chiude doppia destinazione I/O). */}
       {tab === "io" && (
         <div className="p-3 space-y-3">
-          <Section title="Import / Export">
+          <Section title="Importa modello">
             <p className="text-[11px] text-ink-3 leading-relaxed mb-2">
-              Import: DXF, IFC, JSON (wizard 4-step). Export: PDF, XLSX, CSV,
-              JSON (rail destro · Tools).
+              Carica geometria da file DXF, IFC o JSON FEA Pro tramite procedura
+              guidata in 4 passi. Per esportare il modello o i risultati, apri
+              il rail destro "Strumenti".
             </p>
             <SecondaryButton
               icon={IconArrowsLeftRight}
-              label="Apri wizard Import…"
+              label="Apri procedura guidata di import…"
               onClick={() => {
                 // v1.5.2 Task 35: rimosso panel I/O legacy. Import via wizard
                 // 4-step (custom event globale gestito da App.tsx).
                 window.dispatchEvent(new CustomEvent("feapro:open-import-wizard"));
               }}
               testId="make-open-import-wizard"
-            />
-            <SecondaryButton
-              icon={IconArrowsLeftRight}
-              label="Apri Export (rail destro · Tools)"
-              onClick={() => {
-                useRightRailStore.getState().open("tools");
-              }}
-              testId="make-open-tools-export"
             />
           </Section>
         </div>
@@ -234,25 +234,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
       </h3>
       <div className="px-3 pb-1.5">{children}</div>
     </section>
-  );
-}
-
-
-function CountsRow({ counts }: { counts: { nodes: number; elements: number; loads: number; constraints: number } }) {
-  return (
-    <div className="grid grid-cols-4 gap-1 text-center mb-2">
-      {[
-        { label: "Nodi",    value: counts.nodes },
-        { label: "Elem.",   value: counts.elements },
-        { label: "Carichi", value: counts.loads },
-        { label: "Vincoli", value: counts.constraints },
-      ].map((c) => (
-        <div key={c.label} className="bg-bg-panel border border-border px-1.5 py-1.5">
-          <div className="font-mono text-base font-semibold text-ink leading-none tabular-nums">{c.value}</div>
-          <div className="font-mono text-[9px] text-ink-3 uppercase tracking-wide-2 mt-1 font-semibold">{c.label}</div>
-        </div>
-      ))}
-    </div>
   );
 }
 
