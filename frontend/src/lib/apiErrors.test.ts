@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { translateApiError, translateAxiosError } from "./apiErrors";
+import { describe, it, expect, vi } from "vitest";
+import { translateApiError, translateAxiosError, toastApiError } from "./apiErrors";
 
 
 describe("translateApiError · v1.6 S0 B05", () => {
@@ -137,6 +137,48 @@ const EXPECTED_BACKEND_ERROR_KINDS = [
   "validation_failed",
   "solver_not_dispatched",
 ] as const;
+
+describe("toastApiError · v2.5.5 cluster B (BUG-011+012+013)", () => {
+  it("formatta '<action>: <title>' per kind backend riconosciuto", () => {
+    const toastMock = vi.fn();
+    toastApiError({ error: "missing_constraints" }, "Errore analisi", toastMock);
+    expect(toastMock).toHaveBeenCalledTimes(1);
+    expect(toastMock).toHaveBeenCalledWith(
+      "error",
+      expect.stringMatching(/^Errore analisi: .*vincolo/),
+    );
+  });
+
+  it("axios-like 422 con detail array produce '<action>: <title> · <desc>' (non [object Object])", () => {
+    const toastMock = vi.fn();
+    toastApiError(
+      { detail: [{ loc: ["body", "n_modes"], msg: "must be > 0", type: "value_error" }] },
+      "Salvataggio modello",
+      toastMock,
+    );
+    const [level, message] = toastMock.mock.calls[0];
+    expect(level).toBe("error");
+    expect(message).toMatch(/^Salvataggio modello: Dati richiesta non validi/);
+    expect(message).toContain("body.n_modes");
+    expect(message).not.toContain("[object Object]");
+  });
+
+  it("Error nativo produce '<action>: Errore di rete · <message>' (non [object Error])", () => {
+    const toastMock = vi.fn();
+    toastApiError(new TypeError("fetch aborted"), "Errore PDF", toastMock);
+    const message = toastMock.mock.calls[0][1] as string;
+    expect(message).toMatch(/^Errore PDF: Errore di rete/);
+    expect(message).toContain("fetch aborted");
+    expect(message).not.toContain("[object Error]");
+  });
+
+  it("usa toast reale come default toastFn se non specificato", () => {
+    // Smoke: chiamata senza throw. Lo store reale riceve il toast e lo cumula
+    // nella sua state interna (non verificato per non accoppiarci allo store).
+    expect(() => toastApiError({ error: "no_loads" }, "Run analisi")).not.toThrow();
+  });
+});
+
 
 describe("contract BackendErrorKind ↔ ERROR_TRANSLATIONS (v2.5.1 T6)", () => {
   it.each(EXPECTED_BACKEND_ERROR_KINDS)(
