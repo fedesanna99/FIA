@@ -1,8 +1,9 @@
 // v2.6.2 Shell · ShellTopBar tests
+// v2.6.2.1 polish F3: aggiunti test per modelShortId slug semantico.
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { ShellTopBar } from "./ShellTopBar";
+import { ShellTopBar, modelShortId } from "./ShellTopBar";
 import { useWorkspaceStore } from "../store/workspaceStore";
 
 // Stub hook useRunAnalysis (importa libreria pesante quando reale)
@@ -43,5 +44,31 @@ describe("ShellTopBar", () => {
   it("renders trust badge Preliminary", () => {
     renderWithQc(<ShellTopBar />);
     expect(screen.getByText("Preliminary")).toBeInTheDocument();
+  });
+});
+
+describe("modelShortId (v2.6.2.1 F3)", () => {
+  it("returns initials uppercase from multi-word name", () => {
+    expect(modelShortId({ id: "abc", name: "Telaio portale 2D" })).toBe("TP2");
+  });
+
+  it("returns initials from 2-word name", () => {
+    expect(modelShortId({ id: "abc", name: "Mensola lineare" })).toBe("ML");
+  });
+
+  it("returns first 4 letters when single word", () => {
+    expect(modelShortId({ id: "abc", name: "Pushover" })).toBe("P");
+  });
+
+  it("falls back to UUID prefix uppercase when name empty", () => {
+    expect(modelShortId({ id: "abc123def", name: "" })).toBe("ABC1");
+  });
+
+  it("returns dash for null model", () => {
+    expect(modelShortId(null)).toBe("—");
+  });
+
+  it("limits result to 4 characters", () => {
+    expect(modelShortId({ id: "x", name: "Acca Bibi Cici Didi Eeee Fefe" })).toBe("ABCD");
   });
 });

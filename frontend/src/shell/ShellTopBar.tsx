@@ -27,6 +27,28 @@ function formatSavedAt(d: Date | null): string {
   return d.toLocaleTimeString("it-IT", { hour: "2-digit", minute: "2-digit" });
 }
 
+/**
+ * v2.6.2.1 F3: slug semantico per il model selector.
+ *
+ * Costruisce uno short id dalle iniziali maiuscole delle parole del nome
+ * modello. "Telaio portale 2D" → "TP2", "Mensola lineare" → "ML".
+ * Fallback su UUID (primi 4 char uppercase) se name vuoto/inesistente.
+ */
+export function modelShortId(model: { id?: string; name?: string } | null): string {
+  if (!model) return "—";
+  const name = (model.name ?? "").trim();
+  if (name) {
+    const words = name.split(/\s+/).filter(Boolean);
+    const initials = words
+      .map((w) => w[0] ?? "")
+      .join("")
+      .toUpperCase()
+      .replace(/[^A-Z0-9]/g, "");
+    if (initials) return initials.slice(0, 4);
+  }
+  return (model.id ?? "").slice(0, 4).toUpperCase() || "—";
+}
+
 export function ShellTopBar() {
   const model = useModelStore((s) => s.model);
   const lastSavedAt = useModelStore((s) => s.lastSavedAt);
@@ -63,7 +85,7 @@ export function ShellTopBar() {
         data-testid="topbar-model-menu"
         aria-label="Modello attivo"
       >
-        {model?.id && <span className="tb-model-id">{model.id.slice(0, 6).toUpperCase()}</span>}
+        {model && <span className="tb-model-id">{modelShortId(model)}</span>}
         <span>{model?.name ?? "Nessun modello"}</span>
         <ChevronDown size={12} />
       </button>
