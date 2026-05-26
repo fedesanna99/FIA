@@ -171,6 +171,105 @@ body.shell-density-compact { font-size: 12px; }
   .recent-models__grid { grid-template-columns: 1fr; }
 }
 
+/* v2.6.6 E.3: empty state placeholder + CTA per utenti vergini (0 modelli
+   user-created). Match mockup A1 (sezione sempre visibile, didattica). */
+.recent-models--empty .recent-models__empty-state {
+  border: 1px dashed var(--border-strong, var(--border));
+  background: var(--bg-panel);
+  padding: 32px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.recent-models__empty-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--ink-faint);
+}
+.recent-models__empty-message {
+  font-size: 13px;
+  color: var(--ink-dim);
+  margin: 0;
+  line-height: 1.5;
+}
+.recent-models__empty-ctas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 4px;
+}
+.recent-models__empty-cta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 7px 12px;
+  cursor: pointer;
+  transition: background-color 120ms, color 120ms, border-color 120ms;
+  border: 1px solid;
+}
+.recent-models__empty-cta--primary {
+  background: transparent;
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.recent-models__empty-cta--primary:hover {
+  background: var(--accent);
+  color: #ffffff;
+}
+.recent-models__empty-cta--secondary {
+  background: transparent;
+  color: var(--ink-dim);
+  border-color: var(--border-strong, var(--border));
+}
+.recent-models__empty-cta--secondary:hover {
+  color: var(--ink);
+  border-color: var(--ink-dim);
+}
+
+/* v2.6.6 E.3: skeleton loading per fetch iniziale modelli recenti.
+   Shimmer animato su thumbnail + 2 line placeholder. */
+.recent-model-card--skeleton {
+  pointer-events: none;
+  user-select: none;
+}
+.skeleton-shimmer {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-hover, rgba(0, 0, 0, 0.04));
+}
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 100%
+  );
+  animation: rail-skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes rail-skeleton-shimmer {
+  0%   { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.skeleton-line {
+  height: 10px;
+  background: var(--bg-hover, rgba(0, 0, 0, 0.04));
+  border-radius: 2px;
+}
+.skeleton-line--lg {
+  width: 70%;
+  margin-bottom: 6px;
+}
+.skeleton-line--sm {
+  width: 50%;
+}
+
 .recent-model-card {
   display: flex;
   flex-direction: column;
@@ -1300,3 +1399,23 @@ body.shell-sharp .cmd-foot kbd { border-radius: 0; }
   transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
 }
 .help-sheet.open { transform: translateX(0); }
+
+/* ────────────────────────────────────────────────────────────────────────
+ *  LEGACY LEFT RAIL · expanded mode (v2.6.6 E.2)
+ *
+ *  Chrome legacy che gestisce la home dashboard (App.tsx:549, useNewShell
+ *  === false) usa `<RailSections>` con className "shell-rail legacy-left-rail".
+ *  Eredita gli stili `.shell-rail[data-expanded="true"]` + `.rail-section`
+ *  + `.rail-item` + `.rail-collapse` definiti sopra per ShellRail custom
+ *  (v2.6.5 D.1), e aggiunge override standalone width/height fuori dal
+ *  grid `.shell-mid` della Shell custom.
+ * ──────────────────────────────────────────────────────────────────────── */
+.legacy-left-rail {
+  /* Width fissata per chrome legacy (no grid `--rail-w` shell-mid). */
+  width: 200px;
+  flex-shrink: 0;
+  /* Full height del container flex `.flex-1.min-h-0` in App.tsx:557. */
+  height: 100%;
+  overflow-y: auto;
+}
+

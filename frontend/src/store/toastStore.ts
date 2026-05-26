@@ -2,16 +2,30 @@ import { create } from "zustand";
 
 export type ToastLevel = "success" | "error" | "info" | "warning";
 
+/**
+ * Action CTA opzionale renderizzata accanto al messaggio del toast.
+ * v2.6.6 E.2: introdotta per supportare educational toast con call-to-action
+ * inline (es. "Apri galleria template" quando voci SOLVE/VERIFY rail
+ * cliccate senza modello attivo). Backward-compat: `action` è opzionale,
+ * toast esistenti continuano a funzionare senza modifiche.
+ */
+export interface ToastAction {
+  label: string;
+  onClick: () => void;
+}
+
 export interface Toast {
   id: number;
   level: ToastLevel;
   message: string;
   ttlMs: number;
+  /** v2.6.6: CTA opzionale renderizzata dal Toaster accanto al titolo. */
+  action?: ToastAction;
 }
 
 interface ToastState {
   toasts: Toast[];
-  push: (level: ToastLevel, message: string, ttlMs?: number) => void;
+  push: (level: ToastLevel, message: string, ttlMs?: number, action?: ToastAction) => void;
   dismiss: (id: number) => void;
 }
 
@@ -33,14 +47,14 @@ const STACK_LIMIT = 3;
 
 export const useToastStore = create<ToastState>((set, get) => ({
   toasts: [],
-  push: (level, message, ttlMs) => {
+  push: (level, message, ttlMs, action) => {
     const id = ++counter;
     const duration = ttlMs ?? DEFAULT_TTL[level];
     set((s) => {
       if (s.toasts.some((t) => t.level === level && t.message === message)) {
         return s;
       }
-      const next = [...s.toasts, { id, level, message, ttlMs: duration }];
+      const next = [...s.toasts, { id, level, message, ttlMs: duration, action }];
       // v1.5.2 Task 38: stack limit — droppa i piu' vecchi per non
       // sommergere lo schermo con catene di errori HTTP.
       while (next.length > STACK_LIMIT) next.shift();
@@ -53,7 +67,17 @@ export const useToastStore = create<ToastState>((set, get) => ({
   dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })),
 }));
 
-/** Helper per chiamare il toast da posti non-React (api client). */
-export function toast(level: ToastLevel, message: string, ttlMs?: number) {
-  useToastStore.getState().push(level, message, ttlMs);
+/**
+ * Helper per chiamare il toast da posti non-React (api client, hooks, dispatcher).
+ *
+ * v2.6.6 E.2: parametro `action` opzionale per CTA inline.
+ *
+ * @example
+ *   toast("info", "Carica un modello per accedere a Checks.", 6000, {
+ *     label: "Apri galleria template",
+ *     onClick: () => openTemplateGallery(),
+ *   });
+ */
+export function toast(level: ToastLevel, message: string, ttlMs?: number, action?: ToastAction) {
+  useToastStore.getState().push(level, message, ttlMs, action);
 }

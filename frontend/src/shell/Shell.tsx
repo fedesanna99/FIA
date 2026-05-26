@@ -30,7 +30,9 @@ import { InspectPanel } from "./panels/InspectPanel";
 import { ToolsPanel } from "./panels/ToolsPanel";
 // v2.6.5 D.1: rail expanded vs collapsed (single source of truth) per
 // sincronizzare grid `--rail-w` con il render del rail.
-import { useRailExpansion } from "./useRailExpansion";
+// v2.6.6 E.2: hook promosso da `shell/useRailExpansion.ts` a `lib/` per
+// condivisione con LeftRail legacy.
+import { useRailExpansion } from "../lib/useRailExpansion";
 
 type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io";
 

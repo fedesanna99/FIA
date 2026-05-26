@@ -76,6 +76,21 @@ export function Toaster() {
                   {description}
                 </div>
               )}
+              {/* v2.6.6 E.2: action CTA inline (es. "Apri galleria template").
+                  Click chiama action.onClick e dismissa il toast. */}
+              {t.action && (
+                <button
+                  type="button"
+                  className="toast__cta mt-2 inline-flex items-center font-mono text-[11px] uppercase tracking-wide-1 font-semibold text-accent border border-accent px-2 py-1 hover:bg-accent hover:text-white transition-colors"
+                  onClick={() => {
+                    t.action?.onClick();
+                    dismiss(t.id);
+                  }}
+                  data-testid={`toast-action-${t.id}`}
+                >
+                  {t.action.label}
+                </button>
+              )}
             </div>
             <button
               type="button"

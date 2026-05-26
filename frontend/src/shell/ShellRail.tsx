@@ -1,4 +1,6 @@
 // v2.6.2 Shell · Rail (collapsed w-56) · v2.6.5 D.1 expanded w-200 per A1
+// v2.6.6 E.2 · refactor: usa `lib/railConfig` + `components/shell/shared/RailSections`
+// + `lib/railDispatch` come single source of truth con LeftRail legacy.
 //
 // Due modalità:
 //   - expanded (default v2.6.5+): w-200px, 4 sezioni testuali con eyebrow
@@ -7,9 +9,8 @@
 //   - collapsed (fallback): w-56, 5 workspace icon + tooltip (comportamento
 //     v2.6.2). Utente può tornare a questa modalità via toggle "← Comprimi".
 //
-// Preferenza persistita in localStorage via `useRailExpansion()` hook.
-// Default expanded=true (nuovo comportamento). Utenti pre-v2.6.5 che non
-// hanno mai impostato la preference vedono expanded al primo load.
+// Preferenza persistita in localStorage via `useRailExpansion()` hook
+// (spostato in `lib/` in v2.6.6 E.2 per condivisione con LeftRail legacy).
 //
 // Mapping ai workspace v2.5.x esistenti (per backward compat):
 //   modello   → workspaceStore.workspace = "model"
@@ -20,14 +21,14 @@
 
 import {
   Box, Cog, Activity, CheckCircle, Shuffle, Bug, BookOpen, Settings,
-  Home, Layers, Clock, Briefcase, Zap, Waves, Triangle, BarChart3,
-  CheckSquare, FileText, HelpCircle, ChevronLeft, ChevronRight,
-  type LucideIcon,
+  ChevronRight,
 } from "lucide-react";
 import { useWorkspaceStore } from "../store/workspaceStore";
 import { useAnalysisStore } from "../store/analysisStore";
-import { toast } from "../store/toastStore";
-import { useRailExpansion } from "./useRailExpansion";
+import { useRailExpansion } from "../lib/useRailExpansion";
+import { useRailDispatch } from "../lib/railDispatch";
+import { type RailItem } from "../lib/railConfig";
+import { RailSections } from "../components/shell/shared/RailSections";
 
 type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io";
 
@@ -46,227 +47,73 @@ const WORKSPACES: RailEntry[] = [
   { id: "io", label: "I/O & Collab", kbd: "5", Icon: Shuffle },
 ];
 
-// Map workspaceStore.workspace (esistente) ↔ shell workspace id
-const WS_TO_LEGACY: Record<ShellWorkspaceId, "model" | "analysis" | "verify"> = {
-  modello: "model",
-  analisi: "analysis",
-  risultati: "verify",
-  verifiche: "verify",
-  io: "verify", // placeholder
-};
-
-// v2.6.5 D.1: sezioni testuali della rail expanded per Dashboard A1 mockup.
-// Mapping 12 voci → workspace switch / event dispatch / placeholder toast.
-type RailSectionItem = {
-  label: string;
-  icon: LucideIcon;
-  /** Workspace da attivare (mutually exclusive con `action`). */
-  workspace?: ShellWorkspaceId;
-  /** Analysis preset da settare quando si attiva il workspace (solo per `analisi`). */
-  preset?: "static" | "modal" | "dynamic" | "buckling";
-  /** Custom action (dispatch event / open dialog / ecc.). */
-  action?: () => void;
-  /** data-testid suffix. */
-  testId: string;
-};
-
-interface RailSection {
-  eyebrow: string;
-  items: RailSectionItem[];
-}
-
-const RAIL_SECTIONS: RailSection[] = [
-  {
-    eyebrow: "WORKSPACE",
-    items: [
-      {
-        label: "Home",
-        icon: Home,
-        workspace: "modello", // torna alla home dashboard via workspace default
-        testId: "rail-item-home",
-      },
-      {
-        label: "Modelli",
-        icon: Layers,
-        action: () => window.dispatchEvent(new Event("feapro:open-models-list")),
-        testId: "rail-item-modelli",
-      },
-      {
-        label: "Jobs",
-        icon: Briefcase,
-        // v2.6.5 D.1: placeholder — Jobs panel non esiste ancora come UI dedicata.
-        // Carry-over a v2.7+ (Jobs dashboard con cronologia esecuzioni).
-        action: () => toast("info", "Jobs panel: in arrivo in v2.7"),
-        testId: "rail-item-jobs",
-      },
-      {
-        label: "Cronologia",
-        icon: Clock,
-        // v2.6.5 D.1: placeholder — Cronologia panel non esiste ancora.
-        // Carry-over a v2.7+ (audit log + history navigation).
-        action: () => toast("info", "Cronologia: in arrivo in v2.7"),
-        testId: "rail-item-cronologia",
-      },
-    ],
-  },
-  {
-    eyebrow: "SOLVE",
-    items: [
-      {
-        label: "Lineare",
-        icon: Zap,
-        workspace: "analisi",
-        preset: "static",
-        testId: "rail-item-lineare",
-      },
-      {
-        label: "Dinamica",
-        icon: Waves,
-        workspace: "analisi",
-        preset: "dynamic",
-        testId: "rail-item-dinamica",
-      },
-      {
-        label: "Sismica",
-        icon: Triangle,
-        workspace: "analisi",
-        preset: "modal", // sismica = modale + spettro di risposta (default)
-        testId: "rail-item-sismica",
-      },
-    ],
-  },
-  {
-    eyebrow: "VERIFY",
-    items: [
-      {
-        label: "Risultati",
-        icon: BarChart3,
-        workspace: "risultati",
-        testId: "rail-item-risultati",
-      },
-      {
-        label: "Checks",
-        icon: CheckSquare,
-        workspace: "verifiche",
-        testId: "rail-item-checks",
-      },
-      {
-        label: "Report",
-        icon: FileText,
-        action: () => window.dispatchEvent(new Event("feapro:open-export-pdf")),
-        testId: "rail-item-report",
-      },
-    ],
-  },
-  {
-    eyebrow: "RISORSE",
-    items: [
-      {
-        label: "Template",
-        icon: BookOpen,
-        action: () => window.dispatchEvent(new Event("feapro:open-template-gallery")),
-        testId: "rail-item-template",
-      },
-      {
-        label: "Docs",
-        icon: HelpCircle,
-        // v2.6.5 D.1: placeholder — docs portal non esiste come UI app.
-        // Carry-over a v2.7+ (in-app docs viewer o link esterno).
-        action: () => toast("info", "Docs portal: in arrivo in v2.7"),
-        testId: "rail-item-docs",
-      },
-    ],
-  },
-];
-
 interface ShellRailProps {
   active?: ShellWorkspaceId;
   onChange?: (id: ShellWorkspaceId) => void;
 }
 
+/**
+ * Mappa `ShellWorkspaceId` (active prop) → `railConfig` item id per active
+ * state matching nel rendering expanded.
+ *
+ * NB: per `active === "analisi"`, la voce attiva dipende anche dal preset
+ * corrente (Lineare/Dinamica/Sismica). Vedi `resolveActiveItemId` helper.
+ */
+function resolveActiveItemId(
+  active: ShellWorkspaceId,
+  analysisType: string,
+): string | undefined {
+  if (active === "verifiche") return "checks";
+  if (active === "risultati") return "results";
+  if (active === "modello") return "home";
+  if (active === "analisi") {
+    if (analysisType === "dynamic") return "dynamic";
+    if (analysisType === "modal") return "seismic"; // modal = sismica
+    return "linear"; // static / default
+  }
+  return undefined;
+}
+
 export function ShellRail({ active = "modello", onChange }: ShellRailProps) {
   const setWorkspace = useWorkspaceStore((s) => s.setWorkspace);
-  const setAnalysisType = useAnalysisStore((s) => s.setAnalysisType);
+  const analysisType = useAnalysisStore((s) => s.analysisType);
   const { isExpanded, setExpanded } = useRailExpansion();
+  const dispatch = useRailDispatch();
+
+  // Map workspaceStore.workspace (esistente) ↔ shell workspace id legacy
+  const wsToLegacy = (id: ShellWorkspaceId): "model" | "analysis" | "verify" => {
+    if (id === "modello") return "model";
+    if (id === "analisi") return "analysis";
+    return "verify"; // risultati, verifiche, io → verify content
+  };
 
   const handleWorkspace = (id: ShellWorkspaceId) => {
-    setWorkspace(WS_TO_LEGACY[id]);
+    setWorkspace(wsToLegacy(id));
     onChange?.(id);
   };
 
-  const handleItemClick = (item: RailSectionItem) => {
-    if (item.workspace) {
-      setWorkspace(WS_TO_LEGACY[item.workspace]);
-      if (item.preset) {
-        setAnalysisType(item.preset);
-      }
+  // Wrapper sul dispatcher condiviso che ALSO chiama onChange con il
+  // ShellWorkspaceId mappato dall'item (per backward compat con parent
+  // della Shell custom che si aspetta callback workspace-level).
+  const handleItemClick = (item: RailItem) => {
+    dispatch(item);
+    // Se l'azione era un workspace switch, propaga l'onChange al parent.
+    if (item.workspace && (item.action === "workspace" || item.action === "workspace-with-preset")) {
       onChange?.(item.workspace);
-    } else if (item.action) {
-      item.action();
+    } else if (item.action === "navigate-home") {
+      onChange?.("modello");
     }
   };
 
-  /**
-   * Match per attivo: l'item rail-item-X è attivo se il suo workspace coincide
-   * con `active` corrente. Per item action-only (Home/Modelli/Jobs/...), match
-   * solo se `active === "modello"` per Home (default workspace).
-   */
-  const isItemActive = (item: RailSectionItem): boolean => {
-    if (item.workspace) return active === item.workspace;
-    // Home è considerato "active" solo quando workspace è default modello E
-    // l'utente è sulla home dashboard. Approssimazione: active === "modello".
-    if (item.testId === "rail-item-home") return active === "modello";
-    return false;
-  };
-
   if (isExpanded) {
+    const activeItemId = resolveActiveItemId(active, analysisType);
     return (
-      <nav
+      <RailSections
         className="shell-rail"
-        aria-label="Workspace switcher (espanso)"
-        data-shell="rail"
-        data-expanded="true"
-      >
-        {RAIL_SECTIONS.map((section) => (
-          <div className="rail-section" key={section.eyebrow}>
-            <div className="rail-section-eyebrow">{section.eyebrow}</div>
-            <ul className="rail-section-items">
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                const active = isItemActive(item);
-                return (
-                  <li key={item.testId}>
-                    <button
-                      type="button"
-                      className="rail-item"
-                      onClick={() => handleItemClick(item)}
-                      data-active={active ? "true" : undefined}
-                      data-testid={item.testId}
-                      aria-current={active ? "page" : undefined}
-                    >
-                      <Icon className="rail-item-icon" size={14} strokeWidth={1.8} />
-                      <span className="rail-item-label">{item.label}</span>
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ))}
-
-        <div className="rail-spacer" />
-
-        <button
-          type="button"
-          className="rail-collapse"
-          onClick={() => setExpanded(false)}
-          data-testid="rail-toggle-collapse"
-          aria-label="Comprimi rail"
-        >
-          <ChevronLeft className="rail-collapse-icon" size={12} strokeWidth={2} />
-          <span>Comprimi</span>
-        </button>
-      </nav>
+        activeItemId={activeItemId}
+        onItemClick={handleItemClick}
+        onCollapse={() => setExpanded(false)}
+      />
     );
   }
 

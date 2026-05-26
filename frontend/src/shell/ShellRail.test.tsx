@@ -3,6 +3,9 @@
 // mockup Dashboard A1. NB: la persistenza `useRailExpansion` legge da
 // localStorage; nei test resettiamo lo stato a "true" (expanded) come
 // default, e a "false" per i test collapsed.
+// v2.6.6 E.2 · id voci inglesi standard (railConfig.ts shared): home,
+// models, jobs, history, linear, dynamic, seismic, results, checks,
+// report, templates, docs. Toggle testid: rail-collapse-toggle.
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { ShellRail } from "./ShellRail";
@@ -31,16 +34,16 @@ describe("ShellRail · expanded mode (default v2.6.5)", () => {
   it("renders 12 rail-item per A1 mockup (Home/Modelli/Jobs/Cronologia + Lineare/Dinamica/Sismica + Risultati/Checks/Report + Template/Docs)", () => {
     render(<ShellRail />);
     expect(screen.getByTestId("rail-item-home")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-item-modelli")).toBeInTheDocument();
+    expect(screen.getByTestId("rail-item-models")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-jobs")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-item-cronologia")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-item-lineare")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-item-dinamica")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-item-sismica")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-item-risultati")).toBeInTheDocument();
+    expect(screen.getByTestId("rail-item-history")).toBeInTheDocument();
+    expect(screen.getByTestId("rail-item-linear")).toBeInTheDocument();
+    expect(screen.getByTestId("rail-item-dynamic")).toBeInTheDocument();
+    expect(screen.getByTestId("rail-item-seismic")).toBeInTheDocument();
+    expect(screen.getByTestId("rail-item-results")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-checks")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-report")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-item-template")).toBeInTheDocument();
+    expect(screen.getByTestId("rail-item-templates")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-docs")).toBeInTheDocument();
   });
 
@@ -52,10 +55,10 @@ describe("ShellRail · expanded mode (default v2.6.5)", () => {
     expect(screen.getByTestId("rail-item-home").getAttribute("data-active")).toBeNull();
   });
 
-  it("clicking rail-item-risultati calls onChange with 'risultati'", () => {
+  it("clicking rail-item-results calls onChange with 'risultati'", () => {
     const onChange = vi.fn();
     render(<ShellRail onChange={onChange} />);
-    fireEvent.click(screen.getByTestId("rail-item-risultati"));
+    fireEvent.click(screen.getByTestId("rail-item-results"));
     expect(onChange).toHaveBeenCalledWith("risultati");
   });
 
@@ -78,13 +81,13 @@ describe("ShellRail · expanded mode (default v2.6.5)", () => {
     const { container } = render(<ShellRail />);
     const nav = container.querySelector(".shell-rail");
     expect(nav?.getAttribute("data-expanded")).toBe("true");
-    fireEvent.click(screen.getByTestId("rail-toggle-collapse"));
+    fireEvent.click(screen.getByTestId("rail-collapse-toggle"));
     expect(container.querySelector(".shell-rail")?.getAttribute("data-expanded")).toBe("false");
   });
 
   it("expanded mode persists to localStorage", () => {
     render(<ShellRail />);
-    fireEvent.click(screen.getByTestId("rail-toggle-collapse"));
+    fireEvent.click(screen.getByTestId("rail-collapse-toggle"));
     expect(window.localStorage.getItem(STORAGE_KEY)).toBe("false");
   });
 });

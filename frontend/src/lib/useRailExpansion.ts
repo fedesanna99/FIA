@@ -1,13 +1,16 @@
 /**
- * useRailExpansion (v2.6.5 D.1) — gestione expanded/collapsed state della
- * `<ShellRail>` con persistenza localStorage.
+ * useRailExpansion (v2.6.5 D.1 → v2.6.6 E.2 promosso a `lib/` per riuso).
+ *
+ * Gestione expanded/collapsed state della rail (sia ShellRail custom v2.6.x
+ * che LeftRail legacy chrome) con persistenza localStorage condivisa.
+ *
+ * Single source of truth: stessa chiave `feapro:rail:expanded` per Shell
+ * custom e legacy. Comportamento atteso: l'utente che comprime in workspace
+ * trova la rail compressa anche tornando in home, e viceversa.
  *
  * Default expanded=true (nuovo comportamento Dashboard A1). Utenti che
  * preferiscono icon-only collapsed possono salvare la preference via
  * toggle nel rail.
- *
- * Single source of truth: Shell.tsx + ShellRail.tsx leggono dallo stesso
- * hook per mantenere la grid `shell-mid` coerente con il rail width.
  */
 import { useEffect, useState } from "react";
 
