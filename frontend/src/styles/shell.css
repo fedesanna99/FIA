@@ -101,6 +101,25 @@ body.shell-panel-w-320 .shell { --panel-w: 320px; }
 body.shell-panel-w-420 .shell { --panel-w: 420px; }
 body.shell-density-compact { font-size: 12px; }
 
+/* v2.6.3.1 BUG-#1 fix: workspace takeover mode — quando il workspace
+   attivo è in VIEWPORT_TAKEOVER_WORKSPACES (Shell.tsx), la grid passa
+   da 3-col (rail+viewport+panel) a 2-col (rail+takeover-content). Il
+   content è renderizzato a piena area workspace (~1000px+) invece che
+   nel right panel 380px hardcoded. Necessario per pattern handoff
+   Precision (es. ChecksDetailTable grid-cols-[240px_1fr]). */
+.shell-takeover-on .shell-mid {
+  grid-template-columns: var(--rail-w) 1fr;
+}
+.shell-takeover-content {
+  background: var(--bg);
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
 /* ── TopBar v2 ────────────────────────────────────────────────── */
 .shell-topbar {
   display: flex; align-items: center; gap: 10px;

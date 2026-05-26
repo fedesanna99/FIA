@@ -50,7 +50,17 @@ const TAB_LABELS: Record<string, string> = {
 };
 
 
-export function VerifyPanel() {
+interface VerifyPanelProps {
+  /**
+   * v2.6.3.1 BUG-#1 fix: quando true, VerifyPanel è renderizzato in
+   * workspace takeover (area piena ~1000px+) invece che right panel
+   * (380px hardcoded). Necessario per ChecksDetailTable grid-cols-[240px_1fr]
+   * leggibile. Configurato da Shell.tsx VIEWPORT_TAKEOVER_WORKSPACES.
+   */
+  fullArea?: boolean;
+}
+
+export function VerifyPanel({ fullArea = false }: VerifyPanelProps = {}) {
   // alpha.31 Task 25: la X deve chiudere SIA workspace SIA rail.
   const closeLeft = () => {
     useWorkspaceStore.getState().closeLeftPanel();
@@ -71,6 +81,7 @@ export function VerifyPanel() {
         subtitle="Verifiche normative"
         onClose={closeLeft}
         testId="panel-verify"
+        fullWidth={fullArea}
       >
         <PanelHub
           cards={HUB_CARDS}
@@ -89,6 +100,7 @@ export function VerifyPanel() {
       subtitle="Verifiche normative"
       onClose={closeLeft}
       testId="panel-verify"
+      fullWidth={fullArea}
     >
       <PanelBreadcrumb
         root="Verify"

@@ -43,13 +43,20 @@ interface PanelChromeProps {
   children: ReactNode;
   /** data-testid suffix per il container (default `panel-${side}`). */
   testId?: string;
+  /**
+   * v2.6.3.1 BUG-#1 fix: rimuove le width fisse 300/340/380 px quando il
+   * pannello è renderizzato come workspace takeover (area piena ~1000px+).
+   * Necessario per i pattern handoff Precision (es. ChecksDetailTable
+   * grid-cols-[240px_1fr]) che richiedono area workspace, non right panel.
+   */
+  fullWidth?: boolean;
 }
 
 
 export function PanelChrome(props: PanelChromeProps) {
   const {
     side, title, Icon, subtitle, tabs, activeTab, onTabChange, onClose,
-    children, testId,
+    children, testId, fullWidth = false,
   } = props;
 
   const isMobile = useIsMobile();
@@ -68,14 +75,18 @@ export function PanelChrome(props: PanelChromeProps) {
     <section
       className={clsx(
         "flex-shrink-0 bg-bg-panel flex flex-col overflow-hidden min-h-0",
-        // Hotfix mobile: full-width <md (su mobile il PanelChrome e' montato
-        // dentro MobilePanel che ha gia' absolute inset-0). Da md in su
-        // torna alle width fisse come prima.
-        "w-full md:w-[300px] lg:w-[340px] xl:w-[380px]",
+        // v2.6.3.1 BUG-#1 fix: fullWidth rimuove le width fisse per
+        // workspace takeover (area workspace ~1000px+ per pattern handoff
+        // Precision). Hotfix mobile full-width <md preservato (su mobile
+        // il PanelChrome è dentro MobilePanel absolute inset-0).
+        fullWidth
+          ? "w-full"
+          : "w-full md:w-[300px] lg:w-[340px] xl:w-[380px]",
         "animate-slide-right",
         // Su mobile niente border laterale (il MobilePanel ha gia' il proprio
-        // contenitore). Su desktop manteniamo border-r/l del rail.
-        !isMobile && (side === "left" ? "border-r border-border" : "border-l border-border"),
+        // contenitore). Su desktop manteniamo border-r/l del rail solo se
+        // NON fullWidth (in takeover il border è ridondante col rail bordo).
+        !isMobile && !fullWidth && (side === "left" ? "border-r border-border" : "border-l border-border"),
       )}
       data-testid={testId ?? `panel-${side}`}
     >

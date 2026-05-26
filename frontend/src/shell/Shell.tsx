@@ -36,7 +36,22 @@ interface ShellProps {
   children: ReactNode;
 }
 
-const WORKSPACE_CONTENT: Record<ShellWorkspaceId, ReactNode> = {
+// v2.6.3.1 BUG-#1 fix: workspace che richiedono area workspace piena
+// (~1000px+) per il rendering corretto dei pattern handoff Precision.
+// I pattern con grid orizzontale (es. ChecksDetailTable grid-cols-[240px_1fr])
+// collassano nel right panel ShellPanel 380px (1fr → ~80px). Quando il
+// workspace è in takeover mode, la grid Shell passa da 3-col (rail+vp+panel)
+// a 2-col (rail+takeover-content) e il pannello-content è renderizzato a
+// piena larghezza fullArea, NON dentro ShellViewport.
+//
+// Trade-off: il Canvas R3F è unmount-remount al cambio workspace (perdita
+// stato view R3F). Accettabile perché:
+//   - In Verifiche l'utente non vede il viewport (è una tabella)
+//   - Cambio workspace è raro (una volta per minuti)
+//   - Stato modello/results vive in Zustand (no perdita reale)
+const VIEWPORT_TAKEOVER_WORKSPACES: ShellWorkspaceId[] = ["verifiche"];
+
+const WORKSPACE_CONTENT_NORMAL: Record<ShellWorkspaceId, ReactNode> = {
   modello: <MakePanel />,
   analisi: <SolvePanel />,
   risultati: <InspectPanel />,
@@ -44,17 +59,38 @@ const WORKSPACE_CONTENT: Record<ShellWorkspaceId, ReactNode> = {
   io: <ToolsPanel />,
 };
 
+// In takeover mode passiamo `fullArea` al panel content quando lo supporta,
+// così PanelChrome rimuove le width fisse 300/340/380 e l'area workspace
+// resta veramente full (~1000px+).
+const WORKSPACE_CONTENT_TAKEOVER: Partial<Record<ShellWorkspaceId, ReactNode>> = {
+  verifiche: <VerifyPanel fullArea />,
+};
+
 export function Shell({ children }: ShellProps) {
   const [activeWs, setActiveWs] = useState<ShellWorkspaceId>("modello");
+  const isTakeover = VIEWPORT_TAKEOVER_WORKSPACES.includes(activeWs);
+  const takeoverContent = isTakeover ? WORKSPACE_CONTENT_TAKEOVER[activeWs] : null;
 
   return (
-    <div className="shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-light">
+    <div
+      className={`shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-light${
+        isTakeover ? " shell-takeover-on" : ""
+      }`}
+    >
       <ShellTopBar />
 
       <div className="shell-mid">
         <ShellRail active={activeWs} onChange={setActiveWs} />
-        <ShellViewport>{children}</ShellViewport>
-        <ShellPanel workspace={activeWs}>{WORKSPACE_CONTENT[activeWs]}</ShellPanel>
+        {isTakeover && takeoverContent ? (
+          <main className="shell-takeover-content" data-testid="shell-takeover-content">
+            {takeoverContent}
+          </main>
+        ) : (
+          <>
+            <ShellViewport>{children}</ShellViewport>
+            <ShellPanel workspace={activeWs}>{WORKSPACE_CONTENT_NORMAL[activeWs]}</ShellPanel>
+          </>
+        )}
       </div>
 
       <ShellStatusBar />
