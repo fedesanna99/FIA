@@ -757,6 +757,42 @@ export default function App() {
       </Suspense>
       {/* v2.6.4 A.2: OnboardingTour autoplay primo login + replay via Help menu */}
       <OnboardingTour />
+      {/* v2.6.4 C (accessibility-spec § 3.1): solver status SR announcer.
+          Aria-live polite per non interrompere screen reader corrente. */}
+      <SolverAriaLive />
+    </div>
+  );
+}
+
+
+/**
+ * v2.6.4 C — Screen reader announcer per stato solver.
+ *
+ * `<div role="status" aria-live="polite" className="sr-only">` invisibile
+ * visivamente ma letto da screen reader ad ogni cambio di `isRunning` /
+ * `progressMessage`. Single source of truth — niente duplicati live region.
+ *
+ * Subscribe minimal: solo isRunning + progressMessage (per non re-firare
+ * announce ad ogni tick di progress 0.01).
+ */
+function SolverAriaLive() {
+  const isRunning = useAnalysisStore((s) => s.isRunning);
+  const progressMessage = useAnalysisStore((s) => s.progressMessage);
+  const analysisType = useAnalysisStore((s) => s.analysisType);
+
+  // Costruisci messaggio user-facing in IT
+  const msg = isRunning
+    ? progressMessage || `Analisi ${analysisType} in corso`
+    : "";
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="sr-only"
+      data-testid="solver-aria-live"
+    >
+      {msg}
     </div>
   );
 }
