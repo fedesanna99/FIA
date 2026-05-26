@@ -10,7 +10,13 @@ interface ReportPayload {
   viewportPng?: string;
 }
 
-export function generateReport({ model, staticResults, modalResults, viewportPng }: ReportPayload) {
+/**
+ * v2.6.4 A.1: costruisce il documento jsPDF e lo ritorna senza chiamare
+ * `.save()`. Permette di:
+ *   - `generateReport(...)` → save su disco (download diretto, quick export)
+ *   - `generateReportBlob(...)` → `Blob` per preview in iframe + watermark
+ */
+export function buildReportDoc({ model, staticResults, modalResults, viewportPng }: ReportPayload): jsPDF {
   const doc = new jsPDF({ unit: "pt", format: "a4" });
   const W = doc.internal.pageSize.getWidth();
   const margin = 40;
@@ -160,7 +166,19 @@ export function generateReport({ model, staticResults, modalResults, viewportPng
     });
   }
 
-  doc.save(`${model.name.replace(/\s+/g, "_")}_report.pdf`);
+  return doc;
+}
+
+/** v2.6.4 A.1: download diretto su disco (quick export + ReportExportDialog finalize). */
+export function generateReport(payload: ReportPayload): void {
+  const doc = buildReportDoc(payload);
+  doc.save(`${payload.model.name.replace(/\s+/g, "_")}_report.pdf`);
+}
+
+/** v2.6.4 A.1: ritorna Blob per preview iframe (ReportPreview wrapper). */
+export function generateReportBlob(payload: ReportPayload): Blob {
+  const doc = buildReportDoc(payload);
+  return doc.output("blob");
 }
 
 export function viewportCanvasDataUrl(): string | undefined {
