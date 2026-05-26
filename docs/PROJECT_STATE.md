@@ -3,11 +3,12 @@
 > Stato vivo del progetto. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-26 (sera tardi)
+**Ultimo aggiornamento**: 2026-05-26 (sera tardi · post-deploy v91)
 **Versione corrente**: `v2.6.4-precision-completion`
-**Branch attivo**: `design-rebuild/v2.6` (= `origin/test`)
-**Ultimo SHA**: post-tag rollup precision-completion (vedi `git rev-parse HEAD`)
-**⚠ Decisione strategica attiva**: Handoff Precision v2.0 al 100%. Aggiunti TrustLayer watermark PDF, OnboardingTour spotlight + backend setting, InsightPanel 5 UC content, ChecksDetailTable dynamic header per element type, WCAG 2.1 AA statement + solver aria-live.
+**Branch attivo**: `design-rebuild/v2.6` (= `origin/test` = `origin/main` = `b473050`)
+**Ultimo SHA**: `b473050` (rollup compound + report)
+**Deploy live**: release **v91** su https://fea-pro.fly.dev/ (image `01KSJWSHJVRBX3JT6RBTWH78JC`)
+**⚠ Decisione strategica attiva**: Handoff Precision v2.0 al 100%. Compound v2.6.4 chiuso, smoke E2E live 3/3 PASS.
 
 ---
 
@@ -77,8 +78,8 @@ Aggiornato dopo compound v2.6.3-precision-handoff:
 - **pytest**: 1688 collected (1677 baseline + 11 nuovi onboarding A.2)
 - **vitest**: **750/750 PASS** (94 file, +18 nuovi vs v2.6.3.1 stato 732)
 - **tsc**: 0 errori
-- **build**: pending stima post-build T_last
-- **smoke E2E live**: pending verifica post-deploy v92+
+- **build**: main 1305.45 kB / gzip 384.76 kB (delta +2.19 kB gzip vs v2.6.3.1)
+- **smoke E2E live**: **3/3 PASS** in 34.7s contro v91 (✅ post-deploy verificato)
 
 ## 5. Carry-over P1/P2 (NON in scope di questo compound)
 
