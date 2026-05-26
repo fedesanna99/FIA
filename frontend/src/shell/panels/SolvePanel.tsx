@@ -19,7 +19,8 @@ import {
   IconBolt, IconArrowRight, IconWaveSine, IconArrowsVertical,
 } from "@tabler/icons-react";
 import { Activity, Zap, Waves, GitBranch } from "lucide-react";
-import { Button } from "../../components/ui/Button";
+import { FeatureButton } from "../../components/ui/FeatureButton";
+import type { FeatureId } from "../../lib/preconditions";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useLeftRailStore } from "../../store/leftRailStore";
 import { useAnalysisStore } from "../../store/analysisStore";
@@ -158,11 +159,15 @@ export function SolvePanel() {
           <CostPreviewCard analysisId={selectedLinear} />
 
           <Section title="Esegui">
-            <Button
+            {/* v2.5.6 cluster F (BUG-027): FeatureButton con featureId dinamico
+                in base al solver selezionato. Precondizione completa (modello
+                + vincoli + carichi per static/buckling, solo + vincoli per
+                modale). Il tooltip italiano spiega cosa manca. */}
+            <FeatureButton
+              featureId={(`run-${selectedLinear}`) as FeatureId}
               variant="run"
               size="md"
               onClick={() => handleRun(selectedLinear)}
-              disabled={!model || isRunning}
               loading={isRunning}
               data-testid="solve-run-linear"
               className="w-full"
@@ -172,7 +177,7 @@ export function SolvePanel() {
                 {isRunning ? "In esecuzione…" : `Esegui ${LINEAR_OPTIONS.find((o) => o.id === selectedLinear)?.label.toLowerCase() ?? ""}`}
               </span>
               <kbd className="bg-black/15 border border-white/20 text-white text-[10px] px-1.5 py-0.5 font-mono uppercase tracking-wide-1 font-medium">F5</kbd>
-            </Button>
+            </FeatureButton>
           </Section>
         </div>
       )}

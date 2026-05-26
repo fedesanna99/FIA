@@ -91,13 +91,34 @@ describe("SolvePanel (Sprint 5 G10 / alpha.25)", () => {
     expect(runBtn.disabled).toBe(true);
   });
 
-  it("Run button enabled when model loaded", () => {
+  it("Run button disabled if model has no constraints or loads (BUG-027 fix v2.5.6)", () => {
+    // v2.5.6 cluster F: FeatureButton featureId="run-static" richiede
+    // model + constraints + loads. Solo modello vuoto NON è più sufficiente
+    // (era invece sufficiente nel pattern precedente disabled={!model}).
     useModelStore.setState({
       model: { id: "x", name: "T", nodes: [], elements: [], loads: [], constraints: [] },
     } as any);
     renderPanel();
     const runBtn = screen.getByTestId("solve-run-linear") as HTMLButtonElement;
+    expect(runBtn.disabled).toBe(true);
+    expect(runBtn.getAttribute("data-precondition-available")).toBe("false");
+  });
+
+  it("Run button enabled when model has constraints AND loads (BUG-027 fix)", () => {
+    useModelStore.setState({
+      model: {
+        id: "x",
+        name: "T",
+        nodes: [{ id: 1, x: 0, y: 0, z: 0 }],
+        elements: [],
+        loads: [{ id: 1, type: "nodal", target_id: 1, fz: -100 }],
+        constraints: [{ id: 1, type: "fixed", node_id: 1 }],
+      },
+    } as any);
+    renderPanel();
+    const runBtn = screen.getByTestId("solve-run-linear") as HTMLButtonElement;
     expect(runBtn.disabled).toBe(false);
+    expect(runBtn.getAttribute("data-precondition-available")).toBe("true");
   });
 
   it("close button calls closeLeftPanel", () => {
