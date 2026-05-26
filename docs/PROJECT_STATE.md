@@ -1,117 +1,193 @@
 # PROJECT STATE · FEA Pro
 
-> Stato vivo del progetto. Aggiornare a fine di ogni sprint.
+> Stato vivo. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-27 (post-rollup v2.6.6)
-**Versione corrente**: `v2.6.6-home-legacy-shell-refactor`
-**Branch attivo**: `design-rebuild/v2.6` (in attesa di sync test↔main + deploy)
-**Ultimo SHA pre-rollup**: `5625e54` (rollup compound v2.6.5)
-**Deploy live**: release **v92** su https://fea-pro.fly.dev/ (image `01KSK0TVPYGNS4A585A8J5TQW8`) — deploy v93+ atteso post-T_last
-**Smoke E2E live**: 3/3 PASS v2.6.2 + 5/5 PASS v2.6.6 attesi (8/8 totali) ✅
-**⚠ Decisione strategica attiva**: Handoff Precision v2.0 al **100% REALE verificato visualmente**. v2.6.6 chiude il gap composition home dashboard A1 applicando il refactor v2.6.5 al chrome legacy (Shell custom era già OK nei workspace con modello).
+**Ultimo aggiornamento**: 2026-05-27 (sera)
+**Versione corrente**: `v2.6.6-home-legacy-shell-refactor` (post deploy v93)
+**Branch attivo**: `design-rebuild/v2.6` (= `origin/test` = `origin/main`)
+**Ultimo SHA**: `cb17c8f`
+**Deploy live**: release Fly.io **v93** · https://fea-pro.fly.dev/
 
 ---
 
-## 1. Decisione strategica corrente
+## 0. Sessione attiva · Design Handoff Phase 4-6
 
-Compound **v2.6.3-precision-handoff** chiuso il 2026-05-26. La Shell
-custom in `frontend/src/shell/` resta intatta (Opzione 1 confermata). I 7
-componenti dell'handoff Precision v2.0 sono droppati come design system
-additivo per i workspace content (Verify, Percorsi, Dashboard,
-Report dialog, MakePanel hub-cards, InsightPanel post-solve).
+**Stato**: in corso, NON ancora iniziata implementazione
 
-### Prossime scelte aperte
+Federico ha consegnato il vero pacchetto handoff Claude Design completo
+(`FEA_Pro_Design_System-handoff.zip`) con 22 schermate hi-fi autoritative.
 
-1. **Sessione Paolo (Tier 1)**: validation utente reale sul deploy live
-   v2.6.3 (30-60 min user time, no Claude Code)
-2. **Strada A · Mobile rebuild** (`v2.6.4-mobile-shell`, ~3-4h): estendere
-   `useNewShell` removendo `!isMobile`, adattare Shell con responsive
-   ≤md, integrare MobileTabbar nella nuova Shell
-3. **OnboardingTour spotlight refactor** (`v2.6.5-onboarding-spotlight`,
-   ~4h): migra da welcome-modal a vera spotlight tour
-4. **Hub-card axis-tag pattern uniformato** (`v2.6.4-hub-axis-tag`,
-   ~1-2h): estende `PanelHubNav.tsx` con `axisTag?` prop applicato a
-   tutti i panel hub
+### Documenti maestri ricevuti
 
-## 2. Stato sintetico tecnico
+| File | Cosa |
+|---|---|
+| `DESIGN_HANDOFF.md` | Documento maestro. Regola d'oro: "quando codice diverge dal mockup, vince il mockup" |
+| `SKILL.md` | Skill `fea-pro-design` con 7 UX principles + 10 brand musts |
+| `uploads/UX_REDESIGN_BRIEF.md` | Brief originale Federico → Claude Design con 20 finding Paoletto + persona |
+| `Sitemap.html` | Hub navigabile 8 sezioni · 22 schermate marcate `done` |
+| `colors_and_type.css` + `src/tokens.css/ts` | Tokens v2.1 (già in repo) |
+| `Inspector_reference.html` (1671 righe) | Inspector spec: 6 stati + 3 bonus + interaction sequences |
 
-Aggiornato dopo compound v2.6.3-precision-handoff:
+### Pending da Claude Design
 
-- **Frontend Shell custom**: 6 shell components + 6 floating HUD + useTheme,
-  desktop-first con codepath legacy per mobile
-- **Design system Soft v2.1**: Plus Jakarta Sans + Inter + JetBrains Mono,
-  tokens.css + Tailwind mapping completo (utility Precision esposte come alias)
-- **Drop-in Precision v2.0**: 7 componenti in `components/shell/`
-  (TrustLayerBadge, PercorsoStep, InsightPanel, ChecksRail,
-  ChecksDetailTable, ModelsTable, WorkspaceLayout) — tutti coperti da
-  vitest (+31 nuovi test)
-- **Wiring nei consumer**:
-  - ChecksRail+ChecksDetailTable → VerifyPanel/VerifyChecksLive ✅
-  - PercorsoStep → PercorsoFullScreenDemo ✅
-  - ModelsTable → ModelliBrowser ✅
-  - TrustLayerBadge banner → ReportExportDialog ✅
-  - InsightPanel post-solve → ResultsInsightAuto ✅
-- **Backend**: nessuna modifica in tutto il compound (pytest 1677
-  collected invariato)
+1. **Mockup mobile aggiuntivi** (~11 schermate residue del UX_REDESIGN brief)
+2. **NumericInput convertitore unità spec** (finding Paoletto #11)
 
-## 3. Sprint chiusi recenti (cronologia)
+### Stato implementazione vs mockup autoritativi
 
-| Tag | Tipo | Cosa ha chiuso |
+| Sezione | Schermate | Implementato | Match |
+|---|---|---|---|
+| 00 Foundation (tokens) | 3 | ✅ in repo | **100%** |
+| 03 Studio Risultati (Nuovo Guscio) | Shell custom | ✅ v2.6.x | **~90%** |
+| 02 Dashboard new | 1 | ⚠️ home v2.6.6 | **~20%** |
+| 01 Auth (4 stati) | Auth.html | ❌ legacy esistente | **~10%** |
+| 02 Templates | Templates.html | ⚠️ galleria v2.5.x | **~30%** |
+| 02 Percorso UC1 | Percorso UC1.html | ⚠️ Wizard inline | **~20%** |
+| 03 Studio Modello | Studio Modello.html | ⚠️ MakePanel | **~30%** |
+| 03 Studio Analisi | Studio Analisi.html | ⚠️ SolvePanel | **~25%** |
+| 03 Studio Verifiche | Studio Verifiche.html | ⚠️ VerifyPanel | **~40%** |
+| 03 Studio I/O | Studio IO.html | ⚠️ ToolsPanel | **~25%** |
+| 04 Dialogs | Dialogs.html | ❓ esistono ma layout diverso | **~30%** |
+| 05 Settings | Settings.html | ❌ legacy | **~10%** |
+| 06 States | States.html (4 stati) | ⚠️ parziale | **~25%** |
+| 07 Mobile | Mobile.html | ❌ legacy MobileTabbar | **~5%** |
+
+**Media handoff design system**: **~25%**
+
+### Phase 4-6 roadmap (DESIGN_HANDOFF.md §8)
+
+| Brief | Phase | Stima |
 |---|---|---|
-| `v2.6.1-foundation` | foundation | Tokens Soft v2.1 + Plus Jakarta + Inter + lib install |
-| `v2.6.2-shell` | feat | Studio Pro Shell rebuild (6 shell + 6 HUD + theme) |
-| `v2.6.2-shell-deploy` | deploy | Fly.io release v86 |
-| `v2.6.2-shell-smoke-live` | E2E | Smoke live 3 test (F1/F2/F3 trovati) |
-| `v2.6.2.1-shell-polish` | fix | F1 ViewportHud legacy + F2 palette registry + F3 slug semantico |
-| `v2.6.2.2-mobile-hud-quickfix` | fix mobile | M1 chip overlap + M2 truncate + M3 tabs schiacciati |
-| `v2.6.3.0-precision-tokens` | foundation | Tailwind utility mapping caretColor + precision-pulse-ring |
-| `v2.6.3.1-precision-dropin` | test | 7 componenti drop-in (già presenti) + 31 vitest nuovi |
-| `v2.6.3.2-precision-verify-percorsi` | docs | Validazione ChecksRail+Table+PercorsoStep wired |
-| `v2.6.3.3-precision-dashboard-report` | docs | Validazione ModelsTable+TrustLayer+Insight wired |
-| `v2.6.3.4-precision-anim-responsive` | docs | Animations+responsive validation |
-| `v2.6.3-precision-handoff` (rollup) | rollup | Tag finale + sync test↔main + deploy + smoke E2E live |
-| `v2.6.3.1-precision-wiring-fix` | fix P0 ×2 | VerifyPanel → workspace takeover (ChecksDetailTable readable). PercorsiBeamWizard → full-page overlay con PercorsoStep template wrap. Fix architettonico post-audit BUG-#1+#2. |
-| `v2.6.4-precision-completion` | feat compound (A+B+C) | 6 sprint atomici: TrustLayer watermark PDF + OnboardingTour autoplay 8-step backend setting + InsightPanel 5 UC + Empty states + ChecksDetailTable dynamic header per element type + WCAG 2.1 AA statement. Handoff Precision 85% → 100%. |
-| `v2.6.5-dashboard-a1-composition` | feat compound (D.1+D.2+D.3) | LeftRail expanded w-200px + Modelli recenti refactor to RecentModelsGrid + Topbar/Statusbar enrichment per A1 mockup. Handoff Precision 70% → **100% REALE** (composition home dashboard ora match mockup). |
-| `v2.6.6-home-legacy-shell-refactor` | fix compound (E.1+E.2+E.3+E.4+E.5) | Refactor v2.6.5 applicato al **chrome legacy** che gestisce home dashboard (useNewShell === false). railConfig + railDispatch + RailSections + useRailExpansion shared utilities. LeftRail legacy dual mode (expanded 200px / collapsed w-12). RecentModelsGrid empty state + skeleton. TopBar eyebrow WORKSPACE + crediti inline. StatusBar Online · WebSocket · Sync · counter · crediti · ⌘K · version. toastStore + Toaster con action CTA inline. 5 smoke E2E composition. Handoff Precision **100% REALE verificato visualmente** post-deploy v93+. |
+| `v2.7.0-auth-mockup-driven` | 4.1 Auth (4 stati) | ~8-9h · brief PRONTO |
+| `v2.7.1-dashboard-mockup-driven` | 4.2 Dashboard new | ~10-12h |
+| `v2.7.2-templates-percorsi` | 4.3 Templates + Percorso UC1 | ~12-14h |
+| `v2.7.3-studio-modello` | 5.1 Studio Modello (usa Inspector) | ~8-10h |
+| `v2.7.4-studio-analisi` | 5.2 Studio Analisi (usa Inspector) | ~6-8h |
+| `v2.7.5-studio-verifiche` | 5.3 Studio Verifiche (usa Inspector) | ~8-10h |
+| `v2.7.6-studio-io` | 5.4 Studio I/O | ~6-8h |
+| `v2.7.7-dialogs-wizards` | 6.1 Dialogs (Dialogs.html 5 dialog) | ~10-12h |
+| `v2.7.8-states-settings` | 6.2 States + Settings | ~6-8h |
+| `v2.7.9-mobile-refactor` | 6.3 Mobile (richiede 11 mockup extra) | ~8-10h |
+| **Totale Phase 4-6** | | **~75-95h** |
 
-## 4. Baseline test (aggiornata)
+### Brief operativo immediato
 
-- **pytest**: 1688 collected (invariato vs v2.6.5 — no backend changes in v2.6.6)
-- **vitest**: **816/816 PASS** (99 file, +46 nuovi vs v2.6.5 stato 770)
-- **tsc**: 0 errori
-- **build**: main 1312.00 kB / gzip 386.52 kB (delta atteso < +10 kB gzip post-v2.6.6)
-- **smoke E2E local**: **5/5 PASS** v2.6.6 composition + 3/3 v2.6.2 legacy = **8/8** (run live in T_last.6)
+**`v2.7.0-auth-mockup-driven.md`** pronto in
+`/mnt/user-data/outputs/BRIEF_v2.7.0-auth-mockup-driven.md`.
 
-## 5. Carry-over P1/P2 (NON in scope di questo compound)
+8 sprint atomici + rollup, 15 decisioni anticipate locked, smoke visivo
+checklist 46/46 obbligatorio.
 
-### Tier 1 (subito dopo deploy)
+### File handoff da committare nel repo
 
-- **Sessione Paolo · validation utente** (~30-60 min)
+```
+docs/design_handoff/
+├── FEA_Pro_Design_System-handoff.zip          (pack autoritativo)
+├── Inspector_reference.html                    (1671 righe)
+├── [mobile mockup aggiuntivi quando arrivano]
+└── [NumericInput spec quando arriva]
+```
 
-### Tier 2 (post-Paolo)
+---
 
-- **Strada A · Mobile rebuild dentro nuova Shell** (`v2.6.4-mobile-shell`, 3-4h)
-- **Fase 3 desktop · Workspace content refactor** (`v2.6.4-workspace-content`, 3-4h)
+## 1. Pipeline 2026-05-26/27 chiusa
 
-### Tier 3 (tech debt)
+5 brief consecutivi · 5 deploy verdi · ~14 ore lavoro:
 
-- DEC-A1 workspace store legacy cleanup (1-2h, P1)
-- Migration legacy `CommandPalette.tsx` → `usePaletteDispatch` (1-2h, P2)
-- 25 callsite `disabled={!model}` → `FeatureButton` (P1)
-- 30 caller Categoria B `toastApiError` migration (P2)
-- Migration Button → Button2 50+ callsite (2-3h)
-- Rimozione Inter Tight font (15 min)
+| Tag | Cosa | Deploy |
+|---|---|---|
+| `v2.6.3-precision-handoff` | rollup compound 5-sprint precision wiring | v89 |
+| `v2.6.3.1-precision-wiring-fix` | fix P0 ChecksDetailTable + PercorsiBeamWizard | v90 |
+| `v2.6.4-precision-completion` | OnboardingTour + Insight + Empty states + WCAG | v91 |
+| `v2.6.5-dashboard-a1-composition` | LeftRail expanded + RecentModels Shell custom | v92 |
+| `v2.6.6-home-legacy-shell-refactor` | Stesso refactor su chrome legacy home | v93 |
 
-### Tier 4 (polish opzionale)
+### Baseline tecnica corrente (post v2.6.6)
 
-- ShellCommandPalette polish e2 (caret-accent, footer counter, close
-  animation reverse, ~1h totale)
-- OnboardingTour spotlight refactor (`v2.6.5-onboarding-spotlight`, ~4h)
-- Hub-card axis-tag pattern uniformato (`v2.6.4-hub-axis-tag`, ~1-2h)
-- PDF preview iframe + TrustLayerBadge watermark in ReportExportDialog
-  (~2-3h)
-- Touch gestures viewport mobile (pinch zoom, two-finger pan, ~2h)
-- Mobile landscape orientation (~1h)
-- Smoke E2E webkit reale (richiede `npx playwright install webkit` su CI)
+- pytest: **1688 collected**, ~99.9% PASS, 1 FAIL noto (USGS network)
+- vitest: **816/816 PASS** (99 file)
+- tsc: 0 errori
+- build main: 1316.90 kB / gzip 387.64 kB
+- Playwright E2E live: 8/8 PASS (3 v2.6.2 + 5 v2.6.6)
+- Deploy verificato visualmente 12/13 ✅ desktop
+
+### Carry-over tecnico
+
+| Item | Priorità | Stima |
+|---|---|---|
+| CSP frame-src fix preventivo | P1 | 30min |
+| Radix Dialog titles a11y | P1 | 30min |
+| WCAG full audit | P2 | 2-3h |
+| DEC-A1 workspace store legacy cleanup | P1 | 1-2h |
+| Migration legacy `CommandPalette.tsx` → `usePaletteDispatch` | P2 | 1-2h |
+| 25 callsite `disabled={!model}` → `FeatureButton` | P1 | 2h |
+| 30 caller Categoria B `toastApiError` | P2 | 3h |
+| Migration Button → Button2 | P2 | 2-3h |
+| Backend timestamp sort Recent | P2 | 2-3h |
+| Jobs cronologia panel placeholder | P2 | 4-6h |
+
+### Carry-over commerciale
+
+- **Stripe live setup** (~3-5 giorni) — sblocca billing
+- **Test sessione Paolo** (30-60min)
+- **Catalogo tubolari + sezioni custom** (~2-3 giorni)
+
+---
+
+## 2. Convenzioni progetto
+
+- Branch standard: `test`. Worktree: `design-rebuild/v2.6`
+- Versioning: `vN.M.X-slug`, `vN.M.X.y-slug` hotfix, rollup compound
+- Sync test↔main solo al rollup finale
+- OPERATING_RULES v3 baseline: pytest 1688, vitest 695→816
+- Deploy Fly.io region `fra` single-instance rolling
+- localStorage `feapro:rail:expanded`
+- Pattern `data-testid` per E2E robusti
+- Pattern mockup-driven Phase 4-6: "vince il mockup"
+
+---
+
+## 3. Pattern mockup-driven (regola d'oro Phase 4-6)
+
+Da `DESIGN_HANDOFF.md`:
+> "Quando il codice React diverge dal mockup, vince il mockup. Se hai dubbi
+> su un dettaglio, apri il mockup, ispeziona, copia i valori dal CSS computato."
+
+**Workflow per ogni brief**:
+1. Leggi mockup HTML autoritativo (full file)
+2. Estrai CSS dedicato (copia verbatim in `frontend/src/styles/`)
+3. Traduci HTML → React mantenendo class names
+4. JS vanilla → useEffect/useState/event handlers
+5. Backend integration via store esistenti
+6. Smoke E2E composition-level
+7. **Smoke visivo manuale checklist obbligatorio**
+
+### Lezioni cumulative v2.6.x (documentate)
+
+- Token-level audit ≠ handoff completo
+- Smoke E2E base ≠ verifica composition
+- Federico è fonte di verità sul scope
+- "100% reale" senza smoke visivo manuale = errore PM
+
+---
+
+## 4. File project knowledge
+
+**Vivi**:
+- `PROJECT_STATE.md` (questo) — stato attuale
+- `OPERATING_RULES.md` v3 — regole permanenti
+- `HANDOFF_MESSAGE.md` — testo standard nuove chat
+- `FEA_PRO_CAPABILITY_MAP.md` v2.0
+
+**Da committare in repo** (Phase 4-6 prereq):
+- `docs/design_handoff/FEA_Pro_Design_System-handoff.zip`
+- `docs/design_handoff/Inspector_reference.html`
+- Brief Phase 4-6 in `/mnt/user-data/outputs/`
+
+---
+
+**Prossimo passo raccomandato**: aspetta arrivo 2 file pending Claude Design
+(mobile + NumericInput) prima di lanciare brief `v2.7.0`. Quando arrivano,
+salvali nel repo + io aggiorno questo PROJECT_STATE + lancio brief v2.7.0
+quando confermi.
