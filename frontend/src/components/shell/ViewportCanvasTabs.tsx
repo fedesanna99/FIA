@@ -60,12 +60,16 @@ export function ViewportCanvasTabs({
   return (
     <div
       className={cn(
-        "flex items-center gap-3.5 px-3.5 py-2 bg-bg-panel border-b border-border",
+        // v2.6.2.2 mobile quickfix (M3):
+        // - mobile: padding e gap ridotti + overflow-x-auto come safety net
+        //   se i 5 tab uppercase non entrano in 393px
+        // - da sm in su: comportamento originale
+        "flex items-center gap-2 sm:gap-3.5 px-2 sm:px-3.5 py-1.5 sm:py-2 bg-bg-panel border-b border-border overflow-x-auto",
         className,
       )}
       data-testid="viewport-canvas-tabs"
     >
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0.5 flex-shrink-0">
         {TABS.map((t) => {
           const isActive = current === t.id;
           return (
@@ -75,7 +79,8 @@ export function ViewportCanvasTabs({
               onClick={() => setTab(t.id)}
               data-testid={`viewport-tab-${t.id}`}
               className={cn(
-                "px-2.5 py-1 font-mono text-[11px] uppercase tracking-wide-1 border transition-colors duration-fast",
+                // v2.6.2.2 mobile (M3): font 10px + padding ridotto su <sm
+                "flex-shrink-0 px-1.5 sm:px-2.5 py-1 font-mono text-[10px] sm:text-[11px] uppercase tracking-wide-1 border transition-colors duration-fast",
                 isActive
                   ? "text-accent border-accent bg-accent-subtle"
                   : "text-ink-3 border-transparent hover:text-ink",
@@ -89,7 +94,9 @@ export function ViewportCanvasTabs({
       </div>
       <div className="flex-1" />
       {(nodes !== undefined || elements !== undefined || dof !== undefined) && (
-        <div className="flex items-center gap-3.5 font-mono text-[10px] text-ink-3 tabular-nums">
+        // v2.6.2.2 mobile (M3): counters nascosti su <sm (info ridondante,
+        // già presente nel chip 2 ViewportHud "N nodi · E elem · materiale")
+        <div className="hidden sm:flex items-center gap-3.5 font-mono text-[10px] text-ink-3 tabular-nums flex-shrink-0">
           {nodes !== undefined && (
             <span>
               <b className="text-ink font-semibold">{nodes}</b> nodi
