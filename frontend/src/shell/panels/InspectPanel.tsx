@@ -25,6 +25,9 @@ import { FeatureButton } from "../../components/ui/FeatureButton";
 import type { FeatureId } from "../../lib/preconditions";
 import { PanelChrome } from "./PanelChrome";
 import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
+import { InsightPanel } from "../../components/shell/InsightPanel";
+import { GPS_FYD } from "../../lib/gpsTrust";
+import { Check, AlertTriangle, Circle } from "lucide-react";
 import { NodeDetail } from "./inspect/NodeDetail";
 import { DriftPanel } from "../../components/panels/DriftPanel";
 import { ConvergencePanel } from "../../components/panels/ConvergencePanel";
@@ -103,6 +106,9 @@ export function InspectPanel() {
         onClose={handleClose}
         testId="panel-inspect"
       >
+        {/* v2.6.4 A.3 UC3/3b/4 (c6 spec): post-statica InsightPanel
+            switching dinamico per soglia UR_max (success/warn/danger). */}
+        {staticRes && <ResultsInsightHero setTab={setTab} />}
         <PanelHub
           cards={HUB_CARDS}
           onSelect={(id) => setTab(id)}
@@ -257,6 +263,97 @@ function Empty({ msg }: { msg: string }) {
     <div className="flex flex-col items-center justify-center py-10 px-4 text-center gap-2">
       <IconChartArea size={28} className="text-ink-4" stroke={1.5} />
       <p className="text-sm text-ink-2 leading-relaxed max-w-[34ch]">{msg}</p>
+    </div>
+  );
+}
+
+
+/**
+ * v2.6.4 A.3 UC3/3b/4 (c6 spec) — Hero InsightPanel post-statica con
+ * switching dinamico per soglia UR_max:
+ *   - UR_max < 0.70  → tone="success", title "Tutti gli elementi sono in sicurezza"
+ *   - 0.70 ≤ UR < 0.95 → tone="warn",  title "{N} elementi tra UR 0.70 e 0.95"
+ *   - UR_max ≥ 0.95  → tone="danger",  title "{N} elementi superano UR 0.95"
+ *
+ * UR è derivato live da `staticRes.max_stress / GPS_FYD.s275` (allineato
+ * a VerifyChecksLive / ResultsInsightAuto / PercorsiBeamWizard step 5).
+ * Action: post-success → "Genera report"; post-warn/danger → drill-in
+ * sulla tab Statica (tab="statica") che ospita i dettagli element-by-element.
+ */
+function ResultsInsightHero({ setTab }: { setTab: (id: string) => void }) {
+  const staticRes = useResultsStore((s) => s.staticResults);
+  if (!staticRes) return null;
+
+  const sigmaMPa = staticRes.max_stress / 1e6;
+  const urS275 = sigmaMPa / GPS_FYD.s275;
+  const maxDispMm = staticRes.max_displacement * 1000;
+
+  // Soglie come da c6 spec § 5 UC3/3b/4.
+  if (urS275 >= 0.95) {
+    // UC4 — danger
+    return (
+      <div className="px-3 pt-3" data-testid="results-insight-uc4">
+        <InsightPanel
+          tone="danger"
+          eyebrow="ANALISI STATICA · ATTENZIONE"
+          title="Elementi sopra UR 0.95"
+          items={[
+            { icon: AlertTriangle, text: `Modello globale · UR ${urS275.toFixed(2)} · NTC § 4.2.4.1` },
+            { icon: Circle, text: `Spostamento max ${maxDispMm.toFixed(2)} mm` },
+            { icon: Circle, text: `Max σ = ${sigmaMPa.toFixed(1)} MPa · S275 fyd = ${GPS_FYD.s275.toFixed(0)} MPa` },
+          ]}
+          action={{
+            label: "Apri Verifiche live",
+            onClick: () => {
+              // Switching workspace verso Verifiche è cross-store. Per ora
+              // apriamo la Statica tab dentro Inspect, che ospita i dettagli.
+              setTab("statica");
+            },
+          }}
+        />
+      </div>
+    );
+  }
+
+  if (urS275 >= 0.70) {
+    // UC3b — warn intermedio
+    return (
+      <div className="px-3 pt-3" data-testid="results-insight-uc3b">
+        <InsightPanel
+          tone="warn"
+          eyebrow="ANALISI STATICA · MARGINE RIDOTTO"
+          title={`UR ${urS275.toFixed(2)} su modello globale`}
+          items={[
+            { icon: AlertTriangle, text: `Modello globale · UR ${urS275.toFixed(2)} · NTC § 4.2.4.1` },
+            { icon: Circle, text: `Spostamento max ${maxDispMm.toFixed(2)} mm` },
+            { icon: Circle, text: "Valuta verifica per stati limite di esercizio" },
+          ]}
+          action={{
+            label: "Vai a Statica",
+            onClick: () => setTab("statica"),
+          }}
+        />
+      </div>
+    );
+  }
+
+  // UC3 — success (UR < 0.70)
+  return (
+    <div className="px-3 pt-3" data-testid="results-insight-uc3">
+      <InsightPanel
+        tone="success"
+        eyebrow="ANALISI STATICA · COMPLETATA"
+        title="Tutti gli elementi sono in sicurezza"
+        items={[
+          { icon: Check, text: `UR max ${urS275.toFixed(2)} su modello globale · NTC § 4.2.4.1` },
+          { icon: Check, text: `Spostamento max ${maxDispMm.toFixed(2)} mm` },
+          { icon: Check, text: `Solver: ${staticRes.solve_time_ms.toFixed(0)} ms` },
+        ]}
+        action={{
+          label: "Genera report",
+          onClick: () => window.dispatchEvent(new Event("feapro:open-export-pdf")),
+        }}
+      />
     </div>
   );
 }
