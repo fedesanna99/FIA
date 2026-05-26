@@ -51,6 +51,8 @@ backend/static/
 frontend/e2e/artifacts-smoke-live/
 frontend/e2e/artifacts-hud-dump/
 frontend/e2e/artifacts-v2.6.2-shell-smoke/
+frontend/e2e/artifacts-mobile-hud-smoke/
+frontend/e2e/artifacts-mobile-hud-smoke-postfix/
 frontend/playwright-report-smoke-live/
 frontend/playwright-report/
 frontend/test-results/
