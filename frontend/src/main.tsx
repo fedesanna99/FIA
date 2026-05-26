@@ -8,6 +8,15 @@ import { TooltipProvider } from "./components/ui/Tooltip";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import "./index.css";
 
+if (typeof window !== "undefined") {
+  window.addEventListener("error", (event) => {
+    console.error("[global error]", event.error ?? event.message);
+  });
+  window.addEventListener("unhandledrejection", (event) => {
+    console.error("[global unhandledrejection]", event.reason);
+  });
+}
+
 const queryClient = new QueryClient({
   defaultOptions: { queries: { staleTime: 30_000, refetchOnWindowFocus: false } },
 });
