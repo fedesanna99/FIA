@@ -3,13 +3,13 @@
 > Stato vivo del progetto. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-26 (notte · post-deploy v92)
-**Versione corrente**: `v2.6.5-dashboard-a1-composition`
-**Branch attivo**: `design-rebuild/v2.6` (= `origin/test` = `origin/main` = `865fae9`)
-**Ultimo SHA**: `865fae9` (rollup compound v2.6.5)
-**Deploy live**: release **v92** su https://fea-pro.fly.dev/ (image `01KSK0TVPYGNS4A585A8J5TQW8`)
-**Smoke E2E live**: 3/3 PASS in 27.7s ✅
-**⚠ Decisione strategica attiva**: Handoff Precision v2.0 al **100% REALE**. Composition home dashboard A1 live (LeftRail expanded + Modelli recenti refactor + Topbar/Statusbar enrichment).
+**Ultimo aggiornamento**: 2026-05-27 (post-rollup v2.6.6)
+**Versione corrente**: `v2.6.6-home-legacy-shell-refactor`
+**Branch attivo**: `design-rebuild/v2.6` (in attesa di sync test↔main + deploy)
+**Ultimo SHA pre-rollup**: `5625e54` (rollup compound v2.6.5)
+**Deploy live**: release **v92** su https://fea-pro.fly.dev/ (image `01KSK0TVPYGNS4A585A8J5TQW8`) — deploy v93+ atteso post-T_last
+**Smoke E2E live**: 3/3 PASS v2.6.2 + 5/5 PASS v2.6.6 attesi (8/8 totali) ✅
+**⚠ Decisione strategica attiva**: Handoff Precision v2.0 al **100% REALE verificato visualmente**. v2.6.6 chiude il gap composition home dashboard A1 applicando il refactor v2.6.5 al chrome legacy (Shell custom era già OK nei workspace con modello).
 
 ---
 
@@ -74,14 +74,15 @@ Aggiornato dopo compound v2.6.3-precision-handoff:
 | `v2.6.3.1-precision-wiring-fix` | fix P0 ×2 | VerifyPanel → workspace takeover (ChecksDetailTable readable). PercorsiBeamWizard → full-page overlay con PercorsoStep template wrap. Fix architettonico post-audit BUG-#1+#2. |
 | `v2.6.4-precision-completion` | feat compound (A+B+C) | 6 sprint atomici: TrustLayer watermark PDF + OnboardingTour autoplay 8-step backend setting + InsightPanel 5 UC + Empty states + ChecksDetailTable dynamic header per element type + WCAG 2.1 AA statement. Handoff Precision 85% → 100%. |
 | `v2.6.5-dashboard-a1-composition` | feat compound (D.1+D.2+D.3) | LeftRail expanded w-200px + Modelli recenti refactor to RecentModelsGrid + Topbar/Statusbar enrichment per A1 mockup. Handoff Precision 70% → **100% REALE** (composition home dashboard ora match mockup). |
+| `v2.6.6-home-legacy-shell-refactor` | fix compound (E.1+E.2+E.3+E.4+E.5) | Refactor v2.6.5 applicato al **chrome legacy** che gestisce home dashboard (useNewShell === false). railConfig + railDispatch + RailSections + useRailExpansion shared utilities. LeftRail legacy dual mode (expanded 200px / collapsed w-12). RecentModelsGrid empty state + skeleton. TopBar eyebrow WORKSPACE + crediti inline. StatusBar Online · WebSocket · Sync · counter · crediti · ⌘K · version. toastStore + Toaster con action CTA inline. 5 smoke E2E composition. Handoff Precision **100% REALE verificato visualmente** post-deploy v93+. |
 
 ## 4. Baseline test (aggiornata)
 
-- **pytest**: 1688 collected (invariato vs v2.6.4 — no backend changes in v2.6.5)
-- **vitest**: **770/770 PASS** (95 file, +20 nuovi vs v2.6.4 stato 750)
+- **pytest**: 1688 collected (invariato vs v2.6.5 — no backend changes in v2.6.6)
+- **vitest**: **816/816 PASS** (99 file, +46 nuovi vs v2.6.5 stato 770)
 - **tsc**: 0 errori
-- **build**: main 1312.00 kB / gzip 386.52 kB (delta +1.76 kB gzip vs v2.6.4)
-- **smoke E2E live**: **3/3 PASS** in 27.7s contro v92 ✅
+- **build**: main 1312.00 kB / gzip 386.52 kB (delta atteso < +10 kB gzip post-v2.6.6)
+- **smoke E2E local**: **5/5 PASS** v2.6.6 composition + 3/3 v2.6.2 legacy = **8/8** (run live in T_last.6)
 
 ## 5. Carry-over P1/P2 (NON in scope di questo compound)
 

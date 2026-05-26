@@ -8,4 +8,4 @@
 export const APP_VERSION = "v2.6";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v2.6.5-dashboard-a1-composition";
+export const APP_TAG = "v2.6.6-home-legacy-shell-refactor";
