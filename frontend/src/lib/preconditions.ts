@@ -40,7 +40,12 @@ export type FeatureId =
   | "inspect-node"
   | "inspect-element"
   | "undo"
-  | "redo";
+  | "redo"
+  // v2.5.7 cluster A (BUG-014+015): toggle View overlay viewport
+  | "view-deformed"
+  | "view-stress-colormap"
+  | "view-isosurfaces"
+  | "view-mode-shapes";
 
 export interface FeatureConfig {
   requires: PreconditionId[];
@@ -124,6 +129,34 @@ export const FEATURE_PRECONDITIONS: Record<FeatureId, FeatureConfig> = {
     disabledLabel: "Nessuna modifica da ripetere",
     disabledAction: null,
     disabledActionLabel: null,
+  },
+  // v2.5.7 cluster A (BUG-014+015): preconditions per i toggle View overlay.
+  // Senza queste guard, il toggle è attivabile ma il viewport non renderizza
+  // (i guard sono in Viewport3D.tsx: {showDeformed && staticResults && ...}),
+  // dando la percezione "View attivata invisibile" (BUG-014).
+  "view-deformed": {
+    requires: ["static-results-exist"],
+    disabledLabel: "Esegui l'analisi statica per visualizzare la deformata",
+    disabledAction: "run-static",
+    disabledActionLabel: "Esegui analisi statica",
+  },
+  "view-stress-colormap": {
+    requires: ["static-results-exist"],
+    disabledLabel: "Esegui l'analisi statica per visualizzare le tensioni",
+    disabledAction: "run-static",
+    disabledActionLabel: "Esegui analisi statica",
+  },
+  "view-isosurfaces": {
+    requires: ["static-results-exist"],
+    disabledLabel: "Esegui l'analisi statica per le iso-superfici 3D di Von Mises",
+    disabledAction: "run-static",
+    disabledActionLabel: "Esegui analisi statica",
+  },
+  "view-mode-shapes": {
+    requires: ["modal-results-exist"],
+    disabledLabel: "Esegui l'analisi modale per visualizzare i modi propri",
+    disabledAction: "run-modal",
+    disabledActionLabel: "Esegui analisi modale",
   },
 };
 

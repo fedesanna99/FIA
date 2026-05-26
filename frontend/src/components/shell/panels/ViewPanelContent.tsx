@@ -4,25 +4,60 @@
  * Toggle layer-visibility nel viewport. In alpha.20 sostituira' la parte
  * "View options" del Results workspace. Per ora pesca direttamente dai
  * resultsStore / uiStore esistenti.
+ *
+ * v2.5.7 cluster A (BUG-014+015): ogni toggle è ora wrappato con preconditions
+ * dal registry `lib/preconditions.ts`. Toggle disabilitato + tooltip italiano
+ * quando i risultati richiesti mancano. Click su disabled propone azione
+ * (es. "Esegui analisi statica") tramite useRunAnalysis.
  */
 import { useResultsStore } from "../../../store/resultsStore";
+import { useAnalysisStore } from "../../../store/analysisStore";
+import { useRunAnalysis } from "../../../hooks/useAnalysis";
+import { useFeaturePreconditionState } from "../../../hooks/usePreconditions";
+import { checkFeature, type FeatureId } from "../../../lib/preconditions";
+import { Tooltip } from "../../ui/Tooltip";
 
 
+/**
+ * v2.5.7: Toggle ora supporta `disabled` + `tooltip`. Il wrapper esterno
+ * è un `<label>` per accessibilità; quando disabled, il click sul label NON
+ * triggera l'onChange dell'input, ma triggera onDisabledClick se fornito
+ * (pattern propose-action coerente con FeatureButton).
+ */
 function Toggle({
   label, description, checked, onChange, testId,
+  disabled = false, tooltip, onDisabledClick,
 }: {
   label: string;
   description?: string;
   checked: boolean;
   onChange: () => void;
   testId?: string;
+  disabled?: boolean;
+  tooltip?: React.ReactNode;
+  onDisabledClick?: () => void;
 }) {
-  return (
-    <label className="flex items-start gap-2 py-1.5 cursor-pointer hover:bg-bg-hover rounded px-1.5 -mx-1.5">
+  const handleClick: React.MouseEventHandler<HTMLLabelElement> = (e) => {
+    if (disabled) {
+      e.preventDefault();
+      if (onDisabledClick) onDisabledClick();
+    }
+  };
+  const labelEl = (
+    <label
+      className={`flex items-start gap-2 py-1.5 rounded px-1.5 -mx-1.5 ${
+        disabled
+          ? "cursor-not-allowed opacity-50"
+          : "cursor-pointer hover:bg-bg-hover"
+      }`}
+      onClick={handleClick}
+      data-feature-available={!disabled}
+    >
       <input
         type="checkbox"
-        checked={checked}
-        onChange={onChange}
+        checked={checked && !disabled}
+        onChange={disabled ? undefined : onChange}
+        disabled={disabled}
         data-testid={testId}
         className="mt-0.5 accent-accent"
       />
@@ -32,6 +67,8 @@ function Toggle({
       </div>
     </label>
   );
+  if (!tooltip) return labelEl;
+  return <Tooltip content={tooltip}>{labelEl}</Tooltip>;
 }
 
 
@@ -45,6 +82,38 @@ export function ViewPanelContent() {
   const deformedScale = useResultsStore((s) => s.deformedScale);
   const setDeformedScale = useResultsStore((s) => s.setDeformedScale);
 
+  // v2.5.7 cluster A: check delle precondizioni per ogni toggle View.
+  const state = useFeaturePreconditionState();
+  const setAnalysisType = useAnalysisStore((s) => s.setAnalysisType);
+  const runAnalysis = useRunAnalysis();
+
+  function buildToggleProps(featureId: FeatureId): {
+    disabled: boolean;
+    tooltip: React.ReactNode | undefined;
+    onDisabledClick: (() => void) | undefined;
+  } {
+    const av = checkFeature(featureId, state);
+    if (av.available) return { disabled: false, tooltip: undefined, onDisabledClick: undefined };
+    const tooltip = (
+      <div className="space-y-1">
+        <p>{av.disabledLabel}</p>
+        {av.disabledActionLabel && (
+          <p className="text-[10px] opacity-70">Click per: {av.disabledActionLabel}</p>
+        )}
+      </div>
+    );
+    const onDisabledClick = av.disabledAction === "run-static"
+      ? () => { setAnalysisType("static"); runAnalysis(); }
+      : av.disabledAction === "run-modal"
+      ? () => { setAnalysisType("modal"); runAnalysis(); }
+      : undefined;
+    return { disabled: true, tooltip, onDisabledClick };
+  }
+
+  const deformedGuard = buildToggleProps("view-deformed");
+  const stressGuard = buildToggleProps("view-stress-colormap");
+  const isoGuard = buildToggleProps("view-isosurfaces");
+
   return (
     <div className="space-y-4">
       <section>
@@ -57,6 +126,7 @@ export function ViewPanelContent() {
           checked={showDeformed}
           onChange={toggleDeformed}
           testId="view-toggle-deformed"
+          {...deformedGuard}
         />
         <Toggle
           label="Colormap stress"
@@ -64,6 +134,7 @@ export function ViewPanelContent() {
           checked={showStressColormap}
           onChange={toggleStress}
           testId="view-toggle-stress"
+          {...stressGuard}
         />
         <Toggle
           label="Iso-superfici 3D"
@@ -71,6 +142,7 @@ export function ViewPanelContent() {
           checked={showIso}
           onChange={toggleIso}
           testId="view-toggle-iso"
+          {...isoGuard}
         />
       </section>
 
