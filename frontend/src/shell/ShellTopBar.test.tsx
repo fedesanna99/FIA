@@ -45,6 +45,14 @@ describe("ShellTopBar", () => {
     renderWithQc(<ShellTopBar />);
     expect(screen.getByText("Preliminary")).toBeInTheDocument();
   });
+
+  // v2.6.5 D.3: brand eyebrow "WORKSPACE" mockup A1
+  it("renders WORKSPACE eyebrow before brand mark", () => {
+    renderWithQc(<ShellTopBar />);
+    const eyebrow = screen.getByTestId("topbar-eyebrow");
+    expect(eyebrow).toBeInTheDocument();
+    expect(eyebrow.textContent).toBe("WORKSPACE");
+  });
 });
 
 describe("modelShortId (v2.6.2.1 F3)", () => {

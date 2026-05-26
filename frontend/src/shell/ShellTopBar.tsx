@@ -72,8 +72,9 @@ export function ShellTopBar() {
 
   return (
     <header className="shell-topbar" data-shell="topbar">
-      {/* Brand block */}
+      {/* Brand block — v2.6.5 D.3: aggiunto eyebrow WORKSPACE mockup A1 */}
       <div className="tb-brand">
+        <span className="tb-brand-eyebrow" data-testid="topbar-eyebrow">WORKSPACE</span>
         <div className="tb-mark">F</div>
         <span className="tb-brand-name">FEA Pro</span>
         <span className="tb-tier">FREE</span>
