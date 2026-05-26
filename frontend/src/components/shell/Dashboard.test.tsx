@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 
@@ -16,6 +16,30 @@ vi.mock("../../api/billing", () => ({
     bonus_credits: 0,
   }),
 }));
+
+// v2.6.5 D.2: la sezione "Modelli recenti" ora vive in RecentModelsGrid
+// con useRecentModels (TanStack Query fetch /api/models/). Mock il modulo
+// API client per ritornare il `model` mock invece di fare richieste reali.
+vi.mock("../../api/client", async () => {
+  const actual = await vi.importActual<Record<string, unknown>>("../../api/client");
+  return {
+    ...actual,
+    modelsApi: {
+      list: vi.fn().mockResolvedValue([
+        {
+          id: "m1",
+          name: "Telaio test",
+          units: "SI",
+          is_3d: true,
+          nodes: [{ id: "n1", x: 0, y: 0, z: 0 }],
+          elements: [],
+          loads: [],
+          constraints: [],
+        },
+      ]),
+    },
+  };
+});
 
 function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({
@@ -76,12 +100,17 @@ describe("Dashboard offline/database state", () => {
     ).toBeInTheDocument();
   });
 
-  it("mantiene le action abilitate quando i modelli sono disponibili", () => {
+  it("mantiene le action abilitate quando i modelli sono disponibili", async () => {
     const onSelect = vi.fn();
     render(<Dashboard models={[model]} onSelect={onSelect} />, { wrapper });
 
     expect(screen.queryByText("Backend/database non disponibile.")).not.toBeInTheDocument();
     expect(screen.getByTestId("dashboard-action-new")).not.toBeDisabled();
+    // v2.6.5 D.2: la sezione "Modelli recenti" è ora async (TanStack Query
+    // su useRecentModels). Aspetta che la card "Telaio test" si renderizzi.
+    await waitFor(() => {
+      expect(screen.getByText("Telaio test")).toBeInTheDocument();
+    });
     fireEvent.click(screen.getByText("Telaio test"));
     expect(onSelect).toHaveBeenCalledWith("m1");
   });

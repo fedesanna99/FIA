@@ -23,6 +23,9 @@ import type { FEAModel } from "../../types/model";
 import { getQuota } from "../../api/billing";
 import { useAuthStore } from "../../store/authStore";
 import { useAnalysisStore } from "../../store/analysisStore";
+// v2.6.5 D.2: sezione "Modelli recenti" estratta in componente dedicato
+// (separation of concerns + RecentModelCard riusabile).
+import { RecentModelsGrid } from "../dashboard/RecentModelsGrid";
 
 interface Props {
   models: FEAModel[];
@@ -60,9 +63,10 @@ export function Dashboard({
   const tier = quota?.tier ?? "free";
   const nJobs = isRunning ? 1 : 0;
 
-  // Separazione user models / examples (id "ex_*")
+  // Separazione user models / examples (id "ex_*"). v2.6.5 D.2:
+  // `recentModels` non più calcolato qui — la sezione "Modelli recenti"
+  // è in <RecentModelsGrid /> che usa useRecentModels() hook dedicato.
   const userModels = models.filter((m) => !m.id.startsWith("ex_"));
-  const recentModels = userModels.slice(0, 4);
 
   // Get Started checklist (heuristic basata su stato modello)
   const hasModel = userModels.length > 0;
@@ -276,28 +280,10 @@ export function Dashboard({
             </div>
           </section>
 
-          {/* Modelli recenti (cards con thumb) */}
-          {recentModels.length > 0 && (
-            <section data-testid="dashboard-recent-projects">
-              <div className="flex items-baseline justify-between mb-3">
-                <h2 className="font-display text-xl font-semibold tracking-tight-1 text-ink">
-                  Modelli recenti
-                </h2>
-                <button
-                  type="button"
-                  onClick={() => window.dispatchEvent(new Event("feapro:open-models-list"))}
-                  className="font-mono text-[11px] text-ink-3 hover:text-accent"
-                >
-                  Vedi tutti →
-                </button>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3" data-stagger>
-                {recentModels.map((m) => (
-                  <ProjCard key={m.id} model={m} onSelect={onSelect} />
-                ))}
-              </div>
-            </section>
-          )}
+          {/* v2.6.5 D.2: sezione "Modelli recenti" refactor da inline a
+              componente dedicato `<RecentModelsGrid>` (mockup A1).
+              Auto-hide quando 0 modelli utente (no empty state). */}
+          <RecentModelsGrid onSelect={onSelect} />
 
           {/* Dropzone */}
           <div
@@ -515,72 +501,7 @@ function ChecklistItem({
   );
 }
 
-function ProjCard({ model, onSelect }: { model: FEAModel; onSelect: (id: string) => void }) {
-  const nNodes = model.nodes?.length ?? 0;
-  const nEls = model.elements?.length ?? 0;
-  const status = nNodes === 0 ? "draft" : "ok";
-  const statusLabel = status === "draft" ? "DRAFT" : "OK";
-  const statusCls =
-    status === "draft"
-      ? "text-warn border-warn"
-      : "text-success border-success";
-
-  return (
-    <button
-      type="button"
-      onClick={() => onSelect(model.id)}
-      data-testid={`proj-card-${model.id}`}
-      className="bg-bg-panel border border-border flex flex-col cursor-pointer hover:border-accent transition-colors duration-fast text-left"
-    >
-      <div className="h-[110px] bg-bg-viewport border-b border-border relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-70"
-          style={{
-            backgroundImage:
-              "linear-gradient(rgba(0,0,0,.06) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,.06) 1px, transparent 1px)",
-            backgroundSize: "12px 12px",
-          }}
-        />
-        <svg
-          className="absolute inset-0 w-full h-full"
-          viewBox="0 0 200 110"
-          preserveAspectRatio="xMidYMid meet"
-        >
-          {/* Schema deterministico: 2D rect frame se !is_3d, 3D box altrimenti */}
-          {model.is_3d ? (
-            <g stroke="currentColor" strokeWidth="1.5" fill="none" className="text-ink-2">
-              <rect x="40" y="25" width="120" height="60" />
-              <line x1="40" y1="25" x2="60" y2="15" />
-              <line x1="160" y1="25" x2="180" y2="15" />
-              <line x1="40" y1="85" x2="60" y2="75" />
-              <line x1="160" y1="85" x2="180" y2="75" />
-              <rect x="60" y="15" width="120" height="60" />
-            </g>
-          ) : (
-            <g stroke="currentColor" strokeWidth="1.5" fill="none" className="text-ink-2">
-              <line x1="30" y1="90" x2="30" y2="30" />
-              <line x1="170" y1="90" x2="170" y2="30" />
-              <line x1="30" y1="30" x2="170" y2="30" />
-              <line x1="30" y1="90" x2="170" y2="90" />
-            </g>
-          )}
-        </svg>
-      </div>
-      <div className="px-3 py-2.5 grid items-center gap-2" style={{ gridTemplateColumns: "1fr auto" }}>
-        <div className="min-w-0">
-          <div className="text-base font-medium text-ink truncate" title={model.name}>
-            {model.name}
-          </div>
-          <div className="font-mono text-[10px] text-ink-3 tracking-wide-1 truncate">
-            {nNodes} N · {nEls} EL
-          </div>
-        </div>
-        <span
-          className={`font-mono text-[9px] uppercase tracking-wide-2 px-1.5 py-0.5 border ${statusCls} flex-shrink-0`}
-        >
-          {statusLabel}
-        </span>
-      </div>
-    </button>
-  );
-}
+// v2.6.5 D.2: ProjCard inline rimosso — sezione "Modelli recenti" usa
+// ora `<RecentModelCard>` (frontend/src/components/dashboard/) con
+// implementazione separata + thumbnail SVG placeholder con varianti
+// 2D/3D + status badge in linea col mockup A1.
