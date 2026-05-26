@@ -530,15 +530,12 @@ export default function App() {
           legacy con TopBar/MissionBar/LeftRail/StatusBar. */}
       {useNewShell ? (
         <Shell>
-          {/* Canvas R3F + ViewportCanvasTabs ospitati dalla nuova Shell */}
-          <div className="absolute top-0 left-0 right-0 z-10">
-            <ViewportCanvasTabs
-              nodes={(models ?? []).find((m) => m.id === activeId)?.nodes?.length}
-              elements={(models ?? []).find((m) => m.id === activeId)?.elements?.length}
-            />
-          </div>
-          <div className="absolute inset-0 pt-[36px]">
-            <Viewport3D />
+          {/* v2.6.2.1 F1: ViewportCanvasTabs legacy rimosso (i 5 tab
+              "Modello/Carichi/Mesh/Risultati/Checks" sono ora nella
+              ShellPanel come Radix Tabs). Viewport3D in modalità
+              suppressHud per evitare i chip ViewportHud legacy. */}
+          <div className="absolute inset-0">
+            <Viewport3D suppressHud />
           </div>
           <DropZone onImported={(id) => setActiveId(id)} />
           <SolverOverlay />

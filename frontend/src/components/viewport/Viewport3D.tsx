@@ -31,7 +31,18 @@ import { ScaleIndicator } from "./ScaleIndicator";
 import { CameraTracker } from "./CameraTracker";
 import { EmptyModelOverlay } from "./EmptyModelOverlay";
 
-export function Viewport3D() {
+interface Viewport3DProps {
+  /**
+   * v2.6.2.1 polish F1: quando true, sopprime `<ViewportHud />` legacy
+   * (chip floating "Telaio portale" / "N nodi" / "Tecnica · Solido"). La
+   * nuova Shell ha già le info in TopBar/StatusBar/HUD floating dedicati,
+   * quindi i chip vecchi sono ridondanti e creano visual overlap.
+   * Default false per preservare chrome legacy.
+   */
+  suppressHud?: boolean;
+}
+
+export function Viewport3D({ suppressHud = false }: Viewport3DProps = {}) {
   const model = useModelStore((s) => s.model);
   const { showGrid, viewportMode, projection, useViewportEngine } = useAnalysisStore();
   const { staticResults, modalResults, dynamicResults, showDeformed, showStressColormap } = useResultsStore();
@@ -166,7 +177,8 @@ export function Viewport3D() {
         </div>
       )}
 
-      <ViewportHud />
+      {/* v2.6.2.1 F1: legacy chip HUD soppresso in codepath nuova Shell */}
+      {!suppressHud && <ViewportHud />}
       <EmptyModelOverlay />
       <ScaleIndicator />
       <DynamicTimelineHUD />
