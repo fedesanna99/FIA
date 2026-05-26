@@ -49,6 +49,7 @@ backend/static/
 
 # Playwright smoke E2E artifacts (v2.5.0-paolo-ready validation)
 frontend/e2e/artifacts-smoke-live/
+frontend/e2e/artifacts-hud-dump/
 frontend/playwright-report-smoke-live/
 frontend/playwright-report/
 frontend/test-results/
