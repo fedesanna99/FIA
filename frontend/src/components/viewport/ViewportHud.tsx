@@ -45,20 +45,33 @@ export function ViewportHud() {
   // v1.7-polish T3: ora `materials?` esiste in FEAModel — cast unsafe rimosso.
   const material = model.materials?.[0]?.name ?? "—";
 
+  // v2.6.2.2 mobile quickfix (M1+M2):
+  // - Mobile <sm: stack verticale, padding ridotto (top/left/right-2),
+  //   chip full-width con truncate
+  // - Da sm in su: comportamento originale (flex-row flex-wrap)
+  // - Su <sm i chip 3 (preset) e 4 (Engine) sono nascosti: accessibili
+  //   dalla RightRail View tab via MobileMoreMenu (mantiene info domain
+  //   critical "5 nodi · 4 elem · materiale" SEMPRE visibile in chip 2)
   return (
-    <div className="absolute top-3.5 left-3.5 right-3.5 z-toolbar flex flex-wrap items-start gap-2 pointer-events-none">
-      <Chip icon={<Box className="w-3 h-3" />} className="max-w-[220px]" title={model.name}>
-        {model.name}
+    <div className="absolute top-2 left-2 right-2 sm:top-3.5 sm:left-3.5 sm:right-3.5 z-toolbar flex flex-col sm:flex-row sm:flex-wrap items-stretch sm:items-start gap-1.5 sm:gap-2 pointer-events-none">
+      <Chip
+        icon={<Box className="w-3 h-3 flex-shrink-0" />}
+        className="max-w-full sm:max-w-[220px] min-w-0"
+        title={model.name}
+      >
+        <span className="truncate">{model.name}</span>
       </Chip>
       <Chip
-        icon={<Layers className="w-3 h-3" />}
-        className="max-w-[260px]"
+        icon={<Layers className="w-3 h-3 flex-shrink-0" />}
+        className="max-w-full sm:max-w-[260px] min-w-0"
         title={`${nNodes} nodi · ${nElems} elem · ${material}`}
       >
-        {nNodes} nodi · {nElems} elem · {material}
+        <span className="truncate">
+          {nNodes} nodi · {nElems} elem · {material}
+        </span>
       </Chip>
       <button
-        className="pointer-events-auto max-w-[220px] min-w-0 bg-bg-panel border border-border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] text-ink-2 hover:text-ink hover:bg-bg-hover shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
+        className="hidden sm:flex pointer-events-auto max-w-[220px] min-w-0 bg-bg-panel border border-border px-2.5 py-1.5 items-center gap-1.5 text-[11px] text-ink-2 hover:text-ink hover:bg-bg-hover shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60"
         onClick={() => window.dispatchEvent(new CustomEvent("feapro:open-view-panel"))}
         title="Apri cockpit View"
         data-testid="viewport-hud-open-view"
@@ -69,7 +82,7 @@ export function ViewportHud() {
         </span>
       </button>
       <button
-        className={`pointer-events-auto flex-shrink-0 bg-bg-panel border px-2.5 py-1.5 flex items-center gap-1.5 text-[11px] shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
+        className={`hidden sm:flex pointer-events-auto flex-shrink-0 bg-bg-panel border px-2.5 py-1.5 items-center gap-1.5 text-[11px] shadow-pop font-mono transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/60 ${
           useViewportEngine
             ? "border-accent text-accent"
             : "border-border text-ink-2 hover:text-ink hover:bg-bg-hover"
