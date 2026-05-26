@@ -46,7 +46,11 @@ import { RightRail } from "./components/shell/RightRail";
 import { RightSlidePanel } from "./components/shell/RightSlidePanel";
 import { CommandPalette } from "./components/shell/CommandPalette";
 import { HelpSheet } from "./components/shell/HelpSheet";
-import { OnboardingTour } from "./components/shell/OnboardingTour";
+// v2.6.4 A.2: legacy OnboardingTour welcome-modal sostituito dal nuovo
+// spotlight tour in `components/onboarding/OnboardingTour.tsx` (import sotto).
+// Il file legacy resta nel codebase come carry-over per eventuale ripristino,
+// ma NON è più montato.
+// import { OnboardingTour as LegacyOnboardingTour } from "./components/shell/OnboardingTour";
 import { ClimateContextBadge } from "./components/shell/ClimateContextBadge";
 import { StatusBar } from "./components/layout/StatusBar";
 // Toaster mounted at root in main.tsx (così resta visibile durante AuthScreen).
@@ -54,6 +58,8 @@ import { Viewport3D } from "./components/viewport/Viewport3D";
 import { DropZone } from "./components/viewport/DropZone";
 import { LoadingScreen, type SolverPhase } from "./components/shell/LoadingScreen";
 import { Dashboard } from "./components/shell/Dashboard";
+// v2.6.4 A.2: OnboardingTour autoplay primo login + spotlight clip-path tour
+import { OnboardingTour } from "./components/onboarding/OnboardingTour";
 import { HelpDialog } from "./components/dialogs/HelpDialog";
 import { NodeDialog } from "./components/dialogs/NodeDialog";
 import { ElementDialog } from "./components/dialogs/ElementDialog";
@@ -654,7 +660,9 @@ export default function App() {
         </>
       )}
       <HelpSheet />
-      <OnboardingTour disabled={!activeId || modelsQuery.isError || modelsQuery.isFetching} />
+      {/* v2.6.4 A.2: legacy welcome-modal disabilitato. Il nuovo spotlight
+          tour è montato in fondo a App (riga ~753) e si attiva via
+          `user.onboarding_completed` backend gating. */}
       <ClimateContextBadge />
       <HelpDialog open={openDialog === "help"} onClose={() => setDialog(null)} />
       {/* Dialog globali entity-CRUD (alpha.31 hotfix): prima erano in EditorBar
@@ -747,6 +755,8 @@ export default function App() {
         {/* v2.0 Precision PR16 T2: A2 Modelli browser full-screen overlay. */}
         <ModelliBrowser />
       </Suspense>
+      {/* v2.6.4 A.2: OnboardingTour autoplay primo login + replay via Help menu */}
+      <OnboardingTour />
     </div>
   );
 }

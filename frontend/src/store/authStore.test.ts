@@ -14,6 +14,7 @@ const mockUser = {
   email: "test@example.com",
   created_at: 1779000000,
   last_login_at: null,
+  onboarding_completed: false,
 };
 
 

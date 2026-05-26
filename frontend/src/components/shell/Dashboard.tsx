@@ -78,7 +78,7 @@ export function Dashboard({
         {/* ── COLONNA SINISTRA: content ────────────────────────────── */}
         <div className="flex flex-col gap-8 min-w-0">
           {/* Hero */}
-          <section className="flex flex-col gap-4 animate-fade-in" data-testid="dashboard-hero">
+          <section className="dashboard-hero flex flex-col gap-4 animate-fade-in" data-testid="dashboard-hero">
             <span
               className="inline-flex self-start items-center gap-2 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide-4 font-semibold text-ink-3 border border-border bg-bg-panel"
               data-testid="dashboard-hero-eyebrow"
@@ -131,8 +131,9 @@ export function Dashboard({
           >
             {/* Studio Pro */}
             <div
-              className="relative bg-bg-panel border border-border p-[22px] pt-[22px] flex flex-col gap-3 min-h-[200px] hover:border-ink-3 transition-colors duration-fast"
+              className="dashboard-card relative bg-bg-panel border border-border p-[22px] pt-[22px] flex flex-col gap-3 min-h-[200px] hover:border-ink-3 transition-colors duration-fast"
               data-testid="home-hub-studio-pro"
+              data-path="studio-pro"
             >
               <span className="absolute top-0 left-0 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide-2 font-semibold bg-accent text-white">
                 / Studio Pro
@@ -174,8 +175,9 @@ export function Dashboard({
 
             {/* Percorsi */}
             <div
-              className="relative bg-bg-panel border border-border p-[22px] pt-[22px] flex flex-col gap-3 min-h-[200px] hover:border-ink-3 transition-colors duration-fast"
+              className="dashboard-card relative bg-bg-panel border border-border p-[22px] pt-[22px] flex flex-col gap-3 min-h-[200px] hover:border-ink-3 transition-colors duration-fast"
               data-testid="home-hub-percorsi"
+              data-path="percorsi"
             >
               <span className="absolute top-0 left-0 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide-2 font-semibold bg-ink text-white">
                 / Percorsi

@@ -68,6 +68,7 @@ export function ShellRail({ active = "modello", onChange }: ShellRailProps) {
             aria-label={ws.label}
             aria-current={isActive ? "page" : undefined}
             data-testid={`rail-${ws.id}`}
+            data-ws={ws.id}
           >
             <Icon size={20} />
             <span className="rail-kbd">{ws.kbd}</span>

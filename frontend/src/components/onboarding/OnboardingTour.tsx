@@ -30,11 +30,9 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
-// Replace these two imports with the real implementations in your codebase:
-//   import { useUser } from "@/lib/auth";
-//   import { useMarkOnboardingComplete } from "@/lib/onboarding";
-// Stubs (see bottom of file) keep this file standalone-buildable for review.
-import { useUser, useMarkOnboardingComplete } from "./_onboarding-hooks.stub";
+// v2.6.4 A.2: hooks reali wired (vedi `frontend/src/lib/onboarding.ts`).
+// Lo stub `_onboarding-hooks.stub.ts` è stato rimosso a wiring completato.
+import { useUser, useMarkOnboardingComplete } from "../../lib/onboarding";
 
 // ─── Types ──────────────────────────────────────────────────────────────
 
@@ -107,12 +105,17 @@ const TOUR_STEPS: TourStep[] = [
     placement: "right",
   },
   {
+    // v2.6.4 A.2: il selettore ufficiale handoff era
+    // `[data-tools-card="export-server"]` ma il ToolsHub usa PanelHub
+    // (PanelHubNav) che renderizza testid `hub-card-server-export` SOLO
+    // quando l'utente è già nel workspace I/O. Per garantire che lo step
+    // sia sempre raggiungibile, puntiamo direttamente al rail icon I/O.
     id: "export",
-    selector: '[data-tools-card="export-server"]',
+    selector: '.shell-rail [data-ws="io"]',
     title: "Esporta il report",
     body:
       "PDF reportlab, XLSX multi-sheet, DXF, IFC4. Pronto per consegna al committente o per allegato CILA/SCIA.",
-    placement: "top",
+    placement: "right",
   },
   {
     id: "palette",

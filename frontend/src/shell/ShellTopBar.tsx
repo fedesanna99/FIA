@@ -13,7 +13,7 @@
 // Classi CSS da `frontend/src/styles/shell.css` (.shell-topbar, .tb-*).
 
 import { useState } from "react";
-import { Play, Check, Undo2, Redo2, Bell, ChevronDown } from "lucide-react";
+import { Play, Check, Undo2, Redo2, Bell, ChevronDown, HelpCircle } from "lucide-react";
 import { useRunAnalysis } from "../hooks/useAnalysis";
 import { useAnalysisStore } from "../store/analysisStore";
 import { useModelStore } from "../store/modelStore";
@@ -21,6 +21,8 @@ import { useModelHistory } from "../store/historyStore";
 import { useWorkspaceStore } from "../store/workspaceStore";
 import { useNotificationsStore } from "../store/notificationsStore";
 import { APP_VERSION } from "../lib/version";
+// v2.6.4 A.2: "Rivedi tour onboarding" replay
+import { useResetOnboarding, startOnboardingTour } from "../lib/onboarding";
 
 function formatSavedAt(d: Date | null): string {
   if (!d) return "—";
@@ -171,6 +173,9 @@ export function ShellTopBar() {
         <Redo2 size={15} />
       </button>
 
+      {/* v2.6.4 A.2: Help (rivedi tour onboarding) */}
+      <HelpButton />
+
       {/* Notifications */}
       <div className="tb-iconbtn-wrap">
         <button type="button" className="tb-iconbtn" aria-label="Notifiche">
@@ -184,5 +189,42 @@ export function ShellTopBar() {
         FS
       </button>
     </header>
+  );
+}
+
+
+/**
+ * v2.6.4 A.2: button "?" che riavvia il tour onboarding.
+ *
+ * UX: click → PATCH /api/auth/onboarding {completed:false} → dispatch
+ * `feapro:tour:start` event → OnboardingTour si apre dallo step 1.
+ */
+function HelpButton() {
+  const resetOnboarding = useResetOnboarding();
+  const [busy, setBusy] = useState(false);
+
+  async function handleClick() {
+    if (busy) return;
+    setBusy(true);
+    try {
+      await resetOnboarding();
+      startOnboardingTour();
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      className="tb-iconbtn"
+      onClick={handleClick}
+      disabled={busy}
+      aria-label="Rivedi tour onboarding"
+      title="Rivedi tour onboarding"
+      data-testid="topbar-help-tour"
+    >
+      <HelpCircle size={15} />
+    </button>
   );
 }

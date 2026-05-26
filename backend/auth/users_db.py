@@ -36,6 +36,11 @@ class User:
     password_hash: str
     created_at: int
     last_login_at: Optional[int] = None
+    # v2.6.4 A.2: gate per autoplay del tour onboarding al primo login.
+    # Default False; PATCH /api/auth/onboarding lo setta a True quando l'utente
+    # chiude il tour (`[Salta]`, `[Fine]`, ESC, click backdrop). "Rivedi tour"
+    # dal menu Help lo riporta a False.
+    onboarding_completed: bool = False
 
     def to_public_dict(self) -> dict:
         """Senza password_hash, per response API."""
@@ -44,6 +49,7 @@ class User:
             "email": self.email,
             "created_at": self.created_at,
             "last_login_at": self.last_login_at,
+            "onboarding_completed": self.onboarding_completed,
         }
 
 
@@ -91,6 +97,20 @@ class UsersDB:
             conn.execute(
                 "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)"
             )
+            # v2.6.4 A.2: migration idempotente del campo onboarding_completed.
+            # SQLite supporta ALTER TABLE ADD COLUMN solo se la colonna NON
+            # esiste già; il check via pragma_table_info evita l'errore su DB
+            # già migrati. Default 0 (false) — gli utenti pre-esistenti
+            # vedranno il tour autoplay al loro prossimo login.
+            cols = {
+                row["name"]
+                for row in conn.execute("PRAGMA table_info(users)").fetchall()
+            }
+            if "onboarding_completed" not in cols:
+                conn.execute(
+                    "ALTER TABLE users ADD COLUMN "
+                    "onboarding_completed INTEGER NOT NULL DEFAULT 0"
+                )
 
     def register(self, email: str, password_hash: str) -> User:
         """Insert nuovo user. Solleva UserAlreadyExistsError su UNIQUE conflict."""
@@ -144,6 +164,27 @@ class UsersDB:
                 (ts, user_id),
             )
 
+    def set_onboarding_completed(self, user_id: str, completed: bool) -> User:
+        """v2.6.4 A.2: setta lo stato onboarding_completed dell'utente.
+
+        Usato da:
+          - PATCH /api/auth/onboarding {completed: true} → tour terminato/skippato
+          - "Rivedi tour" dal menu Help → completed=False (replay)
+
+        Solleva UserNotFoundError se user_id non esiste.
+        """
+        with self._connect() as conn:
+            cur = conn.execute(
+                "UPDATE users SET onboarding_completed = ? WHERE id = ?",
+                (1 if completed else 0, user_id),
+            )
+            if cur.rowcount == 0:
+                raise UserNotFoundError(f"no user with id {user_id}")
+            row = conn.execute(
+                "SELECT * FROM users WHERE id = ?", (user_id,)
+            ).fetchone()
+        return _row_to_user(row)
+
     def count(self) -> int:
         with self._connect() as conn:
             return conn.execute("SELECT COUNT(*) FROM users").fetchone()[0]
@@ -160,11 +201,19 @@ class UsersDB:
 
 
 def _row_to_user(row: sqlite3.Row) -> User:
+    # v2.6.4 A.2: onboarding_completed potrebbe non esistere se la migration
+    # non è ancora stata applicata (es. tests legacy con DB pre-creato).
+    # Default a False per backward compat.
+    try:
+        onboarding = bool(row["onboarding_completed"])
+    except (KeyError, IndexError):
+        onboarding = False
     return User(
         id=row["id"], email=row["email"],
         password_hash=row["password_hash"],
         created_at=row["created_at"],
         last_login_at=row["last_login_at"],
+        onboarding_completed=onboarding,
     )
 
 

@@ -13,6 +13,8 @@ export interface AuthUser {
   email: string;
   created_at: number;
   last_login_at: number | null;
+  /** v2.6.4 A.2: gate per autoplay del tour onboarding. */
+  onboarding_completed: boolean;
 }
 
 export interface AuthResponse {
@@ -54,5 +56,29 @@ export async function getMe(token: string): Promise<AuthUser> {
   const r = await authClient.get<{ user: AuthUser }>("/api/auth/me", {
     headers: { Authorization: `Bearer ${token}` },
   });
+  return r.data.user;
+}
+
+
+/**
+ * v2.6.4 A.2: aggiorna lo stato onboarding del current user.
+ *
+ * Consumer:
+ *   - `useMarkOnboardingComplete` (lib/onboarding.ts) → completed=true
+ *     quando l'utente chiude il tour ([Salta], [Fine], ESC, click backdrop)
+ *   - `useResetOnboarding` (lib/onboarding.ts) → completed=false
+ *     dal menu Help "Rivedi tour onboarding" per replay
+ *
+ * Risposta: user aggiornato (con onboarding_completed riflesso).
+ */
+export async function patchOnboarding(
+  token: string,
+  completed: boolean,
+): Promise<AuthUser> {
+  const r = await authClient.patch<{ user: AuthUser }>(
+    "/api/auth/onboarding",
+    { completed },
+    { headers: { Authorization: `Bearer ${token}` } },
+  );
   return r.data.user;
 }
