@@ -3,11 +3,11 @@
 > Stato vivo del progetto. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-26
-**Versione corrente**: `v2.6.3-precision-handoff`
-**Branch attivo**: `design-rebuild/v2.6` (= `test` = `main` = `origin/*` allo stesso SHA post-rollup)
-**Ultimo SHA**: (post-tag-rollup, vedi `git rev-parse HEAD`)
-**⚠ Decisione strategica attiva**: Redesign Shell custom completato + handoff Precision v2.0 integrato (Opzione 1)
+**Ultimo aggiornamento**: 2026-05-26 (sera)
+**Versione corrente**: `v2.6.3.1-precision-wiring-fix`
+**Branch attivo**: `design-rebuild/v2.6` (= `origin/test`)
+**Ultimo SHA**: post-tag rollup wiring-fix (vedi `git rev-parse HEAD`)
+**⚠ Decisione strategica attiva**: Wiring fix architettonico applicato (BUG-#1 ChecksDetailTable + BUG-#2 PercorsoStep). Handoff Precision v2.0 ora visibile come da design.
 
 ---
 
@@ -69,14 +69,15 @@ Aggiornato dopo compound v2.6.3-precision-handoff:
 | `v2.6.3.3-precision-dashboard-report` | docs | Validazione ModelsTable+TrustLayer+Insight wired |
 | `v2.6.3.4-precision-anim-responsive` | docs | Animations+responsive validation |
 | `v2.6.3-precision-handoff` (rollup) | rollup | Tag finale + sync test↔main + deploy + smoke E2E live |
+| `v2.6.3.1-precision-wiring-fix` | fix P0 ×2 | VerifyPanel → workspace takeover (ChecksDetailTable readable). PercorsiBeamWizard → full-page overlay con PercorsoStep template wrap. Fix architettonico post-audit BUG-#1+#2. |
 
 ## 4. Baseline test (aggiornata)
 
 - **pytest**: 1677 collected (invariato, no backend changes)
-- **vitest**: **726/726 PASS** (91 file, +31 nuovi vs baseline 695)
+- **vitest**: **732/732 PASS** (92 file, +6 nuovi vs v2.6.3 stato 726)
 - **tsc**: 0 errori
-- **build**: ~1300 kB main (gzip ~382 kB, delta 0)
-- **smoke E2E live**: pending verifica post-deploy v2.6.3
+- **build**: ~1301 kB main (gzip ~382 kB, delta +0.12 kB gzip)
+- **smoke E2E live**: pending verifica post-deploy v90+
 
 ## 5. Carry-over P1/P2 (NON in scope di questo compound)
 
