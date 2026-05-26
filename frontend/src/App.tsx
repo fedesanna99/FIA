@@ -96,6 +96,10 @@ import { VerifyPanel } from "./shell/panels/VerifyPanel";
 import { InspectPanel } from "./shell/panels/InspectPanel";
 import { ToolsPanel } from "./shell/panels/ToolsPanel";
 import { ViewPanel } from "./shell/panels/ViewPanel";
+// v2.6.2: nuova Shell (Studio Pro Soft v2.1) — usata quando model attivo
+// + desktop + !focus. Negli altri casi resta il chrome legacy.
+import { Shell } from "./shell/Shell";
+import { useTheme } from "./shared/useTheme";
 import { useModelList, useLoadModel } from "./hooks/useModel";
 import { useKeyboardShortcuts } from "./hooks/useKeyboardShortcuts";
 import { useIsMobile } from "./hooks/useIsMobile";
@@ -152,6 +156,10 @@ function phaseFromProgress(progress: number, isRunning: boolean): SolverPhase | 
 }
 
 export default function App() {
+  // v2.6.2 T8: wire useTheme hook all'inizio dell'App — setta data-theme
+  // su <html> + sync con localStorage. UI toggle aggiunto in Fase 3+.
+  useTheme();
+
   const modelsQuery = useModelList();
   const models = modelsQuery.data;
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -472,6 +480,11 @@ export default function App() {
   // v1.5 Task 30: i rails laterali sono nascosti su mobile (< 768).
   const showRails = !isFocusMode && !isMobile;
 
+  // v2.6.2 T9: usa la nuova Shell quando l'utente ha un modello attivo,
+  // è su desktop, e non è in focus mode. Negli altri casi (Dashboard
+  // home, mobile, focus mode) resta il chrome legacy.
+  const useNewShell = activeId !== null && !isMobile && !isFocusMode;
+
   // Mappatura mobile tab → titolo + componente
   const mobilePanelInfo: Record<
     "make" | "solve" | "results" | "more",
@@ -512,6 +525,26 @@ export default function App() {
       >
         Vai al contenuto
       </a>
+      {/* v2.6.2 T9: nuova Shell quando model attivo + desktop. Per gli altri
+          casi (no model = Dashboard, mobile, focus mode) si usa il chrome
+          legacy con TopBar/MissionBar/LeftRail/StatusBar. */}
+      {useNewShell ? (
+        <Shell>
+          {/* Canvas R3F + ViewportCanvasTabs ospitati dalla nuova Shell */}
+          <div className="absolute top-0 left-0 right-0 z-10">
+            <ViewportCanvasTabs
+              nodes={(models ?? []).find((m) => m.id === activeId)?.nodes?.length}
+              elements={(models ?? []).find((m) => m.id === activeId)?.elements?.length}
+            />
+          </div>
+          <div className="absolute inset-0 pt-[36px]">
+            <Viewport3D />
+          </div>
+          <DropZone onImported={(id) => setActiveId(id)} />
+          <SolverOverlay />
+        </Shell>
+      ) : (
+        <>
       {!isFocusMode && (
         <TopBar models={models ?? []} activeId={activeId} onSelect={setActiveId} />
       )}
@@ -621,6 +654,8 @@ export default function App() {
       {isMobile && !isFocusMode && <MobileTabbar />}
       {!isMobile && !isFocusMode && <StatusBar />}
       <CommandPalette />
+        </>
+      )}
       <HelpSheet />
       <OnboardingTour disabled={!activeId || modelsQuery.isError || modelsQuery.isFetching} />
       <ClimateContextBadge />
