@@ -77,7 +77,7 @@ describe("CollabAvatars", () => {
   it("renders avatar with initials when logged in", () => {
     useAuthStore.setState({
       token: "jwt",
-      user: { id: "u1", email: "mario.rossi@example.com", created_at: 0, last_login_at: null },
+      user: { id: "u1", email: "mario.rossi@example.com", created_at: 0, last_login_at: null, onboarding_completed: false },
     });
     render(wrap(<CollabAvatars />));
     const el = screen.getByTestId("topbar-collab");
@@ -89,7 +89,7 @@ describe("CollabAvatars", () => {
   it("handles single-word email username (no separator)", () => {
     useAuthStore.setState({
       token: "jwt",
-      user: { id: "u2", email: "fedesanna@example.com", created_at: 0, last_login_at: null },
+      user: { id: "u2", email: "fedesanna@example.com", created_at: 0, last_login_at: null, onboarding_completed: false },
     });
     render(wrap(<CollabAvatars />));
     // "fedesanna" → "FE"

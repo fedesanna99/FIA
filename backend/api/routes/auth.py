@@ -48,6 +48,11 @@ class UserResponse(BaseModel):
     user: dict
 
 
+class OnboardingUpdate(BaseModel):
+    """v2.6.4 A.2: payload PATCH /api/auth/onboarding."""
+    completed: bool
+
+
 # ── Endpoints ──────────────────────────────────────────────────────────────
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 def register(req: RegisterRequest) -> AuthResponse:
@@ -133,6 +138,30 @@ def login(request: Request, req: LoginRequest) -> AuthResponse:
 def get_me(current_user: User = Depends(get_current_user)) -> UserResponse:
     """Ritorna info dell'utente autenticato (richiede Bearer token valido)."""
     return UserResponse(user=current_user.to_public_dict())
+
+
+@router.patch("/onboarding", response_model=UserResponse)
+def update_onboarding(
+    payload: OnboardingUpdate,
+    current_user: User = Depends(get_current_user),
+) -> UserResponse:
+    """v2.6.4 A.2: setta lo stato onboarding del current user.
+
+    Body: ``{"completed": bool}``.
+
+    Usato dal frontend:
+      - `useMarkOnboardingComplete()` → ``{completed: true}`` quando l'utente
+        chiude il tour (`[Salta]`, `[Fine]`, ESC, click backdrop).
+      - `useResetOnboarding()` → ``{completed: false}`` per "Rivedi tour"
+        dal menu Help (replay).
+
+    Risposta: user aggiornato (stesso shape di GET /me, include il nuovo
+    ``onboarding_completed: bool`` nel ``user.to_public_dict()``).
+    """
+    updated = get_users_db().set_onboarding_completed(
+        current_user.id, payload.completed
+    )
+    return UserResponse(user=updated.to_public_dict())
 
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)

@@ -98,7 +98,7 @@ describe("CreditsBadge", () => {
   it("uses JWT user.id when logged in instead of demo_user", async () => {
     useAuthStore.setState({
       token: "jwt",
-      user: { id: "u-jwt-123", email: "a@b.com", created_at: 0, last_login_at: null },
+      user: { id: "u-jwt-123", email: "a@b.com", created_at: 0, last_login_at: null, onboarding_completed: false },
     });
     (getQuota as ReturnType<typeof vi.fn>).mockResolvedValue({
       user_id: "u-jwt-123",
