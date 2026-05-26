@@ -74,11 +74,37 @@ export default {
         danger:   "rgb(var(--c-danger) / <alpha-value>)",
         info:     "rgb(var(--c-info) / <alpha-value>)",
         error:    "rgb(var(--c-danger) / <alpha-value>)",
+        // ── v2.6.1 foundation · Soft v2.1 bridge to tokens.css ──
+        // Nuovi top-level che mappano direttamente alle CSS variables
+        // definite in `src/styles/tokens.css` (senza prefisso --c-).
+        // Coesistono con le entry legacy: i componenti esistenti
+        // continuano a usare le nested (bg.panel, accent.hover, ecc.).
+        panel:           "var(--bg-panel)",
+        elevated:        "var(--bg-elevated)",
+        hover:           "var(--bg-hover)",
+        viewport:        "var(--bg-viewport)",
+        active:          "var(--bg-active)",
+        "border-light":  "var(--border-light)",
+        "border-strong": "var(--border-strong)",
+        "ink-muted":     "var(--ink-muted)",
+        "ink-dim":       "var(--ink-dim)",
+        "ink-faint":     "var(--ink-faint)",
+        "accent-hover":  "var(--accent-hover)",
+        "accent-active": "var(--accent-active)",
+        "accent-subtle": "var(--accent-subtle)",
+        "bg-success":    "var(--bg-success)",
+        "bg-warn":       "var(--bg-warn)",
+        "bg-coral":      "var(--bg-coral)",
+        "bg-purple":     "var(--bg-purple)",
+        "bg-info":       "var(--bg-info)",
+        "bg-danger":     "var(--bg-danger)",
       },
       fontFamily: {
+        // v2.6.1 foundation: Plus Jakarta Sans diventa il display nuovo,
+        // Inter Tight resta come fallback (preservato fino a Fase 2).
         sans:    ["Inter", "-apple-system", "BlinkMacSystemFont", "ui-sans-serif", "system-ui", "sans-serif"],
-        display: ["Inter Tight", "Inter", "-apple-system", "sans-serif"],
-        mono:    ["JetBrains Mono", "ui-monospace", "monospace"],
+        display: ['"Plus Jakarta Sans"', "Inter Tight", "Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+        mono:    ['"JetBrains Mono"', "ui-monospace", "monospace"],
       },
       fontSize: {
         xs:    ["11px", { lineHeight: "15px" }],
@@ -91,23 +117,29 @@ export default {
         "3xl": ["30px", { lineHeight: "34px" }],
         "4xl": ["44px", { lineHeight: "46px" }],
       },
-      // Precision: TUTTI i radius azzerati. `rounded-full` resta per cerchi.
+      // v2.6.1 foundation · Soft v2.1: radius non-zero (Plus Jakarta + Inter aesthetic).
+      // PRESERVA: none=0, DEFAULT=0, full=9999px (compatibilità con Precision sharp).
+      // SHARP MODE opt-in: `data-radius="sharp"` su <html> (vedi tokens.css).
       borderRadius: {
-        none:   "0",
-        sm:     "0",
+        none:    "0",
         DEFAULT: "0",
-        md:     "0",
-        lg:     "0",
-        xl:     "0",
-        "2xl":  "0",
-        "3xl":  "0",
-        full:   "9999px",
+        xs:      "4px",
+        sm:      "6px",
+        md:      "8px",
+        lg:      "10px",
+        xl:      "12px",
+        "2xl":   "16px",
+        "3xl":   "20px",
+        full:    "9999px",
       },
       boxShadow: {
         // Hairline-only — niente multi-layer gradient
         pop:      "var(--shadow-pop)",
         elev:     "var(--shadow-elev)",
         dialog:   "var(--shadow-dialog)",
+        // v2.6.1 foundation: Soft v2.1 shadows
+        card:     "var(--shadow-card)",
+        hover:    "var(--shadow-hover)",
         // Alias legacy
         panel:    "var(--shadow-elev)",
         dropdown: "var(--shadow-pop)",

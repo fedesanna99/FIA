@@ -7,6 +7,7 @@ import { Toaster } from "./components/layout/Toaster";
 import { TooltipProvider } from "./components/ui/Tooltip";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
 import { toastApiError } from "./lib/apiErrors";
+import "./styles/tokens.css";
 import "./index.css";
 
 // v2.5.5 cluster B (S0 T2 follow-up): handler globali ora emettono toast

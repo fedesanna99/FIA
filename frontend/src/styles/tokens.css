@@ -1,0 +1,220 @@
+/* ───────────────────────────────────────────────────────────────────────
+ * FEA Pro · Design Tokens — CONSOLIDATED (v2.1)
+ * Direzione: Soft · Light · Cyan · Plus Jakarta Sans display + Inter body
+ * Fonte unica di verità. Importare PRIMA di ogni altro CSS.
+ *
+ * Switch supportati:
+ *   :root[data-theme="dark"]   → dark palette
+ *   :root[data-radius="sharp"] → radius 0 ovunque (Precision strict)
+ *
+ * Da consumare in:
+ *   - tailwind.config.js (extend.colors → var(--bg), --ink, ...)
+ *   - src/tokens.ts (mirror TS, vedi tokens.ts)
+ * ─────────────────────────────────────────────────────────────────────── */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Inter+Tight:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap");
+
+/* ── 1 · LIGHT (canonical default) ──────────────────────────────────── */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Surfaces · 5 livelli */
+  --bg:           #FAFAFA;
+  --bg-panel:     #FFFFFF;
+  --bg-elevated:  #FFFFFF;
+  --bg-hover:     #F4F5F7;
+  --bg-viewport:  #F4F5F7;
+  --bg-active:    #E6F1FB;
+
+  /* Borders · 3 strenghts (hairline philosophy) */
+  --border:         #E5E6E8;
+  --border-light:   #D4D6DA;
+  --border-strong:  #A8ACB3;
+
+  /* Ink · 4 livelli */
+  --ink:        #15161A;
+  --ink-muted:  #4A4F57;
+  --ink-dim:    #7B808A;
+  --ink-faint:  #B0B5BD;
+
+  /* Accent · cyan singular (no double axis) */
+  --accent:         #0891B2;
+  --accent-hover:   #0E7490;
+  --accent-active:  #155E75;
+  --accent-subtle:  #ECFEFF;
+  --accent-rgb:     8,145,178;
+
+  /* Semantic · ink */
+  --success: #65A30D;
+  --warn:    #B45309;
+  --coral:   #C2410C;
+  --purple:  #534AB7;
+  --danger:  #DC2626;
+  --info:    #0891B2;
+
+  /* Semantic · tinted backgrounds */
+  --bg-success: #EAF3DE;
+  --bg-warn:    #FAEEDA;
+  --bg-coral:   #FAECE7;
+  --bg-purple:  #EEEDFE;
+  --bg-info:    #E6F1FB;
+  --bg-danger:  #FEE8E8;
+
+  /* Shadow · hairline + soft elevation (NEW in v2.1 — Soft direction) */
+  --shadow-pop:    0 0 0 1px rgba(0,0,0,.06);
+  --shadow-elev:   0 1px 2px rgba(0,0,0,.04), 0 0 0 1px rgba(0,0,0,.04);
+  --shadow-card:   0 1px 3px rgba(0,0,0,.06), 0 0 0 1px rgba(0,0,0,.04);
+  --shadow-dialog: 0 24px 64px -12px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.06);
+  --shadow-hover:  0 4px 12px -4px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.05);
+}
+
+/* ── 2 · DARK (opt-in via :root[data-theme="dark"]) ─────────────────── */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg:           #0E1014;
+  --bg-panel:     #16191F;
+  --bg-elevated:  #1D2128;
+  --bg-hover:     #1D2128;
+  --bg-viewport:  #08090C;
+  --bg-active:    #15314A;
+
+  --border:        #262B33;
+  --border-light:  #2F3640;
+  --border-strong: #3D4754;
+
+  --ink:        #F2F4F7;
+  --ink-muted:  #B5BAC2;
+  --ink-dim:    #80868F;
+  --ink-faint:  #555C66;
+
+  --accent:        #6EDDF5;
+  --accent-hover:  #88E2F5;
+  --accent-active: #5DD7F2;
+  --accent-subtle: rgba(110,221,245,0.12);
+  --accent-rgb:    110,221,245;
+
+  --success: #8FD14F;
+  --warn:    #FBBF24;
+  --coral:   #FB923C;
+  --purple:  #B19BFB;
+  --danger:  #F87171;
+  --info:    #6EDDF5;
+
+  --bg-success: rgba(143,209,79,0.10);
+  --bg-warn:    rgba(251,191,36,0.10);
+  --bg-coral:   rgba(251,146,60,0.10);
+  --bg-purple:  rgba(177,155,251,0.10);
+  --bg-info:    rgba(110,221,245,0.12);
+  --bg-danger:  rgba(248,113,113,0.10);
+
+  --shadow-pop:    0 0 0 1px rgba(0,0,0,.5);
+  --shadow-elev:   0 1px 2px rgba(0,0,0,.4), 0 0 0 1px rgba(0,0,0,.3);
+  --shadow-card:   0 1px 3px rgba(0,0,0,.5), 0 0 0 1px rgba(0,0,0,.3);
+  --shadow-dialog: 0 24px 64px -12px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.03);
+  --shadow-hover:  0 4px 12px -4px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.03);
+}
+
+/* ── 3 · Radii — Soft default, Sharp opt-in ─────────────────────────── */
+:root {
+  --r-xs:   4px;
+  --r-sm:   6px;
+  --r-md:   8px;
+  --r-lg:   10px;
+  --r-xl:   12px;
+  --r-2xl:  16px;
+  --r-3xl:  20px;
+  --r-full: 9999px;
+}
+:root[data-radius="sharp"] {
+  --r-xs: 0; --r-sm: 0; --r-md: 0; --r-lg: 0; --r-xl: 0; --r-2xl: 0; --r-3xl: 0;
+}
+
+/* ── 4 · Motion · fonts · scale · spacing · z-index ─────────────────── */
+:root {
+  /* Motion */
+  --d-fast: 120ms;
+  --d-mid:  200ms;
+  --d-slow: 360ms;
+  --ease-standard:    cubic-bezier(0.2, 0, 0, 1);
+  --ease-decelerate:  cubic-bezier(0, 0, 0.2, 1);
+  --ease-accelerate:  cubic-bezier(0.4, 0, 1, 1);
+
+  /* Fonts · Plus Jakarta Sans display + Inter body + JetBrains Mono numeric */
+  --font-sans:    "Inter", -apple-system, BlinkMacSystemFont, ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", "Inter Tight", "Inter", -apple-system, sans-serif;
+  --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+
+  /* Type scale */
+  --fs-xs:   11px;  --lh-xs:   15px;
+  --fs-sm:   12px;  --lh-sm:   16px;
+  --fs-base: 13px;  --lh-base: 19px;
+  --fs-md:   14px;  --lh-md:   20px;
+  --fs-lg:   16px;  --lh-lg:   22px;
+  --fs-xl:   18px;  --lh-xl:   24px;
+  --fs-2xl:  22px;  --lh-2xl:  28px;
+  --fs-3xl:  30px;  --lh-3xl:  34px;
+  --fs-4xl:  44px;  --lh-4xl:  46px;
+  --fs-5xl:  56px;  --lh-5xl:  58px;
+
+  /* Letter spacing */
+  --ls-tight-1: -0.015em;
+  --ls-tight-2: -0.02em;
+  --ls-tight-3: -0.025em;
+  --ls-tight-4: -0.035em;
+  --ls-wide-1:   0.06em;
+  --ls-wide-2:   0.10em;
+  --ls-wide-3:   0.14em;
+  --ls-wide-4:   0.16em;
+
+  /* Spacing (4px scale, Tailwind parity) */
+  --sp-0: 0;     --sp-1: 4px;   --sp-2: 8px;   --sp-3: 12px;
+  --sp-4: 16px;  --sp-5: 20px;  --sp-6: 24px;  --sp-8: 32px;
+  --sp-10: 40px; --sp-12: 48px; --sp-16: 64px; --sp-20: 80px;
+
+  /* Z-index scale */
+  --z-viewport: 0;
+  --z-panel:    10;
+  --z-toolbar:  20;
+  --z-dropdown: 30;
+  --z-popover:  35;
+  --z-dialog:   40;
+  --z-toast:    50;
+  --z-tooltip:  60;
+  --z-loader:   70;
+}
+
+/* ── 5 · Semantic typography ────────────────────────────────────────── */
+body {
+  font-family: var(--font-sans);
+  font-size: var(--fs-base);
+  line-height: var(--lh-base);
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, .h1 { font-family: var(--font-display); font-size: var(--fs-3xl); line-height: var(--lh-3xl); font-weight: 700; letter-spacing: var(--ls-tight-3); color: var(--ink); margin: 0; }
+h2, .h2 { font-family: var(--font-display); font-size: var(--fs-2xl); line-height: var(--lh-2xl); font-weight: 700; letter-spacing: var(--ls-tight-2); color: var(--ink); margin: 0; }
+h3, .h3 { font-family: var(--font-display); font-size: var(--fs-xl);  line-height: var(--lh-xl);  font-weight: 700; letter-spacing: var(--ls-tight-1); color: var(--ink); margin: 0; }
+h4, .h4 { font-size: var(--fs-lg); line-height: var(--lh-lg); font-weight: 600; color: var(--ink); margin: 0; }
+h5, .h5 { font-size: var(--fs-md); line-height: var(--lh-md); font-weight: 600; color: var(--ink); margin: 0; }
+
+p, .p { font-size: var(--fs-base); line-height: var(--lh-base); color: var(--ink); margin: 0; }
+small, .small { font-size: var(--fs-sm); line-height: var(--lh-sm); color: var(--ink-muted); }
+
+.numeric, code, kbd, samp, pre {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide-3);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
