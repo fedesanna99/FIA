@@ -3,11 +3,11 @@
 > Stato vivo. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-28 (mattina · post visual audit + v2.7.0.1)
-**Versione corrente**: `v2.7.0.1-auth-fix-font` (font Inter body override su .auth-shell)
-**Branch attivo**: `design-rebuild/v2.6` (= origin/test = origin/main post v2.7.0)
-**Ultimo SHA**: (vedi rollup tag v2.7.0.1)
-**Deploy live**: release Fly.io **v94** (deploy v95 atteso post-v2.7.0.1) · https://fea-pro.fly.dev/
+**Ultimo aggiornamento**: 2026-05-28 (mattina · post Phase 4.2 dashboard rollup)
+**Versione corrente**: `v2.7.1-dashboard-mockup-driven` (Phase 4.2 chiusa)
+**Branch attivo**: `design-rebuild/v2.6` (= origin/test = origin/main post v2.7.1)
+**Ultimo SHA**: (vedi rollup tag v2.7.1)
+**Deploy live**: release Fly.io **v95** (deploy v96 atteso post-v2.7.1) · https://fea-pro.fly.dev/
 
 ---
 
@@ -78,7 +78,7 @@ Federico ha consegnato il vero pacchetto handoff Claude Design completo
 |---|---|---|---|
 | 00 Foundation (tokens) | 3 | ✅ in repo | **100%** |
 | 03 Studio Risultati (Nuovo Guscio) | Shell custom | ✅ v2.6.x | **~90%** |
-| 02 Dashboard new | 1 | ⚠️ home v2.6.6 | **~20%** |
+| 02 Dashboard new | 1 | ✅ v2.7.1 mockup-driven | **~90%** (verifica visual audit post-deploy v96) |
 | 01 Auth (4 stati) | Auth.html | ✅ v2.7.0 mockup-driven + v2.7.0.1 font fix | **~95% verificato visualmente** (visual audit 2026-05-28) |
 | 02 Templates | Templates.html | ⚠️ galleria v2.5.x | **~30%** |
 | 02 Percorso UC1 | Percorso UC1.html | ⚠️ Wizard inline | **~20%** |
@@ -141,7 +141,8 @@ docs/design_handoff/
 | `v2.6.5-dashboard-a1-composition` | LeftRail expanded + RecentModels Shell custom | v92 |
 | `v2.6.6-home-legacy-shell-refactor` | Stesso refactor su chrome legacy home | v93 |
 | `v2.7.0-auth-mockup-driven` | Phase 4.1 Auth refactor: BrandAside + 4 route React Router + LoginPage/SignupPage/ForgotPasswordPage/EmailVerifyPage + 7 primitives + backend signup metadata extension (4 nuove colonne SQLite nullable) | v94 ✅ |
-| `v2.7.0.1-auth-fix-font` | fix font-family Inter override su `.auth-shell` (eredità Plus Jakarta Sans bypassata) + tool `visual-audit.mjs` permanente per audit Phase 4-6 + README scripts | v95 atteso |
+| `v2.7.0.1-auth-fix-font` | fix font-family Inter override su `.auth-shell` (eredità Plus Jakarta Sans bypassata) + tool `visual-audit.mjs` permanente per audit Phase 4-6 + README scripts | v95 ✅ |
+| `v2.7.1-dashboard-mockup-driven` | **Phase 4.2 home dashboard refactor mockup-driven**: nuova DashboardPage da `Dashboard new.html` (TopNav orizzontale + hero personalizzato greeting + 3 action tiles + recent grid 4 card SVG-thumb + dual-row percorsi/changelog + footer) sostituisce legacy. `dashboard.css` 540+ righe namespaced `.dash`. Drop-in single-line in App.tsx (alias import). | v96 atteso |
 
 ### Baseline tecnica corrente (post v2.7.0)
 

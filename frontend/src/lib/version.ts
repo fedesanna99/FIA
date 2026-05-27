@@ -8,4 +8,4 @@
 export const APP_VERSION = "v2.7";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v2.7.0.1-auth-fix-font";
+export const APP_TAG = "v2.7.1-dashboard-mockup-driven";

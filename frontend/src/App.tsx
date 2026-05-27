@@ -57,7 +57,12 @@ import { StatusBar } from "./components/layout/StatusBar";
 import { Viewport3D } from "./components/viewport/Viewport3D";
 import { DropZone } from "./components/viewport/DropZone";
 import { LoadingScreen, type SolverPhase } from "./components/shell/LoadingScreen";
-import { Dashboard } from "./components/shell/Dashboard";
+// v2.7.1 Phase 4.2 mockup-driven: la home dashboard ora usa la
+// implementazione mockup-driven secondo `ui_kits/webapp_desktop/
+// Dashboard new.html` del pack handoff. Il legacy `components/shell/
+// Dashboard.tsx` resta in repo come backup (può essere rimosso in
+// v2.7.1.x se non più referenziato).
+import { DashboardPage as Dashboard } from "./dashboard/DashboardPage";
 // v2.6.4 A.2: OnboardingTour autoplay primo login + spotlight clip-path tour
 import { OnboardingTour } from "./components/onboarding/OnboardingTour";
 import { HelpDialog } from "./components/dialogs/HelpDialog";
