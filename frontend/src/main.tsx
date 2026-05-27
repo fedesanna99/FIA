@@ -13,6 +13,14 @@ import { EmailVerifyPage } from "./auth/EmailVerifyPage";
 import { TemplatesPage } from "./templates/TemplatesPage";
 // v2.7.3 Phase 4.3b mockup-driven: Percorso UC1 stepper full-page route.
 import { PercorsoUC1Page } from "./percorsi/PercorsoUC1Page";
+// v2.7.4 Phase 5.1 mockup-driven: Studio Modello workspace full-page route.
+import { StudioModelloPage } from "./studio/StudioModelloPage";
+// v2.7.5 Phase 5.2 mockup-driven: Studio Analisi workspace full-page route.
+import { StudioAnalisiPage } from "./studio/StudioAnalisiPage";
+// v2.7.6 Phase 5.3 mockup-driven: Studio Verifiche workspace full-page route.
+import { StudioVerifichePage } from "./studio/StudioVerifichePage";
+// v2.7.7 Phase 5.4 mockup-driven: Studio IO workspace full-page route.
+import { StudioIOPage } from "./studio/StudioIOPage";
 import { Toaster } from "./components/layout/Toaster";
 import { TooltipProvider } from "./components/ui/Tooltip";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
@@ -90,6 +98,46 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 element={
                   <AuthGate>
                     <PercorsoUC1Page />
+                  </AuthGate>
+                }
+              />
+              {/* v2.7.4 Phase 5.1: Studio Modello workspace full-page (Studio
+                  shell: TopBar + Rail + Tree + Viewport + Panel + StatusBar). */}
+              <Route
+                path="/studio/modello"
+                element={
+                  <AuthGate>
+                    <StudioModelloPage />
+                  </AuthGate>
+                }
+              />
+              {/* v2.7.5 Phase 5.2: Studio Analisi workspace (solver catalog +
+                  filter pills + params panel). No-tree layout 3-col. */}
+              <Route
+                path="/studio/analisi"
+                element={
+                  <AuthGate>
+                    <StudioAnalisiPage />
+                  </AuthGate>
+                }
+              />
+              {/* v2.7.6 Phase 5.3: Studio Verifiche workspace (code tabs +
+                  UR hero + gauge + UR table). No-tree layout 3-col. */}
+              <Route
+                path="/studio/verifiche"
+                element={
+                  <AuthGate>
+                    <StudioVerifichePage />
+                  </AuthGate>
+                }
+              />
+              {/* v2.7.7 Phase 5.4: Studio IO workspace (dropzone + tool cards
+                  Export/Compare/Auto-detect/AI + collab strip). No-tree 3-col. */}
+              <Route
+                path="/studio/io"
+                element={
+                  <AuthGate>
+                    <StudioIOPage />
                   </AuthGate>
                 }
               />

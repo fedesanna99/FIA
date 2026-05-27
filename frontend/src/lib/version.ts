@@ -8,4 +8,4 @@
 export const APP_VERSION = "v2.7";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v2.7.3-percorso-uc1-mockup-driven";
+export const APP_TAG = "v2.7.7-studio-workspaces-mockup-driven";
