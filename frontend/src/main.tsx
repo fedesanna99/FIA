@@ -21,6 +21,11 @@ import { StudioAnalisiPage } from "./studio/StudioAnalisiPage";
 import { StudioVerifichePage } from "./studio/StudioVerifichePage";
 // v2.7.7 Phase 5.4 mockup-driven: Studio IO workspace full-page route.
 import { StudioIOPage } from "./studio/StudioIOPage";
+// v2.8.0 Phase 6.1-6.3 mockup-driven: Dialogs showcase + Settings + States + Mobile.
+import { DialogsShowcasePage } from "./dialogs/DialogsShowcasePage";
+import { SettingsPage } from "./settings/SettingsPage";
+import { StatesShowcasePage } from "./states/StatesShowcasePage";
+import { MobileShowcasePage } from "./mobile/MobileShowcasePage";
 import { Toaster } from "./components/layout/Toaster";
 import { TooltipProvider } from "./components/ui/Tooltip";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
@@ -138,6 +143,42 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 element={
                   <AuthGate>
                     <StudioIOPage />
+                  </AuthGate>
+                }
+              />
+              {/* v2.8.0 Phase 6.1: Dialogs showcase (Node/Load/Mesh/NewModel). */}
+              <Route
+                path="/design/dialogs"
+                element={
+                  <AuthGate>
+                    <DialogsShowcasePage />
+                  </AuthGate>
+                }
+              />
+              {/* v2.8.0 Phase 6.2: Settings page (Profilo/Avanzato/Sistema sections). */}
+              <Route
+                path="/settings"
+                element={
+                  <AuthGate>
+                    <SettingsPage />
+                  </AuthGate>
+                }
+              />
+              {/* v2.8.0 Phase 6.2: States showcase (Empty/Solver/Error/404). */}
+              <Route
+                path="/design/states"
+                element={
+                  <AuthGate>
+                    <StatesShowcasePage />
+                  </AuthGate>
+                }
+              />
+              {/* v2.8.0 Phase 6.3: Mobile redesign showcase (Viewer/Results/Home). */}
+              <Route
+                path="/design/mobile"
+                element={
+                  <AuthGate>
+                    <MobileShowcasePage />
                   </AuthGate>
                 }
               />

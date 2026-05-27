@@ -1,0 +1,297 @@
+/* ────────────────────────────────────────────────────────────────────
+ * FEA Pro · Mobile showcase (v2.8.0 Phase 6.3)
+ *
+ * Source: ui_kits/mobile_redesign/mobile.css (verbatim condensed).
+ * Namespaced sotto `.mob-stage *`. Phone frame demo + 3 stati.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.mob-stage, .mob-stage *, .mob-stage *::before, .mob-stage *::after { box-sizing: border-box; }
+.mob-stage button { font-family: inherit; cursor: pointer; }
+
+.mob-stage {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  padding: 40px 24px;
+  display: flex; flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+
+.mob-stage .mob-switcher {
+  display: inline-flex;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  padding: 4px;
+  gap: 2px;
+  box-shadow: var(--shadow-card);
+}
+.mob-stage .ms-tab {
+  background: transparent; border: none;
+  padding: 6px 14px;
+  font-size: 12px; font-weight: 600;
+  color: var(--ink-dim);
+  border-radius: 7px;
+  letter-spacing: -0.005em;
+}
+.mob-stage .ms-tab.is-active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+.mob-stage .mob-grid {
+  display: flex; justify-content: center;
+}
+
+/* Phone frame */
+.mob-stage .phone {
+  width: 392px;
+  height: 800px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 36px;
+  box-shadow: var(--shadow-dialog), 0 20px 40px rgba(0,0,0,0.10);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Status bar */
+.mob-stage .ph-status {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 24px 8px;
+  font-family: var(--font-mono);
+  font-size: 13px; font-weight: 700;
+  color: var(--ink);
+  position: relative;
+}
+.mob-stage .ph-time { letter-spacing: -0.01em; }
+.mob-stage .ph-notch {
+  position: absolute;
+  top: 4px; left: 50%; transform: translateX(-50%);
+  width: 84px; height: 22px;
+  background: var(--ink);
+  border-radius: 99px;
+}
+.mob-stage .ph-icons {
+  display: flex; align-items: center; gap: 4px;
+  color: var(--ink);
+}
+
+/* App topbar */
+.mob-stage .ph-topbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px; align-items: center;
+  padding: 14px 18px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+}
+.mob-stage .ph-iconbtn {
+  width: 38px; height: 38px;
+  background: var(--bg-hover);
+  border: none;
+  border-radius: 9px;
+  color: var(--ink);
+  display: grid; place-items: center;
+}
+.mob-stage .ph-title-stack {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 2px;
+}
+.mob-stage .ph-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: var(--ls-wide-2);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.mob-stage .ph-title {
+  font-family: var(--font-display);
+  font-size: 15px; font-weight: 700;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin: 0;
+}
+
+/* Trust row */
+.mob-stage .ph-trust-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 18px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.mob-stage .ph-trust {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 700;
+  letter-spacing: var(--ls-wide-2);
+  text-transform: uppercase;
+  padding: 4px 9px;
+  background: var(--bg-warn);
+  border: 1px solid rgba(180,83,9,0.30);
+  color: var(--warn);
+  border-radius: 6px;
+}
+.mob-stage .ph-trust-dot {
+  width: 6px; height: 6px;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: mob-pulse 1.6s ease-in-out infinite;
+}
+@keyframes mob-pulse { 50% { opacity: 0.45; } }
+
+.mob-stage .ph-saved {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-dim);
+  letter-spacing: var(--ls-wide-1);
+}
+
+/* Viewport */
+.mob-stage .ph-viewport {
+  flex: 1;
+  position: relative;
+  background: var(--bg-viewport);
+  overflow: hidden;
+}
+.mob-stage .ph-vp-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,0,0,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,0,0,.04) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+.mob-stage .ph-svg {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+}
+
+/* Tab bar bottom */
+.mob-stage .ph-tabbar {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  padding: 8px 6px 18px;
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  gap: 2px;
+}
+.mob-stage .ph-tab {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 3px;
+  padding: 6px 4px;
+  background: transparent;
+  border: none;
+  color: var(--ink-dim);
+  font-size: 9px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  letter-spacing: var(--ls-wide-1);
+  text-transform: uppercase;
+  border-radius: 7px;
+}
+.mob-stage .ph-tab.is-active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* KPI tiles (Results state) */
+.mob-stage .ph-kpis {
+  padding: 14px 18px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  overflow-y: auto;
+}
+.mob-stage .ph-kpi {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: flex; flex-direction: column;
+  gap: 2px;
+}
+.mob-stage .ph-kpi-k {
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 700;
+  letter-spacing: var(--ls-wide-2);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+.mob-stage .ph-kpi-v {
+  font-family: var(--font-mono);
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+.mob-stage .ph-kpi-v small {
+  font-size: 10px;
+  color: var(--ink-dim);
+  margin-left: 3px;
+}
+.mob-stage .ph-kpi-tone-ok .ph-kpi-v { color: var(--success); }
+.mob-stage .ph-kpi-tone-accent .ph-kpi-v { color: var(--accent); }
+
+/* Home state */
+.mob-stage .ph-home {
+  flex: 1; overflow-y: auto;
+  padding: 16px 18px;
+  display: flex; flex-direction: column;
+  gap: 12px;
+  background: var(--bg);
+}
+.mob-stage .ph-home-hero {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 18px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.mob-stage .ph-home-hero h2 {
+  font-family: var(--font-display);
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--ink);
+  margin: 4px 0 0;
+  line-height: 1.1;
+}
+.mob-stage .ph-home-hero p {
+  font-size: 13px;
+  color: var(--ink-muted);
+  margin: 0;
+}
+.mob-stage .ph-home-tiles {
+  display: flex; flex-direction: column;
+  gap: 8px;
+}
+.mob-stage .ph-home-tile {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-align: left;
+}
+.mob-stage .ph-home-tile-icon {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: grid; place-items: center;
+  flex-shrink: 0;
+}
+.mob-stage .ph-home-tile-body {
+  display: flex; flex-direction: column; gap: 1px;
+  flex: 1;
+}
+.mob-stage .ph-home-tile-body h3 {
+  font-size: 14px; font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+}
+.mob-stage .ph-home-tile-body p {
+  font-size: 11px;
+  color: var(--ink-muted);
+  margin: 0;
+}

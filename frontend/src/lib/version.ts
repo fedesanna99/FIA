@@ -5,7 +5,7 @@
  * questo file ad ogni alpha/release prima del commit. Non leggere mai
  * `package.json` runtime (no fetch sync, no bundle bloat).
  */
-export const APP_VERSION = "v2.7";
+export const APP_VERSION = "v2.8";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v2.7.7-studio-workspaces-mockup-driven";
+export const APP_TAG = "v2.8.0-dialogs-settings-states-mobile";
