@@ -10,7 +10,7 @@
  *
  * Source: ui_kits/webapp_desktop/studio.css (shared chrome).
  */
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Activity, Bell, Bug, CheckCircle2, Cog, Play, Redo2, Search, Settings, Shuffle, Undo2, BookOpen, ChevronDown, Box } from "lucide-react";
 import type { ReactNode } from "react";
 
@@ -49,10 +49,26 @@ interface StudioShellProps {
 
 export function StudioShell({ active, workspaceState, midLayout = "with-tree", children }: StudioShellProps): JSX.Element {
   const user = useAuthStore((s) => s.user);
+  const navigate = useNavigate();
   const initials = (user?.email ?? "FS").slice(0, 2).toUpperCase();
   // v2.7.4: tier hardcoded "FREE" — billing tier deriva da useBillingQuota,
   // ma per il chrome statico in topbar è sufficiente il default.
   const tier = "FREE";
+
+  // v2.9.1 Sprint C M5: dispatch Cmd+K keyboard event al click del button.
+  // L'event listener globale in App.tsx (legacy) cattura Cmd+K e apre la
+  // palette. Approach più clean di un custom event perché la palette esiste
+  // gi e riusa shortcut OS standard.
+  const openCmdPalette = () => {
+    const isMac = typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.userAgent);
+    window.dispatchEvent(new KeyboardEvent("keydown", {
+      key: "k",
+      code: "KeyK",
+      metaKey: isMac,
+      ctrlKey: !isMac,
+      bubbles: true,
+    }));
+  };
 
   return (
     <div className="studio">
@@ -77,14 +93,20 @@ export function StudioShell({ active, workspaceState, midLayout = "with-tree", c
           Salvato 14:32
         </div>
 
-        <div className="s-trust trust-prelim" title="Stato del calcolo: PRELIMINARY · verifica manuale prima del rilascio.">
+        <button
+          type="button"
+          className="s-trust trust-prelim"
+          title="Stato del calcolo: PRELIMINARY · click per dettagli"
+          onClick={() => navigate("/preliminary")}
+          style={{ border: "none", cursor: "pointer" }}
+        >
           <span className="trust-dot" />
           Preliminary
-        </div>
+        </button>
 
         <div className="s-spacer" />
 
-        <button type="button" className="s-cmd" onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }))}>
+        <button type="button" className="s-cmd" onClick={openCmdPalette}>
           <Search size={13} />
           <span>Cerca azioni, modelli, norme…</span>
           <kbd>⌘ K</kbd>
