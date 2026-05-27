@@ -14,6 +14,9 @@ import {
 } from "lucide-react";
 
 import { StudioShell } from "./StudioShell";
+import { useFirstModelId } from "./useFirstModelId";
+import { exportApi } from "../api/io";
+import { toast } from "../store/toastStore";
 
 import "../styles/studio.css";
 import "../styles/studio-io.css";
@@ -55,6 +58,26 @@ const COLLAB: readonly Collab[] = [
 
 export function StudioIOPage(): JSX.Element {
   const [activeTab, setActiveTab] = useState<IOTab>("import");
+  const { modelId } = useFirstModelId();
+
+  // v2.9.0 Sprint B M1.4: wire 4 Export tool list items.
+  // GET /api/io/export/{model_id}/{format} → download Blob.
+  const onExport = async (format: "pdf" | "xlsx" | "dxf" | "ifc") => {
+    if (!modelId) {
+      toast("error","Apri prima un modello dalla gallery Templates");
+      return;
+    }
+    try {
+      const name = `fea-export-${modelId.slice(0, 8)}`;
+      if (format === "pdf") await exportApi.pdf(modelId, name);
+      else if (format === "xlsx") await exportApi.xlsx(modelId, name);
+      else if (format === "dxf") await exportApi.dxf(modelId, name);
+      else if (format === "ifc") await exportApi.ifc(modelId, name);
+      toast("success",`Modello esportato in ${format.toUpperCase()}`);
+    } catch (err) {
+      toast("error",`Errore export ${format}: ${(err as Error).message}`);
+    }
+  };
 
   return (
     <StudioShell active="io" workspaceState="I/O · Hub" midLayout="no-tree">
@@ -140,7 +163,12 @@ export function StudioIOPage(): JSX.Element {
             </header>
             <div className="tool-list">
               {EXPORTS.map((e) => (
-                <button key={e.fmt} type="button" className="tool-list-item">
+                <button
+                  key={e.fmt}
+                  type="button"
+                  className="tool-list-item"
+                  onClick={() => onExport(e.fmt.toLowerCase() as "pdf" | "xlsx" | "dxf" | "ifc")}
+                >
                   <span className={`tli-fmt ${e.cls ?? ""}`}>{e.fmt}</span>
                   <span className="tli-name">{e.name}</span>
                   <span className="tli-meta">{e.meta}</span>

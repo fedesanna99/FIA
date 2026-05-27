@@ -9,8 +9,12 @@
  */
 import { useState } from "react";
 import { Activity, Cog, Info, Play, Settings, Waves, Wind } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 
 import { StudioShell } from "./StudioShell";
+import { useFirstModelId } from "./useFirstModelId";
+import { analysisApi } from "../api/client";
+import { toast } from "../store/toastStore";
 
 import "../styles/studio.css";
 import "../styles/studio-analisi.css";
@@ -253,6 +257,37 @@ function BarRow({ label, value, width, color }: {
 
 function AnalisiPanel({ solver }: { solver: SolverDef }): JSX.Element {
   const [method, setMethod] = useState<"lu" | "iterative">("lu");
+  const { modelId, isLoading } = useFirstModelId();
+
+  // v2.9.0 Sprint B M1.2: wire "Esegui" al backend
+  // Solo "static" wirato (gli altri solver in iter v2.9.0.x).
+  const runMutation = useMutation({
+    mutationFn: async () => {
+      if (!modelId) throw new Error("no-model");
+      if (solver.key === "static") {
+        return analysisApi.static(modelId, { include_self_weight: true });
+      }
+      if (solver.key === "modal") {
+        return analysisApi.modal(modelId, { n_modes: 6 });
+      }
+      if (solver.key === "buckling") {
+        return analysisApi.buckling(modelId, { n_modes: 4 });
+      }
+      throw new Error("solver-not-implemented");
+    },
+    onSuccess: () => {
+      toast("success",`${solver.title} eseguita con successo`);
+    },
+    onError: (err: Error) => {
+      if (err.message === "no-model") {
+        toast("error","Apri prima un modello dalla gallery Templates");
+      } else if (err.message === "solver-not-implemented") {
+        toast("error",`Solver ${solver.title} non ancora implementato in UI`);
+      } else {
+        toast("error",`Errore solver: ${err.message}`);
+      }
+    },
+  });
 
   return (
     <aside className="s-panel">
@@ -340,9 +375,14 @@ function AnalisiPanel({ solver }: { solver: SolverDef }): JSX.Element {
               <span className="cost-v">u, σ, M, V<small> (default)</small></span>
             </div>
           </div>
-          <button type="button" className="btn-primary btn-lg btn-block">
+          <button
+            type="button"
+            className="btn-primary btn-lg btn-block"
+            onClick={() => runMutation.mutate()}
+            disabled={runMutation.isPending || isLoading}
+          >
             <Play size={14} fill="currentColor" />
-            Esegui {solver.title.toLowerCase()}
+            {runMutation.isPending ? "Esecuzione…" : `Esegui ${solver.title.toLowerCase()}`}
           </button>
         </section>
 

@@ -10,6 +10,9 @@ import { useState } from "react";
 import { CheckCircle2, ChevronRight } from "lucide-react";
 
 import { StudioShell } from "./StudioShell";
+import { useFirstModelId } from "./useFirstModelId";
+import { exportApi } from "../api/io";
+import { toast } from "../store/toastStore";
 
 import "../styles/studio.css";
 import "../styles/studio-verifiche.css";
@@ -63,6 +66,22 @@ const UR_ROWS: readonly URRow[] = [
 export function StudioVerifichePage(): JSX.Element {
   const [activeCode, setActiveCode] = useState<CodeKey>("ec3");
   const [filter, setFilter] = useState<"all" | "res" | "ltb" | "shear">("all");
+  const { modelId } = useFirstModelId();
+
+  // v2.9.0 Sprint B M1.3: wire "Esporta tabella" al backend
+  // GET /api/io/export/{model_id}/xlsx → download Blob.
+  const onExportTable = async () => {
+    if (!modelId) {
+      toast("error","Apri prima un modello dalla gallery Templates");
+      return;
+    }
+    try {
+      await exportApi.xlsx(modelId, "verifiche-uc1");
+      toast("success","Tabella verifiche esportata in XLSX");
+    } catch (err) {
+      toast("error",`Errore export: ${(err as Error).message}`);
+    }
+  };
 
   return (
     <StudioShell active="verifiche" workspaceState="Verifiche · EC3" midLayout="no-tree">
@@ -171,7 +190,7 @@ export function StudioVerifichePage(): JSX.Element {
                     </button>
                   ))}
                 </div>
-                <button type="button" className="btn-secondary btn-sm">Esporta tabella</button>
+                <button type="button" className="btn-secondary btn-sm" onClick={onExportTable}>Esporta tabella</button>
               </div>
             </header>
 

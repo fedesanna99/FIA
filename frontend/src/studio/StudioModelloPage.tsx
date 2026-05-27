@@ -13,8 +13,12 @@ import { useState } from "react";
 import {
   Box, ChevronRight, Info, Maximize2, Minimize2, Minus, Plus, Search, X,
 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { StudioShell } from "./StudioShell";
+import { useFirstModelId } from "./useFirstModelId";
+import { parametricMeshApi, type ParametricMeshRequest } from "../api/mesh";
+import { toast } from "../store/toastStore";
 
 import "../styles/studio.css";
 
@@ -374,6 +378,39 @@ interface PanelProps {
 
 function ModelloPanel(props: PanelProps): JSX.Element {
   const { activeTab, setActiveTab, activeShape, setActiveShape } = props;
+  const { modelId, isLoading: modelsLoading } = useFirstModelId();
+  const qc = useQueryClient();
+
+  // v2.9.0 Sprint B M1.1: wire "Genera mesh" al backend
+  // POST /api/models/{id}/mesh/parametric con default rectangle 6x0.5m
+  // (proxy mockup: trave bi-appoggiata IPE 300 lineare 10 elementi).
+  const meshMutation = useMutation({
+    mutationFn: async (req: ParametricMeshRequest) => {
+      if (!modelId) throw new Error("no-model");
+      return parametricMeshApi.generate(modelId, req);
+    },
+    onSuccess: (data) => {
+      toast("success",`Mesh generata: ${data.added_nodes} nodi, ${data.added_elements} elementi`);
+      qc.invalidateQueries({ queryKey: ["models"] });
+    },
+    onError: (err: Error) => {
+      if (err.message === "no-model") {
+        toast("error","Apri prima un modello dalla gallery Templates");
+      } else {
+        toast("error",`Errore mesh: ${err.message}`);
+      }
+    },
+  });
+
+  const onGenerateMesh = () => {
+    meshMutation.mutate({
+      shape: "rectangle",
+      params: { b: 6.0, h: 0.5 },
+      h: 0.6,
+      element_type: "tri3",
+      material_id: "default-s355",
+    });
+  };
 
   return (
     <aside className="s-panel">
@@ -464,9 +501,14 @@ function ModelloPanel(props: PanelProps): JSX.Element {
               <Info size={12} />
               <span>10 beam · 11 nodi · spaziatura uniforme 0.60 m</span>
             </div>
-            <button type="button" className="btn-primary btn-block">
+            <button
+              type="button"
+              className="btn-primary btn-block"
+              onClick={onGenerateMesh}
+              disabled={meshMutation.isPending || modelsLoading}
+            >
               <Plus size={12} strokeWidth={2.4} />
-              Genera mesh
+              {meshMutation.isPending ? "Generazione…" : "Genera mesh"}
             </button>
           </div>
         </section>
