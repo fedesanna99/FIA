@@ -8,4 +8,4 @@
 export const APP_VERSION = "v3.0";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v3.0.0-sprint-ef-p1-p2-complete";
+export const APP_TAG = "v3.0.1-hotfix-dashboard-entry-points";

@@ -88,10 +88,10 @@ describe("TopBar legacy (v2.6.6 E.4 enrichment)", () => {
     expect(credits.getAttribute("aria-label")).toMatch(/\d+ su \d+ crediti/);
   });
 
-  it("brand mark FEA Pro + version v2.6 + tier badge rendered", () => {
+  it("brand mark FEA Pro + version v2/v3 + tier badge rendered", () => {
     render(wrap(<TopBar models={[]} activeId={null} onSelect={vi.fn()} />));
     expect(screen.getByText("FEA Pro")).toBeInTheDocument();
-    // version dinamica (può essere v2.6, v2.7, ecc.)
-    expect(screen.getAllByText(/v2\.\d+/).length).toBeGreaterThan(0);
+    // version dinamica (v2.6 → v3.x dopo bump v3.0.0)
+    expect(screen.getAllByText(/v[23]\.\d+/).length).toBeGreaterThan(0);
   });
 });

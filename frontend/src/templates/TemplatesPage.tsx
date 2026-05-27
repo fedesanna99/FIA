@@ -34,8 +34,8 @@ type TplCategory = "acciaio" | "ca" | "legno" | "sismica";
 type TplTier = "free" | "pro";
 
 interface Template {
-  id: string;        // backend ID, es. "ex_uc1"
-  code: string;      // shown to user, es. "UC1"
+  id: string;          // UI identifier (UC code)
+  code: string;        // shown to user, es. "UC1"
   title: string;
   description: string;
   category: TplCategory;
@@ -46,67 +46,87 @@ interface Template {
   pill?: "POPOLARE" | "PRO" | "NEW";
   featured?: boolean;
   thumb: () => JSX.Element;
+  // v3.0.1 Bug fix #3: ID effettivo nel backend (seed `build_example_models`
+  // in backend/examples.py). Se assente → il template è solo "showcase",
+  // non ancora wireato a backend (toast informativo on click).
+  backendId?: string;
 }
 
+// v3.0.1 Bug fix #3: backend espone solo 9 example models con ID hardcoded
+// (`ex_simple_beam_2d, ex_portal_frame_2d, ex_truss_3d, ex_shell_plate,
+//   ex_tower_3d, ex_tri3_seismic, ex_cube_solid_h8, ex_cable_bridge_2d,
+//   ex_laminate_plate` — vedi `backend/examples.py:420 build_example_models`).
+// I 9 UC qui sono mockup-driven (v2.7.2) e non matchano 1:1 i backend ID.
+// Per ora mappiamo i 5 con match ragionevole; gli altri 4 (UC5/UC8/UC9/UC10)
+// restano showcase-only finché backend non aggiunge i modelli (TODO v3.1+).
 const TEMPLATES: readonly Template[] = [
   {
-    id: "ex_uc1", code: "UC1", title: "Trave bi-appoggiata",
+    id: "uc1", code: "UC1", title: "Trave bi-appoggiata",
     description: "Trave isostatica con carico distribuito. Statica lineare + verifica EC3 LTB.",
     category: "acciaio", tier: "free", ec: "EC3", type: "statica", estimatedMin: 2,
     pill: "POPOLARE", featured: true,
     thumb: BeamSupportedThumb,
+    backendId: "ex_simple_beam_2d",
   },
   {
-    id: "ex_uc2", code: "UC2", title: "Portale 2D · vento",
+    id: "uc2", code: "UC2", title: "Portale 2D · vento",
     description: "Telaio rigido isolato. Carico vento orizzontale + permanenti.",
     category: "acciaio", tier: "free", ec: "EC3", type: "telaio", estimatedMin: 3,
     thumb: PortalThumb,
+    backendId: "ex_portal_frame_2d",
   },
   {
-    id: "ex_uc3", code: "UC3", title: "Torre 8 piani · sismica",
+    id: "uc3", code: "UC3", title: "Torre 8 piani · sismica",
     description: "Edificio multi-piano. Modale + sismica EC8 spettro elastico.",
     category: "ca", tier: "pro", ec: "EC8", type: "sismica", estimatedMin: 8,
     pill: "PRO",
     thumb: TowerThumb,
+    backendId: "ex_tower_3d",
   },
   {
-    id: "ex_uc5", code: "UC5", title: "Mensola incastrata",
+    id: "uc5", code: "UC5", title: "Mensola incastrata",
     description: "Trave a sbalzo con carico puntuale all'estremità. Calcolo freccia + sigma_VM.",
     category: "acciaio", tier: "free", ec: "EC3", type: "statica", estimatedMin: 2,
     thumb: CantileverThumb,
+    // backendId TBD: backend non ha modello mensola dedicato
   },
   {
-    id: "ex_uc6", code: "UC6", title: "Piastra Q4 · pannello",
+    id: "uc6", code: "UC6", title: "Piastra Q4 · pannello",
     description: "Pannello shell-Q4 piano. Carico distribuito su superficie. Iso-linee stress.",
     category: "ca", tier: "pro", ec: "EC2", type: "shell", estimatedMin: 4,
     pill: "PRO",
     thumb: PlateThumb,
+    backendId: "ex_shell_plate",
   },
   {
-    id: "ex_uc7", code: "UC7", title: "Reticolare Pratt",
+    id: "uc7", code: "UC7", title: "Reticolare Pratt",
     description: "Capriata di copertura. Solo forze assiali. Aste truss + verifica EC3 buckling.",
     category: "acciaio", tier: "free", ec: "EC3", type: "truss", estimatedMin: 3,
     thumb: TrussThumb,
+    backendId: "ex_truss_3d",
   },
   {
-    id: "ex_uc8", code: "UC8", title: "Tirante in trazione",
+    id: "uc8", code: "UC8", title: "Tirante in trazione",
     description: "Asta soggetta a forza assiale pura. Verifica resistenza + snellezza.",
     category: "acciaio", tier: "free", ec: "EC3", type: "truss", estimatedMin: 1,
     thumb: TieRodThumb,
+    // backendId TBD: backend non ha modello tirante dedicato
   },
   {
-    id: "ex_uc9", code: "UC9", title: "Capriata in legno lamellare",
+    id: "uc9", code: "UC9", title: "Capriata in legno lamellare",
     description: "Tetto a falda. Carico neve + permanenti. Verifica EC5 legno (NEW v2.4).",
     category: "legno", tier: "free", ec: "EC5", type: "truss", estimatedMin: 4,
     pill: "NEW",
     thumb: WoodTrussThumb,
+    // backendId TBD: backend non ha capriata legno
   },
   {
-    id: "ex_uc10", code: "UC10", title: "Pilastro CA · buckling",
+    id: "uc10", code: "UC10", title: "Pilastro CA · buckling",
     description: "Pilastro snello in CA. Carico assiale. Eulero + verifica EC2 sez. rettangolare.",
     category: "ca", tier: "pro", ec: "EC2", type: "buckling", estimatedMin: 5,
     pill: "PRO",
     thumb: ColumnBucklingThumb,
+    // backendId TBD: backend non ha pilastro CA buckling
   },
 ];
 
@@ -148,12 +168,28 @@ export function TemplatesPage() {
   };
 
   const onOpenTemplate = (tpl: Template) => {
+    // v3.0.1 Bug fix #3: gestisci esplicitamente il caso "template senza
+    // backend wiring" (UC5/UC8/UC9/UC10). Mostriamo un toast informativo
+    // invece di lasciare loading infinito.
+    if (!tpl.backendId) {
+      toast(
+        "info",
+        `${tpl.code} · ${tpl.title} è ancora in arrivo. Per ora prova UC1, UC2, UC3, UC6 o UC7.`,
+        4500,
+      );
+      return;
+    }
     toast("info", `Caricamento template ${tpl.code} · ${tpl.title}…`, 3000);
-    // Dispatcha evento per riusare il flow esistente (TemplateGalleryDialog legacy
-    // intercepta `feapro:load-template` con detail.templateId)
-    window.dispatchEvent(new CustomEvent("feapro:load-template", { detail: { templateId: tpl.id } }));
-    // Redirect immediato a home; quando il modello è caricato setActiveId aprirà
-    // il workspace. Se il flow fallisce, l'utente vede comunque la dashboard.
+    // v3.0.1 Bug fix #2: l'evento `feapro:load-template` è ora ascoltato in
+    // App.tsx (setActiveId via detail.templateId). Il backend serve il
+    // modello via GET /api/models/{templateId} → useLoadModel popola lo
+    // store → Shell con Viewport3D si monta automaticamente.
+    window.dispatchEvent(
+      new CustomEvent("feapro:load-template", { detail: { templateId: tpl.backendId } }),
+    );
+    // Redirect a home: appena activeId si setta, App.tsx switcha a Shell
+    // con Viewport3D. Se la fetch fallisce (404, network), l'utente resta
+    // in dashboard e vede solo il toast (no UI rotta).
     navigate("/", { replace: false });
   };
 

@@ -71,6 +71,11 @@ import { ElementDialog } from "./components/dialogs/ElementDialog";
 import { LoadDialog } from "./components/dialogs/LoadDialog";
 import { ConstraintDialog } from "./components/dialogs/ConstraintDialog";
 import { MeshWizardDialog } from "./components/dialogs/MeshWizardDialog";
+// v3.0.1 Bug fix #1: NewModelDialog ora sempre montato a livello App
+// (prima viveva solo dentro TopBar legacy che non è renderizzato in
+// Dashboard mockup-driven full-screen, quindi il tile "Nuovo modello
+// vuoto" della Dashboard non apriva nulla).
+import { NewModelDialog } from "./components/dialogs/NewModelDialog";
 // v2.2.2 audit-fix P3: lazy-load dei 5 wizard/dialog pesanti (~80-120 KB
 // minified). Si caricano solo quando l'utente li apre (open=true). I
 // `<Suspense fallback={null}>` sotto evitano fallback visivi: i dialog
@@ -190,6 +195,10 @@ export default function App() {
   // v2.2.4 feature: pushover/nonlinear wizard veri 3-step.
   const [pushoverWizardOpen, setPushoverWizardOpen] = useState(false);
   const [nonlinearWizardOpen, setNonlinearWizardOpen] = useState(false);
+  // v3.0.1 Bug fix #1: state per NewModelDialog ora hostato in App.tsx
+  // (sempre montato, indipendentemente da Dashboard fullscreen / Shell /
+  // legacy chrome). Listener `feapro:open-new-model` aggiunto sotto.
+  const [newModelOpen, setNewModelOpen] = useState(false);
   useLoadModel(activeId);
   // v1.5 Task 34 follow-up: leggo wizardStore.active per renderizzare il
   // SismicaTHWizard singleton al root.
@@ -308,12 +317,29 @@ export default function App() {
     // v1.9.0 T4: listener per bottone "Genera report PDF" in ResultsOverviewCard.
     const openExportPdf = () => setReportExportOpen(true);
     window.addEventListener("feapro:open-export-pdf", openExportPdf);
+    // v3.0.1 Bug fix #1: listener globale per "Nuovo modello vuoto" tile
+    // della Dashboard mockup-driven. Prima era registrato solo in TopBar
+    // legacy (non montato in Dashboard fullscreen). Ora vive a livello
+    // App.tsx così funziona ovunque.
+    const openNewModel = () => setNewModelOpen(true);
+    window.addEventListener("feapro:open-new-model", openNewModel);
+    // v3.0.1 Bug fix #2: listener globale per "Apri template" dalla
+    // TemplatesPage. CustomEvent con detail.templateId → setActiveId
+    // (Viewport3D si carica automaticamente via useLoadModel). Prima
+    // l'evento era dispatchato ma nessuno ascoltava → loading infinito.
+    const onLoadTemplate = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { templateId?: string } | undefined;
+      if (detail?.templateId) setActiveId(detail.templateId);
+    };
+    window.addEventListener("feapro:load-template", onLoadTemplate);
     return () => {
       window.removeEventListener("feapro:open-import-wizard", openImport);
       window.removeEventListener("feapro:model-imported", onImported);
       window.removeEventListener("feapro:open-template-gallery", openTemplate);
       window.removeEventListener("feapro:open-percorsi", openPercorsi);
       window.removeEventListener("feapro:open-export-pdf", openExportPdf);
+      window.removeEventListener("feapro:open-new-model", openNewModel);
+      window.removeEventListener("feapro:load-template", onLoadTemplate);
     };
   }, []);
 
@@ -790,6 +816,19 @@ export default function App() {
         {/* v2.0 Precision PR16 T2: A2 Modelli browser full-screen overlay. */}
         <ModelliBrowser />
       </Suspense>
+      {/* v3.0.1 Bug fix #1: NewModelDialog ora sempre montato fuori dal
+          Suspense legacy. Si apre via custom event `feapro:open-new-model`
+          (Ctrl/Cmd+N, tile Dashboard, palette). onCreated → setActiveId
+          attiva Viewport3D con il nuovo modello. */}
+      <NewModelDialog
+        open={newModelOpen}
+        onClose={() => setNewModelOpen(false)}
+        onCreated={(id) => {
+          setActiveId(id);
+          setNewModelOpen(false);
+          toast("success", "Nuovo modello creato.");
+        }}
+      />
       {/* v2.6.4 A.2: OnboardingTour autoplay primo login + replay via Help menu */}
       <OnboardingTour />
       {/* v2.6.4 C (accessibility-spec § 3.1): solver status SR announcer.

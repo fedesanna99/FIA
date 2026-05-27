@@ -75,7 +75,7 @@ describe("BrandAside · composition", () => {
     render(<BrandAside />);
     const link = screen.getByTestId("auth-i18n-placeholder");
     expect(link).toHaveTextContent("Cambia lingua · IT");
-    expect(link).toHaveAttribute("title", "i18n in arrivo v2.8");
+    expect(link).toHaveAttribute("title", "i18n in arrivo v3.x");
     // Click → preventDefault (URL non cambia, niente navigazione)
     const event = new MouseEvent("click", { bubbles: true, cancelable: true });
     const prevented = !link.dispatchEvent(event);

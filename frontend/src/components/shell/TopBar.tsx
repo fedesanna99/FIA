@@ -31,7 +31,9 @@ import { useModelStore } from "../../store/modelStore";
 import { useModelHistory } from "../../store/historyStore";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useJobsStore } from "../../store/jobsStore";
-import { NewModelDialog } from "../dialogs/NewModelDialog";
+// v3.0.1 Bug fix #1: NewModelDialog è ora montato a livello App.tsx (sempre
+// disponibile). Qui dispatchamo l'evento `feapro:open-new-model` invece di
+// gestire state interno → unica fonte di verità per il dialog.
 import { EditModelDialog } from "../dialogs/EditModelDialog";
 // v1.7-polish T2: AccountDialog lazy-loaded (raramente aperto, ~30kB).
 const AccountDialog = lazy(() =>
@@ -91,7 +93,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   // alpha.31 Task 19: Run topbar visibile solo se il SolvePanel non e' aperto.
   // Quando SolvePanel e' aperto, l'utente usa il Run dentro il pannello (anch'esso verde).
   const isSolveOpen = useWorkspaceStore((s) => s.currentLeftPanel === "solve");
-  const [newOpen, setNewOpen] = useState(false);
+  // v3.0.1 Bug fix #1: rimosso `newOpen` (NewModelDialog ora a livello App.tsx).
   const [editOpen, setEditOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [locationOpen, setLocationOpen] = useState(false);
@@ -108,14 +110,13 @@ export function TopBar({ models, activeId, onSelect }: Props) {
   useEffect(() => {
     const openAcc = () => setAccountOpen(true);
     const openLoc = () => setLocationOpen(true);
-    const openNew = () => setNewOpen(true);
     window.addEventListener("feapro:open-account", openAcc);
     window.addEventListener("feapro:open-location", openLoc);
-    window.addEventListener("feapro:open-new-model", openNew);
+    // v3.0.1 Bug fix #1: `feapro:open-new-model` ora ascoltato da App.tsx
+    // (unica fonte di verità per il dialog, evita doppio mount).
     return () => {
       window.removeEventListener("feapro:open-account", openAcc);
       window.removeEventListener("feapro:open-location", openLoc);
-      window.removeEventListener("feapro:open-new-model", openNew);
     };
   }, []);
 
@@ -181,7 +182,7 @@ export function TopBar({ models, activeId, onSelect }: Props) {
         onDuplicate={() => activeId && dup.mutate(activeId)}
         onEdit={() => setEditOpen(true)}
         onSwitch={() => onSelect(null)}
-        onNew={() => setNewOpen(true)}
+        onNew={() => window.dispatchEvent(new Event("feapro:open-new-model"))}
         onDelete={() => {
           if (!activeId) return;
           if (window.confirm(`Eliminare "${model?.name ?? "modello"}"? Operazione non reversibile.`)) {
@@ -344,14 +345,10 @@ export function TopBar({ models, activeId, onSelect }: Props) {
           Focus resta sempre accessibile via Shift+Space e command palette. */}
 
       {/* Right side: dialogs portal */}
-      <NewModelDialog
-        open={newOpen}
-        onClose={() => setNewOpen(false)}
-        onCreated={(id) => {
-          onSelect(id);
-          toast("success", "Nuovo modello creato.");
-        }}
-      />
+      {/* v3.0.1 Bug fix #1: NewModelDialog rimosso da qui — è ora montato
+          a livello App.tsx (sempre disponibile, anche in Dashboard fullscreen
+          dove il TopBar legacy non viene mai renderizzato). `onCreated`
+          imposta setActiveId direttamente nella App, che apre il Viewport3D. */}
       <EditModelDialog open={editOpen} onClose={() => setEditOpen(false)} />
       {accountOpen && (
         <Suspense fallback={null}>
