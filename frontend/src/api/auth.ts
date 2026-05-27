@@ -15,6 +15,37 @@ export interface AuthUser {
   last_login_at: number | null;
   /** v2.6.4 A.2: gate per autoplay del tour onboarding. */
   onboarding_completed: boolean;
+  /** v2.7.0 F.5 (D.2=B): metadata signup mockup-driven. Tutti i campi
+   *  sono nullable per backward compat con utenti pre-v2.7.0. */
+  nome: string | null;
+  cognome: string | null;
+  ruolo_professionale:
+    | "ingegnere"
+    | "architetto"
+    | "docente"
+    | "studente"
+    | "altro"
+    | null;
+  /** Unix timestamp (sec) del consenso a termini e privacy. NULL = utenti
+   *  pre-v2.7.0 o chiamate legacy senza accepted_terms. */
+  terms_accepted_at: number | null;
+}
+
+/** v2.7.0 F.5: payload esteso per POST /api/auth/register. Quando i
+ *  campi opzionali sono assenti, il backend mantiene backward compat
+ *  (utente creato senza metadata). */
+export interface RegisterPayload {
+  email: string;
+  password: string;
+  nome?: string;
+  cognome?: string;
+  ruolo_professionale?:
+    | "ingegnere"
+    | "architetto"
+    | "docente"
+    | "studente"
+    | "altro";
+  accepted_terms?: boolean;
 }
 
 export interface AuthResponse {
@@ -29,13 +60,28 @@ const authClient = axios.create({
 });
 
 
+/**
+ * Register nuovo account.
+ *
+ * v2.7.0 F.5 (D.2=B): firma estesa per signup mockup-driven con metadata.
+ *
+ * Due overloads:
+ *   1. Legacy positional: `register(email, password)` — per backward compat
+ *      con AuthScreen/LoginPage stub e ogni codepath pre-v2.7.0.
+ *   2. Esteso payload: `register({email, password, nome, cognome,
+ *      ruolo_professionale, accepted_terms})` — usato da SignupPage F.5.
+ *
+ * Quando `accepted_terms === false` esplicito il backend ritorna 422.
+ */
+export async function register(email: string, password: string): Promise<AuthResponse>;
+export async function register(payload: RegisterPayload): Promise<AuthResponse>;
 export async function register(
-  email: string,
-  password: string,
+  arg1: string | RegisterPayload,
+  password?: string,
 ): Promise<AuthResponse> {
-  const r = await authClient.post<AuthResponse>("/api/auth/register", {
-    email, password,
-  });
+  const payload: RegisterPayload =
+    typeof arg1 === "string" ? { email: arg1, password: password ?? "" } : arg1;
+  const r = await authClient.post<AuthResponse>("/api/auth/register", payload);
   return r.data;
 }
 

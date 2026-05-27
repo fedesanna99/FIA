@@ -15,6 +15,12 @@ const mockUser = {
   created_at: 1779000000,
   last_login_at: null,
   onboarding_completed: false,
+  // v2.7.0 F.5 (D.2=B): signup metadata extension. Backward compat: tutti
+  // i campi sono nullable; utente legacy (pre-v2.7.0) li ha tutti a null.
+  nome: null,
+  cognome: null,
+  ruolo_professionale: null,
+  terms_accepted_at: null,
 };
 
 

@@ -29,6 +29,10 @@ beforeEach(() => {
     created_at: 0,
     last_login_at: null,
     onboarding_completed: true,
+    nome: null,
+    cognome: null,
+    ruolo_professionale: null,
+    terms_accepted_at: null,
   });
   useAuthStore.setState({ token: "test-token", user: null, bootstrapping: false });
 });
@@ -47,6 +51,11 @@ function setUser(onboarding_completed: boolean) {
       created_at: 0,
       last_login_at: null,
       onboarding_completed,
+      // v2.7.0 F.5: signup metadata extension (utente legacy = null).
+      nome: null,
+      cognome: null,
+      ruolo_professionale: null,
+      terms_accepted_at: null,
     },
   });
 }

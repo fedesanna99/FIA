@@ -1,10 +1,18 @@
-"""Auth REST endpoints (alpha.13).
+"""Auth REST endpoints (alpha.13, esteso v2.6.4 + v2.7.0 F.5).
 
-- POST /api/auth/register {email, password} -> {user, token}
-- POST /api/auth/login    {email, password} -> {user, token}
+- POST /api/auth/register {email, password, nome?, cognome?,
+                            ruolo_professionale?, accepted_terms?}
+                          -> {user, token}    (status 201; 409 conflict;
+                              422 se ruolo invalido o accepted_terms=False)
+- POST /api/auth/login    {email, password}  -> {user, token}
 - GET  /api/auth/me        Authorization: Bearer  -> {user}
+- PATCH /api/auth/onboarding {completed}     -> {user}
+- DELETE /api/auth/me      Authorization: Bearer  -> 204 (GDPR cascade)
 """
 from __future__ import annotations
+
+import time
+from typing import Literal, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
 from pydantic import BaseModel, EmailStr, Field
@@ -28,8 +36,24 @@ router = APIRouter()
 
 # ── Schemas ────────────────────────────────────────────────────────────────
 class RegisterRequest(BaseModel):
+    """v2.7.0 F.5 (D.2=B): payload signup esteso con metadata mockup-driven.
+
+    Backward compat: i 4 campi nuovi sono `Optional[...] = None`. Le
+    chiamate legacy `{email, password}` continuano a funzionare e creano
+    user senza metadata. La validation strict (es. `accepted_terms==True`)
+    è applicata solo se i campi sono PRESENTI nel payload.
+    """
     email: EmailStr
     password: str = Field(min_length=8, max_length=72)
+    nome: Optional[str] = Field(default=None, max_length=80)
+    cognome: Optional[str] = Field(default=None, max_length=80)
+    ruolo_professionale: Optional[
+        Literal["ingegnere", "architetto", "docente", "studente", "altro"]
+    ] = None
+    # Backward compat: None ⇒ utente pre-v2.7.0 (no enforcement); True ⇒
+    # frontend mockup-driven (set terms_accepted_at = now); False ⇒ 422
+    # (l'utente ha esplicitamente NON accettato → respinto).
+    accepted_terms: Optional[bool] = None
 
 
 class LoginRequest(BaseModel):
@@ -56,14 +80,43 @@ class OnboardingUpdate(BaseModel):
 # ── Endpoints ──────────────────────────────────────────────────────────────
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
 def register(req: RegisterRequest) -> AuthResponse:
-    """Crea un nuovo user. Solleva 409 se email gia' esiste."""
+    """Crea un nuovo user. Solleva 409 se email gia' esiste.
+
+    v2.7.0 F.5 (D.2=B): payload esteso con metadata mockup signup. Validation
+    strict di `accepted_terms` solo se esplicitamente False (None ⇒
+    backward compat per chiamate legacy). Quando accepted_terms=True,
+    `terms_accepted_at` è popolato con int(time.time()) come timestamp
+    consenso GDPR (Art. 6/7 lawful basis).
+    """
+    # v2.7.0 F.5: enforcement consenso solo se esplicitamente False.
+    if req.accepted_terms is False:
+        raise HTTPException(
+            status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Devi accettare termini e privacy policy per creare un account.",
+        )
+
     try:
         pw_hash = hash_password(req.password)
     except ValueError as e:
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail=str(e)) from e
 
+    # v2.7.0 F.5: estensione signup metadata. Sanitize trim whitespace
+    # sui campi text optional.
+    nome = req.nome.strip() if req.nome else None
+    cognome = req.cognome.strip() if req.cognome else None
+    terms_accepted_at: Optional[int] = (
+        int(time.time()) if req.accepted_terms is True else None
+    )
+
     try:
-        user = get_users_db().register(str(req.email), pw_hash)
+        user = get_users_db().register(
+            str(req.email),
+            pw_hash,
+            nome=nome or None,
+            cognome=cognome or None,
+            ruolo_professionale=req.ruolo_professionale,
+            terms_accepted_at=terms_accepted_at,
+        )
     except UserAlreadyExistsError as e:
         raise HTTPException(
             status.HTTP_409_CONFLICT, detail=str(e)

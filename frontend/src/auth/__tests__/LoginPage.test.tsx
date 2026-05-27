@@ -131,6 +131,10 @@ describe("LoginPage · F.4 completa (mockup-driven)", () => {
       created_at: 1748800000,
       last_login_at: null,
       onboarding_completed: false,
+      nome: null,
+      cognome: null,
+      ruolo_professionale: null,
+      terms_accepted_at: null,
     };
     vi.mocked(apiLogin).mockResolvedValueOnce({
       token: "jwt-token",

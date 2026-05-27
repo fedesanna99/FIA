@@ -1,9 +1,16 @@
-"""SQLite users storage (alpha.13).
+"""SQLite users storage (alpha.13, esteso v2.6.4 A.2 + v2.7.0 F.5).
 
 Schema:
     users(id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL,
           password_hash TEXT NOT NULL, created_at INTEGER NOT NULL,
-          last_login_at INTEGER)
+          last_login_at INTEGER,
+          -- v2.6.4 A.2:
+          onboarding_completed INTEGER NOT NULL DEFAULT 0,
+          -- v2.7.0 F.5 (D.2=B signup metadata extension Phase 4.1):
+          nome TEXT,
+          cognome TEXT,
+          ruolo_professionale TEXT,
+          terms_accepted_at INTEGER)
 
 Path: env `FEAPRO_USERS_DB` o default `<FEAPRO_DATA_DIR>/users.sqlite`
 (coerente con altre SQLite tracker/cache del progetto: stesso volume).
@@ -16,7 +23,13 @@ import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Literal, Optional
+
+
+# v2.7.0 F.5: enum allowed values per `ruolo_professionale`. Validation lato
+# Pydantic (vedi api/routes/auth.py RegisterRequest); SQLite TEXT senza
+# CHECK constraint per minimizzare DDL churn.
+RuoloProfessionale = Literal["ingegnere", "architetto", "docente", "studente", "altro"]
 
 
 # ── Exceptions ──────────────────────────────────────────────────────────────
@@ -41,6 +54,13 @@ class User:
     # chiude il tour (`[Salta]`, `[Fine]`, ESC, click backdrop). "Rivedi tour"
     # dal menu Help lo riporta a False.
     onboarding_completed: bool = False
+    # v2.7.0 F.5 (D.2=B): signup metadata estesa per mockup Auth.html signup
+    # state. Tutti i campi sono Optional + nullable in DB → backward compat
+    # con utenti pre-v2.7.0 (vedono None per ognuno).
+    nome: Optional[str] = None
+    cognome: Optional[str] = None
+    ruolo_professionale: Optional[str] = None
+    terms_accepted_at: Optional[int] = None
 
     def to_public_dict(self) -> dict:
         """Senza password_hash, per response API."""
@@ -50,6 +70,12 @@ class User:
             "created_at": self.created_at,
             "last_login_at": self.last_login_at,
             "onboarding_completed": self.onboarding_completed,
+            # v2.7.0 F.5: estensione signup metadata (sempre presenti nella
+            # risposta, valore None per utenti pre-v2.7.0).
+            "nome": self.nome,
+            "cognome": self.cognome,
+            "ruolo_professionale": self.ruolo_professionale,
+            "terms_accepted_at": self.terms_accepted_at,
         }
 
 
@@ -111,9 +137,41 @@ class UsersDB:
                     "ALTER TABLE users ADD COLUMN "
                     "onboarding_completed INTEGER NOT NULL DEFAULT 0"
                 )
+            # v2.7.0 F.5 (D.2=B): migration idempotente delle 4 colonne signup
+            # metadata. Stesso pattern di onboarding_completed (v2.6.4 A.2).
+            # Tutte nullable per backward compat (utenti pre-v2.7.0 vedono NULL).
+            for col_name, col_ddl in (
+                ("nome", "ALTER TABLE users ADD COLUMN nome TEXT"),
+                ("cognome", "ALTER TABLE users ADD COLUMN cognome TEXT"),
+                (
+                    "ruolo_professionale",
+                    "ALTER TABLE users ADD COLUMN ruolo_professionale TEXT",
+                ),
+                (
+                    "terms_accepted_at",
+                    "ALTER TABLE users ADD COLUMN terms_accepted_at INTEGER",
+                ),
+            ):
+                if col_name not in cols:
+                    conn.execute(col_ddl)
 
-    def register(self, email: str, password_hash: str) -> User:
-        """Insert nuovo user. Solleva UserAlreadyExistsError su UNIQUE conflict."""
+    def register(
+        self,
+        email: str,
+        password_hash: str,
+        *,
+        nome: Optional[str] = None,
+        cognome: Optional[str] = None,
+        ruolo_professionale: Optional[str] = None,
+        terms_accepted_at: Optional[int] = None,
+    ) -> User:
+        """Insert nuovo user. Solleva UserAlreadyExistsError su UNIQUE conflict.
+
+        v2.7.0 F.5 (D.2=B): kwargs opzionali per signup metadata estesa.
+        Backward compat: chiamata legacy ``register(email, pw_hash)`` continua
+        a funzionare e crea l'utente con NULL nei 4 campi nuovi (utenti
+        pre-v2.7.0).
+        """
         email_norm = email.strip().lower()
         if not email_norm:
             raise ValueError("email cannot be empty")
@@ -125,9 +183,13 @@ class UsersDB:
         try:
             with self._connect() as conn:
                 conn.execute(
-                    "INSERT INTO users(id, email, password_hash, created_at) "
-                    "VALUES(?, ?, ?, ?)",
-                    (user_id, email_norm, password_hash, now),
+                    "INSERT INTO users(id, email, password_hash, created_at, "
+                    "nome, cognome, ruolo_professionale, terms_accepted_at) "
+                    "VALUES(?, ?, ?, ?, ?, ?, ?, ?)",
+                    (
+                        user_id, email_norm, password_hash, now,
+                        nome, cognome, ruolo_professionale, terms_accepted_at,
+                    ),
                 )
         except sqlite3.IntegrityError as e:
             raise UserAlreadyExistsError(f"email already registered: {email_norm}") from e
@@ -135,6 +197,9 @@ class UsersDB:
             id=user_id, email=email_norm,
             password_hash=password_hash,
             created_at=now, last_login_at=None,
+            nome=nome, cognome=cognome,
+            ruolo_professionale=ruolo_professionale,
+            terms_accepted_at=terms_accepted_at,
         )
 
     def get_by_email(self, email: str) -> User:
@@ -208,12 +273,23 @@ def _row_to_user(row: sqlite3.Row) -> User:
         onboarding = bool(row["onboarding_completed"])
     except (KeyError, IndexError):
         onboarding = False
+    # v2.7.0 F.5 (D.2=B): 4 colonne signup metadata. Stesso safety pattern di
+    # onboarding — utenti pre-v2.7.0 vedono NULL (mappato a None).
+    def _safe(col: str):
+        try:
+            return row[col]
+        except (KeyError, IndexError):
+            return None
     return User(
         id=row["id"], email=row["email"],
         password_hash=row["password_hash"],
         created_at=row["created_at"],
         last_login_at=row["last_login_at"],
         onboarding_completed=onboarding,
+        nome=_safe("nome"),
+        cognome=_safe("cognome"),
+        ruolo_professionale=_safe("ruolo_professionale"),
+        terms_accepted_at=_safe("terms_accepted_at"),
     )
 
 
