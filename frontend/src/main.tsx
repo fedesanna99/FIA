@@ -1,8 +1,14 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import App from "./App";
 import { AuthGate } from "./components/auth/AuthGate";
+import { AuthLayout } from "./auth/AuthLayout";
+import { LoginPage } from "./auth/LoginPage";
+import { SignupPage } from "./auth/SignupPage";
+import { ForgotPasswordPage } from "./auth/ForgotPasswordPage";
+import { EmailVerifyPage } from "./auth/EmailVerifyPage";
 import { Toaster } from "./components/layout/Toaster";
 import { TooltipProvider } from "./components/ui/Tooltip";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
@@ -48,13 +54,31 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          {/* v2.1.4 auth-gate: AuthGate decide se mostrare AuthScreen (login
-              obbligatorio) o l'App. Toaster fuori dal gate così i toast
-              "Benvenuto …" sono visibili anche durante l'AuthScreen. */}
+          {/* v2.7.0 Phase 4.1: BrowserRouter abilitato per le 4 route auth
+              (/login /signup /forgot-password /verify-email) che montano
+              AuthLayout split-screen. Il path "*" cattura tutto il resto
+              e monta AuthGate→App (la webapp principale resta state-based
+              come prima, NON router-aware). Toaster fuori dal router così
+              i toast restano visibili anche su auth pages. */}
           <Toaster />
-          <AuthGate>
-            <App />
-          </AuthGate>
+          <BrowserRouter>
+            <Routes>
+              <Route element={<AuthLayout />}>
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                <Route path="/verify-email" element={<EmailVerifyPage />} />
+              </Route>
+              <Route
+                path="*"
+                element={
+                  <AuthGate>
+                    <App />
+                  </AuthGate>
+                }
+              />
+            </Routes>
+          </BrowserRouter>
         </TooltipProvider>
       </QueryClientProvider>
     </ErrorBoundary>

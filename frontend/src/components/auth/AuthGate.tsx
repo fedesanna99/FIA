@@ -1,20 +1,30 @@
 /**
- * AuthGate (v2.1.4 auth-gate) — gatekeeper di App.
+ * AuthGate (v2.7.0 Phase 4.1) — gatekeeper di App via React Router redirect.
+ *
+ * Refactor da v2.1.4 auth-gate:
+ *   - Prima: rendeva inline `<AuthScreen />` quando non autenticato.
+ *   - Adesso: redirect a `/login` via `useNavigate`. AuthScreen.tsx legacy
+ *     è stato rimosso (D.5 brief v2.7.0). Le 4 pages auth (LoginPage /
+ *     SignupPage / ForgotPasswordPage / EmailVerifyPage) vivono in
+ *     `frontend/src/auth/` sotto `<AuthLayout />` route-mounted.
  *
  * Stati gestiti:
  *   1. `bootstrapping`: spinner full-screen mentre verifyToken() gira al boot
- *   2. `unauthenticated`: mostra <AuthScreen /> (login obbligatorio)
- *   3. `authenticated`: mostra `children` (la webapp normale)
+ *   2. `unauthenticated`: redirect a `/login` (preserva `from` in state)
+ *   3. `authenticated`: mostra `children` (la webapp normale via App.tsx)
  *
- * Invoca `authStore.bootstrap()` al mount: legge il token persistito,
- * lo valida contro /api/auth/me e — se valido — popola user. Se non c'è
- * token o il token è scaduto, va in stato unauthenticated e mostra
- * l'AuthScreen.
+ * Invoca `authStore.bootstrap()` al mount (idempotente). Il render è
+ * gated da `bootstrapping || !token || !user` → mostra BootSplash finché
+ * il redirect non avviene o finché l'utente non è verificato.
+ *
+ * Nota: AuthGate ora richiede di essere montato dentro `<BrowserRouter>`
+ * (da main.tsx). Test che render AuthGate fuori da router devono wrappare
+ * con `<MemoryRouter>`.
  */
 import { useEffect, type ReactNode } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 import { useAuthStore } from "../../store/authStore";
-import { AuthScreen } from "./AuthScreen";
 
 
 export function AuthGate({ children }: { children: ReactNode }) {
@@ -22,19 +32,30 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
   const bootstrap = useAuthStore((s) => s.bootstrap);
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // One-shot al mount. La funzione è idempotente (vedi authStore).
   useEffect(() => {
     void bootstrap();
   }, [bootstrap]);
 
-  if (bootstrapping) {
-    return <BootSplash />;
-  }
+  // Redirect a /login quando bootstrap finito e utente non autenticato.
+  // Preserva il path corrente in state.from per redirect post-login.
+  useEffect(() => {
+    if (!bootstrapping && (!token || !user)) {
+      navigate("/login", {
+        replace: true,
+        state: { from: location.pathname },
+      });
+    }
+  }, [bootstrapping, token, user, navigate, location.pathname]);
 
-  const authenticated = !!token && !!user;
-  if (!authenticated) {
-    return <AuthScreen />;
+  // Finché bootstrap non finisce o l'utente non è autenticato, mostra
+  // splash (il redirect a /login avviene via useEffect sopra; lo splash
+  // è il fallback durante la transizione).
+  if (bootstrapping || !token || !user) {
+    return <BootSplash />;
   }
 
   return <>{children}</>;
@@ -42,8 +63,8 @@ export function AuthGate({ children }: { children: ReactNode }) {
 
 
 /**
- * BootSplash — spinner minimal mostrato durante /api/auth/me al boot.
- * Visibile solo per ~100-400ms quindi senza animazioni eccessive.
+ * BootSplash — spinner minimal mostrato durante /api/auth/me al boot
+ * oppure durante la transizione di redirect a /login.
  */
 function BootSplash() {
   return (
