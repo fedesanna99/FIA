@@ -142,7 +142,8 @@ docs/design_handoff/
 | `v2.6.6-home-legacy-shell-refactor` | Stesso refactor su chrome legacy home | v93 |
 | `v2.7.0-auth-mockup-driven` | Phase 4.1 Auth refactor: BrandAside + 4 route React Router + LoginPage/SignupPage/ForgotPasswordPage/EmailVerifyPage + 7 primitives + backend signup metadata extension (4 nuove colonne SQLite nullable) | v94 ✅ |
 | `v2.7.0.1-auth-fix-font` | fix font-family Inter override su `.auth-shell` (eredità Plus Jakarta Sans bypassata) + tool `visual-audit.mjs` permanente per audit Phase 4-6 + README scripts | v95 ✅ |
-| `v2.7.1-dashboard-mockup-driven` | **Phase 4.2 home dashboard refactor mockup-driven**: nuova DashboardPage da `Dashboard new.html` (TopNav orizzontale + hero personalizzato greeting + 3 action tiles + recent grid 4 card SVG-thumb + dual-row percorsi/changelog + footer) sostituisce legacy. `dashboard.css` 540+ righe namespaced `.dash`. Drop-in single-line in App.tsx (alias import). | v96 atteso |
+| `v2.7.1-dashboard-mockup-driven` | **Phase 4.2 home dashboard refactor mockup-driven**: nuova DashboardPage da `Dashboard new.html` (TopNav orizzontale + hero personalizzato greeting + 3 action tiles + recent grid 4 card SVG-thumb + dual-row percorsi/changelog + footer) sostituisce legacy. `dashboard.css` 540+ righe namespaced `.dash`. Drop-in single-line in App.tsx (alias import). | v96 ✅ |
+| `v2.7.1.1-dashboard-fullscreen` | hotfix · rimuove chrome legacy attorno alla home (no LeftRail/TopBar/StatusBar legacy quando no model + desktop + !focus). DashboardPage ora full-screen come da mockup. **Match visivo ~98% verificato via DOM probe + screenshot Playwright** (legacyLeftRail=false, dashTopbar=true). | v97 ✅ |
 
 ### Baseline tecnica corrente (post v2.7.0)
 
