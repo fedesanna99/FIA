@@ -352,6 +352,14 @@
 .auth-shell .field-grid-2 {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 10px;
+  /* v2.8.0.1 bug fix (segnalato da Federico via annotated screenshot):
+     i `.field` figli erano flex-column senza min-width, e a viewport stretti
+     il secondo campo (Cognome) sbordava fuori dal bordo destro della card.
+     `min-width: 0` ferma l'intrinsic min-content sizing del grid. */
+}
+.auth-shell .field-grid-2 > .field,
+.auth-shell .field-grid-2 > .field > .field-input {
+  min-width: 0;
 }
 
 /* ── Checkbox ────────────────────────────────────────────── */
@@ -559,11 +567,23 @@
   .auth-shell {
     grid-template-columns: 1fr;
   }
+  /* v2.8.0.2 mobile-first UX (richiesto da Federico): su smartphone il
+     form appare PRIMA (zero scroll per inserire credenziali), il pannello
+     hero/marketing DOPO (scroll opzionale per chi vuole leggere il manifesto). */
+  .auth-shell main { order: 1; }
+  .auth-shell .auth-brand { order: 2; }
+
+  /* Auth-brand su mobile: più compatto, meno verticale, meno padding,
+     gerarchia visiva ridotta (è secondario rispetto al form). */
   .auth-shell .auth-brand {
-    padding: 32px;
-    min-height: 320px;
+    padding: 28px 24px 32px;
+    min-height: auto;
+    gap: 16px;
   }
-  .auth-shell .brand-claim { font-size: 36px; }
-  .auth-shell .auth-card-wrap { padding: 32px; }
+  .auth-shell .brand-claim { font-size: 26px; line-height: 30px; }
+  .auth-shell .brand-diagram { display: none; }       /* nascondi diagram trave (occupa spazio) */
+  .auth-shell .brand-sub { font-size: 13px; line-height: 19px; }
+  .auth-shell .auth-card-wrap { padding: 24px; }
+  .auth-shell .auth-card { padding: 28px 24px; }
   .auth-shell .state-tabs { margin-left: 0; flex-wrap: wrap; }
 }
