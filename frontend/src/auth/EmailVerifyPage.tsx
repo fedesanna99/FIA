@@ -1,35 +1,175 @@
 /**
- * EmailVerifyPage · v2.7.0 Phase 4.1 mockup-driven (F.3 stub placeholder)
+ * EmailVerifyPage · v2.7.0 Phase 4.1 mockup-driven (F.7 completa)
  *
- * Stato 4 di 4 (VERIFY). Stub minimale — implementazione completa con
- * card centered + verify-icon 64x64 + OTPInput 6 cells auto-advance
- * + resend countdown 60s + flow simulato (D.4=A: mock UI, backend
- * default verified=true post-signup, page accessibile per testing via
- * /verify-email?token=...) arriva in F.7.
+ * State 4 di 4 (VERIFY). Implementazione completa secondo mockup
+ * ui_kits/webapp_desktop/Auth.html righe 366-407.
+ *
+ * D.4=A LOCKED · mock UI honest:
+ *   In produzione il flow signup → redirect diretto a "/" (backend default
+ *   utente=verified, NO email confirmation step). Questa page è
+ *   accessibile SOLO via URL diretto `/verify-email?email=...&token=...`
+ *   per testing visivo del mockup state. Il submit OTP NON chiama backend
+ *   (endpoint non esiste); mostra toast info onesto.
+ *
+ * Layout (mockup):
+ *   - card centered (`card-head-center` + `auth-card-verify` modifier)
+ *   - verify-icon 64x64 cyan + Mail icon
+ *   - eyebrow "Quasi pronto" + title "Verifica la tua email"
+ *   - sub: spiega email destinataria + 10 minuti scadenza
+ *   - OTP 6 cells auto-advance + backspace prev
+ *   - Primary "Verifica e accedi" (disabled se OTP < 6 char)
+ *   - resend-row "Non ricevuto? Reinvia codice" + countdown "in M:SS"
+ *   - footer "Email sbagliata? Ricrea l'account" → /signup
+ *
+ * Countdown: 60s initial, decrement ogni 1s, format M:SS. Quando arriva a
+ * 0, il button "Reinvia codice" diventa cliccabile.
+ *
+ * Email destinataria: letta da query param `?email=...` (URL-encoded).
+ * Se mancante, mostra placeholder generico "alla tua email".
  *
  * Reference mockup: ui_kits/webapp_desktop/Auth.html righe 366-407.
  */
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Mail } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+
+import { toast } from "../store/toastStore";
+
+import { AuthCard } from "./components/AuthCard";
+import { OTPInput } from "./components/OTPInput";
+
+
+const RESEND_COUNTDOWN_SECONDS = 60;
+const OTP_LENGTH = 6;
+
+
+function formatCountdown(sec: number): string {
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 
 export function EmailVerifyPage() {
-  return (
-    <section
-      className="auth-card auth-card-verify"
-      data-state="verify"
-      data-testid="auth-verify-page"
-    >
-      <header className="card-head card-head-center">
-        <span className="eyebrow">Quasi pronto</span>
-        <h2 className="card-title">Verifica la tua email</h2>
-        <p className="card-sub">
-          Implementazione completa in F.7 (OTP 6 cells + resend countdown
-          + flow simulato).
-        </p>
-      </header>
+  const [params] = useSearchParams();
+  const navigate = useNavigate();
+  const email = params.get("email") ?? "";
+  const [otp, setOtp] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(RESEND_COUNTDOWN_SECONDS);
 
-      <footer className="card-foot">
-        Email sbagliata? <Link to="/signup">Ricrea l'account</Link>
-      </footer>
-    </section>
+  // Countdown decrement ogni 1s. Cleanup interval su unmount.
+  useEffect(() => {
+    if (resendCountdown <= 0) return;
+    const id = window.setInterval(() => {
+      setResendCountdown((sec) => (sec > 0 ? sec - 1 : 0));
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [resendCountdown]);
+
+  const canResend = resendCountdown === 0;
+  const canSubmit = otp.length === OTP_LENGTH && !submitting;
+
+  async function handleVerify(): Promise<void> {
+    if (!canSubmit) return;
+    setSubmitting(true);
+    // D.4=A LOCKED · NO API call backend.
+    toast(
+      "success",
+      "Email verificata (mock). In produzione l'account è già attivo dopo il signup — questa pagina è solo per il visual mockup.",
+      6_000,
+    );
+    setSubmitting(false);
+    navigate("/", { replace: true });
+  }
+
+  function handleResend() {
+    if (!canResend) return;
+    toast(
+      "info",
+      "Funzione resend email mock. In produzione il signup attiva l'account senza step verify.",
+      5_000,
+    );
+    setResendCountdown(RESEND_COUNTDOWN_SECONDS);
+  }
+
+  const verifyIcon = (
+    <div className="verify-icon" aria-hidden="true">
+      <Mail width={28} height={28} />
+    </div>
+  );
+
+  return (
+    <AuthCard
+      state="verify"
+      centered
+      icon={verifyIcon}
+      eyebrow="Quasi pronto"
+      title="Verifica la tua email"
+      sub={
+        <>
+          {email ? (
+            <>
+              Abbiamo inviato un link di conferma a <b>{email}</b>.<br />
+              Clicca il link entro <b>10 minuti</b> per attivare l'account.
+            </>
+          ) : (
+            <>
+              Abbiamo inviato un link di conferma alla tua email.
+              <br />
+              Clicca il link entro <b>10 minuti</b> per attivare l'account.
+            </>
+          )}
+        </>
+      }
+      footer={
+        <>
+          Email sbagliata?{" "}
+          <Link to="/signup" data-testid="auth-verify-recreate-link">
+            Ricrea l'account
+          </Link>
+        </>
+      }
+    >
+      <div className="card-form">
+        <div className="otp-row">
+          <span className="field-label">Inserisci codice a 6 cifre</span>
+          <OTPInput
+            length={OTP_LENGTH}
+            value={otp}
+            onChange={setOtp}
+            disabled={submitting}
+          />
+        </div>
+
+        <button
+          type="button"
+          className="btn-primary btn-lg"
+          disabled={!canSubmit}
+          onClick={handleVerify}
+          data-testid="auth-verify-submit"
+        >
+          {submitting ? "Verifica in corso…" : "Verifica e accedi"}
+        </button>
+
+        <div className="resend-row" data-testid="auth-verify-resend-row">
+          Non ricevuto?{" "}
+          <button
+            type="button"
+            className="link-button"
+            disabled={!canResend}
+            onClick={handleResend}
+            data-testid="auth-verify-resend-btn"
+          >
+            Reinvia codice
+          </button>
+          {!canResend && (
+            <span className="resend-timer" data-testid="auth-verify-resend-timer">
+              in {formatCountdown(resendCountdown)}
+            </span>
+          )}
+        </div>
+      </div>
+    </AuthCard>
   );
 }
