@@ -271,16 +271,33 @@ body,
 #root {
   width: 100%;
   min-height: 100%;
-  height: 100%;
   margin: 0;
   background: var(--bg);
 }
 
 body {
-  overflow: hidden;
   /* v1.8.5 T3: previene rubber-band scrolling iOS (preservato). */
   overscroll-behavior: contain;
   touch-action: manipulation;
+}
+
+/* v2.8.0.2 (scroll fix segnalato da Federico): rimosso il blocco
+ * `body { overflow: hidden; height: 100% }` globale. Quel blocco serviva
+ * a `.app-shell` legacy (Studio workspace pre-v2.7.4) per evitare scroll
+ * del body — lo scroll  interno alle panel. Ma bloccava lo scroll su
+ * TUTTE le altre pagine (auth, dashboard, percorso, templates, settings,
+ * showcase, mobile) — bug invisibile finch non si  testato mobile auth.
+ *
+ * Fix: scope `overflow: hidden + height: 100vh` SOLO ai contesti che lo
+ * richiedono (Studio shell legacy `.app-shell` + Studio shell v2.7.4+
+ * `.studio`). Tutto il resto della SPA scrolla normalmente. */
+html:has(.app-shell),
+html:has(.studio),
+body:has(.app-shell),
+body:has(.studio) {
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
 }
 
 #root {
