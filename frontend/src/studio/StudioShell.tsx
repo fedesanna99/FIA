@@ -71,7 +71,8 @@ export function StudioShell({ active, workspaceState, midLayout = "with-tree", c
   };
 
   return (
-    <div className="studio">
+    // v3.0.0 Sprint F F3: data-app-mode attributo stabile (vedi Shell.tsx).
+    <div className="studio" data-app-mode="studio-v2">
 
       {/* ╔═══════════ TOPBAR ═══════════╗ */}
       <header className="s-topbar">

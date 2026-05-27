@@ -82,6 +82,11 @@ export function Shell({ children }: ShellProps) {
 
   return (
     <div
+      // v3.0.0 Sprint F F3: `data-app-mode="studio-legacy"` attributo stabile per
+      // identificare il Studio shell legacy. Permette al body lock in index.css
+      // di matchare via `:has([data-app-mode="studio-legacy"])` invece di
+      // dependency sulle class `.shell.shell-soft` (brittle a rename).
+      data-app-mode="studio-legacy"
       className={`shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-light${
         isTakeover ? " shell-takeover-on" : ""
       }${railExpanded ? " shell-rail-expanded" : ""}`}

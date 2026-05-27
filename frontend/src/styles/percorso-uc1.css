@@ -790,7 +790,21 @@
   .puc .p-main { grid-template-columns: 320px 1fr 340px; }
 }
 @media (max-width: 1080px) {
-  .puc .p-main { grid-template-columns: 1fr; grid-template-rows: auto 480px auto; }
+  /* v3.0.0 Sprint E R5: canvas height responsive (era fixed 480px → su
+     viewport intermedi 768-1080 schiacciava il canvas; ora `minmax` cresce
+     proporzionalmente con viewport mantenendo proporzioni leggibili). */
+  .puc .p-main { grid-template-columns: 1fr; grid-template-rows: auto minmax(420px, 60vh) auto; }
   .puc .p-coach { border-right: none; border-bottom: 1px solid var(--border); }
   .puc .p-inspector { border-left: none; border-top: 1px solid var(--border); }
+}
+
+/* v3.0.0 Sprint E R5: mobile (< 768px) canvas adattivo minore */
+@media (max-width: 767px) {
+  .puc .p-main { grid-template-rows: auto minmax(280px, 50vh) auto; }
+  .puc .p-topbar { padding: 0 16px; height: 48px; gap: 12px; }
+  .puc .p-brand-name { display: none; }
+  .puc .p-stepper-wrap { padding: 12px 16px 10px; gap: 8px; }
+  .puc .p-step-info { display: none; } /* solo i bullet visibili su mobile */
+  .puc .coach-card { padding: 18px 18px 16px; gap: 16px; }
+  .puc .coach-title { font-size: 20px; line-height: 26px; }
 }

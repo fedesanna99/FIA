@@ -15,7 +15,7 @@ import {
 
 import { StudioShell } from "./StudioShell";
 import { useFirstModelId } from "./useFirstModelId";
-import { exportApi } from "../api/io";
+import { exportApi, importDxf, importIfc } from "../api/io";
 import { toast } from "../store/toastStore";
 
 import "../styles/studio.css";
@@ -59,6 +59,36 @@ const COLLAB: readonly Collab[] = [
 export function StudioIOPage(): JSX.Element {
   const [activeTab, setActiveTab] = useState<IOTab>("import");
   const { modelId } = useFirstModelId();
+
+  // v3.0.0 Sprint E M12: wire drag&drop import dropzone.
+  // Drop file DXF o IFC → POST /api/io/import/{dxf,ifc} → toast.
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+  const handleDragLeave = () => setDragOver(false);
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+    try {
+      const ext = file.name.split(".").pop()?.toLowerCase();
+      if (ext === "dxf") {
+        const result = await importDxf(file);
+        toast("success", `Importato ${file.name} · ${result.warnings.length === 0 ? "no warning" : `${result.warnings.length} warning`}`);
+      } else if (ext === "ifc") {
+        const result = await importIfc(file);
+        toast("success", `Importato ${file.name} · ${result.warnings.length === 0 ? "no warning" : `${result.warnings.length} warning`}`);
+      } else {
+        toast("warning", `Formato .${ext} non supportato. Usa DXF o IFC.`);
+      }
+    } catch (err) {
+      toast("error", `Errore import: ${(err as Error).message}`);
+    }
+  };
 
   // v2.9.0 Sprint B M1.4: wire 4 Export tool list items.
   // GET /api/io/export/{model_id}/{format} → download Blob.
@@ -106,7 +136,13 @@ export function StudioIOPage(): JSX.Element {
 
         {/* Import section: dropzone + recent */}
         <div className="io-grid">
-          <article className="io-card io-card-wide io-dropzone">
+          <article
+            className="io-card io-card-wide io-dropzone"
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            style={dragOver ? { borderColor: "var(--accent)", background: "var(--accent-subtle)" } : undefined}
+          >
             <div className="dz-icon">
               <Upload size={36} strokeWidth={1.6} />
             </div>

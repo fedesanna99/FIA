@@ -293,8 +293,16 @@ body {
  * full-height con scroll INTERNO alle panel. Tutto il resto (Auth,
  * Dashboard, Templates, Percorso UC1, Settings, Showcase, Mobile) ha
  * body scrollabile come da pattern web normale. */
+/* v3.0.0 Sprint F F3: identificazione Studio mode tramite data-attribute
+   stabile invece di class name. Robust a rename future (es. se la class
+   `.shell-soft` diventasse `.shell-precision`). I selettori `:has(.shell)`
+   e `:has(.studio)` mantenuti come fallback per compatibility. */
+html:has([data-app-mode="studio-legacy"]),
+html:has([data-app-mode="studio-v2"]),
 html:has(.shell.shell-soft),
 html:has(.studio),
+body:has([data-app-mode="studio-legacy"]),
+body:has([data-app-mode="studio-v2"]),
 body:has(.shell.shell-soft),
 body:has(.studio) {
   overflow: hidden;

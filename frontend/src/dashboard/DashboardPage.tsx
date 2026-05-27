@@ -106,6 +106,7 @@ export function DashboardPage({
           greeting={greeting}
           firstName={firstName}
           modelsCount={userModels.length}
+          latestModel={userModels[0] ?? null}
           tierLabel={tierLabel}
           projUsed={projUsed}
           projCap={projCap}
@@ -134,13 +135,13 @@ function DashTopBar() {
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
   return (
     <header className="dash-topbar" data-testid="dash-topbar">
-      <a className="brand" href="#" onClick={(e) => e.preventDefault()}>
+      <Link className="brand" to="/" style={{ textDecoration: "none" }}>
         <span className="brand-square">F</span>
         <div className="brand-stack">
           <span className="brand-name">FEA Pro</span>
           <span className="brand-ver">{APP_VERSION}</span>
         </div>
-      </a>
+      </Link>
 
       <nav className="dash-nav" aria-label="Navigazione principale">
         <button type="button" className="nav-link is-active">Home</button>
@@ -184,26 +185,45 @@ interface HeroProps {
   greeting: string;
   firstName: string;
   modelsCount: number;
+  latestModel: FEAModel | null;
   tierLabel: string;
   projUsed: number;
   projCap: number;
   isRunning: boolean;
 }
-function Hero({ greeting, firstName, modelsCount, tierLabel, projUsed, projCap, isRunning }: HeroProps) {
+function Hero({ greeting, firstName, modelsCount, latestModel, tierLabel, projUsed, projCap, isRunning }: HeroProps) {
   const projsActive = isRunning ? "1 analisi in corso" : `${modelsCount} progett${modelsCount === 1 ? "o" : "i"} in lavorazione`;
   const pct = projCap > 0 ? Math.round((projUsed / projCap) * 100) : 0;
   const openBilling = () => window.dispatchEvent(new Event("feapro:open-billing"));
   const goPercorsoUC1 = useGoPercorsoUC1();
+  const navigate = useNavigate();
+  // v3.0.0 Sprint E M7: ultima sessione dinamico (era hardcoded "UC1").
+  // Se ci sono model dell'utente → mostra il primo. Se zero → fallback narrativo.
+  const hasModels = latestModel !== null;
   return (
     <section className="hero" data-testid="dash-hero">
       <div className="hero-l">
         <span className="eyebrow">{greeting}, {firstName}</span>
         <h1 className="hero-title">Da dove ricominci<br />oggi?</h1>
         <p className="hero-sub">
-          {projsActive} · 2 percorsi guidati attivi · ultima sessione su{" "}
-          <a href="/percorsi/uc1" onClick={(e) => { e.preventDefault(); goPercorsoUC1(); }}>
-            UC1 · Trave bi-appoggiata
-          </a>.
+          {projsActive} · 2 percorsi guidati attivi · {hasModels ? (
+            <>
+              ultima sessione su{" "}
+              <a
+                href="/"
+                onClick={(e) => { e.preventDefault(); navigate("/"); }}
+              >
+                {latestModel.name ?? latestModel.id}
+              </a>.
+            </>
+          ) : (
+            <>
+              ancora nessun modello — <a
+                href="/percorsi/uc1"
+                onClick={(e) => { e.preventDefault(); goPercorsoUC1(); }}
+              >inizia con il percorso UC1</a>.
+            </>
+          )}
         </p>
       </div>
       <div className="hero-r">

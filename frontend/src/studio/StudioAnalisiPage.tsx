@@ -259,8 +259,14 @@ function AnalisiPanel({ solver }: { solver: SolverDef }): JSX.Element {
   const [method, setMethod] = useState<"lu" | "iterative">("lu");
   const { modelId, isLoading } = useFirstModelId();
 
-  // v2.9.0 Sprint B M1.2: wire "Esegui" al backend
-  // Solo "static" wirato (gli altri solver in iter v2.9.0.x).
+  // v3.0.0 Sprint E M11: solver implementati in UI v2.9.0+ sono
+  // static/modal/buckling. Per push-over/seismic-th/fatigue il button
+  // "Esegui"  disabled con label "Beta · in arrivo v3.x" invece di
+  // mostrare toast errore quando cliccato.
+  const IMPLEMENTED_SOLVERS: ReadonlyArray<SolverKey> = ["static", "modal", "buckling"];
+  const isImplemented = IMPLEMENTED_SOLVERS.includes(solver.key);
+
+  // v2.9.0 Sprint B M1.2: wire "Esegui" al backend (solo solver implementati).
   const runMutation = useMutation({
     mutationFn: async () => {
       if (!modelId) throw new Error("no-model");
@@ -379,10 +385,15 @@ function AnalisiPanel({ solver }: { solver: SolverDef }): JSX.Element {
             type="button"
             className="btn-primary btn-lg btn-block"
             onClick={() => runMutation.mutate()}
-            disabled={runMutation.isPending || isLoading}
+            disabled={runMutation.isPending || isLoading || !isImplemented}
+            title={!isImplemented ? `${solver.title} · Beta · in arrivo v3.x` : undefined}
           >
             <Play size={14} fill="currentColor" />
-            {runMutation.isPending ? "Esecuzione…" : `Esegui ${solver.title.toLowerCase()}`}
+            {runMutation.isPending
+              ? "Esecuzione…"
+              : !isImplemented
+                ? `${solver.title} · Beta`
+                : `Esegui ${solver.title.toLowerCase()}`}
           </button>
         </section>
 

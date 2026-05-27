@@ -79,12 +79,13 @@ export function BrandAside() {
       </div>
 
       <div className="auth-brand-bot">
-        <span>© 2024 FEA Pro · Open-source GPLv3</span>
+        <span>© 2024 FEA Pro · Open-source GPLv3 · <a href="/about" target="_blank" rel="noopener">About</a></span>
         <a
-          href="#"
+          href="#i18n-placeholder"
           onClick={(e) => e.preventDefault()}
-          title="i18n in arrivo v2.8"
+          title="i18n in arrivo v3.x"
           data-testid="auth-i18n-placeholder"
+          style={{ cursor: "default", opacity: 0.7 }}
         >
           Cambia lingua · IT
         </a>

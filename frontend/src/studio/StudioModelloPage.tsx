@@ -16,6 +16,7 @@ import {
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { StudioShell } from "./StudioShell";
+import { StudioEmptyBanner } from "./StudioEmptyBanner";
 import { useFirstModelId } from "./useFirstModelId";
 import { parametricMeshApi, type ParametricMeshRequest } from "../api/mesh";
 import { toast } from "../store/toastStore";
@@ -51,12 +52,14 @@ const SHAPES: readonly ShapeDef[] = [
 export function StudioModelloPage(): JSX.Element {
   const [activeShape, setActiveShape] = useState<ShapeKey>("linear");
   const [activeTab, setActiveTab] = useState<"albero" | "mesh" | "sezioni" | "schema">("mesh");
+  const { modelId } = useFirstModelId();
 
   return (
     <StudioShell active="modello" workspaceState="Modello · Mesh">
 
-      {/* ─── TREE (sub-rail Modello) ─── */}
-      <ModelloTree />
+      {/* v3.0.0 Sprint E M10: empty state banner se no model attivo */}
+      {modelId === null && <ModelloTreeWithBanner />}
+      {modelId !== null && <ModelloTree />}
 
       {/* ─── VIEWPORT ─── */}
       <ModelloViewport />
@@ -75,6 +78,15 @@ export function StudioModelloPage(): JSX.Element {
 
 
 // ── Tree sub-rail ───────────────────────────────────────────────────────
+
+// v3.0.0 Sprint E M10: Tree wrapper che include il banner empty-state in alto.
+function ModelloTreeWithBanner(): JSX.Element {
+  return (
+    <aside className="s-tree" aria-label="Albero modello (empty)">
+      <StudioEmptyBanner />
+    </aside>
+  );
+}
 
 function ModelloTree(): JSX.Element {
   const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({
