@@ -496,6 +496,14 @@ export default function App() {
   // home, mobile, focus mode) resta il chrome legacy.
   const useNewShell = activeId !== null && !isMobile && !isFocusMode;
 
+  // v2.7.1.1 (Phase 4.2): la home dashboard mockup-driven (Dashboard new.html)
+  // è una pagina FULL-SCREEN che sostituisce sia Shell custom sia chrome
+  // legacy. Quando l'utente non ha un modello attivo, è su desktop e non è
+  // in focus mode, montiamo solo <Dashboard /> (DashboardPage mockup-driven)
+  // senza TopBar/LeftRail/StatusBar legacy attorno. Mobile + focus mode
+  // mantengono il chrome legacy come prima.
+  const useDashboardFullScreen = !activeId && !isMobile && !isFocusMode;
+
   // Mappatura mobile tab → titolo + componente
   const mobilePanelInfo: Record<
     "make" | "solve" | "results" | "more",
@@ -551,6 +559,22 @@ export default function App() {
           <DropZone onImported={(id) => setActiveId(id)} />
           <SolverOverlay />
         </Shell>
+      ) : useDashboardFullScreen ? (
+        /* v2.7.1.1 Phase 4.2: home dashboard mockup-driven full-screen.
+           DashboardPage ha già il proprio TopBar + footer dal mockup
+           Dashboard new.html. NO chrome legacy attorno (no LeftRail,
+           no TopBar legacy, no StatusBar, no MissionBar). */
+        <main id="main-content" tabIndex={-1} className="flex-1 relative min-w-0 overflow-y-auto bg-bg">
+          <Dashboard
+            models={models ?? []}
+            modelsUnavailable={modelsQuery.isError}
+            modelsRefreshing={modelsQuery.isFetching}
+            onRetryModels={() => void modelsQuery.refetch()}
+            onSelect={setActiveId}
+          />
+          <DropZone onImported={(id) => setActiveId(id)} />
+          <CommandPalette />
+        </main>
       ) : (
         <>
       {!isFocusMode && (
