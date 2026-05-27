@@ -1,136 +1,195 @@
 /**
- * LoginPage · v2.7.0 Phase 4.1 mockup-driven (F.3 stub funzionale)
+ * LoginPage · v2.7.0 Phase 4.1 mockup-driven (F.4 completa)
  *
- * Stato 1 di 4 (LOGIN). Stub funzionale completo per non bloccare il deploy
- * intermedio durante F.4-F.7. La versione completa con primitives shared
- * (AuthCard, AuthField, AuthDivider, SSOButtons), react-hook-form + zod,
- * show/hide password toggle, checkbox "Resta connesso", SSO row arriva in
- * F.4.
+ * State 1 di 4 (LOGIN). Implementazione completa secondo mockup
+ * `ui_kits/webapp_desktop/Auth.html` righe 182-244.
  *
- * Backward compat smoke E2E v2.6.2/v2.6.6: preservati data-testid
- * `auth-email`, `auth-password`, `auth-submit` (legacy AuthScreen rimossa
- * in F.3 ma testid mantengono lo stesso contratto per evitare regressioni
- * smoke E2E pre-esistenti che fanno login per la home dashboard).
+ * Composta da:
+ *   - AuthCard wrapper (eyebrow + title + sub + form + footer)
+ *   - AuthField Email (icon Mail + validation email RFC)
+ *   - AuthField Password con `labelAside` "Dimenticata?" (link a
+ *     /forgot-password) + `trail` eye toggle show/hide (mockup riga 209)
+ *   - Checkbox custom "Resta connesso per 30 giorni" (mockup riga 215-220).
+ *     Brief decisione 1: backend NON gestisce remember-me; checkbox è
+ *     cosmetico — il payload login resta `{email, password}`.
+ *   - Primary CTA "Entra in FEA Pro" con ArrowRight icon (mockup 222-225)
+ *   - AuthDivider "oppure"
+ *   - SSOButtons Google + GitHub (UI only, onClick → toast)
+ *   - Footer "Non hai un account? Creane uno gratuito" → /signup
  *
- * Reference mockup: ui_kits/webapp_desktop/Auth.html righe 182-244.
+ * Form validation: react-hook-form 7 + zod 4 (+ @hookform/resolvers 5).
+ *
+ * Backward compat smoke E2E v2.6.2/v2.6.6: preservati `data-testid`
+ * auth-email / auth-password / auth-submit / auth-go-signup. Lo smoke
+ * legacy fa fill + submit per arrivare alla home dashboard senza modifiche.
+ *
+ * Redirect post-login: usa `useNavigate("/")` con `replace: true`. Se la
+ * route originale è preservata in `location.state.from` (AuthGate redirect),
+ * si torna lì invece. TODO(F.4-followup): se Federico vuole respect del
+ * `from` path, leggere `useLocation().state` qui.
  */
-import { useState, type FormEvent } from "react";
+import { useState, type ReactNode } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { ArrowRight, Check, Eye, EyeOff, Lock, Mail } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 
 import { login as apiLogin } from "../api/auth";
 import { useAuthStore } from "../store/authStore";
 
+import { AuthCard } from "./components/AuthCard";
+import { AuthDivider } from "./components/AuthDivider";
+import { AuthField } from "./components/AuthField";
+import { SSOButtons } from "./components/SSOButtons";
+
+
+const loginSchema = z.object({
+  email: z.string().email("Email non valida"),
+  password: z.string().min(1, "Password richiesta"),
+  stayLogged: z.boolean().optional(),
+});
+
+type LoginForm = z.infer<typeof loginSchema>;
+
+
 export function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const [showPwd, setShowPwd] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const setAuth = useAuthStore((s) => s.setAuth);
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault();
-    setError(null);
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors, isSubmitting },
+  } = useForm<LoginForm>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "", stayLogged: false },
+    mode: "onSubmit",
+  });
 
-    const trimmed = email.trim();
-    if (!trimmed || !password) {
-      setError("Email e password sono obbligatorie.");
-      return;
-    }
+  const stayLogged = watch("stayLogged");
 
-    setLoading(true);
+  async function onSubmit(data: LoginForm): Promise<void> {
+    setSubmitError(null);
     try {
-      const res = await apiLogin(trimmed, password);
+      const res = await apiLogin(data.email.trim(), data.password);
       setAuth(res.token, res.user);
       navigate("/", { replace: true });
     } catch (err: unknown) {
       const detail =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data
-          ?.detail ??
+        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
         (err as Error)?.message ??
         "Errore sconosciuto";
-      setError(humanizeLoginError(String(detail)));
-    } finally {
-      setLoading(false);
+      setSubmitError(humanizeLoginError(String(detail)));
     }
   }
 
+  const footer: ReactNode = (
+    <>
+      Non hai un account?{" "}
+      <Link to="/signup" data-testid="auth-go-signup">
+        Creane uno gratuito
+      </Link>
+    </>
+  );
+
   return (
-    <section className="auth-card" data-state="login" data-testid="auth-login-page">
-      <header className="card-head">
-        <span className="eyebrow">Accedi al tuo studio</span>
-        <h2 className="card-title">Bentornato</h2>
-        <p className="card-sub">
+    <AuthCard
+      state="login"
+      eyebrow="Accedi al tuo studio"
+      title="Bentornato"
+      sub={
+        <>
           Continua il tuo lavoro su <b>UC1 · Trave bi-appoggiata</b> e altri 4
           progetti.
-        </p>
-      </header>
+        </>
+      }
+      footer={footer}
+    >
+      <form className="card-form" onSubmit={handleSubmit(onSubmit)} noValidate>
+        <AuthField
+          label="Email"
+          icon={Mail}
+          type="email"
+          autoComplete="email"
+          placeholder="federico@studio.it"
+          error={errors.email?.message}
+          data-testid="auth-email"
+          {...register("email")}
+        />
 
-      <form className="card-form" onSubmit={handleSubmit} noValidate>
-        <label className="field">
-          <span className="field-label">Email</span>
-          <div className="field-input">
-            <input
-              type="email"
-              autoComplete="email"
-              placeholder="federico@studio.it"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              data-testid="auth-email"
-              required
-            />
-          </div>
-        </label>
+        <AuthField
+          label="Password"
+          labelAside={{ label: "Dimenticata?", to: "/forgot-password" }}
+          icon={Lock}
+          type={showPwd ? "text" : "password"}
+          autoComplete="current-password"
+          placeholder="••••••••••••"
+          error={errors.password?.message}
+          data-testid="auth-password"
+          trail={
+            <button
+              type="button"
+              className="field-trail"
+              aria-label={showPwd ? "Nascondi password" : "Mostra password"}
+              data-testid="auth-show-pwd-toggle"
+              onClick={() => setShowPwd((p) => !p)}
+            >
+              {showPwd ? <EyeOff size={14} /> : <Eye size={14} />}
+            </button>
+          }
+          {...register("password")}
+        />
 
-        <label className="field">
-          <span className="field-label-row">
-            <span className="field-label">Password</span>
-            <Link className="field-aside" to="/forgot-password">
-              Dimenticata?
-            </Link>
+        <label className="checkbox-row" data-testid="auth-stay-logged">
+          <input
+            type="checkbox"
+            style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
+            data-testid="auth-stay-logged-input"
+            {...register("stayLogged")}
+          />
+          <span className={`checkbox${stayLogged ? " checked" : ""}`} aria-hidden="true">
+            <Check size={11} strokeWidth={3} />
           </span>
-          <div className="field-input">
-            <input
-              type="password"
-              autoComplete="current-password"
-              placeholder="••••••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              data-testid="auth-password"
-              required
-            />
-          </div>
+          <span>Resta connesso per 30 giorni</span>
         </label>
 
-        {error && (
+        {submitError && (
           <div className="info-banner" role="alert" data-testid="auth-error">
-            <span>{error}</span>
+            <span>{submitError}</span>
           </div>
         )}
 
         <button
           type="submit"
           className="btn-primary btn-lg"
-          disabled={loading}
+          disabled={isSubmitting}
           data-testid="auth-submit"
         >
-          {loading ? "Attendere…" : "Entra in FEA Pro"}
+          {isSubmitting ? (
+            "Attendere…"
+          ) : (
+            <>
+              Entra in FEA Pro
+              <ArrowRight size={14} />
+            </>
+          )}
         </button>
-      </form>
 
-      <footer className="card-foot">
-        Non hai un account?{" "}
-        <Link to="/signup" data-testid="auth-go-signup">
-          Creane uno gratuito
-        </Link>
-      </footer>
-    </section>
+        <AuthDivider />
+        <SSOButtons />
+      </form>
+    </AuthCard>
   );
 }
 
+
 /**
- * Traduce gli errori più comuni del backend `/api/auth/login` in italiano.
- * Estratto da AuthScreen legacy.
+ * Traduce gli errori più comuni di /api/auth/login in italiano.
+ * Estratto da AuthScreen legacy (v2.1.4).
  */
 function humanizeLoginError(detail: string): string {
   const lower = detail.toLowerCase();
