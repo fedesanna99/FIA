@@ -3,11 +3,49 @@
 > Stato vivo. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-27 (notte · post rollup v2.7.0)
-**Versione corrente**: `v2.7.0-auth-mockup-driven` (Phase 4.1 chiusa)
-**Branch attivo**: `design-rebuild/v2.6` (in attesa push test + auth Federico per deploy v94)
-**Ultimo SHA**: (vedi rollup tag)
-**Deploy live**: release Fly.io **v93** (deploy v94 atteso post-auth Federico) · https://fea-pro.fly.dev/
+**Ultimo aggiornamento**: 2026-05-28 (mattina · post visual audit + v2.7.0.1)
+**Versione corrente**: `v2.7.0.1-auth-fix-font` (font Inter body override su .auth-shell)
+**Branch attivo**: `design-rebuild/v2.6` (= origin/test = origin/main post v2.7.0)
+**Ultimo SHA**: (vedi rollup tag v2.7.0.1)
+**Deploy live**: release Fly.io **v94** (deploy v95 atteso post-v2.7.0.1) · https://fea-pro.fly.dev/
+
+---
+
+## ⚡ Visual audit (2026-05-28) · risultati onesti
+
+Eseguito confronto Playwright headless **live vs mockup** per tutte le 23 schermate
+del pack handoff v0.3. Tool persistente in `frontend/scripts/visual-audit.mjs`
+(README incluso). Output report HTML statico (gitignored, rigenerabile).
+
+**Coverage 8/24 pair full** (live + mockup screenshot):
+
+| Pair | Verdetto |
+|---|---|
+| Auth × 4 (login/signup/forgot/verify) | ✅ MATCH — v2.7.0 deployata correttamente |
+| Dashboard `/` | ❌ **GAP STRUTTURALE** — nav verticale vs TopNav mockup, hero generico vs personalizzato, recent projects placeholder vs thumbnail-cards |
+| 404 | ⚠ Fallback generico, mockup ha pagina dedicata |
+| Mobile auth (375px) | ✅ Responsive stack OK |
+| Mobile dashboard (375px) | ⚠ Live ≠ mockup mobile dashboard |
+
+**16 mockup-only** (no route live ancora): Templates, Percorso UC1, 5 workspace
+Studio, 4 Dialogs, Settings, 3 States — tutti attesi nei brief Phase 4.2-6.3.
+
+### Conclusione retroattiva
+
+I 6 brief consecutivi v2.6.3 → v2.7.0 hanno toccato:
+- Shell custom (workspaces — visibili solo con modello caricato)
+- Chrome legacy LeftRail/StatusBar (laterali, non centro)
+- Auth pages (visibili solo a logout)
+
+**Mai un brief sulla home dashboard composition**. Da qui la percezione "non
+cambia mai" di Federico (apre `/`, vede sempre la stessa home). Bug PM, non
+bug di implementazione.
+
+### Fix immediato applicato in v2.7.0.1
+
+- `auth.css`: override `font-family: var(--font-sans)` (Inter) su `.auth-shell`
+  — il body globale dell'app montava Plus Jakarta Sans, divergente dal mockup
+  (diff trovato in visual audit computed styles).
 
 ---
 
@@ -41,7 +79,7 @@ Federico ha consegnato il vero pacchetto handoff Claude Design completo
 | 00 Foundation (tokens) | 3 | ✅ in repo | **100%** |
 | 03 Studio Risultati (Nuovo Guscio) | Shell custom | ✅ v2.6.x | **~90%** |
 | 02 Dashboard new | 1 | ⚠️ home v2.6.6 | **~20%** |
-| 01 Auth (4 stati) | Auth.html | ✅ v2.7.0 mockup-driven | **~95%** (in attesa smoke visivo) |
+| 01 Auth (4 stati) | Auth.html | ✅ v2.7.0 mockup-driven + v2.7.0.1 font fix | **~95% verificato visualmente** (visual audit 2026-05-28) |
 | 02 Templates | Templates.html | ⚠️ galleria v2.5.x | **~30%** |
 | 02 Percorso UC1 | Percorso UC1.html | ⚠️ Wizard inline | **~20%** |
 | 03 Studio Modello | Studio Modello.html | ⚠️ MakePanel | **~30%** |
@@ -102,7 +140,8 @@ docs/design_handoff/
 | `v2.6.4-precision-completion` | OnboardingTour + Insight + Empty states + WCAG | v91 |
 | `v2.6.5-dashboard-a1-composition` | LeftRail expanded + RecentModels Shell custom | v92 |
 | `v2.6.6-home-legacy-shell-refactor` | Stesso refactor su chrome legacy home | v93 |
-| `v2.7.0-auth-mockup-driven` | Phase 4.1 Auth refactor: BrandAside + 4 route React Router + LoginPage/SignupPage/ForgotPasswordPage/EmailVerifyPage + 7 primitives + backend signup metadata extension (4 nuove colonne SQLite nullable) | **v94 atteso** post-auth Federico |
+| `v2.7.0-auth-mockup-driven` | Phase 4.1 Auth refactor: BrandAside + 4 route React Router + LoginPage/SignupPage/ForgotPasswordPage/EmailVerifyPage + 7 primitives + backend signup metadata extension (4 nuove colonne SQLite nullable) | v94 ✅ |
+| `v2.7.0.1-auth-fix-font` | fix font-family Inter override su `.auth-shell` (eredità Plus Jakarta Sans bypassata) + tool `visual-audit.mjs` permanente per audit Phase 4-6 + README scripts | v95 atteso |
 
 ### Baseline tecnica corrente (post v2.7.0)
 

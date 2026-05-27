@@ -26,6 +26,20 @@
 .auth-shell *::before,
 .auth-shell *::after { box-sizing: border-box; }
 
+/* v2.7.0.1 fix: font-family Inter explicit override per body text.
+ * Il body globale dell'app monta Plus Jakarta Sans per i titoli, ma
+ * mockup auth.css originale usa Inter come default (vedi tokens.css
+ * `body { font-family: var(--font-sans) }`). Senza questo override il
+ * testo dell'auth eredita Plus Jakarta Sans, divergente dal mockup.
+ *
+ * I display headings (`.brand-claim`, `.card-title`, ecc.) hanno già
+ * `font-family: var(--font-display)` esplicito → restano Plus Jakarta.
+ * Mono fields (`.eyebrow`, `.brand-tag`, ecc.) hanno `var(--font-mono)`.
+ */
+.auth-shell {
+  font-family: var(--font-sans);
+}
+
 .auth-shell a { color: var(--accent); text-decoration: none; }
 .auth-shell a:hover { color: var(--accent-hover); text-decoration: underline; }
 .auth-shell button { font-family: inherit; cursor: pointer; }

@@ -57,3 +57,11 @@ frontend/playwright-report-smoke-live/
 frontend/playwright-report/
 frontend/test-results/
 design-handoff/
+
+# v2.7.0+ Visual audit · screenshot artifacts (rigenerati da script,
+# non committati). Lo script `frontend/scripts/visual-audit.mjs` resta
+# tracciato; i PNG output sono ephemeri.
+.claude/tmp-screenshots/
+.claude/tmp-mockup-auth/
+.claude/tmp-mockup-full/
+.claude/tmp-brief-v2.7.0/
