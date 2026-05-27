@@ -212,6 +212,39 @@ Da `DESIGN_HANDOFF.md`:
 - Federico è fonte di verità sul scope
 - "100% reale" senza smoke visivo manuale = errore PM
 
+### Lezioni Phase 4-6 (post v2.7.1, 2026-05-28)
+
+**Bug strutturale "non cambia mai"**: 6 brief consecutivi v2.6.3 → v2.7.0
+hanno toccato Shell custom (visibile solo con modello caricato),
+chrome legacy LeftRail/StatusBar (laterali, non centro) e Auth pages
+(visibile solo a logout). **Mai un brief sulla home dashboard
+composition**. Federico apre `/` ogni volta → vede sempre lo stesso
+centro → percezione "non cambia mai" CORRETTA.
+
+**Workflow corretto per brief mockup-driven Phase 4-6**:
+
+1. **Pre-brief**: `cd frontend && node scripts/visual-audit.mjs` →
+   identifica gap reale (NON stimare a occhio)
+2. **Brief Claude Chat** scope ristretto (1-2 mockup HTML/sprint)
+3. **Implementazione**:
+   - copia CSS verbatim → namespace sotto wrapper class
+     (`.dash`, `.auth-shell`, `.studio-modello`, ecc.)
+   - traduci HTML in JSX mantenendo class names
+   - drop-in alias import per replacement non breaking
+4. **Quality gate intermedio**: tsc + vitest
+5. **Visual audit re-run PRIMA del rollup tag** → screenshot probe
+6. **Hotfix architecture** se chrome legacy / Shell custom interferisce
+   (mockup full-screen vs internal-content)
+7. **Rollup tag + push + deploy**
+8. **Visual audit re-run live** post-deploy + DOM probe per confermare
+
+**STOP rule ferrea sostituita**: lo "smoke visivo manuale 46/46
+checkpoint" è abolito (non viene mai eseguito). Sostituito da:
+- `visual-audit.mjs` automatico (screenshot side-by-side)
+- DOM probe via Playwright `evaluate()` per verifica presenza
+  elementi mockup + assenza chrome legacy residuo
+- Tutto verificabile in <5 min, non bypassabile sotto pressione.
+
 ---
 
 ## 4. File project knowledge
