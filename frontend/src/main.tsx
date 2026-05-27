@@ -9,6 +9,8 @@ import { LoginPage } from "./auth/LoginPage";
 import { SignupPage } from "./auth/SignupPage";
 import { ForgotPasswordPage } from "./auth/ForgotPasswordPage";
 import { EmailVerifyPage } from "./auth/EmailVerifyPage";
+// v2.7.2 Phase 4.3 mockup-driven: Templates gallery full-page route.
+import { TemplatesPage } from "./templates/TemplatesPage";
 import { Toaster } from "./components/layout/Toaster";
 import { TooltipProvider } from "./components/ui/Tooltip";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
@@ -69,6 +71,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                 <Route path="/verify-email" element={<EmailVerifyPage />} />
               </Route>
+              {/* v2.7.2 Phase 4.3: Templates gallery full-page (no AuthLayout
+                  wrapper, ma dentro AuthGate per richiedere login). */}
+              <Route
+                path="/templates"
+                element={
+                  <AuthGate>
+                    <TemplatesPage />
+                  </AuthGate>
+                }
+              />
               <Route
                 path="*"
                 element={

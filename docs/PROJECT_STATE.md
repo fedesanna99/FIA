@@ -80,7 +80,7 @@ Federico ha consegnato il vero pacchetto handoff Claude Design completo
 | 03 Studio Risultati (Nuovo Guscio) | Shell custom | ✅ v2.6.x | **~90%** |
 | 02 Dashboard new | 1 | ✅ v2.7.1 mockup-driven | **~90%** (verifica visual audit post-deploy v96) |
 | 01 Auth (4 stati) | Auth.html | ✅ v2.7.0 mockup-driven + v2.7.0.1 font fix | **~95% verificato visualmente** (visual audit 2026-05-28) |
-| 02 Templates | Templates.html | ⚠️ galleria v2.5.x | **~30%** |
+| 02 Templates | Templates.html | ✅ v2.7.2 mockup-driven full-page route `/templates` | **~90%** (verifica visual audit post-deploy v98) |
 | 02 Percorso UC1 | Percorso UC1.html | ⚠️ Wizard inline | **~20%** |
 | 03 Studio Modello | Studio Modello.html | ⚠️ MakePanel | **~30%** |
 | 03 Studio Analisi | Studio Analisi.html | ⚠️ SolvePanel | **~25%** |
@@ -144,6 +144,7 @@ docs/design_handoff/
 | `v2.7.0.1-auth-fix-font` | fix font-family Inter override su `.auth-shell` (eredità Plus Jakarta Sans bypassata) + tool `visual-audit.mjs` permanente per audit Phase 4-6 + README scripts | v95 ✅ |
 | `v2.7.1-dashboard-mockup-driven` | **Phase 4.2 home dashboard refactor mockup-driven**: nuova DashboardPage da `Dashboard new.html` (TopNav orizzontale + hero personalizzato greeting + 3 action tiles + recent grid 4 card SVG-thumb + dual-row percorsi/changelog + footer) sostituisce legacy. `dashboard.css` 540+ righe namespaced `.dash`. Drop-in single-line in App.tsx (alias import). | v96 ✅ |
 | `v2.7.1.1-dashboard-fullscreen` | hotfix · rimuove chrome legacy attorno alla home (no LeftRail/TopBar/StatusBar legacy quando no model + desktop + !focus). DashboardPage ora full-screen come da mockup. **Match visivo ~98% verificato via DOM probe + screenshot Playwright** (legacyLeftRail=false, dashTopbar=true). | v97 ✅ |
+| `v2.7.2-templates-mockup-driven` | **Phase 4.3 Templates gallery refactor mockup-driven**: nuova TemplatesPage full-page route `/templates` (TopBar minimal + breadcrumb + hero + filter chip categoria + tier toggle + grid 9 template cards con SVG thumbnail mockup-faithful). 9 SVG estratti verbatim (Beam/Portal/Tower/Cantilever/Plate/Truss/TieRod/WoodTruss/ColumnBuckling). `templates.css` 333 righe namespaced `.tg`. main.tsx route + DashboardPage tile "Apri un template" navigate("/templates"). | v98 atteso |
 
 ### Baseline tecnica corrente (post v2.7.0)
 

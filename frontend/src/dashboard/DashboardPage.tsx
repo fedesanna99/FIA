@@ -27,6 +27,7 @@
  */
 import { useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowRight, Bell, HelpCircle, LayoutGrid, ListChecks, Plus, Search,
 } from "lucide-react";
@@ -38,6 +39,16 @@ import { APP_TAG, APP_VERSION } from "../lib/version";
 import type { FEAModel } from "../types/model";
 
 import "../styles/dashboard.css";
+
+
+// v2.7.2 Phase 4.3: hook condiviso per navigare a /templates da qualsiasi
+// sub-component della DashboardPage (nav link, action tile, "Vedi tutti",
+// demo cards). Estratto perché useNavigate si chiama in 4 sub-components
+// distinti.
+function useGoTemplates(): () => void {
+  const navigate = useNavigate();
+  return () => navigate("/templates");
+}
 
 
 interface Props {
@@ -110,6 +121,7 @@ export function DashboardPage({
 
 // ── DashTopBar ──────────────────────────────────────────────────────────
 function DashTopBar() {
+  const goTemplates = useGoTemplates();
   const openPalette = () =>
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
   return (
@@ -124,10 +136,10 @@ function DashTopBar() {
 
       <nav className="dash-nav" aria-label="Navigazione principale">
         <button type="button" className="nav-link is-active">Home</button>
-        <button type="button" className="nav-link" onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}>
+        <button type="button" className="nav-link" onClick={() => goTemplates()}>
           Progetti
         </button>
-        <button type="button" className="nav-link" onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}>
+        <button type="button" className="nav-link" onClick={() => goTemplates()}>
           Template
         </button>
         <button type="button" className="nav-link" onClick={() => window.dispatchEvent(new Event("feapro:open-percorso-uc1"))}>
@@ -203,6 +215,7 @@ function Hero({ greeting, firstName, modelsCount, tierLabel, projUsed, projCap, 
 
 // ── ActionRow ───────────────────────────────────────────────────────────
 function ActionRow() {
+  const goTemplates = useGoTemplates();
   return (
     <section className="action-row" data-testid="dash-action-row">
       <ActionTile
@@ -225,7 +238,7 @@ function ActionRow() {
         desc="9 modelli ricorrenti: trave, mensola, telaio, torre, piastra, reticolare…"
         metaLeft={<span className="badge-tag">9 template</span>}
         metaRight="configurati EC3/NTC18"
-        onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}
+        onClick={() => goTemplates()}
         testId="dash-action-template"
       />
       <ActionTile
@@ -287,6 +300,7 @@ function RecentSection({ models, modelsUnavailable, modelsRefreshing, onRetryMod
   // Top 4 per ordine di mantenimento. Se vuoto, mostra demo cards mockup.
   const recent = useMemo(() => models.slice(0, 4), [models]);
   const showDemos = recent.length === 0;
+  const goTemplates = useGoTemplates();
 
   return (
     <section className="block" data-testid="dash-recent">
@@ -302,7 +316,7 @@ function RecentSection({ models, modelsUnavailable, modelsRefreshing, onRetryMod
             <button type="button" className="seg-btn">CA</button>
             <button type="button" className="seg-btn">Sismica</button>
           </div>
-          <button type="button" className="btn-secondary btn-sm" onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}>
+          <button type="button" className="btn-secondary btn-sm" onClick={() => goTemplates()}>
             Vedi tutti
             <ArrowRight width={12} height={12} aria-hidden="true" />
           </button>
@@ -342,9 +356,10 @@ function RecentSection({ models, modelsUnavailable, modelsRefreshing, onRetryMod
 
 // ── DemoRecentCards (mockup hardcoded UC1/UC2/UC3/UC5) ──────────────────
 function DemoRecentCards() {
+  const goTemplates = useGoTemplates();
   return (
     <>
-      <button type="button" className="recent-card recent-card-active" onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}>
+      <button type="button" className="recent-card recent-card-active" onClick={() => goTemplates()}>
         <div className="recent-thumb">
           <BeamThumb />
           <span className="recent-trust trust-prelim">PRELIM</span>
@@ -368,7 +383,7 @@ function DemoRecentCards() {
         </div>
       </button>
 
-      <button type="button" className="recent-card" onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}>
+      <button type="button" className="recent-card" onClick={() => goTemplates()}>
         <div className="recent-thumb">
           <PortalThumb />
           <span className="recent-trust trust-draft">DRAFT</span>
@@ -392,7 +407,7 @@ function DemoRecentCards() {
         </div>
       </button>
 
-      <button type="button" className="recent-card" onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}>
+      <button type="button" className="recent-card" onClick={() => goTemplates()}>
         <div className="recent-thumb">
           <TowerThumb />
           <span className="recent-trust trust-prelim">PRELIM</span>
@@ -416,7 +431,7 @@ function DemoRecentCards() {
         </div>
       </button>
 
-      <button type="button" className="recent-card" onClick={() => window.dispatchEvent(new Event("feapro:open-template-gallery"))}>
+      <button type="button" className="recent-card" onClick={() => goTemplates()}>
         <div className="recent-thumb">
           <CantileverThumb />
           <span className="recent-trust trust-prelim">PRELIM</span>
