@@ -11,6 +11,8 @@ import { ForgotPasswordPage } from "./auth/ForgotPasswordPage";
 import { EmailVerifyPage } from "./auth/EmailVerifyPage";
 // v2.7.2 Phase 4.3 mockup-driven: Templates gallery full-page route.
 import { TemplatesPage } from "./templates/TemplatesPage";
+// v2.7.3 Phase 4.3b mockup-driven: Percorso UC1 stepper full-page route.
+import { PercorsoUC1Page } from "./percorsi/PercorsoUC1Page";
 import { Toaster } from "./components/layout/Toaster";
 import { TooltipProvider } from "./components/ui/Tooltip";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
@@ -78,6 +80,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 element={
                   <AuthGate>
                     <TemplatesPage />
+                  </AuthGate>
+                }
+              />
+              {/* v2.7.3 Phase 4.3b: Percorso UC1 stepper full-page (Topbar +
+                  Stepper 6 step + Coach/Canvas/Inspector). Dentro AuthGate. */}
+              <Route
+                path="/percorsi/uc1"
+                element={
+                  <AuthGate>
+                    <PercorsoUC1Page />
                   </AuthGate>
                 }
               />

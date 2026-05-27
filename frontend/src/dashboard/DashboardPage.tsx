@@ -50,6 +50,14 @@ function useGoTemplates(): () => void {
   return () => navigate("/templates");
 }
 
+// v2.7.3 Phase 4.3b: hook condiviso per navigare a /percorsi/uc1 (Percorso
+// guidato Use Case 1 · Trave bi-appoggiata). Usato dal tile ActionRow e
+// dal link "UC1 · Trave bi-appoggiata" nell'Hero.
+function useGoPercorsoUC1(): () => void {
+  const navigate = useNavigate();
+  return () => navigate("/percorsi/uc1");
+}
+
 
 interface Props {
   models: FEAModel[];
@@ -185,6 +193,7 @@ function Hero({ greeting, firstName, modelsCount, tierLabel, projUsed, projCap, 
   const projsActive = isRunning ? "1 analisi in corso" : `${modelsCount} progett${modelsCount === 1 ? "o" : "i"} in lavorazione`;
   const pct = projCap > 0 ? Math.round((projUsed / projCap) * 100) : 0;
   const openBilling = () => window.dispatchEvent(new Event("feapro:open-billing"));
+  const goPercorsoUC1 = useGoPercorsoUC1();
   return (
     <section className="hero" data-testid="dash-hero">
       <div className="hero-l">
@@ -192,7 +201,7 @@ function Hero({ greeting, firstName, modelsCount, tierLabel, projUsed, projCap, 
         <h1 className="hero-title">Da dove ricominci<br />oggi?</h1>
         <p className="hero-sub">
           {projsActive} · 2 percorsi guidati attivi · ultima sessione su{" "}
-          <a href="#" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event("feapro:open-template-gallery")); }}>
+          <a href="/percorsi/uc1" onClick={(e) => { e.preventDefault(); goPercorsoUC1(); }}>
             UC1 · Trave bi-appoggiata
           </a>.
         </p>
@@ -216,6 +225,7 @@ function Hero({ greeting, firstName, modelsCount, tierLabel, projUsed, projCap, 
 // ── ActionRow ───────────────────────────────────────────────────────────
 function ActionRow() {
   const goTemplates = useGoTemplates();
+  const goPercorsoUC1 = useGoPercorsoUC1();
   return (
     <section className="action-row" data-testid="dash-action-row">
       <ActionTile
@@ -249,7 +259,7 @@ function ActionRow() {
         desc="Onboarding step-by-step su casi d'uso reali. Ideale alle prime esperienze FEM."
         metaLeft={<span className="badge-tag">2 attivi</span>}
         metaRight="UC1 al 50% · UC3 al 12%"
-        onClick={() => window.dispatchEvent(new Event("feapro:open-percorso-uc1"))}
+        onClick={() => goPercorsoUC1()}
         testId="dash-action-percorso"
       />
     </section>
