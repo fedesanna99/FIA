@@ -78,7 +78,10 @@ describe("AuthLayout · split-screen + 4-route mounting", () => {
     renderAt("/forgot-password");
     expect(screen.getByTestId("auth-forgot-page")).toBeInTheDocument();
     expect(screen.getByText("Recupera password")).toBeInTheDocument();
-    expect(screen.getByTestId("auth-back-to-login")).toBeInTheDocument();
+    // F.6 refactor: il back link è ora generato da AuthCard `back` prop
+    // con data-testid="auth-back-link" (testid `auth-back-to-login` era
+    // dello stub F.3, sostituito).
+    expect(screen.getByTestId("auth-back-link")).toBeInTheDocument();
   });
 
   it("test 5 · Route /verify-email mounts EmailVerifyPage stub centered", () => {

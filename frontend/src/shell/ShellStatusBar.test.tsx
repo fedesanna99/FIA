@@ -22,7 +22,7 @@ describe("ShellStatusBar (v2.6.5 D.3)", () => {
     expect(screen.getByText(/WebSocket connesso/)).toBeInTheDocument();
     expect(screen.getByTestId("sb-sync")).toBeInTheDocument();
     expect(screen.getByText(/Sync OK/)).toBeInTheDocument();
-    expect(screen.getByText(/v2\.6/)).toBeInTheDocument();
+    expect(screen.getByText(/v2\.\d+/)).toBeInTheDocument();
   });
 
   it("counter '0 modelli aperti' when no model active", () => {

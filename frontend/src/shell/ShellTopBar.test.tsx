@@ -24,8 +24,8 @@ describe("ShellTopBar", () => {
   it("renders brand block with FEA Pro + version", () => {
     renderWithQc(<ShellTopBar />);
     expect(screen.getByText(/FEA Pro/)).toBeInTheDocument();
-    // APP_VERSION
-    expect(screen.getByText(/v2\.6/)).toBeInTheDocument();
+    // APP_VERSION (regex version-agnostic, bumped a v2.7 in v2.7.0)
+    expect(screen.getByText(/v2\.\d+/)).toBeInTheDocument();
   });
 
   it("renders Esegui run button", () => {

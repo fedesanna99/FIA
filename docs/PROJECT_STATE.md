@@ -3,17 +3,17 @@
 > Stato vivo. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-27 (sera)
-**Versione corrente**: `v2.6.6-home-legacy-shell-refactor` (post deploy v93)
-**Branch attivo**: `design-rebuild/v2.6` (= `origin/test` = `origin/main`)
-**Ultimo SHA**: `cb17c8f`
-**Deploy live**: release Fly.io **v93** · https://fea-pro.fly.dev/
+**Ultimo aggiornamento**: 2026-05-27 (notte · post rollup v2.7.0)
+**Versione corrente**: `v2.7.0-auth-mockup-driven` (Phase 4.1 chiusa)
+**Branch attivo**: `design-rebuild/v2.6` (in attesa push test + auth Federico per deploy v94)
+**Ultimo SHA**: (vedi rollup tag)
+**Deploy live**: release Fly.io **v93** (deploy v94 atteso post-auth Federico) · https://fea-pro.fly.dev/
 
 ---
 
 ## 0. Sessione attiva · Design Handoff Phase 4-6
 
-**Stato**: in corso, NON ancora iniziata implementazione
+**Stato**: in corso · **Phase 4.1 (Auth) chiusa** con `v2.7.0-auth-mockup-driven` (in attesa push main + deploy + smoke visivo manuale 46/46)
 
 Federico ha consegnato il vero pacchetto handoff Claude Design completo
 (`FEA_Pro_Design_System-handoff.zip`) con 22 schermate hi-fi autoritative.
@@ -41,7 +41,7 @@ Federico ha consegnato il vero pacchetto handoff Claude Design completo
 | 00 Foundation (tokens) | 3 | ✅ in repo | **100%** |
 | 03 Studio Risultati (Nuovo Guscio) | Shell custom | ✅ v2.6.x | **~90%** |
 | 02 Dashboard new | 1 | ⚠️ home v2.6.6 | **~20%** |
-| 01 Auth (4 stati) | Auth.html | ❌ legacy esistente | **~10%** |
+| 01 Auth (4 stati) | Auth.html | ✅ v2.7.0 mockup-driven | **~95%** (in attesa smoke visivo) |
 | 02 Templates | Templates.html | ⚠️ galleria v2.5.x | **~30%** |
 | 02 Percorso UC1 | Percorso UC1.html | ⚠️ Wizard inline | **~20%** |
 | 03 Studio Modello | Studio Modello.html | ⚠️ MakePanel | **~30%** |
@@ -59,7 +59,7 @@ Federico ha consegnato il vero pacchetto handoff Claude Design completo
 
 | Brief | Phase | Stima |
 |---|---|---|
-| `v2.7.0-auth-mockup-driven` | 4.1 Auth (4 stati) | ~8-9h · brief PRONTO |
+| `v2.7.0-auth-mockup-driven` | 4.1 Auth (4 stati) | ✅ **CHIUSO** (in attesa smoke visivo 46/46) |
 | `v2.7.1-dashboard-mockup-driven` | 4.2 Dashboard new | ~10-12h |
 | `v2.7.2-templates-percorsi` | 4.3 Templates + Percorso UC1 | ~12-14h |
 | `v2.7.3-studio-modello` | 5.1 Studio Modello (usa Inspector) | ~8-10h |
@@ -93,7 +93,7 @@ docs/design_handoff/
 
 ## 1. Pipeline 2026-05-26/27 chiusa
 
-5 brief consecutivi · 5 deploy verdi · ~14 ore lavoro:
+6 brief consecutivi · 5 deploy verdi (v94 atteso) · ~22 ore lavoro:
 
 | Tag | Cosa | Deploy |
 |---|---|---|
@@ -102,15 +102,16 @@ docs/design_handoff/
 | `v2.6.4-precision-completion` | OnboardingTour + Insight + Empty states + WCAG | v91 |
 | `v2.6.5-dashboard-a1-composition` | LeftRail expanded + RecentModels Shell custom | v92 |
 | `v2.6.6-home-legacy-shell-refactor` | Stesso refactor su chrome legacy home | v93 |
+| `v2.7.0-auth-mockup-driven` | Phase 4.1 Auth refactor: BrandAside + 4 route React Router + LoginPage/SignupPage/ForgotPasswordPage/EmailVerifyPage + 7 primitives + backend signup metadata extension (4 nuove colonne SQLite nullable) | **v94 atteso** post-auth Federico |
 
-### Baseline tecnica corrente (post v2.6.6)
+### Baseline tecnica corrente (post v2.7.0)
 
-- pytest: **1688 collected**, ~99.9% PASS, 1 FAIL noto (USGS network)
-- vitest: **816/816 PASS** (99 file)
+- pytest: **1692 collected** (+4 backend signup metadata test), 1684 pass + 7 skip + 1 USGS noto
+- vitest: **860/860 PASS atteso** (816 baseline + 5 F.2 + 5 F.3 + 8 F.4 + 11 F.5 + 5 F.6 + 10 F.7 = 860)
 - tsc: 0 errori
-- build main: 1316.90 kB / gzip 387.64 kB
-- Playwright E2E live: 8/8 PASS (3 v2.6.2 + 5 v2.6.6)
-- Deploy verificato visualmente 12/13 ✅ desktop
+- build main: (vedi T_last.1 output)
+- Playwright E2E: 16/16 atteso (3 v2.6.2 + 5 v2.6.6 + 8 v2.7.0)
+- Deploy verificato visualmente (in attesa: T_last.6 checklist 46/46 v2.7.0 OBBLIGATORIO)
 
 ### Carry-over tecnico
 
