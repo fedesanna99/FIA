@@ -27,7 +27,7 @@
  */
 import { useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight, Bell, HelpCircle, LayoutGrid, ListChecks, Plus, Search,
 } from "lucide-react";
@@ -610,10 +610,10 @@ function DashFoot() {
     <footer className="dash-foot" data-testid="dash-foot">
       <span>FEA Pro {APP_VERSION} · <a href="https://fea-pro.fly.dev/api/health" target="_blank" rel="noreferrer">Status · all green</a></span>
       <span>·</span>
-      <span><b>Preliminary release</b> — non raccomandata per progetti reali. <a href="#" onClick={(e) => e.preventDefault()}>Perché?</a></span>
+      <span><b>Preliminary release</b> — non raccomandata per progetti reali. <Link to="/preliminary">Perché?</Link></span>
       <span className="foot-spacer" />
       <span><a href="#" onClick={(e) => { e.preventDefault(); window.dispatchEvent(new Event("feapro:open-help")); }}>Docs</a></span>
-      <span><a href="#" onClick={(e) => e.preventDefault()}>Privacy</a></span>
+      <span><Link to="/privacy">Privacy</Link> · <Link to="/terms">Termini</Link> · <Link to="/about">About</Link></span>
       <span><a href="https://github.com/fedesanna99/FIA" target="_blank" rel="noreferrer">GitHub</a></span>
     </footer>
   );

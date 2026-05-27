@@ -8,4 +8,4 @@
 export const APP_VERSION = "v2.8";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v2.8.0.3-body-scroll-fix-v2-app-wide";
+export const APP_TAG = "v2.8.1-sprint-a-mobile-legal-userdata";

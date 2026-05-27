@@ -26,6 +26,8 @@ import { DialogsShowcasePage } from "./dialogs/DialogsShowcasePage";
 import { SettingsPage } from "./settings/SettingsPage";
 import { StatesShowcasePage } from "./states/StatesShowcasePage";
 import { MobileShowcasePage } from "./mobile/MobileShowcasePage";
+// v2.8.1 Sprint A M3: legal pages per compliance (privacy/terms/about/preliminary)
+import { LegalPage } from "./legal/LegalPage";
 import { Toaster } from "./components/layout/Toaster";
 import { TooltipProvider } from "./components/ui/Tooltip";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
@@ -182,6 +184,13 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                   </AuthGate>
                 }
               />
+              {/* v2.8.1 Sprint A M3: legal pages (privacy/terms/about/preliminary).
+                  NON dentro AuthGate — devono essere accessibili anche a logout
+                  per compliance GDPR + per i link footer dei mockup. */}
+              <Route path="/privacy" element={<LegalPage />} />
+              <Route path="/terms" element={<LegalPage />} />
+              <Route path="/about" element={<LegalPage />} />
+              <Route path="/preliminary" element={<LegalPage />} />
               <Route
                 path="*"
                 element={

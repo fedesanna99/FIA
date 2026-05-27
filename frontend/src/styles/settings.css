@@ -270,3 +270,61 @@
   padding: 9px 16px;
 }
 .sett .btn-secondary:hover { border-color: var(--border-light); background: var(--bg-hover); }
+
+/* ╔═══════════════════════ RESPONSIVE (v2.8.1 R2.3 Sprint A) ═══════════════════════╗
+ * Mobile-first per Settings page: sidebar collassa in top accordion,
+ * content full-width, field-grid 1 colonna. */
+@media (max-width: 767px) {
+  .sett .st-topbar {
+    padding: 0 16px;
+    height: 52px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .sett .st-brand-name { display: none; }
+
+  .sett .st-mid {
+    grid-template-columns: 1fr;
+  }
+
+  .sett .st-side {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 14px 12px;
+    flex-direction: row;
+    gap: 6px;
+    overflow-x: auto;
+    overflow-y: visible;
+  }
+  .sett .side-section {
+    flex-direction: row;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .sett .side-section .eyebrow {
+    display: none; /* su mobile nascondi le eyebrow di sezione (Profilo/Avanzato/Sistema) */
+  }
+  .sett .side-item {
+    padding: 8px 14px;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+  .sett .side-item svg { display: none; }
+
+  .sett .st-content {
+    padding: 20px 18px 32px;
+    max-width: 100%;
+  }
+  .sett .content-head h1 { font-size: 24px; }
+
+  .sett .card-row {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .sett .card-row-r { width: 100%; }
+  .sett .card-row-r .btn-secondary { width: 100%; }
+
+  .sett .field-grid {
+    grid-template-columns: 1fr;
+  }
+}

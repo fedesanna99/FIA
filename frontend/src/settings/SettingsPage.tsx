@@ -24,7 +24,15 @@ type Section = "account" | "profile" | "billing" | "api" | "prefs" | "units" | "
 export function SettingsPage(): JSX.Element {
   const [active, setActive] = useState<Section>("account");
   const user = useAuthStore((s) => s.user);
-  const initials = (user?.email ?? "FS").slice(0, 2).toUpperCase();
+  // v2.8.1 Sprint A M6: fallback non hardcoded. Se user  null
+  // (logout in corso), mostro placeholder neutro invece di "Federico Sanna".
+  const initials = user?.email ? user.email.slice(0, 2).toUpperCase() : "??";
+  const displayNome = user?.nome ?? "—";
+  const displayCognome = user?.cognome ?? "—";
+  const displayEmail = user?.email ?? "—";
+  const displayRuolo = user?.ruolo_professionale
+    ? user.ruolo_professionale.charAt(0).toUpperCase() + user.ruolo_professionale.slice(1)
+    : "—";
 
   return (
     <div className="sett">
@@ -89,11 +97,11 @@ export function SettingsPage(): JSX.Element {
                 <div className="card-row-l">
                   <div className="user-avatar-big">{initials}</div>
                   <div className="user-info">
-                    <h3>{user?.nome ?? "Federico"} {user?.cognome ?? "Sanna"}</h3>
-                    <p>{user?.email ?? "federico@studio.it"}</p>
+                    <h3>{displayNome} {displayCognome}</h3>
+                    <p>{displayEmail}</p>
                     <span className="user-pill">
                       <span className="pill-dot" />
-                      Account verificato
+                      {user ? "Account verificato" : "Caricamento dati…"}
                     </span>
                   </div>
                 </div>
@@ -108,20 +116,20 @@ export function SettingsPage(): JSX.Element {
                 <span className="field-label">Email</span>
                 <div className="field-input">
                   <Mail className="field-icon" size={14} />
-                  <input type="email" defaultValue={user?.email ?? "federico@studio.it"} readOnly />
+                  <input type="email" defaultValue={displayEmail} readOnly />
                   <button type="button" className="field-action">Cambia</button>
                 </div>
               </label>
               <label className="field">
                 <span className="field-label">Nome visualizzato</span>
                 <div className="field-input">
-                  <input type="text" defaultValue={`${user?.nome ?? "Federico"} ${user?.cognome ?? "Sanna"}`} />
+                  <input type="text" defaultValue={`${displayNome} ${displayCognome}`.trim() || "—"} />
                 </div>
               </label>
               <label className="field">
                 <span className="field-label">Ruolo professionale</span>
                 <div className="field-input">
-                  <input type="text" defaultValue={user?.ruolo_professionale ?? "Ingegnere strutturista"} />
+                  <input type="text" defaultValue={displayRuolo} />
                 </div>
               </label>
               <label className="field">

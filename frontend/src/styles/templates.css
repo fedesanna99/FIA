@@ -351,3 +351,27 @@
 }
 .tg .tpl-cta:hover { background: var(--accent-subtle); }
 .tg .tpl-cta svg { color: var(--accent); }
+
+/* ╔═══════════════════════ RESPONSIVE (v2.8.1 R2.1 Sprint A) ═══════════════════════╗
+ * Mobile-first per Templates gallery: stack singolo, padding ridotto,
+ * topbar compatta (nascondi cmd-pill e avatar). */
+@media (max-width: 767px) {
+  .tg .tg-topbar { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+  .tg .tg-brand-name, .tg .tg-brand-tier, .tg .tg-brand-ver { display: none; }
+  .tg .cmd-pill { display: none; }
+  .tg .tg-topbar-cta { padding: 6px 10px; font-size: 12px; }
+  .tg .tg-topbar-cta-label { display: none; }
+
+  .tg .tg-hero { padding: 24px 18px; }
+  .tg .tg-hero-title { font-size: 26px; line-height: 30px; }
+  .tg .tg-hero-sub { font-size: 13px; }
+
+  .tg .tg-filters { padding: 16px; flex-wrap: wrap; gap: 8px; }
+  .tg .tg-filters-l, .tg .tg-filters-r { width: 100%; }
+  .tg .tg-filters-r { justify-content: flex-start; }
+
+  .tg .tg-grid { grid-template-columns: 1fr; gap: 12px; padding: 18px; }
+  .tg .tg-card { padding: 14px; }
+
+  .tg .tg-empty { padding: 32px 18px; }
+}

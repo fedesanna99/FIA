@@ -934,3 +934,119 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
+
+/* ╔═══════════════════════ RESPONSIVE (v2.8.1 R4 Sprint A) ═══════════════════════╗
+ * Mobile fallback per Studio workspace: il layout 4-col (52+280+1fr+380)
+ * non funziona sotto i 768px. Stratega: stack verticale (rail in top
+ * orizzontale + tree collassato + viewport + panel scrollabile sotto).
+ * Il body scroll  abilitato via body:has(.studio) override in index.css. */
+@media (max-width: 767px) {
+  .studio {
+    grid-template-rows: 48px auto auto;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  /* TopBar compatta: solo brand + model pill + run + avatar */
+  .studio .s-topbar {
+    padding: 0 12px;
+    height: 48px;
+    overflow-x: auto;
+    gap: 6px;
+  }
+  .studio .s-brand-block { padding-right: 8px; gap: 6px; }
+  .studio .s-brand-name, .studio .s-brand-tier, .studio .s-brand-ver { display: none; }
+  .studio .s-save, .studio .s-trust { display: none; }
+  .studio .s-cmd { display: none; }
+  .studio .s-iconbtn { display: none; }
+  .studio .s-spacer { display: none; }
+  .studio .s-run { height: 30px; padding: 0 10px; font-size: 12px; }
+  .studio .s-run kbd { display: none; }
+
+  /* Mid: stack verticale */
+  .studio .s-mid,
+  .studio .s-mid.s-mid-no-tree {
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    min-height: 0;
+  }
+
+  /* Rail: orizzontale in top come tab bar */
+  .studio .s-rail {
+    flex-direction: row;
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding: 6px 12px;
+    overflow-x: auto;
+    gap: 2px;
+  }
+  .studio .rail-btn { width: 36px; height: 36px; }
+  .studio .rail-btn.is-active::before {
+    left: 12px; top: auto; bottom: -7px; right: 12px;
+    width: auto; height: 3px;
+    border-radius: 3px 3px 0 0;
+  }
+  .studio .rail-kbd { display: none; }
+  .studio .rail-sep { width: 1px; height: auto; margin: 0 8px; }
+  .studio .rail-spacer { flex: 1; }
+
+  /* Tree (Modello): collassato o nascosto */
+  .studio .s-tree {
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 200px;
+  }
+  .studio .tree-body { padding: 6px 4px; }
+
+  /* Viewport: altezza fissa decent per mobile, scroll interno */
+  .studio .s-viewport {
+    min-height: 320px;
+    height: 50vh;
+  }
+
+  /* Right panel: full width sotto, no border-left */
+  .studio .s-panel {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    max-height: none;
+  }
+
+  /* Studio Analisi an-main padding ridotto */
+  .studio .an-main, .studio .ve-main, .studio .io-main {
+    padding: 18px 16px 28px;
+    gap: 16px;
+  }
+  .studio .an-title, .studio .ve-title, .studio .io-title { font-size: 22px; line-height: 26px; }
+
+  /* StatusBar compatta scroll horizontal */
+  .studio .s-statusbar {
+    padding: 0 12px;
+    overflow-x: auto;
+    gap: 10px;
+    white-space: nowrap;
+  }
+  .studio .sb-spacer { display: none; }
+
+  /* Solver grid 1 col */
+  .studio .an-grid {
+    grid-template-columns: 1fr;
+  }
+  .studio .an-head {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .studio .an-last { min-width: 0; width: 100%; }
+
+  /* Code tabs Verifiche: 2 col su mobile */
+  .studio .codes-tabs { grid-template-columns: 1fr 1fr; }
+
+  /* IO grid + tools 1 col */
+  .studio .io-grid,
+  .studio .io-tools { grid-template-columns: 1fr; }
+
+  /* Compare strip a 1 col */
+  .studio .an-compare { grid-template-columns: 1fr; gap: 14px; }
+}

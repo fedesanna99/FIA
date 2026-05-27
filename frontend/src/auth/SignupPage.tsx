@@ -228,8 +228,8 @@ export function SignupPage() {
             <Check size={11} strokeWidth={3} />
           </span>
           <span>
-            Accetto <a href="#" onClick={(e) => e.preventDefault()}>termini</a> e{" "}
-            <a href="#" onClick={(e) => e.preventDefault()}>privacy policy</a>
+            Accetto <Link to="/terms" target="_blank" rel="noopener">termini</Link> e{" "}
+            <Link to="/privacy" target="_blank" rel="noopener">privacy policy</Link>
           </span>
         </label>
         {errors.acceptedTerms?.message && (

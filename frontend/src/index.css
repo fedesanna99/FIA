@@ -302,6 +302,22 @@ body:has(.studio) {
   height: 100dvh;
 }
 
+/* v2.8.1 Sprint A R4: su mobile lo Studio mostra layout stack vertical
+   con scroll abilitato (il layout 4-col non funziona sotto 768px).
+   Override del body lock sopra per mobile only. */
+@media (max-width: 767px) {
+  html:has(.studio),
+  body:has(.studio) {
+    overflow: auto;
+    height: auto;
+  }
+  body:has(.studio) .app-shell,
+  body:has(.studio) .app-shell-legacy {
+    height: auto;
+    overflow: visible;
+  }
+}
+
 #root {
   min-height: 100dvh;
 }
