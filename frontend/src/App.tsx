@@ -530,7 +530,13 @@ export default function App() {
     <div
       className={cn(
         usePwaSafeArea ? "app-shell" : "app-shell-legacy",
-        "flex flex-col bg-bg text-ink overflow-hidden font-sans",
+        // v2.8.0.3 fix scroll segnalato da Federico: rimosso
+        // `overflow-hidden` Tailwind dal div root SPA. Lo Studio shell
+        // legacy `.shell` / nuovo `.studio` si auto-locka via
+        // `body:has(.shell.shell-soft)` in index.css. Tutte le altre
+        // pagine (Auth, Dashboard, Templates, Percorso, Showcase) ora
+        // scrollano correttamente.
+        "flex flex-col bg-bg text-ink font-sans",
       )}
     >
       {/* v1.8.4 T4: skip link a11y. Nascosto fuori dal flusso visivo

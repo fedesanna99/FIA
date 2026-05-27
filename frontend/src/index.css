@@ -281,19 +281,21 @@ body {
   touch-action: manipulation;
 }
 
-/* v2.8.0.2 (scroll fix segnalato da Federico): rimosso il blocco
- * `body { overflow: hidden; height: 100% }` globale. Quel blocco serviva
- * a `.app-shell` legacy (Studio workspace pre-v2.7.4) per evitare scroll
- * del body — lo scroll  interno alle panel. Ma bloccava lo scroll su
- * TUTTE le altre pagine (auth, dashboard, percorso, templates, settings,
- * showcase, mobile) — bug invisibile finch non si  testato mobile auth.
+/* v2.8.0.3 (scroll fix v2 segnalato da Federico: "dopo il login torna").
  *
- * Fix: scope `overflow: hidden + height: 100vh` SOLO ai contesti che lo
- * richiedono (Studio shell legacy `.app-shell` + Studio shell v2.7.4+
- * `.studio`). Tutto il resto della SPA scrolla normalmente. */
-html:has(.app-shell),
+ * v2.8.0.2 aveva scopato il lock a `:has(.app-shell)` ma `.app-shell`
+ * il root wrapper SPA in App.tsx — viene sempre montato post-login.
+ * Risultato: il lock body restava sempre attivo e scroll bloccato ovunque.
+ *
+ * Fix definitivo: lock body SOLO quando c' uno Studio shell montato
+ * (Shell legacy `.shell` con activeId !== null, OPPURE i 4 nuovi
+ * Studio workspace v2.7.4+ `.studio`). Quelli SI sono workspace
+ * full-height con scroll INTERNO alle panel. Tutto il resto (Auth,
+ * Dashboard, Templates, Percorso UC1, Settings, Showcase, Mobile) ha
+ * body scrollabile come da pattern web normale. */
+html:has(.shell.shell-soft),
 html:has(.studio),
-body:has(.app-shell),
+body:has(.shell.shell-soft),
 body:has(.studio) {
   overflow: hidden;
   height: 100vh;
@@ -304,16 +306,33 @@ body:has(.studio) {
   min-height: 100dvh;
 }
 
-.app-shell {
+.app-shell,
+.app-shell-legacy {
   width: 100%;
-  height: 100vh;
-  height: 100dvh;
+  /* v2.8.0.3: `min-height` invece di `height` fissa, per consentire al
+     div root SPA di crescere verticalmente quando la pagina contiene
+     contenuto scrollable (Auth/Dashboard/Templates/Percorso/Settings/
+     showcase). Studio shell che richiede height fissa  gestito da
+     `body:has(.shell.shell-soft)` / `body:has(.studio)` in index.css
+     che applica il lock SOLO in Studio mode. */
+  min-height: 100vh;
   min-height: 100dvh;
   padding-top: env(safe-area-inset-top);
   padding-right: env(safe-area-inset-right);
   padding-bottom: env(safe-area-inset-bottom);
   padding-left: env(safe-area-inset-left);
   background: var(--bg);
+}
+
+/* In Studio mode il root SPA torna height fissa (lo scroll  interno
+   alle panel). Mantieni la sandbox iOS rubber-band. */
+body:has(.shell.shell-soft) .app-shell,
+body:has(.shell.shell-soft) .app-shell-legacy,
+body:has(.studio) .app-shell,
+body:has(.studio) .app-shell-legacy {
+  height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 
 /* ── prefers-reduced-motion (a11y) ─────────────────────────────────────── */
