@@ -8,4 +8,4 @@
 export const APP_VERSION = "v2.8";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v2.9.1-sprint-c-settings-cmdk-trust";
+export const APP_TAG = "v2.9.2-sprint-d-showcase-disclaimer";

@@ -10,6 +10,8 @@ import { useState } from "react";
 import { AlertCircle, FilePlus, Loader2, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 
+import { ShowcaseBanner } from "../design-showcase/ShowcaseBanner";
+
 import "../styles/states.css";
 
 
@@ -20,7 +22,8 @@ export function StatesShowcasePage(): JSX.Element {
   const [active, setActive] = useState<StateKey>("empty");
 
   return (
-    <div className="st-states">
+    <div className="st-states" style={{ paddingTop: 36 }}>
+      <ShowcaseBanner pageName="States (Empty/Solver/Error/404)" />
       <nav className="stt-switcher">
         {([
           ["empty", "Empty (no model)"],

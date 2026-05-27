@@ -10,6 +10,8 @@
 import { useState } from "react";
 import { ArrowLeft, BarChart3, Box, ChevronRight, Cog, FileText, ListChecks, MoreHorizontal, Package, Shuffle } from "lucide-react";
 
+import { ShowcaseBanner } from "../design-showcase/ShowcaseBanner";
+
 import "../styles/mobile-showcase.css";
 
 
@@ -20,7 +22,8 @@ export function MobileShowcasePage(): JSX.Element {
   const [state, setState] = useState<MobileState>("viewer");
 
   return (
-    <div className="mob-stage">
+    <div className="mob-stage" style={{ paddingTop: 76 }}>
+      <ShowcaseBanner pageName="Mobile redesign" />
       <nav className="mob-switcher">
         {([
           ["viewer", "Viewer + Inspector"],

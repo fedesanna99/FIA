@@ -11,6 +11,8 @@
 import { useState } from "react";
 import { Box, Cog, FileText, X } from "lucide-react";
 
+import { ShowcaseBanner } from "../design-showcase/ShowcaseBanner";
+
 import "../styles/dialogs.css";
 
 
@@ -21,7 +23,8 @@ export function DialogsShowcasePage(): JSX.Element {
   const [active, setActive] = useState<DialogState>("node");
 
   return (
-    <div className="dlg-stage">
+    <div className="dlg-stage" style={{ paddingTop: 100 }}>
+      <ShowcaseBanner pageName="Dialogs &amp; Wizards" />
       {/* BG mock studio */}
       <div className="dlg-bg" aria-hidden="true">
         <div className="bg-topbar" />
