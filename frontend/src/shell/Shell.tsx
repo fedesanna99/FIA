@@ -42,6 +42,11 @@ import { ToolsPanel } from "./panels/ToolsPanel";
 // v3.1 Fase 2c: ViewPanel ora esposto come 6° workspace (overlay viewport
 // + view preset). Prima raggiungibile solo via right-rail legacy o palette.
 import { ViewPanel } from "./panels/ViewPanel";
+// redesign/workspace-fasi (FETTA 2a): nuovo guscio Risultati (3 schede)
+// + striscia verdetto overlay viewport. InspectPanel resta importato come
+// content di Sintesi (embed) dentro ResultsTabsPanel.
+import { ResultsTabsPanel } from "./results/ResultsTabsPanel";
+import { ResultsVerdictStrip } from "./results/ResultsVerdictStrip";
 // v2.6.5 D.1: rail expanded vs collapsed (single source of truth) per
 // sincronizzare grid `--rail-w` con il render del rail.
 // v2.6.6 E.2: hook promosso da `shell/useRailExpansion.ts` a `lib/` per
@@ -73,7 +78,12 @@ const VIEWPORT_TAKEOVER_WORKSPACES: ShellWorkspaceId[] = ["verifiche"];
 const WORKSPACE_CONTENT_NORMAL: Record<ShellWorkspaceId, ReactNode> = {
   modello: <MakePanel />,
   analisi: <SolvePanel />,
-  risultati: <InspectPanel />,
+  // redesign/workspace-fasi (FETTA 2a): il workspace "risultati" ora usa
+  // ResultsTabsPanel (3 schede Sintesi/Dati/Verifiche). InspectPanel
+  // resta come content della scheda "Sintesi" embeddato dentro
+  // ResultsTabsPanel — non e' stato cancellato. Lo step 2b sostituira'
+  // l'embed con un layout dedicato.
+  risultati: <ResultsTabsPanel />,
   verifiche: <VerifyPanel />,
   io: <ToolsPanel />,
   // v3.1 Fase 2c: ViewPanel come 6° workspace
@@ -192,7 +202,16 @@ export function Shell({ children }: ShellProps) {
           </main>
         ) : (
           <>
-            <ShellViewport>{children}</ShellViewport>
+            <ShellViewport>
+              {children}
+              {/* redesign/workspace-fasi (FETTA 2a): striscia verdetto +
+                  toggle viste sopra il viewport quando si e' in Risultati.
+                  Nascosta in focus mode (showFocusChrome guard) e quando
+                  workspace != risultati. */}
+              {!showFocusChrome && activeWs === "risultati" && (
+                <ResultsVerdictStrip />
+              )}
+            </ShellViewport>
             {!showFocusChrome && (
               <ShellPanel workspace={activeWs}>{WORKSPACE_CONTENT_NORMAL[activeWs]}</ShellPanel>
             )}

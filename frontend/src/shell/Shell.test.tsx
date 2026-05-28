@@ -69,6 +69,14 @@ vi.mock("./ShellPhaseStepper", () => ({
     <nav data-testid="mock-phase-stepper" data-active={active}>PhaseStepper</nav>
   ),
 }));
+// redesign/workspace-fasi (FETTA 2a): mock ResultsTabsPanel +
+// ResultsVerdictStrip per non rompere Shell.test (testati separatamente).
+vi.mock("./results/ResultsTabsPanel", () => ({
+  ResultsTabsPanel: () => <div data-testid="mock-results-tabs-panel">ResultsTabsPanel</div>,
+}));
+vi.mock("./results/ResultsVerdictStrip", () => ({
+  ResultsVerdictStrip: () => <div data-testid="mock-results-verdict-strip">ResultsVerdictStrip</div>,
+}));
 
 import { vi } from "vitest";
 // redesign/workspace-fasi (FETTA 0): reset isFocusMode (=isEmptyState)
@@ -135,6 +143,26 @@ describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
 
     fireEvent.click(screen.getByTestId("rail-modello"));
     expect(root?.className).not.toContain("shell-takeover-on");
+  });
+
+  it("FETTA 2a: workspace=risultati monta ResultsTabsPanel + ResultsVerdictStrip overlay", () => {
+    render(<Shell><div data-testid="canvas-children" /></Shell>);
+    // Default workspace e' "modello": niente strip ne' results panel
+    expect(screen.queryByTestId("mock-results-verdict-strip")).toBeNull();
+    expect(screen.queryByTestId("mock-results-tabs-panel")).toBeNull();
+
+    fireEvent.click(screen.getByTestId("rail-risultati"));
+    // Ora vediamo il nuovo panel + l'overlay viewport
+    expect(screen.getByTestId("mock-results-tabs-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-results-verdict-strip")).toBeInTheDocument();
+  });
+
+  it("FETTA 2a: cambio da risultati a modello smonta la verdict strip", () => {
+    render(<Shell><div /></Shell>);
+    fireEvent.click(screen.getByTestId("rail-risultati"));
+    expect(screen.getByTestId("mock-results-verdict-strip")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("rail-modello"));
+    expect(screen.queryByTestId("mock-results-verdict-strip")).toBeNull();
   });
 });
 
