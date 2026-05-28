@@ -17,12 +17,29 @@
  * auth ma NON contaminato sull'app principale (le route `*` non passano
  * mai da AuthLayout).
  */
-import { Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+
+import { useAuthStore } from "../store/authStore";
 
 import { BrandAside } from "./BrandAside";
 import "../styles/auth.css";
 
 export function AuthLayout() {
+  // v3.1.2 audit-fix L1-11: redirect-if-logged-in. Un utente già loggato
+  // che digita manualmente `/login`/`/signup`/`/forgot-password` viene
+  // rimandato a `/` (o al path originale `state.from`) invece di vedere
+  // un form che, su submit, sovrascriverebbe il token corrente. Eccezione:
+  // `/verify-email` resta accessibile per visual mockup-testing (vedi
+  // EmailVerifyPage docstring).
+  const isLoggedIn = useAuthStore((s) => !!s.token && !!s.user);
+  const location = useLocation();
+  const isVerifyEmail = location.pathname === "/verify-email";
+  if (isLoggedIn && !isVerifyEmail) {
+    const fallback = (location.state as { from?: string } | null)?.from ?? "/";
+    // Sanitize: solo path interni (no `//external`, no protocol).
+    const safe = fallback.startsWith("/") && !fallback.startsWith("//") ? fallback : "/";
+    return <Navigate to={safe} replace />;
+  }
   return (
     <div className="auth-shell" data-testid="auth-shell">
       <BrandAside />

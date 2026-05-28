@@ -22,6 +22,7 @@ from auth import (
     get_current_user,
     hash_password,
     verify_password,
+    verify_dummy_password_timing_safe,
 )
 from auth.users_db import (
     User,
@@ -79,7 +80,7 @@ class OnboardingUpdate(BaseModel):
 
 # ── Endpoints ──────────────────────────────────────────────────────────────
 @router.post("/register", response_model=AuthResponse, status_code=status.HTTP_201_CREATED)
-def register(req: RegisterRequest) -> AuthResponse:
+def register(request: Request, req: RegisterRequest) -> AuthResponse:
     """Crea un nuovo user. Solleva 409 se email gia' esiste.
 
     v2.7.0 F.5 (D.2=B): payload esteso con metadata mockup signup. Validation
@@ -87,7 +88,20 @@ def register(req: RegisterRequest) -> AuthResponse:
     backward compat per chiamate legacy). Quando accepted_terms=True,
     `terms_accepted_at` è popolato con int(time.time()) come timestamp
     consenso GDPR (Art. 6/7 lawful basis).
+
+    v3.1.2 audit-fix L1-7 (P0 security): rate-limited (10 req/IP/10min) +
+    detail 409 generico per non rivelare quali email sono registrate (no
+    enumeration via brute force).
     """
+    from auth.login_rate_limiter import register_limiter
+
+    ip = _client_ip(request)
+    if register_limiter.is_blocked(ip):
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Troppi tentativi di registrazione. Riprova fra 10 minuti.",
+        )
+
     # v2.7.0 F.5: enforcement consenso solo se esplicitamente False.
     if req.accepted_terms is False:
         raise HTTPException(
@@ -118,8 +132,14 @@ def register(req: RegisterRequest) -> AuthResponse:
             terms_accepted_at=terms_accepted_at,
         )
     except UserAlreadyExistsError as e:
+        # v3.1.2 audit-fix L1-7: detail GENERICO per evitare enumeration.
+        # Prima esponeva l'email nel messaggio (`email already registered: foo@bar`).
+        # Ora un attaccante riceve sempre lo stesso `registration_failed`
+        # indipendentemente dal motivo (email duplicata vs invalid email).
+        register_limiter.record_failure(ip)
         raise HTTPException(
-            status.HTTP_409_CONFLICT, detail=str(e)
+            status.HTTP_409_CONFLICT,
+            detail="Registrazione fallita: verifica i dati inseriti.",
         ) from e
 
     token = create_access_token(user.id, extra_claims={"email": user.email})
@@ -161,7 +181,12 @@ def login(request: Request, req: LoginRequest) -> AuthResponse:
     try:
         user = get_users_db().get_by_email(str(req.email))
     except UserNotFoundError as e:
-        # NON rivelare se l'email esiste o no (info leak)
+        # v3.1.2 audit-fix L1-8 (P0 security · timing attack):
+        # esegui un verify_password dummy contro un hash fisso per
+        # uniformare il response time con il caso "password sbagliata"
+        # (~50ms bcrypt cost 12). Senza, l'attaccante distingue
+        # email-esiste vs email-no per la differenza di latency.
+        verify_dummy_password_timing_safe(req.password)
         login_limiter.record_failure(ip)
         raise HTTPException(
             status.HTTP_401_UNAUTHORIZED, detail="invalid email or password"

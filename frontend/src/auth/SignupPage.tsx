@@ -27,7 +27,7 @@
  * Error handling: messaggi italiani umani per 409 (email duplicate),
  * 422 (consenso mancante), generic fallback.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -70,7 +70,13 @@ const signupSchema = z.object({
   password: z
     .string()
     .min(8, "Almeno 8 caratteri")
-    .max(72, "Massimo 72 caratteri"),
+    // v3.1.2 audit-fix L1-10: bcrypt tronca silenziosamente >72 byte UTF-8.
+    // `.max(72)` (chars) NON basta: una password 60 char con emoji "🎉" (4 byte)
+    // passa frontend ma fail backend. Validiamo direttamente la dimensione byte.
+    .refine(
+      (v) => new TextEncoder().encode(v).length <= 72,
+      { message: "Password troppo lunga (max 72 byte UTF-8 — usa meno emoji o caratteri non latini)" },
+    ),
   ruolo: z
     .union([z.enum(RUOLO_VALUES), z.literal("")])
     .refine((v): v is Ruolo => v !== "", {
@@ -112,7 +118,13 @@ export function SignupPage() {
   });
 
   const passwordValue = watch("password") ?? "";
+  const emailValue = watch("email");
   const acceptedTerms = watch("acceptedTerms");
+  // v3.1.2 audit-fix L1-19: clear error quando l'utente modifica email/password.
+  useEffect(() => {
+    if (submitError) setSubmitError(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emailValue, passwordValue]);
 
   async function onSubmit(data: SignupFormOutput): Promise<void> {
     setSubmitError(null);

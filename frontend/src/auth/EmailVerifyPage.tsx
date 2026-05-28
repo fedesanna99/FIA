@@ -53,7 +53,9 @@ function formatCountdown(sec: number): string {
 export function EmailVerifyPage() {
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const email = params.get("email") ?? "";
+  // v3.1.2 audit-fix L1-22: clamp email param a 256 char per prevenire
+  // layout-bomb (10KB blastano la card senza XSS, ma rovinano la UI).
+  const email = (params.get("email") ?? "").slice(0, 256);
   const [otp, setOtp] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(RESEND_COUNTDOWN_SECONDS);
@@ -74,8 +76,11 @@ export function EmailVerifyPage() {
 
   async function handleVerify(): Promise<void> {
     if (!canSubmit) return;
+    // v3.1.2 audit-fix L1-18: mock-honest UX. Prima `setSubmitting(true/false)`
+    // sincroni → il label "Verifica in corso…" non veniva mai visto. Ora un
+    // micro-delay simula il roundtrip server → label visibile + feedback ok.
     setSubmitting(true);
-    // D.4=A LOCKED · NO API call backend.
+    await new Promise<void>((resolve) => setTimeout(resolve, 400));
     toast(
       "success",
       "Email verificata (mock). In produzione l'account è già attivo dopo il signup — questa pagina è solo per il visual mockup.",

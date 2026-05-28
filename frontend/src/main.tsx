@@ -31,6 +31,9 @@ import { LegalPage } from "./legal/LegalPage";
 import { Toaster } from "./components/layout/Toaster";
 import { TooltipProvider } from "./components/ui/Tooltip";
 import { ErrorBoundary } from "./components/ui/ErrorBoundary";
+// v3.1.2 audit-fix L2-8 + L2-P0#1/#2: listener feapro:* globali fuori da
+// App.tsx (montato solo su path="*"). Ora attivi cross-route.
+import { GlobalRoutingListeners } from "./router/GlobalRoutingListeners";
 import { toastApiError } from "./lib/apiErrors";
 import "./styles/tokens.css";
 import "./index.css";
@@ -84,6 +87,7 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
               i toast restano visibili anche su auth pages. */}
           <Toaster />
           <BrowserRouter>
+            <GlobalRoutingListeners />
             <Routes>
               <Route element={<AuthLayout />}>
                 <Route path="/login" element={<LoginPage />} />

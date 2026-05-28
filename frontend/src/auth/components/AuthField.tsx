@@ -42,6 +42,13 @@ export const AuthField = forwardRef<HTMLInputElement, AuthFieldProps>(
     ref,
   ) {
     const inputClass = ["", className ?? ""].filter(Boolean).join(" ").trim();
+    // v3.1.2 audit-fix L1-14: SR a11y. aria-invalid + aria-describedby
+    // legano l'input al testo di errore/hint sotto. Screen reader (NVDA/JAWS)
+    // leggono insieme label + valore + errore quando il campo riceve focus.
+    const name = inputProps.name ?? inputProps.id ?? label.toLowerCase().replace(/\s+/g, "-");
+    const errorId = error ? `${name}-err` : undefined;
+    const hintId = !error && hint ? `${name}-hint` : undefined;
+    const describedBy = errorId ?? hintId ?? undefined;
     return (
       <label className="field">
         {labelAside ? (
@@ -56,15 +63,21 @@ export const AuthField = forwardRef<HTMLInputElement, AuthFieldProps>(
         )}
         <div className="field-input">
           {Icon && <Icon className="field-icon" width={14} height={14} aria-hidden="true" />}
-          <input ref={ref} className={inputClass || undefined} {...inputProps} />
+          <input
+            ref={ref}
+            className={inputClass || undefined}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={describedBy}
+            {...inputProps}
+          />
           {trail}
         </div>
         {error ? (
-          <span className="field-hint" data-error="true" style={{ color: "var(--danger)" }}>
+          <span id={errorId} className="field-hint" data-error="true" style={{ color: "var(--danger)" }}>
             {error}
           </span>
         ) : hint ? (
-          <span className="field-hint">{hint}</span>
+          <span id={hintId} className="field-hint">{hint}</span>
         ) : null}
       </label>
     );

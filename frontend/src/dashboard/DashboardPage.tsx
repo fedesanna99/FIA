@@ -26,7 +26,7 @@
  * `dashboard-new.css` (672 righe namespaced sotto `.dash`).
  */
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight, Bell, HelpCircle, LayoutGrid, ListChecks, Plus, Search,
@@ -197,7 +197,14 @@ function DashTopBar() {
         <kbd>⌘ K</kbd>
       </button>
 
-      <button type="button" className="icon-btn" aria-label="Notifiche" data-testid="dash-notifications">
+      {/* v3.1.2 audit-fix L2-14: bottone Notifiche aveva zero onClick → click muto. */}
+      <button
+        type="button"
+        className="icon-btn"
+        aria-label="Notifiche"
+        data-testid="dash-notifications"
+        onClick={() => toast("info", "Centro notifiche in arrivo nei prossimi sprint.", 3500)}
+      >
         <span className="dot" />
         <Bell width={16} height={16} aria-hidden="true" />
       </button>
@@ -374,7 +381,9 @@ function RecentSection({ models, modelsUnavailable, modelsRefreshing, onRetryMod
   const recent = useMemo(() => filteredModels.slice(0, 4), [filteredModels]);
   // Demo cards solo se la lista raw (non filtrata) è vuota — se l'utente
   // ha modelli ma il filter li nasconde mostriamo "nessun risultato".
-  const showDemos = models.length === 0;
+  // v3.1.2 audit-fix L2-9: niente demo se backend è in errore (l'utente
+  // vedrebbe sia il banner errore sia 4 modelli fittizi — confusing).
+  const showDemos = models.length === 0 && !modelsUnavailable;
   const showEmptyFilter = !showDemos && recent.length === 0;
   const goTemplates = useGoTemplates();
 
@@ -474,14 +483,24 @@ function modelMatchesCategory(m: FEAModel, cat: RecentFilter): boolean {
 // apre il workspace col modello nuovo (vedi onLoadDemo). UC5 non ha
 // backend wiring → toast info "in arrivo".
 function DemoRecentCards({ onSelect }: { onSelect: (id: string) => void }) {
+  // v3.1.2 audit-fix L2-3 + L2-6: useMutation per (a) disabled state contro
+  // doppio-click, (b) invalidazione automatica della query ["models"].
+  const qc = useQueryClient();
+  const cloneMutation = useMutation({
+    mutationFn: (backendId: string) => modelsApi.fromTemplate(backendId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["models"] });
+    },
+  });
   const onLoadDemo = async (backendId: string | null, label: string) => {
     if (!backendId) {
       toast("info", `${label} è ancora in arrivo. Per ora prova UC1, UC2 o UC3.`, 4500);
       return;
     }
+    if (cloneMutation.isPending) return;
     toast("info", `Caricamento ${label}…`, 2_500);
     try {
-      const cloned = await modelsApi.fromTemplate(backendId);
+      const cloned = await cloneMutation.mutateAsync(backendId);
       onSelect(cloned.id);
     } catch {
       toast("error", `Impossibile aprire ${label}. Riprova fra qualche secondo.`, 5_000);
@@ -743,7 +762,8 @@ function ClRow({ pill, title, desc, when }: ClRowProps) {
 function DashFoot() {
   return (
     <footer className="dash-foot" data-testid="dash-foot">
-      <span>FEA Pro {APP_VERSION} · <a href="https://fea-pro.fly.dev/api/health" target="_blank" rel="noreferrer">Status · all green</a></span>
+      {/* v3.1.2 audit-fix L2-11: health URL via env (dev/staging puntavano a prod). */}
+      <span>FEA Pro {APP_VERSION} · <a href={`${(import.meta.env.VITE_API_URL as string | undefined) || "https://fea-pro.fly.dev"}/api/health`} target="_blank" rel="noreferrer">Status · all green</a></span>
       <span>·</span>
       <span><b>Preliminary release</b> — non raccomandata per progetti reali. <Link to="/preliminary">Perché?</Link></span>
       <span className="foot-spacer" />

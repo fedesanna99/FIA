@@ -6,7 +6,7 @@
  *
  * Route: /settings dentro AuthGate.
  */
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import {
   BadgeCheck, Bell, CreditCard, Key, KeyRound, LogOut, Mail, Settings as SettingsIcon,
   User, UserCircle, Weight,
@@ -31,16 +31,15 @@ function parseSection(raw: string | null): Section {
 
 
 export function SettingsPage(): JSX.Element {
-  // v3.1.1 audit-fix L2-2: leggi `?section=billing` per consentire deep-link
-  // dalla Dashboard (es. "Scopri Pro" → /settings?section=billing). Default
-  // su "account" se param assente o non riconosciuto.
-  const [searchParams] = useSearchParams();
-  const [active, setActive] = useState<Section>(() => parseSection(searchParams.get("section")));
-  // Reagisce a navigate() successivi (in-app navigation) cambiando tab live.
-  useEffect(() => {
-    const next = parseSection(searchParams.get("section"));
-    setActive(next);
-  }, [searchParams]);
+  // v3.1.1 audit-fix L2-2 + v3.1.2 audit-fix L2-7: `?section=` come single
+  // source of truth (no state interno separato). Click su sidebar item
+  // chiama `setSearchParams({section})` → URL e tab restano sincronizzati,
+  // refresh preserva la tab corrente.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const active = useMemo(() => parseSection(searchParams.get("section")), [searchParams]);
+  const setActive = (next: Section) => {
+    setSearchParams({ section: next }, { replace: true });
+  };
   const user = useAuthStore((s) => s.user);
   // v2.8.1 Sprint A M6: fallback non hardcoded. Se user  null
   // (logout in corso), mostro placeholder neutro invece di "Federico Sanna".

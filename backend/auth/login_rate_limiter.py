@@ -68,3 +68,10 @@ class LoginRateLimiter:
 # Singleton condiviso fra request (in-memory, single-process).
 # Per multi-process / multi-machine, sostituire con backend Redis.
 login_limiter = LoginRateLimiter(max_attempts=5, window_seconds=15 * 60)
+
+# v3.1.2 audit-fix L1-7 (P0 security): rate-limit per /api/auth/register
+# per impedire email enumeration brute-force (10 req/IP/10min). Più
+# permissivo del login limiter perché register è rate-limited dall'UI
+# (un solo signup per sessione naturale) ma 10/10min difende da loop
+# scripted.
+register_limiter = LoginRateLimiter(max_attempts=10, window_seconds=10 * 60)

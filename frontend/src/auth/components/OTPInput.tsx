@@ -20,7 +20,16 @@
  * Reference mockup: ui_kits/webapp_desktop/auth.js righe 32-42;
  * ui_kits/webapp_desktop/Auth.html righe 386-393.
  */
-import { useRef, type KeyboardEvent } from "react";
+import { useRef, type ClipboardEvent, type KeyboardEvent } from "react";
+
+
+// v3.1.2 audit-fix L1-13: helper per normalizzare input numerico.
+// Tiene SOLO le cifre 0-9 da una stringa arbitraria (browser autofill
+// può iniettare "•••" o caratteri di formattazione, mobile predictive
+// può inserire più di un char alla volta).
+function onlyDigits(s: string): string {
+  return s.replace(/\D+/g, "");
+}
 
 interface OTPInputProps {
   /** Lunghezza OTP. Default 6 (mockup). */
@@ -47,17 +56,39 @@ export function OTPInput({
 
   function handleChange(idx: number, raw: string) {
     if (disabled) return;
-    // Solo l'ultimo char inserito (mobile può inserire più di 1 char
-    // tramite predictive — prendiamo l'ultimo).
-    const ch = raw.length > 1 ? raw.slice(-1) : raw;
-    const next = chars
-      .map((c, i) => (i === idx ? ch : c))
-      .join("")
-      .trimEnd();
-    onChange(next);
-    if (ch && idx < length - 1) {
-      inputs.current[idx + 1]?.focus();
+    // v3.1.2 audit-fix L1-13: filtra non-numerici (prima `a`/`!` venivano
+    // accettati nel value). Distribuisce eventuali multi-char (paste o
+    // mobile predictive) sulle celle successive a partire da `idx`.
+    const digits = onlyDigits(raw);
+    if (digits.length === 0) {
+      // Cancellazione (l'input è stato svuotato) → propaga.
+      const next = chars
+        .map((c, i) => (i === idx ? "" : c))
+        .join("")
+        .trimEnd();
+      onChange(next);
+      return;
     }
+    const nextArr = [...chars];
+    let cursor = idx;
+    for (const d of digits) {
+      if (cursor >= length) break;
+      nextArr[cursor] = d;
+      cursor += 1;
+    }
+    onChange(nextArr.join("").trimEnd());
+    const focusIdx = Math.min(cursor, length - 1);
+    inputs.current[focusIdx]?.focus();
+  }
+
+  // v3.1.2 audit-fix L1-13: paste support esplicito su QUALSIASI cella.
+  // Incollare "123456" in cella 0 popola tutte le 6 celle.
+  function handlePaste(idx: number, e: ClipboardEvent<HTMLInputElement>) {
+    if (disabled) return;
+    const pasted = onlyDigits(e.clipboardData.getData("text"));
+    if (pasted.length === 0) return;
+    e.preventDefault();
+    handleChange(idx, pasted);
   }
 
   function handleKeyDown(idx: number, e: KeyboardEvent<HTMLInputElement>) {
@@ -85,6 +116,7 @@ export function OTPInput({
             disabled={disabled}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
+            onPaste={(e) => handlePaste(i, e)}
             inputMode="numeric"
             pattern="[0-9]*"
             aria-label={`Cifra ${i + 1} di ${length}`}

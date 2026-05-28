@@ -8,14 +8,14 @@ Public API:
 - `get_current_user` FastAPI dependency (header Authorization: Bearer)
 - `resolve_user_id(current_user, explicit)` — bridge JWT ↔ demo_user
 """
-from .password import hash_password, verify_password
+from .password import hash_password, verify_password, verify_dummy_password_timing_safe
 from .jwt_tokens import create_access_token, decode_access_token, JWTError
 from .users_db import UsersDB, User, UserAlreadyExistsError, UserNotFoundError
 from .dependencies import get_current_user, get_current_user_optional
 from .user_resolver import resolve_user_id, DEFAULT_USER_ID
 
 __all__ = [
-    "hash_password", "verify_password",
+    "hash_password", "verify_password", "verify_dummy_password_timing_safe",
     "create_access_token", "decode_access_token", "JWTError",
     "UsersDB", "User", "UserAlreadyExistsError", "UserNotFoundError",
     "get_current_user", "get_current_user_optional",

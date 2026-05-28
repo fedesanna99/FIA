@@ -64,8 +64,18 @@ export const useAuthStore = create<AuthState>()(
       token: "",
       user: null,
       bootstrapping: true,
-      setAuth: (token, user) => set({ token, user, bootstrapping: false }),
-      logout: () => set({ token: "", user: null, bootstrapping: false }),
+      setAuth: (token, user) => {
+        // v3.1.2 audit-fix L1-12: reset bootstrapPromise così un eventuale
+        // nuovo bootstrap (es. cambio utente in stessa tab) ri-verifica il
+        // token nuovo invece di ritornare la promise vecchia cached.
+        bootstrapPromise = null;
+        set({ token, user, bootstrapping: false });
+      },
+      logout: () => {
+        // v3.1.2 audit-fix L1-12: idem su logout.
+        bootstrapPromise = null;
+        set({ token: "", user: null, bootstrapping: false });
+      },
       verifyToken: async () => {
         const tok = get().token;
         if (!tok) {
@@ -135,8 +145,39 @@ export const useAuthStore = create<AuthState>()(
 // Il client axios dispatcha `feapro:auth-invalidated` quando un endpoint
 // risponde 401. Ciò capita se il token scade durante l'uso. Resettiamo lo
 // store così l'AuthGate ri-appare e l'utente fa di nuovo login.
+//
+// v3.1.2 audit-fix L1-16: sentinel idempotency. Vitest/HMR può re-importare
+// questo modulo: senza il flag il listener veniva attaccato N volte e
+// `logout()` chiamato N volte per evento. Symbol-on-window è safe cross-realm.
+//
+// v3.1.2 audit-fix L1-15: storage event listener per cross-tab logout sync.
+// Quando una tab fa logout() lo zustand persist scrive `null`/`{}` nello
+// storage → altre tab leggono lo storage event e fanno logout() locale.
 if (typeof window !== "undefined") {
-  window.addEventListener("feapro:auth-invalidated", () => {
-    useAuthStore.getState().logout();
-  });
+  const SENTINEL_KEY = "__feaproAuthListenersAttached";
+  const w = window as typeof window & Record<string, unknown>;
+  if (!w[SENTINEL_KEY]) {
+    window.addEventListener("feapro:auth-invalidated", () => {
+      useAuthStore.getState().logout();
+    });
+    window.addEventListener("storage", (e) => {
+      if (e.key !== "auth-store") return;
+      if (!e.newValue) {
+        useAuthStore.getState().logout();
+        return;
+      }
+      try {
+        const parsed = JSON.parse(e.newValue) as { state?: { token?: string } };
+        const remoteToken = parsed?.state?.token ?? "";
+        const localToken = useAuthStore.getState().token;
+        // Se altra tab ha azzerato il token → logout locale.
+        if (!remoteToken && localToken) {
+          useAuthStore.getState().logout();
+        }
+      } catch {
+        /* ignore storage parse errors */
+      }
+    });
+    w[SENTINEL_KEY] = true;
+  }
 }

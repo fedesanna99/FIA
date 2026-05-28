@@ -24,6 +24,7 @@
 import { useState } from "react";
 import { ArrowRight, Plus, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { useAuthStore } from "../store/authStore";
 import { toast } from "../store/toastStore";
@@ -153,6 +154,17 @@ export function TemplatesPage() {
   const [tierFilter, setTierFilter] = useState<TplTier | "all">("all");
   // v3.1.1 audit-fix L2-14: subscribe a useAuthStore (era .getState() inline).
   const userEmail = useAuthStore((s) => s.user?.email);
+  // v3.1.2 audit-fix L2-3 + L2-6: useMutation per clone template. Garantisce
+  // (a) `disabled` button via `isPending` → no doppio-click race condition,
+  // (b) invalidazione query `["models"]` su success → Dashboard "Recenti"
+  // si aggiorna senza refresh manuale.
+  const qc = useQueryClient();
+  const cloneMutation = useMutation({
+    mutationFn: (backendId: string) => modelsApi.fromTemplate(backendId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["models"] });
+    },
+  });
 
   const filtered = TEMPLATES.filter((t) => {
     if (activeCategory !== "tutti") {
@@ -194,19 +206,19 @@ export function TemplatesPage() {
     // CONDIVISO per tutti gli utenti — bug P0 dell'audit 2026-05-28.
     // v3.1.1 audit-fix L2-9: gestisci esplicitamente 404/errore con toast
     // dedicato + nessun navigate (evita Viewport3D vuoto).
+    // v3.1.2 audit-fix L2-3: guard early-return su mutation in-flight per
+    // evitare race condition doppio-click (2 cloni paralleli).
+    if (cloneMutation.isPending) return;
     // TTL breve del loading toast (2.5s) per non sovrapporsi all'eventuale
     // error toast in caso di fallimento clone.
     toast("info", `Caricamento template ${tpl.code} · ${tpl.title}…`, 2_500);
     try {
-      const cloned = await modelsApi.fromTemplate(tpl.backendId);
-      // L'evento porta ora il NEW model id (non più il template id):
-      // App.tsx fa setActiveId → useLoadModel → Viewport3D si monta.
-      window.dispatchEvent(
-        new CustomEvent("feapro:load-template", {
-          detail: { templateId: cloned.id },
-        }),
-      );
-      navigate("/", { replace: false });
+      const cloned = await cloneMutation.mutateAsync(tpl.backendId);
+      // v3.1.2 audit-fix L2-P0#1: passa l'ID a App via navigate state invece
+      // di dispatchEvent → navigate (race condition: listener non ancora
+      // montato perché App vive solo su path="*"). Ora App legge lo state
+      // al mount e fa setActiveId.
+      navigate("/", { state: { pendingActiveId: cloned.id } });
     } catch (err) {
       // L'axios interceptor mostra già un toast errore generico (HTTP 4xx/5xx);
       // qui aggiungiamo il contesto specifico del template. Niente navigate
@@ -251,7 +263,8 @@ export function TemplatesPage() {
             <p>Configurati secondo NTC 18 ed Eurocodici. Ogni template è un punto di partenza editabile — non un modello chiuso.</p>
           </div>
           <div className="tg-head-r">
-            <button type="button" className="btn-primary" onClick={() => { window.dispatchEvent(new Event("feapro:open-new-model")); navigate("/"); }} data-testid="tg-new-model-btn">
+            {/* v3.1.2 audit-fix L2-P0#2: stesso pattern del L2-P0#1. */}
+            <button type="button" className="btn-primary" onClick={() => navigate("/", { state: { openNewModel: true } })} data-testid="tg-new-model-btn">
               <Plus width={12} height={12} strokeWidth={2.4} aria-hidden="true" />
               Modello vuoto
             </button>
@@ -309,9 +322,19 @@ export function TemplatesPage() {
                   <span className="meta-time">{t.estimatedMin} min</span>
                 </div>
               </div>
-              <button type="button" className="tpl-cta" onClick={() => onOpenTemplate(t)}>
-                Apri template
-                <ArrowRight width={11} height={11} strokeWidth={2.4} aria-hidden="true" />
+              <button
+                type="button"
+                className="tpl-cta"
+                onClick={() => onOpenTemplate(t)}
+                disabled={cloneMutation.isPending}
+                data-testid={`tpl-cta-${t.code.toLowerCase()}`}
+              >
+                {cloneMutation.isPending ? "Caricamento…" : (
+                  <>
+                    Apri template
+                    <ArrowRight width={11} height={11} strokeWidth={2.4} aria-hidden="true" />
+                  </>
+                )}
               </button>
             </article>
           ))}

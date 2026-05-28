@@ -28,7 +28,7 @@
  * si torna lì invece. TODO(F.4-followup): se Federico vuole respect del
  * `from` path, leggere `useLocation().state` qui.
  */
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -63,7 +63,10 @@ export function LoginPage() {
   // v3.1.1 audit-fix L1-2: leggi `state.from` per redirect post-login al
   // path originale (deep-link). AuthGate.tsx già passa `state: { from }`
   // quando reindirizza a /login un utente non autenticato. Default "/" .
-  const redirectTo = (location.state as { from?: string } | null)?.from ?? "/";
+  // v3.1.2 audit-fix L1-17: sanitize contro open-redirect (e.g. `//evil.com`
+  // o URL assoluti). Solo path interni `/` consentiti.
+  const rawRedirect = (location.state as { from?: string } | null)?.from ?? "/";
+  const redirectTo = rawRedirect.startsWith("/") && !rawRedirect.startsWith("//") ? rawRedirect : "/";
 
   const {
     register,
@@ -77,6 +80,14 @@ export function LoginPage() {
   });
 
   const stayLogged = watch("stayLogged");
+  // v3.1.2 audit-fix L1-19: clear submitError quando l'utente modifica
+  // email/password (no error "sticky" dopo aver corretto la credenziale).
+  const emailValue = watch("email");
+  const passwordValue = watch("password");
+  useEffect(() => {
+    if (submitError) setSubmitError(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emailValue, passwordValue]);
 
   async function onSubmit(data: LoginForm): Promise<void> {
     setSubmitError(null);

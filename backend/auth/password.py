@@ -44,3 +44,31 @@ def verify_password(plain: str, hashed: str) -> bool:
         return bcrypt.checkpw(pw_bytes, hashed.encode("ascii"))
     except (ValueError, UnicodeError):
         return False
+
+
+# v3.1.2 audit-fix L1-8 (P0 security): timing-safe dummy hash usato dal
+# route /login quando l'email non esiste, per uniformare il response time
+# con il caso "password sbagliata" (~50ms bcrypt cost 12). Senza questo
+# fix, l'attaccante può enumerare email registrate misurando la differenza
+# tra fast-path (email inesistente, no bcrypt) e slow-path (bcrypt verify).
+# L'hash è generato al boot del modulo, una volta sola, con una password
+# costante che NESSUN utente reale dovrebbe avere (ma comunque safe se sì).
+_TIMING_DUMMY_HASH = bcrypt.hashpw(
+    b"__feapro_dummy_timing_safe_password__",
+    bcrypt.gensalt(rounds=_COST_FACTOR),
+).decode("ascii")
+
+
+def verify_dummy_password_timing_safe(plain: str) -> None:
+    """Esegue un `verify_password` dummy per uniformare il timing.
+
+    Da chiamare nel branch "utente non trovato" del login: il client
+    osserva ~50ms identici al caso "password sbagliata", quindi non può
+    distinguere via timing se l'email è registrata o no.
+    """
+    # Best-effort, errori silenti (l'hash dummy è valido, no eccezioni
+    # attese; ma per robustezza non lasciamo passare).
+    try:
+        verify_password(plain or "x", _TIMING_DUMMY_HASH)
+    except Exception:  # noqa: BLE001
+        pass

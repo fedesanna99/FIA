@@ -25,7 +25,7 @@
  */
 import { useCallback, useEffect, useState, lazy, Suspense } from "react";
 import { X } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { cn } from "./components/ui/cn";
 import { TopBar } from "./components/shell/TopBar";
 import { MissionBar } from "./components/shell/MissionBar";
@@ -177,9 +177,18 @@ export default function App() {
   // su <html> + sync con localStorage. UI toggle aggiunto in Fase 3+.
   useTheme();
 
-  // v3.1.1 audit-fix L2-2: react-router navigate per i 4 listener globali
-  // aggiunti più sotto (open-percorso-uc1, open-billing, open-account-dialog).
+  // v3.1.2 audit-fix L2-P0#1/#2 + L2-8: i 4 listener feapro:* globali
+  // (open-help/open-billing/open-percorso-uc1/open-account-dialog) +
+  // open-new-model + load-template sono ora montati in
+  // `<GlobalRoutingListeners />` sotto BrowserRouter (vedi main.tsx). App
+  // riceve i dispatch tramite `location.state`:
+  //   - { pendingActiveId } → setActiveId
+  //   - { openNewModel }    → setNewModelOpen(true)
+  //   - { openHelp }        → setDialog("help")
+  // Lo state viene resettato via navigate replace dopo il processing per
+  // evitare retrigger su back/forward del browser.
   const navigate = useNavigate();
+  const location = useLocation();
 
   const modelsQuery = useModelList();
   const models = modelsQuery.data;
@@ -322,50 +331,48 @@ export default function App() {
     // v1.9.0 T4: listener per bottone "Genera report PDF" in ResultsOverviewCard.
     const openExportPdf = () => setReportExportOpen(true);
     window.addEventListener("feapro:open-export-pdf", openExportPdf);
-    // v3.0.1 Bug fix #1: listener globale per "Nuovo modello vuoto" tile
-    // della Dashboard mockup-driven. Prima era registrato solo in TopBar
-    // legacy (non montato in Dashboard fullscreen). Ora vive a livello
-    // App.tsx così funziona ovunque.
-    const openNewModel = () => setNewModelOpen(true);
-    window.addEventListener("feapro:open-new-model", openNewModel);
-    // v3.0.1 Bug fix #2: listener globale per "Apri template" dalla
-    // TemplatesPage. CustomEvent con detail.templateId → setActiveId
-    // (Viewport3D si carica automaticamente via useLoadModel). Prima
-    // l'evento era dispatchato ma nessuno ascoltava → loading infinito.
-    const onLoadTemplate = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { templateId?: string } | undefined;
-      // v3.1.1 audit-fix L2-1: ora `templateId` è in realtà il NEW model id
-      // restituito da POST /api/models/from-template/{id} — il template
-      // originale resta inalterato per gli altri utenti.
-      if (detail?.templateId) setActiveId(detail.templateId);
-    };
-    window.addEventListener("feapro:load-template", onLoadTemplate);
-    // v3.1.1 audit-fix L2-2 (P0 critico): 4 listener globali che erano dead
-    // dispatched da DashboardPage/TemplatesPage (Docs/Help nav, Pro upgrade,
-    // percorso cards in DualRow, avatar profilo). Senza questi listener
-    // cliccando quei bottoni in Dashboard fullscreen non succedeva nulla.
-    const openHelp = () => setDialog("help");
-    window.addEventListener("feapro:open-help", openHelp);
-    const openBilling = () => navigate("/settings?section=billing");
-    window.addEventListener("feapro:open-billing", openBilling);
-    const openPercorsoUC1 = () => navigate("/percorsi/uc1");
-    window.addEventListener("feapro:open-percorso-uc1", openPercorsoUC1);
-    const openAccountDialog = () => navigate("/settings?section=account");
-    window.addEventListener("feapro:open-account-dialog", openAccountDialog);
+    // v3.1.2 audit-fix L2-P0#1/#2 + L2-8: i listener `feapro:open-new-model`,
+    // `feapro:load-template`, `feapro:open-help`, `feapro:open-billing`,
+    // `feapro:open-percorso-uc1` e `feapro:open-account-dialog` ora sono
+    // gestiti da `<GlobalRoutingListeners />` in main.tsx (cross-route).
+    // App riceve via `location.state` (vedi effect dedicato sotto).
     return () => {
       window.removeEventListener("feapro:open-import-wizard", openImport);
       window.removeEventListener("feapro:model-imported", onImported);
       window.removeEventListener("feapro:open-template-gallery", openTemplate);
       window.removeEventListener("feapro:open-percorsi", openPercorsi);
       window.removeEventListener("feapro:open-export-pdf", openExportPdf);
-      window.removeEventListener("feapro:open-new-model", openNewModel);
-      window.removeEventListener("feapro:load-template", onLoadTemplate);
-      window.removeEventListener("feapro:open-help", openHelp);
-      window.removeEventListener("feapro:open-billing", openBilling);
-      window.removeEventListener("feapro:open-percorso-uc1", openPercorsoUC1);
-      window.removeEventListener("feapro:open-account-dialog", openAccountDialog);
     };
-  }, [navigate, setDialog]);
+  }, []);
+
+  // v3.1.2 audit-fix L2-P0#1/#2 + L2-8: processa `location.state` dispatched
+  // dai GlobalRoutingListeners. setActiveId / openNewModel / openHelp +
+  // reset state per evitare retrigger.
+  useEffect(() => {
+    const state = location.state as {
+      pendingActiveId?: string;
+      openNewModel?: boolean;
+      openHelp?: boolean;
+    } | null;
+    if (!state) return;
+    let touched = false;
+    if (typeof state.pendingActiveId === "string" && state.pendingActiveId.length > 0) {
+      setActiveId(state.pendingActiveId);
+      touched = true;
+    }
+    if (state.openNewModel) {
+      setNewModelOpen(true);
+      touched = true;
+    }
+    if (state.openHelp) {
+      setDialog("help");
+      touched = true;
+    }
+    if (touched) {
+      // Pulisci lo state così il refresh / back non ri-applica le azioni.
+      navigate(location.pathname + location.search, { replace: true, state: null });
+    }
+  }, [location.state, location.pathname, location.search, navigate, setDialog]);
 
   // v1.5 Task 34 follow-up: dispatcher wizardStore.
   // Quando la palette / shortcut chiama wizardStore.open(kind, payload),

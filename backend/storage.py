@@ -75,7 +75,11 @@ def get_model(model_id: str) -> FEAModel | None:
 
 
 def _utcnow_iso() -> str:
-    """ISO-8601 UTC con suffisso 'Z' (es. `2026-05-28T18:42:11.123456+00:00`)."""
+    """ISO-8601 UTC con offset `+00:00` (es. `2026-05-28T18:42:11.123456+00:00`).
+
+    Lex-ordinabile come `Z` per le query desc su `updated_at`. v3.1.2
+    audit-fix L2-12: docstring corretto (prima dichiarava suffisso `Z`).
+    """
     return datetime.now(timezone.utc).isoformat()
 
 

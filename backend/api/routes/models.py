@@ -4,7 +4,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from auth.dependencies import get_current_user_optional
+from auth.dependencies import get_current_user, get_current_user_optional
 from auth.users_db import User
 from schemas import FEAModel, Node, Element, Load, Constraint
 from schemas.model import ModelUpdate
@@ -84,10 +84,14 @@ def duplicate_model(
     return storage.save_model(copy)
 
 
+import re as _re
+_TEMPLATE_ID_RE = _re.compile(r"^ex_[a-z0-9_]+$")
+
+
 @router.post("/from-template/{template_id}", response_model=FEAModel)
 def from_template(
     template_id: str,
-    current_user: Optional[User] = Depends(get_current_user_optional),
+    current_user: User = Depends(get_current_user),
 ):
     """v3.1.1 audit-fix L2-1: clona un template (es. `ex_simple_beam_2d`)
     come modello editabile dell'utente corrente.
@@ -98,20 +102,25 @@ def from_template(
     qualsiasi edit successivo sovrascriveva il template per TUTTI gli
     utenti — bug P0 dell'audit `2026-05-28`.
 
-    Accetta SOLO ID che iniziano con `ex_` (i template precaricati);
+    v3.1.2 audit-fix L2-4 (P1): auth required (`get_current_user` non
+    `_optional`) per impedire a utenti anonimi di creare cloni orfani
+    senza quota check. v3.1.2 audit-fix L2-13: validazione regex strict
+    `^ex_[a-z0-9_]+$` per difesa in profondità contro path traversal.
+
+    Accetta SOLO ID che matchano la regex (i template precaricati);
     per duplicare modelli utente esistenti vedi `duplicate_model`.
     """
-    if not template_id.startswith("ex_"):
+    if not _TEMPLATE_ID_RE.match(template_id):
         raise HTTPException(
             400,
-            f"{template_id} non è un template valido (deve iniziare con 'ex_')",
+            f"{template_id} non è un template valido (deve matchare ^ex_[a-z0-9_]+$)",
         )
     tpl = storage.get_model(template_id)
     if not tpl:
         raise HTTPException(404, f"Template {template_id} non trovato")
     copy = tpl.model_copy(deep=True)
     copy.id = storage.new_id()
-    copy.owner_id = current_user.id if current_user else None
+    copy.owner_id = current_user.id
     # name resta uguale al template per coerenza UX ("Trave bi-appoggiata"
     # non "Trave bi-appoggiata (copia)"); l'utente può rinominare in UI.
     return storage.save_model(copy)
