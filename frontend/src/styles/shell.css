@@ -993,6 +993,195 @@ body.shell-sharp .results-data-sum-row { border-radius: 0; }
 .results-data-hint b { color: var(--ink-dim, #7B808A); }
 .results-data-hint i { color: var(--ink-dim, #7B808A); font-style: italic; }
 
+/* ────────────────────────────────────────────────────────────────────────
+ *  redesign/workspace-fasi · FETTA 2b · FAMIGLIA D · scheda Verifiche
+ *
+ *  Layout: banner sospetto + testata "EC3 · UR" (pass/fail/warn/na/empty)
+ *  + formula in chiaro (σ_max / f_yd / γM0 → UR) + righe "altre verifiche"
+ *  con badge validato/stima/"in arrivo" + n/a fallback per geometrie non
+ *  normate. Mai numeri inventati.
+ * ──────────────────────────────────────────────────────────────────────── */
+.results-verifiche {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 18px;
+}
+
+/* Testata "EC3 · UR" */
+.results-verifiche-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 9px;
+  font-size: 13px;
+}
+.results-verifiche-head-text {
+  flex: 1;
+  min-width: 0;
+}
+.results-verifiche-head-title {
+  font-weight: 600;
+  line-height: 1.2;
+}
+.results-verifiche-head-sub {
+  font-size: 11.5px;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+.results-verifiche-head-ur {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.results-verifiche-head--pass {
+  background: var(--bg-success, rgba(101, 163, 13, 0.10));
+  color: var(--success, #65A30D);
+}
+.results-verifiche-head--fail {
+  background: var(--bg-danger, rgba(220, 38, 38, 0.08));
+  color: var(--danger, #DC2626);
+}
+.results-verifiche-head--warn {
+  background: var(--bg-warn, rgba(180, 83, 9, 0.08));
+  color: var(--warn, #B45309);
+}
+.results-verifiche-head--na {
+  background: var(--bg, #FAFAFA);
+  border: 1px dashed var(--border-strong, var(--border, #E5E6E8));
+  color: var(--ink-dim, #7B808A);
+}
+.results-verifiche-head--empty {
+  background: var(--bg, #FAFAFA);
+  border: 1px dashed var(--border, #E5E6E8);
+  color: var(--ink-faint, #B0B5BD);
+}
+body.shell-sharp .results-verifiche-head { border-radius: 0; }
+
+/* Formula in chiaro (riusabile look "scheda di calcolo") */
+.results-verifiche-formula {
+  background: var(--bg, #FAFAFA);
+  border-radius: 9px;
+  padding: 11px 13px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  color: var(--ink-dim, #7B808A);
+}
+.results-verifiche-formula-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.results-verifiche-formula-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+.results-verifiche-formula-row b {
+  color: var(--ink, #15161A);
+  font-weight: 600;
+}
+.results-verifiche-formula-row.is-result {
+  border-top: 1px solid var(--border-strong, var(--border, #E5E6E8));
+  padding-top: 7px;
+  margin-top: 1px;
+}
+.results-verifiche-formula-row--pass.is-result,
+.results-verifiche-formula-row--pass.is-result b {
+  color: var(--success, #65A30D);
+}
+.results-verifiche-formula-row--fail.is-result,
+.results-verifiche-formula-row--fail.is-result b {
+  color: var(--danger, #DC2626);
+}
+.results-verifiche-formula-note {
+  font-family: var(--font-sans, system-ui, sans-serif);
+  font-size: 10.5px;
+  color: var(--ink-faint, #B0B5BD);
+  line-height: 1.55;
+  margin: 8px 0 0;
+}
+.results-verifiche-formula-note b { color: var(--ink-dim, #7B808A); font-weight: 500; }
+body.shell-sharp .results-verifiche-formula { border-radius: 0; }
+
+/* Altre verifiche (righe Taglio / Freccia / LTB) */
+.results-verifiche-others {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.results-verifiche-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 11px;
+  border: 1px solid var(--border, #E5E6E8);
+  border-radius: 8px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11.5px;
+  background: var(--bg-panel, #ffffff);
+}
+.results-verifiche-row-label {
+  flex: 1;
+  color: var(--ink, #15161A);
+  font-weight: 500;
+}
+.results-verifiche-row-label small {
+  color: var(--ink-dim, #7B808A);
+  font-weight: 400;
+  font-size: 10px;
+  margin-left: 2px;
+}
+.results-verifiche-row-ur {
+  color: var(--ink-dim, #7B808A);
+  flex-shrink: 0;
+}
+.results-verifiche-badge {
+  font-size: 9.5px;
+  padding: 2px 7px;
+  border-radius: 5px;
+  display: inline-flex;
+  align-items: center;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+}
+.results-verifiche-badge--validated {
+  background: var(--bg-success, rgba(101, 163, 13, 0.10));
+  color: var(--success, #65A30D);
+}
+.results-verifiche-badge--estimate {
+  background: var(--bg-warn, rgba(180, 83, 9, 0.08));
+  color: var(--warn, #B45309);
+}
+.results-verifiche-badge--empty {
+  background: var(--bg, #FAFAFA);
+  color: var(--ink-faint, #B0B5BD);
+  border: 1px solid var(--border, #E5E6E8);
+}
+body.shell-sharp .results-verifiche-row { border-radius: 0; }
+body.shell-sharp .results-verifiche-badge { border-radius: 0; }
+
+/* n/a fallback box */
+.results-verifiche-na {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 11px 13px;
+  border: 1px dashed var(--border-strong, var(--border, #E5E6E8));
+  border-radius: 9px;
+  background: var(--bg, #FAFAFA);
+  color: var(--ink-dim, #7B808A);
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+.results-verifiche-na strong { color: var(--ink, #15161A); }
+.results-verifiche-na p { margin: 0; }
+body.shell-sharp .results-verifiche-na { border-radius: 0; }
+
 /* v2.6.5 D.2: sezione "Modelli recenti" home dashboard (mockup A1).
    4 card grid responsive (4 col desktop, 2 col mid, 1 col mobile).
    Card: thumbnail SVG placeholder + nome + status badge + metadata mono. */

@@ -25,7 +25,6 @@ import { useState } from "react";
 import { Activity } from "lucide-react";
 import { useResultsStore } from "../../store/resultsStore";
 import { useAnalysisStore } from "../../store/analysisStore";
-import { VerifyPanel } from "../panels/VerifyPanel";
 import { DisplacementTable } from "../../components/results/DisplacementTable";
 // FETTA 2b · FAM B: nuovo content scheda Sintesi (sostituisce InspectPanel
 // embed). InspectPanel.tsx resta nel codebase ma non e' piu' importato qui.
@@ -34,6 +33,10 @@ import { ResultsSintesi } from "./ResultsSintesi";
 // e somma di controllo (sostituiscono i placeholder "in arrivo step 2b").
 import { ResultsDatiSollecitazioni } from "./ResultsDatiSollecitazioni";
 import { ResultsDatiReazioni } from "./ResultsDatiReazioni";
+// FETTA 2b · FAM D: nuova scheda Verifiche con EC3 in chiaro + n/a +
+// banner sospetto. Sostituisce embed VerifyPanel (incoerente in Risultati).
+// VerifyPanel resta nel codebase per il workspace "verifiche" full-area.
+import { ResultsVerifiche } from "./ResultsVerifiche";
 
 interface ResultsTabsPanelProps {
   /** Callback "Itera" → torna al workspace Costruisci (passato da Shell.tsx). */
@@ -206,10 +209,11 @@ export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
           className="results-tab-body"
           data-testid="results-tab-body-verifiche"
         >
-          {/* FETTA 2a: embed VerifyPanel esistente. Il workspace "verifiche"
-              continua ad averlo come full-area (takeover) come prima; qui lo
-              mostriamo anche dentro Risultati come anteprima senior. */}
-          <VerifyPanel />
+          {/* FETTA 2b · FAM D: nuova scheda Verifiche aderente al prototipo
+              (testata EC3 + formula in chiaro + altre verifiche con badge
+              validato/stima/"in arrivo"). VerifyPanel resta usato dal
+              workspace "verifiche" full-area (takeover) come prima. */}
+          <ResultsVerifiche />
         </div>
       )}
     </div>

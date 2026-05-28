@@ -13,9 +13,6 @@ import { useAnalysisStore } from "../../store/analysisStore";
 import type { StaticResults } from "../../types/results";
 
 // Embed mocks
-vi.mock("../panels/VerifyPanel", () => ({
-  VerifyPanel: () => <div data-testid="mock-verify-panel">VerifyPanel</div>,
-}));
 vi.mock("../../components/results/DisplacementTable", () => ({
   DisplacementTable: () => (
     <div data-testid="mock-displacement-table">DisplacementTable</div>
@@ -39,6 +36,12 @@ vi.mock("./ResultsDatiSollecitazioni", () => ({
 vi.mock("./ResultsDatiReazioni", () => ({
   ResultsDatiReazioni: () => (
     <div data-testid="mock-results-data-reazioni">Reazioni</div>
+  ),
+}));
+// FETTA 2b · FAM D: scheda Verifiche nuova (sostituisce VerifyPanel embed).
+vi.mock("./ResultsVerifiche", () => ({
+  ResultsVerifiche: () => (
+    <div data-testid="mock-results-verifiche">Verifiche</div>
   ),
 }));
 
@@ -130,10 +133,10 @@ describe("ResultsTabsPanel · FETTA 2a", () => {
     expect(screen.getByTestId("mock-results-data-reazioni")).toBeInTheDocument();
   });
 
-  it("click su tab Verifiche: embed VerifyPanel visibile", () => {
+  it("FAM D: click su tab Verifiche monta ResultsVerifiche (no piu' VerifyPanel embed)", () => {
     render(<ResultsTabsPanel />);
     fireEvent.click(screen.getByTestId("results-tab-verifiche"));
-    expect(screen.getByTestId("mock-verify-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-results-verifiche")).toBeInTheDocument();
   });
 
   it("subtab attivo ha aria-selected=true e is-active class", () => {
