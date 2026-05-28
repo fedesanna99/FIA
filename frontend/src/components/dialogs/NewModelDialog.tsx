@@ -87,6 +87,7 @@ export function NewModelDialog({ open, onClose, onCreated }: Props) {
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
+            maxLength={2000}
             placeholder="Note didattiche o riferimenti normativi…"
             className="w-full px-2.5 py-1.5 text-sm bg-bg-elevated border border-border-light text-ink placeholder:text-ink-3 focus:border-accent focus:outline-none transition-colors resize-none"
           />

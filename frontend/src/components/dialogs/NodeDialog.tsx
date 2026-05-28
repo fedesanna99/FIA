@@ -4,7 +4,7 @@
  * @deprecated v1.5 Task 32 — sostituito da NodeDetail nel RightPanel Inspect.
  * Resta per retrocompatibilita' (shortcut N, doppio-click nodo, palette).
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "./Dialog";
 import { modelsApi } from "../../api/client";
@@ -63,7 +63,13 @@ export function NodeDialog({ open, onClose, editNodeId = null }: Props) {
     ? model?.nodes.find((n) => n.id === editNodeId)
     : null;
 
-  const nextId = (model?.nodes.reduce((m, n) => Math.max(m, n.id), 0) ?? 0) + 1;
+  // v3.3.0 audit-fix L3.2-P0-1: nextId in useMemo deps stabili (era ricomputato
+  // ad ogni render → effect ri-trigger → state utente sovrascritto live).
+  // Memoizziamo solo su model.nodes (length+ids) snapshot.
+  const nextId = useMemo(
+    () => (model?.nodes.reduce((m, n) => Math.max(m, n.id), 0) ?? 0) + 1,
+    [model?.nodes],
+  );
   const [id, setId] = useState(editing?.id ?? nextId);
   const [x, setX] = useState(editing?.x ?? 0);
   const [y, setY] = useState(editing?.y ?? 0);
@@ -71,6 +77,11 @@ export function NodeDialog({ open, onClose, editNodeId = null }: Props) {
   const [label, setLabel] = useState(editing?.label ?? "");
   const qc = useQueryClient();
 
+  // v3.3.0 audit-fix L3.2-P0-1: effect dipende SOLO da `open` + `editing?.id`
+  // (NON da nextId che cambia con model.nodes). Calcoliamo nextId al volo
+  // dentro l'effect solo in modalità add (no editing). Risultato: utente
+  // che sta scrivendo le coord NON vede più i campi sovrascritti se un
+  // altro thread aggiunge un nodo.
   useEffect(() => {
     if (!open) return;
     if (editing) {
@@ -78,10 +89,12 @@ export function NodeDialog({ open, onClose, editNodeId = null }: Props) {
       setX(editing.x); setY(editing.y); setZ(editing.z);
       setLabel(editing.label ?? "");
     } else {
-      setId(nextId);
+      const freshNextId = (model?.nodes.reduce((m, n) => Math.max(m, n.id), 0) ?? 0) + 1;
+      setId(freshNextId);
       setX(0); setY(0); setZ(0); setLabel("");
     }
-  }, [open, editing, nextId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, editing?.id]);
 
   const mutation = useMutation({
     mutationFn: () => {

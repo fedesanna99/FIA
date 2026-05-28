@@ -224,7 +224,18 @@ export function StudioVerifichePage(): JSX.Element {
                     <span className="ur-num">{r.UR_LTB.toFixed(3)}</span>
                     <span className="ur-vmax">
                       <span className="ur-bar">
-                        <span style={{ width: `${r.UR_max * 100}%`, background: r.UR_max < 0.20 ? "var(--success)" : "var(--accent)" }} />
+                        {/* v3.3.0 audit-fix L3.3-P1-5: 3 zone semaforo coerenti
+                            con EC ingegneria. Prima `< 0.20 = success` colorava
+                            UR=0.9 verde → falso senso di sicurezza. */}
+                        <span
+                          style={{
+                            width: `${Math.min(r.UR_max, 1) * 100}%`,
+                            background:
+                              r.UR_max < 0.75 ? "var(--success)"
+                              : r.UR_max < 0.95 ? "var(--warn)"
+                              : "var(--danger)",
+                          }}
+                        />
                       </span>
                       <span className="ur-vmax-v">{r.UR_max.toFixed(2)}</span>
                     </span>

@@ -16,7 +16,8 @@
 // verify) e lo mappiamo al workspace nuovo (modello/analisi/risultati/...).
 // Mapping completo refactor: Fase 5.
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useCallback, useEffect, useState } from "react";
+import { useThemeStore } from "../store/themeStore";
 import { ShellTopBar } from "./ShellTopBar";
 import { ShellRail } from "./ShellRail";
 import { ShellViewport } from "./ShellViewport";
@@ -76,14 +77,64 @@ const WORKSPACE_CONTENT_TAKEOVER: Partial<Record<ShellWorkspaceId, ReactNode>> =
   verifiche: <VerifyPanel fullArea />,
 };
 
+// v3.3.0 audit-fix L3.1-P0-1: activeWs persisted via sessionStorage
+// (era state locale, F5 perdeva il workspace, Cmd+K non sincronizzava).
+const ACTIVE_WS_KEY = "feapro:shell:active-workspace";
+const VALID_WS = new Set<ShellWorkspaceId>([
+  "modello", "analisi", "risultati", "verifiche", "io", "view",
+]);
+
+function readPersistedWs(): ShellWorkspaceId {
+  if (typeof window === "undefined") return "modello";
+  try {
+    const raw = window.sessionStorage.getItem(ACTIVE_WS_KEY);
+    if (raw && VALID_WS.has(raw as ShellWorkspaceId)) {
+      return raw as ShellWorkspaceId;
+    }
+  } catch { /* ignore */ }
+  return "modello";
+}
+
+
 export function Shell({ children }: ShellProps) {
-  const [activeWs, setActiveWs] = useState<ShellWorkspaceId>("modello");
+  // v3.3.0 audit-fix L3.1-P0-1: activeWs persisted sessionStorage.
+  const [activeWs, setActiveWsState] = useState<ShellWorkspaceId>(readPersistedWs);
+  const setActiveWs = useCallback((ws: ShellWorkspaceId) => {
+    setActiveWsState(ws);
+    try { window.sessionStorage.setItem(ACTIVE_WS_KEY, ws); } catch { /* ignore */ }
+  }, []);
   const isTakeover = VIEWPORT_TAKEOVER_WORKSPACES.includes(activeWs);
   const takeoverContent = isTakeover ? WORKSPACE_CONTENT_TAKEOVER[activeWs] : null;
   // v2.6.5 D.1: rail expanded mode → grid `--rail-w: 200px`. Single source
   // of truth via hook localStorage-backed (default true). Niente override
   // via prop perché la grid CSS deve essere sincrona col rail render.
   const { isExpanded: railExpanded } = useRailExpansion();
+
+  // v3.3.0 audit-fix L3.1-P1-1: theme className derivato da themeStore.
+  // Prima era hardcoded `theme-light` → dark mode rotto in Shell custom.
+  const theme = useThemeStore((s) => s.resolved);
+
+  // v3.3.0 audit-fix L3.1-P1-4: keyboard shortcut 1-6 per workspace switch.
+  // Prima App.tsx aveva solo 1/2/3, ShellRail mostrava kbd 4/5/6 dead.
+  useEffect(() => {
+    const order: ShellWorkspaceId[] = ["modello", "analisi", "risultati", "verifiche", "io", "view"];
+    const onKey = (e: KeyboardEvent) => {
+      // Ignora se utente sta scrivendo in input/textarea/contenteditable
+      const target = e.target as HTMLElement | null;
+      if (target && (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.isContentEditable
+      )) return;
+      if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return;
+      const idx = parseInt(e.key, 10) - 1;
+      if (idx >= 0 && idx < order.length) {
+        setActiveWs(order[idx]);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [setActiveWs]);
 
   return (
     <div
@@ -92,7 +143,7 @@ export function Shell({ children }: ShellProps) {
       // di matchare via `:has([data-app-mode="studio-legacy"])` invece di
       // dependency sulle class `.shell.shell-soft` (brittle a rename).
       data-app-mode="studio-legacy"
-      className={`shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-light${
+      className={`shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-${theme}${
         isTakeover ? " shell-takeover-on" : ""
       }${railExpanded ? " shell-rail-expanded" : ""}`}
     >

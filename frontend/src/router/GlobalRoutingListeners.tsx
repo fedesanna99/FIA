@@ -12,8 +12,13 @@
  *   - `feapro:open-billing`           → navigate("/settings?section=billing")
  *   - `feapro:open-percorso-uc1`      → navigate("/percorsi/uc1")
  *   - `feapro:open-account-dialog`    → navigate("/settings?section=account")
+ *   - `feapro:open-account`           → alias di open-account-dialog (AvatarMenu)
+ *   - `feapro:open-location`          → navigate("/settings?section=prefs") (LocationPicker pending)
  *   - `feapro:open-new-model`         → navigate("/", { state: { openNewModel: true } })
  *   - `feapro:load-template`          → navigate("/", { state: { pendingActiveId: id } })
+ *
+ * v3.3.0 audit-fix L3.1-P0-4: open-account/open-location erano agganciati
+ * solo nel TopBar legacy → in Shell custom click → nothing. Ora cross-route.
  *
  * App.tsx legge `location.state` al mount e fa il dispatch al state corretto
  * (setActiveId, setNewModelOpen, setDialog). Lo state viene poi resettato
@@ -47,6 +52,13 @@ export function GlobalRoutingListeners(): null {
     const openAccountDialog = () => {
       navigate("/settings?section=account");
     };
+    // v3.3.0 audit-fix L3.1-P0-4: alias `feapro:open-account` (AvatarMenu).
+    const openAccount = openAccountDialog;
+    // v3.3.0 audit-fix L3.1-P0-4: location picker → settings preferences
+    // (LocationPicker dialog dedicato è in backlog v3.4).
+    const openLocation = () => {
+      navigate("/settings?section=prefs");
+    };
     const openNewModel = () => {
       navigate("/", { state: { openNewModel: true } });
     };
@@ -61,6 +73,8 @@ export function GlobalRoutingListeners(): null {
     window.addEventListener("feapro:open-billing", openBilling);
     window.addEventListener("feapro:open-percorso-uc1", openPercorsoUC1);
     window.addEventListener("feapro:open-account-dialog", openAccountDialog);
+    window.addEventListener("feapro:open-account", openAccount);
+    window.addEventListener("feapro:open-location", openLocation);
     window.addEventListener("feapro:open-new-model", openNewModel);
     window.addEventListener("feapro:load-template", onLoadTemplate);
 
@@ -69,6 +83,8 @@ export function GlobalRoutingListeners(): null {
       window.removeEventListener("feapro:open-billing", openBilling);
       window.removeEventListener("feapro:open-percorso-uc1", openPercorsoUC1);
       window.removeEventListener("feapro:open-account-dialog", openAccountDialog);
+      window.removeEventListener("feapro:open-account", openAccount);
+      window.removeEventListener("feapro:open-location", openLocation);
       window.removeEventListener("feapro:open-new-model", openNewModel);
       window.removeEventListener("feapro:load-template", onLoadTemplate);
     };

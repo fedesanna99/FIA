@@ -69,8 +69,17 @@ export function ConstraintDialog({ open, onClose, editConstraintId = null }: Pro
       setDofs(editing.dofs ?? [true, true, true, false, false, false]);
       setSpringK((editing.spring_k ?? [1e7, 1e7, 1e7, 0, 0, 0]).map(String));
       setCompressionOnly(editing.compression_only ?? false);
+    } else {
+      // v3.3.0 audit-fix L3.2-P1-6: branch else mancante causava state leak
+      // edit→add (riapri "aggiungi vincolo" dopo edit di spring → vede ancora
+      // type=spring + spring_k populated).
+      setType("fixed");
+      setNodeId(firstSelected ?? 1);
+      setDofs([true, true, true, false, false, false]);
+      setSpringK(["1e7", "1e7", "1e7", "0", "0", "0"]);
+      setCompressionOnly(false);
     }
-  }, [open, editing]);
+  }, [open, editing, firstSelected]);
 
   const mutation = useMutation({
     mutationFn: () => {

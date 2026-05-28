@@ -1,16 +1,18 @@
-import { useMemo } from "react";
 import * as THREE from "three";
 import { useModelStore } from "../../store/modelStore";
 import { useResultsStore } from "../../store/resultsStore";
 import { nodeById } from "../../utils/geometry";
+import { useDisposableGeometry } from "./useDisposableGeometry";
 
 export function DeformedShape() {
   const model = useModelStore((s) => s.model)!;
   const staticResults = useResultsStore((s) => s.staticResults);
   const scale = useResultsStore((s) => s.deformedScale);
 
-  const geometry = useMemo(() => {
-    if (!staticResults) return null;
+  // v3.3.0 audit-fix L3.3-P0-1: useDisposableGeometry per cleanup GPU.
+  // Prima usava `useMemo` puro → vecchie geometry mai dispose-ate.
+  const geometry = useDisposableGeometry(() => {
+    if (!staticResults) return new THREE.BufferGeometry(); // empty placeholder
     const byId = nodeById(model);
     const dispById = new Map(staticResults.displacements.map((d) => [d.node_id, d]));
     const positions: number[] = [];
@@ -43,10 +45,14 @@ export function DeformedShape() {
     return g;
   }, [model, staticResults, scale]);
 
-  if (!geometry) return null;
+  if (!staticResults) return null;
 
   return (
     <lineSegments geometry={geometry}>
+      {/* v3.3.0 audit-fix L3.3-P1-9: WebGL ignora linewidth >1 su tutti i browser
+          desktop. La deformata appariva sempre 1px sottile. Per spessore reale serve
+          drei `<Line>` o `MeshLineMaterial`. Lasciato `linewidth={2}` per uniformità
+          con i fratelli; il refactor a `<Line>` è in roadmap separata. */}
       <lineBasicMaterial color="#00ff88" linewidth={2} transparent opacity={0.95} />
     </lineSegments>
   );

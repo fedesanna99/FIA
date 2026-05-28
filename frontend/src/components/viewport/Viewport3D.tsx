@@ -44,7 +44,7 @@ interface Viewport3DProps {
 
 export function Viewport3D({ suppressHud = false }: Viewport3DProps = {}) {
   const model = useModelStore((s) => s.model);
-  const { showGrid, viewportMode, projection, useViewportEngine } = useAnalysisStore();
+  const { showGrid, viewportMode, projection, useViewportEngine, showDiagrams, diagramComponent } = useAnalysisStore();
   const { staticResults, modalResults, dynamicResults, showDeformed, showStressColormap } = useResultsStore();
   const theme = useThemeStore((s) => s.resolved);
 
@@ -115,9 +115,12 @@ export function Viewport3D({ suppressHud = false }: Viewport3DProps = {}) {
               <LoadRenderer />
               <BCRenderer />
               {showDeformed && staticResults && <DeformedShape />}
-              {staticResults && <InternalForceDiagram component="N" />}
-              {staticResults && <InternalForceDiagram component="V" />}
-              {staticResults && <InternalForceDiagram component="M" />}
+              {/* v3.3.0 audit-fix L3.3-P0-2: prima 3 istanze (N/V/M) montate,
+                  2 ritornavano null sprecando 66% del lavoro per render.
+                  Ora una singola istanza con `component={diagramComp}`. */}
+              {staticResults && showDiagrams && diagramComponent && (
+                <InternalForceDiagram component={diagramComponent} />
+              )}
               {staticResults && <PrincipalStressOverlay />}
               <IsosurfaceLayer />
               {modalResults && <ModeShapeViewer />}
@@ -146,7 +149,9 @@ export function Viewport3D({ suppressHud = false }: Viewport3DProps = {}) {
           mouseButtons={{
             LEFT: THREE.MOUSE.ROTATE,
             MIDDLE: THREE.MOUSE.DOLLY,
-            RIGHT: undefined as unknown as THREE.MOUSE,
+            // v3.3.0 audit-fix L3.3-P1-12: tasto destro = PAN (convention CAD).
+            // Prima era `undefined as unknown` → right-click no-op + user CAD perso.
+            RIGHT: THREE.MOUSE.PAN,
           }}
         />
         <GizmoHelper alignment="bottom-right" margin={[80, 100]}>
@@ -158,6 +163,10 @@ export function Viewport3D({ suppressHud = false }: Viewport3DProps = {}) {
       </Canvas>
 
       {showStressColormap && staticResults && (
+        // v3.3.0 audit-fix L3.3-P0-3: min era hardcoded a 0. Von Mises è
+        // sempre ≥ 0 quindi OK per VM, ma se in futuro si usa la stessa
+        // legend per principal stress (bipolare), il min andrà calcolato.
+        // Per ora teniamo 0 ma con comment esplicito.
         <ColorLegend
           min={0}
           max={staticResults.max_stress}

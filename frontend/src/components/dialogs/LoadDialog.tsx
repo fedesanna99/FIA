@@ -148,8 +148,22 @@ export function LoadDialog({ open, onClose, editLoadId = null }: Props) {
       if (editing.time_history && editing.time_history.length > 0) {
         setTimeHistoryCsv(editing.time_history.map((p) => `${p[0]},${p[1]}`).join("\n"));
       }
+    } else {
+      // v3.3.0 audit-fix L3.2-P0-2: branch `else` mancante causava state
+      // leak edit→add (apertura precedente in editing → riapri "aggiungi"
+      // → vede ancora qy/type/ecc. del carico precedente). Reset esplicito.
+      setType("nodal");
+      const defaultTarget = selNodes.values().next().value ?? selElems.values().next().value ?? 1;
+      setTargetId(defaultTarget);
+      setFx(0); setFy(-1000); setFz(0);
+      setQy(0); setQz(0);
+      setMass(0);
+      setPressure(0);
+      setDeltaT(0);
+      setDirX(1); setDirY(0); setDirZ(0);
+      setTimeHistoryCsv("");
     }
-  }, [open, editing]);
+  }, [open, editing, selNodes, selElems]);
 
   return (
     <Dialog

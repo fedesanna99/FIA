@@ -4,7 +4,7 @@
  * 5 modi (line/shell/tri/box/parametric). Segmented control type select,
  * vec3 input compatti, parametric shape secondary picker.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Dialog } from "./Dialog";
 import { modelsApi } from "../../api/client";
@@ -67,6 +67,23 @@ export function MeshWizardDialog({ open, onClose }: Props) {
   const [pSegments, setPSegments] = useState(32);
   const [pMeshSize, setPMeshSize] = useState(0.25);
   const [pOrigin, setPOrigin] = useState<number[]>([0, 0, 0]);
+
+  // v3.3.0 audit-fix L3.2-P1-2: reset wizard state quando si chiude/riapre.
+  // Prima i valori persistevano cross-istanza (es. Lx=10 dopo errore, riapri
+  // per "rifare" vede ancora 10). Ora ogni open è clean slate.
+  useEffect(() => {
+    if (open) return; // solo su close
+    // Defer per non triggerare lo state-update durante l'unmount Radix
+    const t = setTimeout(() => {
+      setKind("line");
+      setLineP0([0, 0, 0]); setLineP1([6, 0, 0]); setLineDiv(10); setLineElType("beam2d");
+      setShellSize({ Lx: 2, Ly: 2 }); setShellMesh({ nx: 4, ny: 4 });
+      setBoxOrigin([0, 0, 0]); setBoxSizes([2, 1, 1]); setBoxMesh({ nx: 2, ny: 1, nz: 1 });
+      setShape("rectangle"); setPBase(2); setPHeight(1); setPTflange(0.2); setPTweb(0.15);
+      setPRadius(1); setPRinner(0.4); setPSegments(32); setPMeshSize(0.25); setPOrigin([0, 0, 0]);
+    }, 200);
+    return () => clearTimeout(t);
+  }, [open]);
   const [pMaterial, setPMaterial] = useState("steel_s355");
   const [pSection, setPSection] = useState("shell_t100");
 

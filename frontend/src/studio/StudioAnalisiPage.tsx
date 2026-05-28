@@ -113,11 +113,24 @@ export function StudioAnalisiPage(): JSX.Element {
   const [filter, setFilter] = useState<"all" | "linear" | "nonlinear" | "dynamic" | "new">("all");
   const [activeSolver, setActiveSolver] = useState<SolverKey>("static");
 
+  // v3.3.0 audit-fix L3.3-P1-4: counts derivati da SOLVERS reali, non hardcoded.
+  // Prima "Lineari count={4}" ma erano 3 → UI dice numero diverso dalla realtà.
+  const isLinear = (s: typeof SOLVERS[number]) => ["static", "modal", "buckling"].includes(s.key);
+  const isNonlinear = (s: typeof SOLVERS[number]) => ["pushover", "fatigue"].includes(s.key);
+  const isDynamic = (s: typeof SOLVERS[number]) => ["newmark", "seismic-th"].includes(s.key);
+  const counts = {
+    all: SOLVERS.length,
+    linear: SOLVERS.filter(isLinear).length,
+    nonlinear: SOLVERS.filter(isNonlinear).length,
+    dynamic: SOLVERS.filter(isDynamic).length,
+    new: SOLVERS.filter((s) => s.isNew).length,
+  };
+
   const filteredSolvers = SOLVERS.filter((s) => {
     if (filter === "all") return true;
-    if (filter === "linear") return ["static", "modal", "buckling"].includes(s.key);
-    if (filter === "nonlinear") return ["pushover", "fatigue"].includes(s.key);
-    if (filter === "dynamic") return ["newmark", "seismic-th"].includes(s.key);
+    if (filter === "linear") return isLinear(s);
+    if (filter === "nonlinear") return isNonlinear(s);
+    if (filter === "dynamic") return isDynamic(s);
     if (filter === "new") return s.isNew;
     return true;
   });
@@ -151,11 +164,11 @@ export function StudioAnalisiPage(): JSX.Element {
 
         {/* Filter pills */}
         <div className="an-filter">
-          <FilterPill active={filter === "all"} onClick={() => setFilter("all")} label="Tutti" count={7} />
-          <FilterPill active={filter === "linear"} onClick={() => setFilter("linear")} label="Lineari" count={4} />
-          <FilterPill active={filter === "nonlinear"} onClick={() => setFilter("nonlinear")} label="Non lineari" count={2} />
-          <FilterPill active={filter === "dynamic"} onClick={() => setFilter("dynamic")} label="Dinamiche" count={3} />
-          <FilterPill active={filter === "new"} onClick={() => setFilter("new")} label="NEW" count={3} />
+          <FilterPill active={filter === "all"} onClick={() => setFilter("all")} label="Tutti" count={counts.all} />
+          <FilterPill active={filter === "linear"} onClick={() => setFilter("linear")} label="Lineari" count={counts.linear} />
+          <FilterPill active={filter === "nonlinear"} onClick={() => setFilter("nonlinear")} label="Non lineari" count={counts.nonlinear} />
+          <FilterPill active={filter === "dynamic"} onClick={() => setFilter("dynamic")} label="Dinamiche" count={counts.dynamic} />
+          <FilterPill active={filter === "new"} onClick={() => setFilter("new")} label="NEW" count={counts.new} />
         </div>
 
         {/* Solver catalog */}

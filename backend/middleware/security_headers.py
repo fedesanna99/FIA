@@ -16,16 +16,25 @@ from starlette.responses import Response
 
 
 # Profilo CSP report-only: permissivo abbastanza per non rompere la SPA
-# attuale (inline scripts/styles, Fly.io, Open-Meteo, ecc.), report-uri
-# raccoglie le violazioni per analisi.
+# attuale, report-uri raccoglie le violazioni per analisi.
+#
+# v3.3.0 audit-fix L6-P0-2: rimosso `'unsafe-eval'` da script-src.
+# Vite+React 18 production NON usa eval (compilato JIT in build), e
+# Three.js non chiama eval. Mantenuto 'unsafe-inline' perché alcuni
+# small inline scripts esistono ancora (es. theme bootstrap pre-mount
+# in index.html). Roadmap futura: nonce-based per rimuovere anche
+# 'unsafe-inline' (richiede integrazione con bundler).
 _CSP_REPORT_ONLY = (
     "default-src 'self'; "
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'; "
+    "script-src 'self' 'unsafe-inline'; "
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
     "img-src 'self' data: https:; "
-    "connect-src 'self' https:; "
+    "connect-src 'self' https: wss:; "
     "font-src 'self' data: https://fonts.gstatic.com; "
     "frame-ancestors 'none'; "
+    "base-uri 'self'; "
+    "form-action 'self'; "
+    "object-src 'none'; "
     "report-uri /api/csp-report"
 )
 

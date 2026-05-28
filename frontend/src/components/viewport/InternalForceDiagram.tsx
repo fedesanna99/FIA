@@ -4,6 +4,7 @@ import { useModelStore } from "../../store/modelStore";
 import { useResultsStore } from "../../store/resultsStore";
 import { useAnalysisStore } from "../../store/analysisStore";
 import { nodeById, modelBounds } from "../../utils/geometry";
+import { useDisposableGeometry } from "./useDisposableGeometry";
 
 type Component = "N" | "V" | "M";
 
@@ -12,6 +13,18 @@ interface Props {
   scale?: number;
 }
 
+/**
+ * v3.3.0 audit-fix L3.3-P0-2: prima Viewport3D montava 3 istanze
+ * (`component="N"`, "V", "M") ognuna con `useMemo` + Map filter, e 2/3
+ * ritornavano `null`. Adesso il parent Viewport3D monta una sola istanza
+ * con `component={diagramComp}` corrente. Comunque manteniamo l'early
+ * return per robustezza (se in futuro qualcuno mounta 3 volte di nuovo).
+ *
+ * v3.3.0 audit-fix L3.3-P0-1: useDisposableGeometry per cleanup GPU.
+ *
+ * v3.3.0 audit-fix L3.3-P1-13: Math.max(...allValues) con spread su array
+ * grandi (>100k items) causa stack overflow V8. Sostituito con reduce.
+ */
 export function InternalForceDiagram({ component, scale = 1 }: Props) {
   const model = useModelStore((s) => s.model)!;
   const staticRes = useResultsStore((s) => s.staticResults);
@@ -19,17 +32,23 @@ export function InternalForceDiagram({ component, scale = 1 }: Props) {
   const diagramComp = useAnalysisStore((s) => s.diagramComponent);
 
   const bSize = useMemo(() => modelBounds(model).size, [model]);
-  const geometry = useMemo(() => {
-    if (!staticRes || !showDiagram || component !== diagramComp) return null;
+  const active = staticRes && showDiagram && component === diagramComp;
+
+  const geometry = useDisposableGeometry(() => {
+    if (!active) return new THREE.BufferGeometry();
     const byId = nodeById(model);
-    const fByEl = new Map(staticRes.element_forces.map((f) => [f.element_id, f]));
-    const allValues: number[] = [];
-    staticRes.element_forces.forEach((f) => {
-      if (component === "N") allValues.push(f.N_i, f.N_j);
-      else if (component === "V") allValues.push(f.Vy_i, f.Vy_j);
-      else allValues.push(f.Mz_i, f.Mz_j);
-    });
-    const maxAbs = Math.max(...allValues.map(Math.abs), 1);
+    const fByEl = new Map(staticRes!.element_forces.map((f) => [f.element_id, f]));
+    // L3.3-P1-13: reduce invece di spread (no stack overflow su 100k+ items).
+    let maxAbs = 1;
+    for (const f of staticRes!.element_forces) {
+      if (component === "N") {
+        maxAbs = Math.max(maxAbs, Math.abs(f.N_i), Math.abs(f.N_j));
+      } else if (component === "V") {
+        maxAbs = Math.max(maxAbs, Math.abs(f.Vy_i), Math.abs(f.Vy_j));
+      } else {
+        maxAbs = Math.max(maxAbs, Math.abs(f.Mz_i), Math.abs(f.Mz_j));
+      }
+    }
     const visualLen = bSize * 0.15 * scale;
     const positions: number[] = [];
     for (const el of model.elements) {
@@ -61,9 +80,9 @@ export function InternalForceDiagram({ component, scale = 1 }: Props) {
     const g = new THREE.BufferGeometry();
     g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(positions), 3));
     return g;
-  }, [model, staticRes, bSize, scale, component, showDiagram, diagramComp]);
+  }, [active, model, staticRes, bSize, scale, component]);
 
-  if (!geometry) return null;
+  if (!active) return null;
   const color = component === "N" ? "#00d4ff" : component === "V" ? "#ffaa00" : "#ff66cc";
   return (
     <lineSegments geometry={geometry}>

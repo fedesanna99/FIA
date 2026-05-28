@@ -103,7 +103,9 @@ export function ElementDialog({ open, onClose, editElementId = null }: Props) {
   const mutation = useMutation({
     mutationFn: () => {
       if (!model) throw new Error("Nessun modello");
-      const nodeIds = nodesText.split(",").map((s) => Number(s.trim())).filter(Boolean);
+      // v3.3.0 audit-fix L3.2-P1-7: `.filter(Boolean)` esclude ID 0 (falsy).
+      // Sistemi 0-based avrebbero perso nodo silenziosamente.
+      const nodeIds = nodesText.split(",").map((s) => Number(s.trim())).filter((n) => Number.isFinite(n));
       if (nodeIds.length !== expected) {
         throw new Error(`L'elemento ${type} richiede ${expected} nodi (${nodeIds.length} forniti)`);
       }

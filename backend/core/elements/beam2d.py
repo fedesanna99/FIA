@@ -53,7 +53,13 @@ class Beam2D:
         dx, dy = self.n2 - self.n1
         self.L = float(np.hypot(dx, dy))
         if self.L == 0:
-            raise ValueError("Beam2D ha lunghezza nulla.")
+            # v3.3.0 audit-fix L4-P0-4: messaggio user-friendly con context
+            # (element id non disponibile qui ma il GlobalAssembler lo aggiunge).
+            # routes/analysis.py traduce ValueError → 422 con detail.
+            raise ValueError(
+                "Elemento beam2d con lunghezza nulla: i due nodi coincidono. "
+                "Controllare le coordinate dei nodi."
+            )
         self.cos = dx / self.L
         self.sin = dy / self.L
 

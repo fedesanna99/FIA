@@ -366,6 +366,15 @@ class GlobalAssembler:
         GdL fuori-piano (uz, θx, θy). Vanno bloccati per evitare singolarità,
         anche se M ha massa concentrata su di essi (altrimenti creerebbero
         modi rigidi inerziali nell'autoproblema).
+
+        v3.3.0 audit-fix L4-P0-2 DEFERRED a v3.4 (backlog): il fix proposto
+        per skip DOF con massa rompe SDOF cantilever modal test (modes[0]
+        period diventava modo inerziale spurio invece di quello strutturale).
+        L'audit ha individuato un caso valido (NODAL_MASS fuori-piano +
+        beam2D produce modi inerziali corretti ma ora bloccati), ma il fix
+        corretto richiede gating + nuova logic di filtering modi spuri.
+        Riproposto in v3.4 con test suite di regression per ogni element
+        type. Tracking: docs/BACKLOG.md.
         """
         diag_k = K.diagonal()
         return sorted(int(i) for i in range(self.n_dofs) if abs(diag_k[i]) < tol_k)

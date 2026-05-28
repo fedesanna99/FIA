@@ -7,7 +7,9 @@ Disattivare la persistenza esportando FEA_NO_PERSIST=1.
 """
 from __future__ import annotations
 import json
+import logging
 import os
+import threading
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -15,6 +17,14 @@ from uuid import uuid4
 
 from schemas import FEAModel
 from examples import build_example_models
+
+logger = logging.getLogger(__name__)
+
+
+# v3.3.0 audit-fix L4-P0-1: lock RLock per evitare race su _write_to_disk
+# (utente edita modello via 2 endpoint paralleli, o crash mid-write). RLock
+# permette re-entry dallo stesso thread (es. save_model dentro save_results).
+_STORAGE_LOCK = threading.RLock()
 
 
 _PERSIST_ENABLED = os.environ.get("FEA_NO_PERSIST", "").lower() not in ("1", "true", "yes")
@@ -34,31 +44,59 @@ def _model_path(model_id: str) -> Path:
 
 
 def _write_to_disk(model: FEAModel) -> None:
+    """v3.3.0 audit-fix L4-P0-1: atomic write tmp+rename + lock.
+
+    Prima: `path.write_text(...)` non-atomico → crash mid-write produceva
+    JSON malformato che `_load_from_disk` silently ignorava. Ora:
+    1. Lock RLock per serializzare scritture concorrenti stesso modello
+    2. Write su `.json.tmp` poi `os.replace()` (atomico su POSIX, near-atomic Windows)
+    3. Fallback: log error invece di silent fail
+    """
     if not _PERSIST_ENABLED:
         return
     _ensure_dir()
-    _model_path(model.id).write_text(model.model_dump_json(indent=2), encoding="utf-8")
+    target = _model_path(model.id)
+    tmp = target.with_suffix(".json.tmp")
+    with _STORAGE_LOCK:
+        try:
+            tmp.write_text(model.model_dump_json(indent=2), encoding="utf-8")
+            os.replace(tmp, target)
+        except OSError as e:
+            logger.error("Failed to write model %s: %s", model.id, e)
+            # Cleanup tmp se ancora presente
+            try:
+                if tmp.exists():
+                    tmp.unlink()
+            except OSError:
+                pass
+            raise
 
 
 def _delete_from_disk(model_id: str) -> None:
     if not _PERSIST_ENABLED:
         return
     p = _model_path(model_id)
-    if p.exists():
-        try: p.unlink()
-        except OSError: pass
+    with _STORAGE_LOCK:
+        if p.exists():
+            try: p.unlink()
+            except OSError: pass
 
 
 def _load_from_disk() -> list[FEAModel]:
+    """v3.3.0 audit-fix L6-P3-6: usa logger invece di print (structured logging).
+    Skippa anche file `.json.tmp` orfani da write atomico crashato."""
     if not _PERSIST_ENABLED or not _DATA_DIR.exists():
         return []
     out: list[FEAModel] = []
     for f in sorted(_DATA_DIR.glob("*.json")):
+        # Skip tmp files (orphans from crashed atomic writes)
+        if f.name.endswith(".json.tmp"):
+            continue
         try:
             data = json.loads(f.read_text(encoding="utf-8"))
             out.append(FEAModel.model_validate(data))
         except Exception as e:
-            print(f"[storage] errore caricando {f.name}: {e}")
+            logger.error("Failed loading model from %s: %s", f.name, e)
     return out
 
 
