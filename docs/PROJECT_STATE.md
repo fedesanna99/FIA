@@ -3,30 +3,37 @@
 > Stato vivo. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-27 (sera · post v3.0.0 audit-driven roadmap completion)
-**Versione corrente**: `v3.0.0-sprint-ef-p1-p2-complete`
+**Ultimo aggiornamento**: 2026-05-28 (sera · post v3.1.0 feature recovery + design trapianto)
+**Versione corrente**: `v3.1.0-feature-recovery-design-trapianto`
 **Branch attivo**: `design-rebuild/v2.6` (= origin/test = origin/main)
-**Ultimo SHA**: `1f51dac`
-**Deploy live**: Fly.io **v109** · https://fea-pro.fly.dev/ (image `deployment-01KSNHE2BRSQHX233Q0C619VPG`)
+**Ultimo SHA**: `cf080a5`
+**Deploy live**: Fly.io **v110** · https://fea-pro.fly.dev/
 
 ---
 
-## ⚡ Stato attuale · post Sprint A-F (2026-05-27 sera)
+## ⚡ Stato attuale · post Fase 1-3 v3.1.0 (2026-05-28 sera)
 
-Giornata gigantesca: marathon Phase 4-6 mockup-driven (9 fasi) + 3 audit + 6 deploy hotfix.
+Giornata di consolidamento: 3 fix critici Dashboard (mattina) + 6 audit paralleli (pomeriggio) + 3 fasi piano operativo (sera). **Fase 4 cleanup file morti saltata per scelta utente** — file orfani restano in repo per safety.
 
-**Funzionalità complete**:
-- 13 route live (4 auth + 9 Phase 4-6 + 4 legal pages)
-- 4 Studio workspace wired al backend (mesh/solver/export)
-- Settings 8 tab navigabili (Account funzionale + 7 placeholder informativi)
-- Mobile responsive ovunque
-- Compliance legale (privacy/terms/about/preliminary)
-- Trust badge clickable + Cmd K palette accessibile + drag&drop Studio IO
-- Empty state intelligente quando no model attivo
-- iOS notch safe (dvh + min-height)
-- CSS robust (data-attribute stabile invece di class fragili)
+**Nuove feature accessibili** (10 sepolte → recuperate):
+- AvatarMenu rich in Shell custom (Focus/Account/Location/Theme/Export/Logout)
+- Settings link visibile in topbar (era solo URL manuale)
+- ViewPanel 6° workspace nella rail (deformata/colormap/diagrammi)
+- 4 Climate Loads buttons in MakePanel (Vento/Neve/Sismica/Altimetria)
+- Custom material/section CTA in Make hub
+- Percorsi guidati link in AvatarMenu
+- 5 panel orfani wirati in InspectPanel (Buckling/FFT/Spectrum/ModeSup/ZZError)
 
-**Score audit**: 31 findings → **9 residui (-71%)**. Tutti P0+P1 fixati. Restano solo P2 architetturali.
+**Design trapianto Shell custom** (riskinning CSS):
+- Nuovo `frontend/src/styles/shell-mockup-v3.css` (310 righe override)
+- TopBar/Rail/Panel/StatusBar replicano look mockup Studio v2 `.s-*`
+- ZERO modifiche JSX. Cascade vince. Reversibile.
+
+**Studio v2 degradate a showcase**:
+- 4 pages `/studio/{modello,analisi,verifiche,io}` con `<ShowcaseBanner>` top giallo
+- Restano vive come vetrina design ma non più presentate come workspace operativo
+
+**Score complessivo**: app ~90% production-ready funzionalmente, ~95% visivamente.
 
 ---
 
