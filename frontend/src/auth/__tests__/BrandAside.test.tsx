@@ -29,7 +29,8 @@ describe("BrandAside · composition", () => {
 
   it("test 2 · manifesto eyebrow + 4-line brand-claim + sub", () => {
     render(<BrandAside />);
-    expect(screen.getByText("Manifesto · v2.3.7")).toBeInTheDocument();
+    // v3.1.3 audit-fix VIS-1: version dinamica da APP_VERSION.
+    expect(screen.getByText(/^Manifesto · v\d+\.\d+/)).toBeInTheDocument();
     // brand-claim contiene "algoritmo" e "onestà" come <b>
     expect(screen.getByText("algoritmo")).toBeInTheDocument();
     expect(screen.getByText("onestà")).toBeInTheDocument();
@@ -55,20 +56,19 @@ describe("BrandAside · composition", () => {
     expect(screen.getByText("q = 10.0 kN/m")).toBeInTheDocument();
   });
 
-  it("test 4 · brand stats 62/5/1244 con 2 separatori", () => {
+  it("test 4 · brand stats (3 valori) con 2 separatori", () => {
     render(<BrandAside />);
     const stats = screen.getByTestId("brand-stats");
-    // 3 stat values
-    expect(within(stats).getByText("62")).toBeInTheDocument();
-    expect(within(stats).getByText("5")).toBeInTheDocument();
-    expect(within(stats).getByText("1244")).toBeInTheDocument();
-    // 3 stat labels
+    // v3.1.3 audit-fix VIS-2: stats aggiornate (1244 → 2.5K ecc).
+    // Test su struttura, non più valori specifici.
     expect(within(stats).getByText("endpoint REST")).toBeInTheDocument();
     expect(within(stats).getByText("Eurocodici")).toBeInTheDocument();
     expect(within(stats).getByText("test passing")).toBeInTheDocument();
     // 2 separatori .stat-sep (uno tra ogni coppia)
     const separators = stats.querySelectorAll(".stat-sep");
     expect(separators.length).toBe(2);
+    // 3 stat-v elementi presenti (qualunque siano i valori)
+    expect(stats.querySelectorAll(".stat-v").length).toBe(3);
   });
 
   it("test 5 · cambia lingua placeholder no-op (preventDefault)", () => {

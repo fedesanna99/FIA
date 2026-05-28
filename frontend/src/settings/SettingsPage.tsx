@@ -300,7 +300,8 @@ function BillingSection(): JSX.Element {
         body="Cronologia fatture mensili Pro tier. Scaricabili in PDF per archivio contabile."
         action="Vedi fatture"
       />
-      <SectionPending title="Status" tag="Stripe integration v3.0" />
+      {/* v3.1.3 audit-fix VIS-5: tag chiarito (era "Stripe integration v3.0" → confondeva con app version). */}
+      <SectionPending title="Status" tag="Stripe billing in arrivo" />
     </>
   );
 }

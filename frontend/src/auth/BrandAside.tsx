@@ -17,6 +17,8 @@
  */
 import { Fragment } from "react";
 
+import { APP_VERSION } from "../lib/version";
+
 import { BrandDiagramSVG } from "./BrandDiagramSVG";
 
 interface BrandStat {
@@ -24,12 +26,18 @@ interface BrandStat {
   label: string;
 }
 
-// TODO(v2.8): sostituire con fetch da /api/stats (brief decisione 6).
+// v3.1.3 audit-fix VIS-2: stats aggiornate al numero reale corrente
+// (861 vitest frontend + 1698 pytest backend = ~2.5K). Lasciate fisse
+// per evitare network call su pagine pubbliche (auth); andranno wireate
+// quando aggiungeremo `/api/stats`.
 const STATS: readonly BrandStat[] = [
-  { value: "62", label: "endpoint REST" },
+  { value: "70+", label: "endpoint REST" },
   { value: "5", label: "Eurocodici" },
-  { value: "1244", label: "test passing" },
+  { value: "2.5K", label: "test passing" },
 ];
+
+// v3.1.3 audit-fix VIS-1: copyright year dinamico (era hardcoded 2024).
+const COPYRIGHT_YEAR = new Date().getFullYear();
 
 export function BrandAside() {
   return (
@@ -45,7 +53,8 @@ export function BrandAside() {
       </div>
 
       <div className="auth-brand-mid">
-        <span className="eyebrow">Manifesto · v2.3.7</span>
+        {/* v3.1.3 audit-fix VIS-1: version dinamica da APP_VERSION (era hardcoded v2.3.7). */}
+        <span className="eyebrow">Manifesto · {APP_VERSION}</span>
         <h1 className="brand-claim">
           L'<b>algoritmo</b>
           <br />
@@ -79,7 +88,7 @@ export function BrandAside() {
       </div>
 
       <div className="auth-brand-bot">
-        <span>© 2024 FEA Pro · Open-source GPLv3 · <a href="/about" target="_blank" rel="noopener">About</a></span>
+        <span>© {COPYRIGHT_YEAR} FEA Pro · Open-source GPLv3 · <a href="/about" target="_blank" rel="noopener">About</a></span>
         <a
           href="#i18n-placeholder"
           onClick={(e) => e.preventDefault()}

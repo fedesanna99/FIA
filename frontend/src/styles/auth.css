@@ -563,7 +563,12 @@
 }
 
 /* ╔═══════════════════════ RESPONSIVE ═══════════════════════╗ */
-@media (max-width: 980px) {
+/* v3.1.3 audit-fix VIS-9: breakpoint abbassato da 980px → 768px così
+   tablet landscape (768-1024px) mantiene split-screen 50/50. Prima
+   anche tablet portrait 821px vedeva vertical stack (UX poco elegante,
+   tanto scroll perché brand è grande). Mobile portrait <768 resta
+   stacked come prima. */
+@media (max-width: 768px) {
   .auth-shell {
     grid-template-columns: 1fr;
   }

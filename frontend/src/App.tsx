@@ -555,11 +555,12 @@ export default function App() {
 
   // v2.7.1.1 (Phase 4.2): la home dashboard mockup-driven (Dashboard new.html)
   // è una pagina FULL-SCREEN che sostituisce sia Shell custom sia chrome
-  // legacy. Quando l'utente non ha un modello attivo, è su desktop e non è
-  // in focus mode, montiamo solo <Dashboard /> (DashboardPage mockup-driven)
-  // senza TopBar/LeftRail/StatusBar legacy attorno. Mobile + focus mode
-  // mantengono il chrome legacy come prima.
-  const useDashboardFullScreen = !activeId && !isMobile && !isFocusMode;
+  // legacy. v3.1.3 audit-fix VIS-3 (P0 mobile): rimosso `!isMobile` così
+  // anche su mobile la Dashboard è fullscreen (prima si vedevano DUE TopBar
+  // sovrapposte: TopBar legacy montata dal branch else + DashTopBar dentro
+  // DashboardPage). DashboardPage ha già il proprio responsive layout
+  // (verticale su mobile) — il bug era solo l'host che la wrappava.
+  const useDashboardFullScreen = !activeId && !isFocusMode;
 
   // Mappatura mobile tab → titolo + componente
   const mobilePanelInfo: Record<

@@ -233,6 +233,14 @@ interface HeroProps {
 }
 function Hero({ greeting, firstName, modelsCount, latestModel, tierLabel, projUsed, projCap, isRunning, onSelect }: HeroProps) {
   const projsActive = isRunning ? "1 analisi in corso" : `${modelsCount} progett${modelsCount === 1 ? "o" : "i"} in lavorazione`;
+  // v3.1.3 audit-fix VIS-6: "percorsi attivi" hardcoded a "2" prima.
+  // Per ora torna sempre 0 (no backend per persistere progress UC) ma il
+  // wording si adatta al numero. Quando aggiungeremo /api/user/percorsi
+  // questo diventerà dinamico.
+  const percorsiAttivi = 0;
+  const percorsiLabel = percorsiAttivi === 0
+    ? "nessun percorso in corso"
+    : `${percorsiAttivi} percors${percorsiAttivi === 1 ? "o" : "i"} guidat${percorsiAttivi === 1 ? "o" : "i"} attiv${percorsiAttivi === 1 ? "o" : "i"}`;
   const pct = projCap > 0 ? Math.round((projUsed / projCap) * 100) : 0;
   const openBilling = () => window.dispatchEvent(new Event("feapro:open-billing"));
   const goPercorsoUC1 = useGoPercorsoUC1();
@@ -245,7 +253,7 @@ function Hero({ greeting, firstName, modelsCount, latestModel, tierLabel, projUs
         <span className="eyebrow">{greeting}, {firstName}</span>
         <h1 className="hero-title">Da dove ricominci<br />oggi?</h1>
         <p className="hero-sub">
-          {projsActive} · 2 percorsi guidati attivi · {hasModels ? (
+          {projsActive} · {percorsiLabel} · {hasModels ? (
             <>
               ultima sessione su{" "}
               {/* v3.1.1 audit-fix L2-5: click apre il modello (prima

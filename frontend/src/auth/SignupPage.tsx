@@ -232,6 +232,8 @@ export function SignupPage() {
             <select
               defaultValue=""
               data-testid="auth-signup-ruolo"
+              aria-invalid={errors.ruolo ? true : undefined}
+              aria-describedby={errors.ruolo ? "ruolo-err" : undefined}
               {...register("ruolo")}
             >
               <option value="" disabled>
@@ -246,7 +248,7 @@ export function SignupPage() {
             <ChevronDown className="field-trail" width={14} height={14} aria-hidden="true" />
           </div>
           {errors.ruolo?.message && (
-            <span className="field-hint" data-error="true" style={{ color: "var(--danger)" }}>
+            <span id="ruolo-err" className="field-hint" data-error="true" style={{ color: "var(--danger)" }}>
               {errors.ruolo.message}
             </span>
           )}
@@ -257,6 +259,8 @@ export function SignupPage() {
             type="checkbox"
             style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
             data-testid="auth-signup-accepted-terms-input"
+            aria-invalid={errors.acceptedTerms ? true : undefined}
+            aria-describedby={errors.acceptedTerms ? "acceptedTerms-err" : undefined}
             {...register("acceptedTerms")}
           />
           <span className={`checkbox${acceptedTerms ? " checked" : ""}`} aria-hidden="true">
@@ -268,7 +272,7 @@ export function SignupPage() {
           </span>
         </label>
         {errors.acceptedTerms?.message && (
-          <span className="field-hint" data-error="true" style={{ color: "var(--danger)" }}>
+          <span id="acceptedTerms-err" className="field-hint" data-error="true" style={{ color: "var(--danger)" }}>
             {errors.acceptedTerms.message}
           </span>
         )}
