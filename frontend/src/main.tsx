@@ -35,6 +35,9 @@ import { toastApiError } from "./lib/apiErrors";
 import "./styles/tokens.css";
 import "./index.css";
 import "./styles/shell.css";
+// v3.1 Fase 1a: override estetico Shell custom topbar (TopBar mockup
+// Studio v2). Cascade vince su shell.css (caricato prima). Reversibile.
+import "./styles/shell-mockup-v3.css";
 
 // v2.5.5 cluster B (S0 T2 follow-up): handler globali ora emettono toast
 // italiani via translateApiError, oltre al console.error. Filtro per il

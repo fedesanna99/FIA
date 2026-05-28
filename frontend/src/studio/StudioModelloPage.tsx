@@ -20,6 +20,9 @@ import { StudioEmptyBanner } from "./StudioEmptyBanner";
 import { useFirstModelId } from "./useFirstModelId";
 import { parametricMeshApi, type ParametricMeshRequest } from "../api/mesh";
 import { toast } from "../store/toastStore";
+// v3.1 Fase 3: Studio v2 pages degradate a showcase (viewport mockup
+// SVG decorativo, NON è il vero workspace operativo che vive in Shell custom).
+import { ShowcaseBanner } from "../design-showcase/ShowcaseBanner";
 
 import "../styles/studio.css";
 
@@ -55,24 +58,33 @@ export function StudioModelloPage(): JSX.Element {
   const { modelId } = useFirstModelId();
 
   return (
-    <StudioShell active="modello" workspaceState="Modello · Mesh">
+    <>
+      {/* v3.1 Fase 3: route mockup-driven /studio/* degradate a showcase.
+          Il workspace operativo è ora la Shell custom (raggiungibile via
+          Dashboard "Crea modello" / Recent card). Queste pages restano
+          vive come vetrina design per clienti potenziali. */}
+      <ShowcaseBanner pageName="Studio Modello" />
+      <div style={{ paddingTop: 36 }}>
+        <StudioShell active="modello" workspaceState="Modello · Mesh">
 
-      {/* v3.0.0 Sprint E M10: empty state banner se no model attivo */}
-      {modelId === null && <ModelloTreeWithBanner />}
-      {modelId !== null && <ModelloTree />}
+          {/* v3.0.0 Sprint E M10: empty state banner se no model attivo */}
+          {modelId === null && <ModelloTreeWithBanner />}
+          {modelId !== null && <ModelloTree />}
 
-      {/* ─── VIEWPORT ─── */}
-      <ModelloViewport />
+          {/* ─── VIEWPORT ─── */}
+          <ModelloViewport />
 
-      {/* ─── PANEL Modello ─── */}
-      <ModelloPanel
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        activeShape={activeShape}
-        setActiveShape={setActiveShape}
-      />
+          {/* ─── PANEL Modello ─── */}
+          <ModelloPanel
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            activeShape={activeShape}
+            setActiveShape={setActiveShape}
+          />
 
-    </StudioShell>
+        </StudioShell>
+      </div>
+    </>
   );
 }
 

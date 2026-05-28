@@ -13,6 +13,8 @@ import { StudioShell } from "./StudioShell";
 import { useFirstModelId } from "./useFirstModelId";
 import { exportApi } from "../api/io";
 import { toast } from "../store/toastStore";
+// v3.1 Fase 3: showcase banner (Studio v2 degradate a vetrina).
+import { ShowcaseBanner } from "../design-showcase/ShowcaseBanner";
 
 import "../styles/studio.css";
 import "../styles/studio-verifiche.css";
@@ -84,6 +86,9 @@ export function StudioVerifichePage(): JSX.Element {
   };
 
   return (
+    <>
+    <ShowcaseBanner pageName="Studio Verifiche" />
+    <div style={{ paddingTop: 36 }}>
     <StudioShell active="verifiche" workspaceState="Verifiche · EC3" midLayout="no-tree">
       <main className="ve-main">
 
@@ -243,6 +248,8 @@ export function StudioVerifichePage(): JSX.Element {
 
       <VerifichePanel />
     </StudioShell>
+    </div>
+    </>
   );
 }
 

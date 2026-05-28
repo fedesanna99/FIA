@@ -15,6 +15,8 @@ import { StudioShell } from "./StudioShell";
 import { useFirstModelId } from "./useFirstModelId";
 import { analysisApi } from "../api/client";
 import { toast } from "../store/toastStore";
+// v3.1 Fase 3: showcase banner (Studio v2 degradate a vetrina).
+import { ShowcaseBanner } from "../design-showcase/ShowcaseBanner";
 
 import "../styles/studio.css";
 import "../styles/studio-analisi.css";
@@ -121,6 +123,9 @@ export function StudioAnalisiPage(): JSX.Element {
   });
 
   return (
+    <>
+    <ShowcaseBanner pageName="Studio Analisi" />
+    <div style={{ paddingTop: 36 }}>
     <StudioShell active="analisi" workspaceState="Analisi · Solver" midLayout="no-tree">
       <main className="an-main">
 
@@ -186,6 +191,8 @@ export function StudioAnalisiPage(): JSX.Element {
       {/* Right panel — params */}
       <AnalisiPanel solver={SOLVERS.find((s) => s.key === activeSolver)!} />
     </StudioShell>
+    </div>
+    </>
   );
 }
 

@@ -1,0 +1,573 @@
+/**
+ * shell-mockup-v3.css · v3.1 Fase 1 trapianto estetico
+ *
+ * Override stilistico della Shell custom per replicare il look mockup
+ * Studio v2 (`design-handoff/ui_kits/webapp_desktop/Studio Modello.html`,
+ * namespaced `.studio .s-*` in `styles/studio.css`).
+ *
+ * Strategia: ZERO modifiche al markup JSX (Shell/ShellTopBar/ShellRail/
+ * ShellPanel/ShellStatusBar usano ancora le loro classi `.shell-*`, `.tb-*`,
+ * ecc.). Questo file ridefinisce solo gli STILI di quelle classi per matchare
+ * il design system mockup `.s-*`. Cascade vince perché importato in main.tsx
+ * DOPO shell.css. Reversibile (basta rimuovere l'import).
+ *
+ * Mapping classi (Shell custom → mockup Studio v2):
+ *   .shell-topbar        → .s-topbar
+ *   .tb-brand            → .s-brand-block
+ *   .tb-mark             → .s-brand-square
+ *   .tb-brand-name       → .s-brand-name
+ *   .tb-tier             → .s-brand-tier
+ *   .tb-ver              → .s-brand-ver
+ *   .tb-model            → .s-model-pill
+ *   .tb-model-id         → .s-model-id
+ *   .tb-save             → .s-save
+ *   .tb-trust            → .s-trust
+ *   .tb-search           → .s-cmd
+ *   .tb-run              → .s-run
+ *   .tb-iconbtn          → .s-iconbtn
+ *
+ * Reference: `frontend/src/styles/studio.css` righe 28-209
+ * (sezione TOPBAR `.studio .s-topbar` + sub-elements).
+ *
+ * NB: `.tb-avatar` lasciato com'è (AvatarMenu Trigger usa CollabAvatars
+ * con classi Tailwind utility, non `.tb-avatar`). Riskinning avatar è
+ * gestito separatamente se necessario.
+ */
+
+/* ╔═══════════════════════ TOPBAR ═══════════════════════╗ */
+
+.shell-topbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  z-index: 20;
+  /* Note: height ereditato da shell.css regola precedente (48px). */
+}
+
+.tb-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-right: 14px;
+  border-right: 1px solid var(--border);
+  height: 32px;
+}
+
+.tb-mark {
+  width: 26px;
+  height: 26px;
+  background: rgba(var(--accent-rgb), 0.12);
+  border: 1px solid rgba(var(--accent-rgb), 0.40);
+  color: var(--accent);
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.tb-brand-name {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+}
+
+.tb-tier {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: var(--ls-wide-2);
+  text-transform: uppercase;
+  padding: 2px 5px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  border-radius: 5px;
+  background: transparent;
+}
+
+.tb-ver {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-dim);
+  letter-spacing: var(--ls-wide-1);
+}
+
+/* MODEL PILL (drop-down selector) */
+.tb-model {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 32px;
+  padding: 0 12px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  border-radius: 8px;
+  transition: background var(--d-fast), border-color var(--d-fast);
+}
+
+.tb-model:hover {
+  background: var(--bg-hover);
+  border-color: var(--border);
+}
+
+.tb-model .tb-model-id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: var(--ls-wide-1);
+  padding: 2px 6px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--ink-dim);
+}
+
+/* SAVE CHIP */
+.tb-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--ls-wide-2);
+  text-transform: uppercase;
+  padding: 4px 9px;
+  background: var(--bg-success);
+  border: 1px solid rgba(101, 163, 13, 0.30);
+  color: var(--success);
+  border-radius: 6px;
+}
+
+/* TRUST BADGE */
+.tb-trust {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 28px;
+  padding: 0 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--ls-wide-3);
+  text-transform: uppercase;
+  border-radius: 6px;
+  cursor: help;
+  /* default = preliminary (warn) */
+  background: var(--bg-warn);
+  border: 1px solid rgba(180, 83, 9, 0.30);
+  color: var(--warn);
+}
+
+/* Dot pulsante prima del testo, replica .studio .trust-dot del mockup. */
+.tb-trust::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: tb-trust-pulse 1.6s ease-in-out infinite;
+  display: inline-block;
+}
+
+@keyframes tb-trust-pulse {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* SPACER */
+.tb-spacer {
+  flex: 1;
+}
+
+/* CMD K SEARCH PILL */
+.tb-search {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 12px;
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--ink-dim);
+  font-size: 13px;
+  min-width: 300px;
+  letter-spacing: -0.005em;
+  transition: border-color var(--d-fast), color var(--d-fast);
+}
+
+.tb-search:hover {
+  border-color: var(--border-light);
+  color: var(--ink);
+}
+
+.tb-search span {
+  flex: 1;
+  text-align: left;
+}
+
+.tb-search kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  color: var(--ink-muted);
+  border-radius: 5px;
+}
+
+/* RUN BUTTON (Esegui, green) */
+.tb-run {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 14px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: -0.005em;
+  color: #FFFFFF;
+  background: linear-gradient(180deg, #34D399, #059669);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.20),
+    0 1px 3px rgba(0, 0, 0, 0.10);
+}
+
+.tb-run:hover {
+  background: linear-gradient(180deg, #10B981, #047857);
+}
+
+.tb-run kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  background: rgba(0, 0, 0, 0.18);
+  color: #FFFFFF;
+  padding: 1px 5px;
+  border-radius: 4px;
+  opacity: 0.85;
+}
+
+/* ICON BUTTONS (Undo/Redo/Help/Bell) */
+.tb-iconbtn {
+  position: relative;
+  height: 32px;
+  width: 32px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-dim);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  transition: background var(--d-fast), color var(--d-fast), border-color var(--d-fast);
+}
+
+.tb-iconbtn:hover:not(:disabled) {
+  background: var(--bg-hover);
+  color: var(--ink);
+  border-color: var(--border);
+}
+
+.tb-iconbtn:disabled {
+  opacity: 0.40;
+  cursor: not-allowed;
+}
+
+.tb-iconbtn .tb-iconbtn-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--accent);
+}
+
+.tb-iconbtn-wrap {
+  position: relative;
+}
+
+/* v3.1 Fase 1a: brand eyebrow "WORKSPACE" del chrome legacy (precedente
+   v2.6.5 D.3) NASCOSTA in Shell custom — il mockup non la prevede.
+   Per coerenza con Studio Modello.html topbar. */
+.tb-brand-eyebrow {
+  display: none;
+}
+
+
+/* ╔═══════════════════════ RAIL (collapsed mode) ═══════════════════════╗
+ * v3.1 Fase 1b: Rail collapsed (52px) matching mockup `.s-rail`.
+ * NB: lo Shell custom ha ANCHE expanded mode (200px) via RailSections —
+ * quello non lo tocchiamo (è un componente shared con chrome legacy).
+ * Qui override solo collapsed mode (.shell-rail[data-expanded="false"]).
+ */
+
+.shell-rail {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  gap: 4px;
+}
+
+/* Collapsed mode: padding 8px 6px (mockup), invece di shell.css */
+.shell-rail[data-expanded="false"] {
+  padding: 8px 6px;
+}
+
+/* RAIL BUTTONS — match `.studio .rail-btn` (10px radius, 40×40, gradient
+   accent active strip) */
+.shell-rail[data-expanded="false"] .rail-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--ink-dim);
+  border-radius: 10px;
+  transition: background var(--d-fast), color var(--d-fast);
+}
+
+.shell-rail[data-expanded="false"] .rail-btn:hover {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+
+/* Active state — `.active` (Shell custom) replica `.is-active` mockup */
+.shell-rail[data-expanded="false"] .rail-btn.active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+
+/* Active strip a sinistra (3px width, rounded right) come mockup. */
+.shell-rail[data-expanded="false"] .rail-btn.active::before {
+  content: "";
+  position: absolute;
+  left: -7px;
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+  background: var(--accent);
+  border-radius: 0 3px 3px 0;
+}
+
+/* KBD shortcut bottom-right corner (mockup pattern). */
+.shell-rail[data-expanded="false"] .rail-btn .rail-kbd {
+  position: absolute;
+  bottom: 3px;
+  right: 3px;
+  font-family: var(--font-mono);
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--ink-faint);
+  background: transparent;
+  padding: 0;
+  border: none;
+}
+
+.shell-rail[data-expanded="false"] .rail-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 6px;
+}
+
+.shell-rail[data-expanded="false"] .rail-spacer {
+  flex: 1;
+}
+
+
+/* ╔═══════════════════════ PANEL (right, 380px) ═══════════════════════╗
+ * v3.1 Fase 1c: ShellPanel matching mockup `.s-panel`.
+ * Classi `.shell-panel`, `.sp-head`, `.sp-icon`, `.sp-help`, `.sp-tabs`,
+ * `.sp-tab`, `.sp-body`, `.sp-section` già allineate alle convenzioni
+ * mockup. Qui rifiniture (border-radius, padding, gap) per match 1:1.
+ */
+
+.shell-panel {
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.shell-panel .sp-head {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.shell-panel .sp-head-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shell-panel .sp-icon {
+  width: 28px;
+  height: 28px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+}
+
+.shell-panel .sp-head h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+
+.shell-panel .sp-help {
+  margin-left: auto;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink-dim);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.shell-panel .sp-help:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.shell-panel .sp-desc {
+  font-size: 12px;
+  line-height: 17px;
+  color: var(--ink-muted);
+  letter-spacing: -0.005em;
+  margin: 0;
+}
+
+/* TABS */
+.shell-panel .sp-tabs {
+  display: flex;
+  padding: 0 12px;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+}
+
+.shell-panel .sp-tab {
+  position: relative;
+  padding: 10px 10px 12px;
+  background: transparent;
+  border: none;
+  color: var(--ink-dim);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.shell-panel .sp-tab:hover {
+  color: var(--ink);
+}
+
+/* Radix Tabs uses data-state="active" instead of .is-active class */
+.shell-panel .sp-tab[data-state="active"],
+.shell-panel .sp-tab.is-active {
+  color: var(--ink);
+}
+
+.shell-panel .sp-tab[data-state="active"]::after,
+.shell-panel .sp-tab.is-active::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 6px;
+  right: 6px;
+  height: 2px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
+}
+
+
+/* ╔═══════════════════════ STATUS BAR ═══════════════════════╗
+ * v3.1 Fase 1d: ShellStatusBar matching mockup `.s-statusbar`.
+ */
+
+.shell-statusbar {
+  background: var(--bg-panel);
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  gap: 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-dim);
+  letter-spacing: var(--ls-wide-1);
+}
+
+.shell-statusbar .sb-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.shell-statusbar .sb-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 9999px;
+  background: var(--success);
+}
+
+.shell-statusbar .sb-dot.warn {
+  background: var(--warn);
+}
+
+.shell-statusbar .sb-dot.danger {
+  background: var(--danger);
+}
+
+.shell-statusbar .sb-sep {
+  width: 1px;
+  height: 14px;
+  background: var(--border);
+}
+
+.shell-statusbar .sb-spacer {
+  flex: 1;
+}
+
+.shell-statusbar .sb-k {
+  color: var(--ink-faint);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide-2);
+}
+
+.shell-statusbar .sb-v {
+  color: var(--ink-muted);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}

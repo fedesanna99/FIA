@@ -17,6 +17,8 @@ import { StudioShell } from "./StudioShell";
 import { useFirstModelId } from "./useFirstModelId";
 import { exportApi, importDxf, importIfc } from "../api/io";
 import { toast } from "../store/toastStore";
+// v3.1 Fase 3: showcase banner (Studio v2 degradate a vetrina).
+import { ShowcaseBanner } from "../design-showcase/ShowcaseBanner";
 
 import "../styles/studio.css";
 import "../styles/studio-io.css";
@@ -110,6 +112,9 @@ export function StudioIOPage(): JSX.Element {
   };
 
   return (
+    <>
+    <ShowcaseBanner pageName="Studio I/O" />
+    <div style={{ paddingTop: 36 }}>
     <StudioShell active="io" workspaceState="I/O · Hub" midLayout="no-tree">
       <main className="io-main">
 
@@ -352,6 +357,8 @@ export function StudioIOPage(): JSX.Element {
 
       <IOPanel />
     </StudioShell>
+    </div>
+    </>
   );
 }
 
