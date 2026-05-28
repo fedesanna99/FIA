@@ -79,13 +79,19 @@ body.theme-dark {
 .shell {
   --topbar-h: 48px;
   --statusbar-h: 28px;
+  /* redesign/workspace-fasi (FETTA 1): nuova row per la spina 3 fasi
+     (Costruisci/Esegui/Risultati). 44px = font 12px su due tone +
+     pillole padding 4+4 + bordi 1+1. */
+  --phase-h: 44px;
   --rail-w: 56px;
   --panel-w: 380px;
   width: 100%;
   height: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: var(--topbar-h) 1fr var(--statusbar-h);
+  /* 4 row: topbar / phase spine / mid (rail+viewport+panel) / statusbar.
+     Le row vengono collassate via `.shell-focus-on` in focus mode. */
+  grid-template-rows: var(--topbar-h) var(--phase-h) 1fr var(--statusbar-h);
   background: var(--bg);
   color: var(--ink);
   overflow: hidden;
@@ -127,14 +133,16 @@ body.shell-density-compact { font-size: 12px; }
 }
 
 /* redesign/workspace-fasi (FETTA 0): focus mode dentro Shell custom.
-   La grid passa a 2-row (topbar+viewport, statusbar collapsata) e la
-   shell-mid a 1-col (solo viewport pieno; rail+panel non renderizzati
-   da Shell.tsx). La topbar resta come "bussola" per uscire dal focus
-   via tasto F oppure il pill `.shell-focus-exit` floating top-right.
+   La grid passa a topbar+viewport pieno (phase spine + statusbar
+   collassate a 0) e shell-mid a 1-col (solo viewport; rail+panel non
+   renderizzati da Shell.tsx). La topbar resta come "bussola" per uscire
+   dal focus via tasto F oppure il pill `.shell-focus-exit` top-right.
    Non si sovrappone a `.shell-takeover-on`: in focus mode il takeover
-   non viene comunque renderizzato (Shell.tsx). */
+   non viene comunque renderizzato (Shell.tsx).
+   FETTA 1: la riga 2 della grid (phase spine, default 44px) è
+   collassata a 0 in focus mode. */
 .shell.shell-focus-on {
-  grid-template-rows: var(--topbar-h) 1fr 0;
+  grid-template-rows: var(--topbar-h) 0 1fr 0;
 }
 .shell.shell-focus-on .shell-mid {
   grid-template-columns: 1fr;
@@ -175,6 +183,117 @@ body.shell-density-compact { font-size: 12px; }
 }
 body.shell-sharp .shell-focus-exit { border-radius: 0; }
 body.shell-sharp .shell-focus-exit kbd { border-radius: 0; }
+
+/* redesign/workspace-fasi (FETTA 1): spina 3 fasi
+   (Costruisci → Esegui → Risultati).
+
+   ADDITIVA — vive nella riga 2 della grid Shell (var(--phase-h, 44px)),
+   sotto la topbar e sopra il shell-mid. NON sostituisce la rail
+   sinistra: railConfig.ts resta LOCKED e i suoi 14 testid invariati.
+
+   I 3 passi sono SEMPRE cliccabili (è una mappa, non un wizard).
+   Lo stato visivo (numero card + icona) deriva dagli store reali
+   (modelStore / analysisStore / resultsStore) ed è solo informativo. */
+.shell-phase {
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  background: var(--bg-panel, #ffffff);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.shell-phase-list {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.shell-phase-li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.shell-phase-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px 4px 6px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-dim, #7B808A);
+  font: 500 12px/1 var(--font-sans, system-ui, sans-serif);
+  cursor: pointer;
+  transition: background-color 120ms, border-color 120ms, color 120ms;
+}
+.shell-phase-step:hover {
+  background: var(--bg-hover, var(--bg, #f4f5f7));
+  color: var(--ink, #15161A);
+}
+.shell-phase-step.is-active {
+  background: var(--accent-subtle, rgba(8, 145, 178, 0.10));
+  border-color: var(--accent, #0891B2);
+  color: var(--accent, #0891B2);
+}
+.shell-phase-step:focus-visible {
+  outline: 2px solid var(--accent, #0891B2);
+  outline-offset: 2px;
+}
+.shell-phase-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--bg, #FAFAFA);
+  border: 1px solid var(--border, #E5E6E8);
+  font: 600 11px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: var(--ink-dim, #7B808A);
+  flex-shrink: 0;
+}
+.shell-phase-step.is-active .shell-phase-num {
+  background: var(--accent, #0891B2);
+  color: #ffffff;
+  border-color: var(--accent, #0891B2);
+}
+.shell-phase-label {
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+.shell-phase-icon { flex-shrink: 0; }
+.shell-phase-icon--spin { animation: shell-phase-spin 900ms linear infinite; }
+.shell-phase-icon--done { color: var(--success, #65A30D); }
+.shell-phase-icon--stale { color: var(--warn, #B45309); }
+.shell-phase-icon--partial { color: var(--ink-dim, #7B808A); }
+.shell-phase-icon--empty { color: var(--ink-faint, #B0B5BD); }
+
+/* Stale: la pillola intera prende un bordo warning (anche se è il
+   passo attivo, lo stale ha priorità visiva). */
+.shell-phase-step--stale {
+  border-color: var(--warn, #B45309);
+  color: var(--warn, #B45309);
+}
+.shell-phase-step--stale.is-active {
+  background: rgba(180, 83, 9, 0.08);
+}
+
+.shell-phase-sep {
+  color: var(--ink-faint, #B0B5BD);
+  font-size: 12px;
+  user-select: none;
+  padding: 0 2px;
+}
+
+@keyframes shell-phase-spin {
+  to { transform: rotate(360deg); }
+}
+
+body.shell-sharp .shell-phase-step { border-radius: 0; }
+body.shell-sharp .shell-phase-num { border-radius: 0; }
 
 /* v2.6.5 D.2: sezione "Modelli recenti" home dashboard (mockup A1).
    4 card grid responsive (4 col desktop, 2 col mid, 1 col mobile).

@@ -61,6 +61,14 @@ vi.mock("./ShellStatusBar", () => ({
 vi.mock("./ShellCommandPalette", () => ({
   ShellCommandPalette: () => <div data-testid="mock-palette">Palette</div>,
 }));
+// redesign/workspace-fasi (FETTA 1): mock dello stepper così Shell.test.tsx
+// resta focalizzato sull'orchestrazione (takeover/focus). Il behaviour
+// dello stepper è coperto da ShellPhaseStepper.test.tsx.
+vi.mock("./ShellPhaseStepper", () => ({
+  ShellPhaseStepper: ({ active }: { active: string; onChange: (id: string) => void }) => (
+    <nav data-testid="mock-phase-stepper" data-active={active}>PhaseStepper</nav>
+  ),
+}));
 
 import { vi } from "vitest";
 // redesign/workspace-fasi (FETTA 0): reset isFocusMode (=isEmptyState)
@@ -82,6 +90,11 @@ describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
     expect(screen.queryByTestId("shell-takeover-content")).toBeNull();
     // Canvas children è dentro viewport
     expect(screen.getByTestId("canvas-children")).toBeInTheDocument();
+    // redesign/workspace-fasi (FETTA 1): la spina 3 fasi è renderizzata
+    // sotto la topbar (additiva, NON sostituisce il rail).
+    expect(screen.getByTestId("mock-phase-stepper")).toBeInTheDocument();
+    // E coesiste con il rail (railConfig LOCKED, doppia navigazione voluta).
+    expect(screen.getByTestId("mock-rail")).toBeInTheDocument();
   });
 
   it("switching to verifiche: replaces viewport+panel with takeover-content", () => {
@@ -145,6 +158,9 @@ describe("Shell · focus mode (redesign/workspace-fasi FETTA 0)", () => {
     expect(screen.queryByTestId("mock-rail")).toBeNull();
     expect(screen.queryByTestId("mock-shell-panel")).toBeNull();
     expect(screen.queryByTestId("mock-statusbar")).toBeNull();
+    // redesign/workspace-fasi (FETTA 1): anche la spina 3 fasi è
+    // nascosta in focus (riga grid collassata via shell-focus-on).
+    expect(screen.queryByTestId("mock-phase-stepper")).toBeNull();
     // Pill di uscita visibile + reversibile
     const exit = screen.getByTestId("shell-focus-exit");
     expect(exit).toBeInTheDocument();
@@ -171,6 +187,8 @@ describe("Shell · focus mode (redesign/workspace-fasi FETTA 0)", () => {
     expect(screen.getByTestId("mock-rail")).toBeInTheDocument();
     expect(screen.getByTestId("mock-shell-panel")).toBeInTheDocument();
     expect(screen.getByTestId("mock-statusbar")).toBeInTheDocument();
+    // FETTA 1: spina 3 fasi torna visibile insieme al resto del chrome
+    expect(screen.getByTestId("mock-phase-stepper")).toBeInTheDocument();
     expect(screen.queryByTestId("shell-focus-exit")).toBeNull();
   });
 

@@ -30,6 +30,10 @@ import { ShellViewport } from "./ShellViewport";
 import { ShellPanel } from "./ShellPanel";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandPalette } from "./ShellCommandPalette";
+// redesign/workspace-fasi (FETTA 1): spina 3 fasi additiva sotto la topbar.
+// NON sostituisce la rail sinistra (railConfig.ts LOCKED), aggiunge solo
+// una gerarchia esplicita Costruisci → Esegui → Risultati.
+import { ShellPhaseStepper } from "./ShellPhaseStepper";
 import { MakePanel } from "./panels/MakePanel";
 import { SolvePanel } from "./panels/SolvePanel";
 import { VerifyPanel } from "./panels/VerifyPanel";
@@ -171,6 +175,14 @@ export function Shell({ children }: ShellProps) {
       }${isFocusMode ? " shell-focus-on" : ""}${railExpanded ? " shell-rail-expanded" : ""}`}
     >
       <ShellTopBar />
+
+      {/* redesign/workspace-fasi (FETTA 1): spina 3 fasi additiva.
+          In focus mode la spina è nascosta (riga grid collassata a 0
+          via .shell-focus-on in shell.css) e il componente non viene
+          renderizzato per non sprecare subscribe agli store. */}
+      {!showFocusChrome && (
+        <ShellPhaseStepper active={activeWs} onChange={setActiveWs} />
+      )}
 
       <div className="shell-mid">
         {!showFocusChrome && <ShellRail active={activeWs} onChange={setActiveWs} />}
