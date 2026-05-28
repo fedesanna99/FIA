@@ -581,6 +581,254 @@ body.shell-sharp .results-subtab { border-radius: 0; }
 }
 body.shell-sharp .results-placeholder { border-radius: 0; }
 
+/* ────────────────────────────────────────────────────────────────────────
+ *  redesign/workspace-fasi · FETTA 2b · FAMIGLIA B · Sintesi
+ *
+ *  Nuovo layout della scheda Sintesi (sostituisce embed InspectPanel):
+ *    - banner "Calcolo sospetto" ambra in cima (quando isSuspicious)
+ *    - 3 metric card aggregate (UR · σ max · freccia)
+ *    - sezione "Visualizza nel modello" con 3 toggle vista
+ *    - badge affidabilità Validato/Stima/Mista
+ *    - footer azioni Itera + Genera report
+ *
+ *  Tone "n/a"/"warn"/"empty"/"pass"/"fail"/"neutral" sui metric card
+ *  via data-tone (cornice ambra/verde/rossa/neutra).
+ * ──────────────────────────────────────────────────────────────────────── */
+.results-sintesi {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px 16px 18px;
+}
+.results-sintesi-warn {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 11px 13px;
+  background: var(--bg-warn, rgba(180, 83, 9, 0.08));
+  border: 1px solid var(--warn, #B45309);
+  color: var(--warn, #B45309);
+  border-radius: 9px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.results-sintesi-warn strong {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+.results-sintesi-warn p {
+  margin: 0;
+  font-size: 11.5px;
+  color: var(--ink, #15161A);
+  opacity: 0.9;
+}
+body.shell-sharp .results-sintesi-warn { border-radius: 0; }
+
+.results-sintesi-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.results-sintesi-metric {
+  position: relative;
+  padding: 10px 12px;
+  background: var(--bg, #FAFAFA);
+  border: 1px solid var(--border, #E5E6E8);
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.results-sintesi-metric-k {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10.5px;
+  color: var(--ink-dim, #7B808A);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.results-sintesi-metric-v {
+  font-size: 19px;
+  font-weight: 600;
+  color: var(--ink, #15161A);
+  margin-top: 1px;
+}
+.results-sintesi-metric-v small {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-dim, #7B808A);
+}
+.results-sintesi-metric-icon {
+  position: absolute;
+  top: 11px;
+  right: 12px;
+  color: var(--ink-dim, #7B808A);
+}
+
+/* Tone */
+.results-sintesi-metric--pass {
+  border-left: 3px solid var(--success, #65A30D);
+  background: var(--bg-success, rgba(101, 163, 13, 0.10));
+}
+.results-sintesi-metric--pass .results-sintesi-metric-v,
+.results-sintesi-metric--pass .results-sintesi-metric-icon {
+  color: var(--success, #65A30D);
+}
+.results-sintesi-metric--fail {
+  border-left: 3px solid var(--danger, #DC2626);
+  background: var(--bg-danger, rgba(220, 38, 38, 0.08));
+}
+.results-sintesi-metric--fail .results-sintesi-metric-v,
+.results-sintesi-metric--fail .results-sintesi-metric-icon {
+  color: var(--danger, #DC2626);
+}
+.results-sintesi-metric--warn {
+  border-left: 3px solid var(--warn, #B45309);
+  background: var(--bg-warn, rgba(180, 83, 9, 0.08));
+}
+.results-sintesi-metric--warn .results-sintesi-metric-v {
+  color: var(--warn, #B45309);
+}
+.results-sintesi-metric--na {
+  border-left: 3px solid var(--ink-faint, #B0B5BD);
+  background: var(--bg, #FAFAFA);
+  opacity: 0.85;
+}
+.results-sintesi-metric--na .results-sintesi-metric-v {
+  color: var(--ink-dim, #7B808A);
+  font-style: italic;
+}
+.results-sintesi-metric--empty .results-sintesi-metric-v {
+  color: var(--ink-faint, #B0B5BD);
+}
+body.shell-sharp .results-sintesi-metric { border-radius: 0; }
+
+/* Sezione (label + content) */
+.results-sintesi-sec {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.results-sintesi-sec-label {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-faint, #B0B5BD);
+}
+
+/* Toggle viste (riuso visivo della strip ma su una riga) */
+.results-sintesi-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.results-sintesi-view {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  color: var(--ink-dim, #7B808A);
+  background: var(--bg-panel, #ffffff);
+  border: 1px solid var(--border, #E5E6E8);
+  border-radius: 7px;
+  padding: 6px 10px;
+  cursor: pointer;
+  transition: background-color 120ms, border-color 120ms, color 120ms;
+}
+.results-sintesi-view:hover {
+  background: var(--bg-hover, var(--bg, #f4f5f7));
+  color: var(--ink, #15161A);
+}
+.results-sintesi-view.is-on,
+.results-sintesi-view[aria-pressed="true"] {
+  background: var(--accent-subtle, rgba(8, 145, 178, 0.10));
+  border-color: var(--accent, #0891B2);
+  color: var(--accent, #0891B2);
+}
+.results-sintesi-view:focus-visible {
+  outline: 2px solid var(--accent, #0891B2);
+  outline-offset: 2px;
+}
+body.shell-sharp .results-sintesi-view { border-radius: 0; }
+
+/* Trust badge */
+.results-sintesi-trust {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: 8px;
+  font-size: 11.5px;
+  line-height: 1.5;
+}
+.results-sintesi-trust strong {
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.results-sintesi-trust-tip {
+  flex: 1;
+  color: inherit;
+  opacity: 0.85;
+}
+.results-sintesi-trust--validated {
+  background: var(--bg-success, rgba(101, 163, 13, 0.10));
+  color: var(--success, #65A30D);
+}
+.results-sintesi-trust--estimate {
+  background: var(--bg-warn, rgba(180, 83, 9, 0.08));
+  color: var(--warn, #B45309);
+}
+.results-sintesi-trust--mixed {
+  background: var(--bg-warn, rgba(180, 83, 9, 0.08));
+  color: var(--warn, #B45309);
+}
+body.shell-sharp .results-sintesi-trust { border-radius: 0; }
+
+/* Footer azioni */
+.results-sintesi-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+.results-sintesi-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background-color 120ms, border-color 120ms, color 120ms;
+}
+.results-sintesi-btn--ghost {
+  background: var(--bg-panel, #ffffff);
+  border-color: var(--border, #E5E6E8);
+  color: var(--ink, #15161A);
+}
+.results-sintesi-btn--ghost:hover {
+  background: var(--bg-hover, var(--bg, #f4f5f7));
+}
+.results-sintesi-btn--ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.results-sintesi-btn--dark {
+  background: var(--ink, #15161A);
+  color: #ffffff;
+}
+.results-sintesi-btn--dark:hover {
+  background: var(--ink-muted, #4A4F57);
+}
+.results-sintesi-btn:focus-visible {
+  outline: 2px solid var(--accent, #0891B2);
+  outline-offset: 2px;
+}
+body.shell-sharp .results-sintesi-btn { border-radius: 0; }
+
 /* v2.6.5 D.2: sezione "Modelli recenti" home dashboard (mockup A1).
    4 card grid responsive (4 col desktop, 2 col mid, 1 col mobile).
    Card: thumbnail SVG placeholder + nome + status badge + metadata mono. */

@@ -78,11 +78,11 @@ const VIEWPORT_TAKEOVER_WORKSPACES: ShellWorkspaceId[] = ["verifiche"];
 const WORKSPACE_CONTENT_NORMAL: Record<ShellWorkspaceId, ReactNode> = {
   modello: <MakePanel />,
   analisi: <SolvePanel />,
-  // redesign/workspace-fasi (FETTA 2a): il workspace "risultati" ora usa
-  // ResultsTabsPanel (3 schede Sintesi/Dati/Verifiche). InspectPanel
-  // resta come content della scheda "Sintesi" embeddato dentro
-  // ResultsTabsPanel — non e' stato cancellato. Lo step 2b sostituira'
-  // l'embed con un layout dedicato.
+  // redesign/workspace-fasi (FETTA 2a/2b): il workspace "risultati" ora usa
+  // ResultsTabsPanel (3 schede Sintesi/Dati/Verifiche). La Sintesi e' il
+  // nuovo layout aggregato (FAM B), non piu' embed di InspectPanel. La
+  // versione "default" qui senza onIterate e' un fallback statico — il
+  // render reale wira onIterate via overrideRisultati (sotto, nel JSX).
   risultati: <ResultsTabsPanel />,
   verifiche: <VerifyPanel />,
   io: <ToolsPanel />,
@@ -213,7 +213,14 @@ export function Shell({ children }: ShellProps) {
               )}
             </ShellViewport>
             {!showFocusChrome && (
-              <ShellPanel workspace={activeWs}>{WORKSPACE_CONTENT_NORMAL[activeWs]}</ShellPanel>
+              <ShellPanel workspace={activeWs}>
+                {/* redesign/workspace-fasi (FETTA 2b · FAM B): wira onIterate
+                    su Risultati cosi' la Sintesi puo' tornare a "modello"
+                    (Costruisci). Altrimenti usa il content statico. */}
+                {activeWs === "risultati"
+                  ? <ResultsTabsPanel onIterate={() => setActiveWs("modello")} />
+                  : WORKSPACE_CONTENT_NORMAL[activeWs]}
+              </ShellPanel>
             )}
           </>
         )}

@@ -13,15 +13,21 @@ import { useAnalysisStore } from "../../store/analysisStore";
 import type { StaticResults } from "../../types/results";
 
 // Embed mocks
-vi.mock("../panels/InspectPanel", () => ({
-  InspectPanel: () => <div data-testid="mock-inspect-panel">InspectPanel</div>,
-}));
 vi.mock("../panels/VerifyPanel", () => ({
   VerifyPanel: () => <div data-testid="mock-verify-panel">VerifyPanel</div>,
 }));
 vi.mock("../../components/results/DisplacementTable", () => ({
   DisplacementTable: () => (
     <div data-testid="mock-displacement-table">DisplacementTable</div>
+  ),
+}));
+// FETTA 2b · FAM B: la Sintesi ora e' ResultsSintesi (non piu' InspectPanel
+// embed). Mock per testare l'orchestrazione dei tab senza il tree completo.
+vi.mock("./ResultsSintesi", () => ({
+  ResultsSintesi: ({ onIterate }: { onIterate?: () => void }) => (
+    <div data-testid="mock-results-sintesi" data-has-iterate={onIterate ? "true" : "false"}>
+      ResultsSintesi
+    </div>
   ),
 }));
 
@@ -58,9 +64,20 @@ describe("ResultsTabsPanel · FETTA 2a", () => {
     expect(screen.getByText("Risultati")).toBeInTheDocument();
   });
 
-  it("default Sintesi: embed InspectPanel visibile", () => {
+  it("default Sintesi: monta ResultsSintesi (FAM B, niente piu' InspectPanel)", () => {
     render(<ResultsTabsPanel />);
-    expect(screen.getByTestId("mock-inspect-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-results-sintesi")).toBeInTheDocument();
+  });
+
+  it("FAM B: onIterate viene propagato a ResultsSintesi", () => {
+    const onIterate = vi.fn();
+    render(<ResultsTabsPanel onIterate={onIterate} />);
+    expect(screen.getByTestId("mock-results-sintesi").getAttribute("data-has-iterate")).toBe("true");
+  });
+
+  it("FAM B: senza onIterate prop ResultsSintesi NON riceve callback", () => {
+    render(<ResultsTabsPanel />);
+    expect(screen.getByTestId("mock-results-sintesi").getAttribute("data-has-iterate")).toBe("false");
   });
 
   it("click su tab Dati: mostra le 3 sotto-linguette", () => {

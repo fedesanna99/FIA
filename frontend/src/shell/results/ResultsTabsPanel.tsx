@@ -25,9 +25,16 @@ import { useState } from "react";
 import { Activity } from "lucide-react";
 import { useResultsStore } from "../../store/resultsStore";
 import { useAnalysisStore } from "../../store/analysisStore";
-import { InspectPanel } from "../panels/InspectPanel";
 import { VerifyPanel } from "../panels/VerifyPanel";
 import { DisplacementTable } from "../../components/results/DisplacementTable";
+// FETTA 2b · FAM B: nuovo content scheda Sintesi (sostituisce InspectPanel
+// embed). InspectPanel.tsx resta nel codebase ma non e' piu' importato qui.
+import { ResultsSintesi } from "./ResultsSintesi";
+
+interface ResultsTabsPanelProps {
+  /** Callback "Itera" → torna al workspace Costruisci (passato da Shell.tsx). */
+  onIterate?: () => void;
+}
 
 type ResultsTab = "sintesi" | "dati" | "verifiche";
 type DatiSubTab = "spostamenti" | "sollecitazioni" | "reazioni";
@@ -39,7 +46,7 @@ const ANALYSIS_LABEL: Record<string, string> = {
   buckling: "Buckling",
 };
 
-export function ResultsTabsPanel() {
+export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
   const [tab, setTab] = useState<ResultsTab>("sintesi");
   const [subtab, setSubtab] = useState<DatiSubTab>("spostamenti");
   const hasStatic = useResultsStore((s) => !!s.staticResults);
@@ -116,10 +123,12 @@ export function ResultsTabsPanel() {
           className="results-tab-body"
           data-testid="results-tab-body-sintesi"
         >
-          {/* FETTA 2a: embed InspectPanel esistente come placeholder onesto
-              della Sintesi finche' lo step 2b non rifa l'aggregato metriche +
-              affidabilita' del prototipo. */}
-          <InspectPanel />
+          {/* FETTA 2b · FAM B: nuovo content Sintesi (metriche aggregate +
+              affidabilita' + toggle + Itera/Report). Banner ambra "calcolo
+              sospetto" in cima quando isSuspicious — niente applausi
+              su un calcolo banale. InspectPanel.tsx resta nel codebase
+              ma non e' piu' embeddato qui. */}
+          <ResultsSintesi onIterate={onIterate} />
         </div>
       )}
 
