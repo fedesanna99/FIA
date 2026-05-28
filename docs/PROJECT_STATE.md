@@ -3,15 +3,38 @@
 > Stato vivo. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-28 (sera · post v3.1.0 feature recovery + design trapianto)
-**Versione corrente**: `v3.1.0-feature-recovery-design-trapianto`
+**Ultimo aggiornamento**: 2026-05-28 (sera · post v3.2.0 audit-driven E2E completo)
+**Versione corrente**: `v3.2.0-audit-driven-e2e-complete`
 **Branch attivo**: `design-rebuild/v2.6` (= origin/test = origin/main)
-**Ultimo SHA**: `cf080a5`
-**Deploy live**: Fly.io **v110** · https://fea-pro.fly.dev/
+**Ultimo SHA**: `fb73fbd` (pre rollup v3.2.0)
+**Deploy live**: Fly.io · https://fea-pro.fly.dev/ (in fase deploy v3.2.0)
 
 ---
 
-## ⚡ Stato attuale · post Fase 1-3 v3.1.0 (2026-05-28 sera)
+## ⚡ Stato attuale · post v3.2.0 audit-driven (2026-05-28 sera tardi)
+
+Sessione audit-driven cumulativa: **4 round audit** + workflow E2E live confermato.
+
+**Pipeline**: v3.1.0 → v3.1.1 (round 1: 3 P0+13 P1+4 P2) → v3.1.2 (round 2: 5 P0+13 P1+4 P2) → v3.1.3 (round 3 visuale: 1 P0+2 P1+5 P2/P3) → v3.1.4 (round 4 E2E: 1 P1) → **v3.2.0** rollup finale.
+
+**Bug chiusi**: 39 totali · 10 P0 + 26 P1 + ~10 P2/P3.
+
+**Workflow ingegnere E2E** verificato live (Marco Rossi · IPE300/S355/L=6m):
+- signup → modello vuoto → mesh 11 nodi/10 beam2d
+- 2 vincoli + 10 carichi q=-10kN/m
+- analisi statica: **δ=9.62mm match formula 99.9%**
+- EC3 verify: 10/10 OK · UR_max=0.229
+- Export PDF/XLSX/DXF/IFC: 4/4 ✅
+
+**Architettura nuova**: `GlobalRoutingListeners.tsx` cross-route + sessionStorage activeId persistence + security backend hardened (JWT enforce / rate-limit register / timing-safe login).
+
+**Score totale**: 80% (v3.1.0) → **~96%** (v3.2.0).
+
+Per dettagli: vedi `HANDOFF_2026-05-28-v3.2.md`.
+
+---
+
+## Stato precedente · post Fase 1-3 v3.1.0 (2026-05-28 sera)
 
 Giornata di consolidamento: 3 fix critici Dashboard (mattina) + 6 audit paralleli (pomeriggio) + 3 fasi piano operativo (sera). **Fase 4 cleanup file morti saltata per scelta utente** — file orfani restano in repo per safety.
 
