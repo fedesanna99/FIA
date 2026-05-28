@@ -36,21 +36,33 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { register as apiRegister } from "../api/auth";
 import { useAuthStore } from "../store/authStore";
+import { translateAxiosError } from "../lib/apiErrors";
 
 import { AuthCard } from "./components/AuthCard";
 import { AuthField } from "./components/AuthField";
 import { PasswordStrengthBars } from "./components/PasswordStrengthBars";
 
 
-const RUOLI = [
+// v3.1.1 audit-fix L1-3: usiamo `z.string().refine()` per `ruolo` invece di
+// `z.enum()` così il default value `""` è type-safe (no `as unknown as`).
+// Per `acceptedTerms` usiamo `z.boolean().refine(v => v === true)` invece di
+// `z.literal(true)` per lo stesso motivo: default `false` resta valido
+// type-wise finché lo zodResolver non scatta sul submit.
+const RUOLO_VALUES = ["ingegnere", "architetto", "docente", "studente", "altro"] as const;
+type Ruolo = (typeof RUOLO_VALUES)[number];
+
+const RUOLI: readonly { value: Ruolo; label: string }[] = [
   { value: "ingegnere", label: "Ingegnere strutturista" },
   { value: "architetto", label: "Architetto" },
   { value: "docente", label: "Docente / Ricercatore" },
   { value: "studente", label: "Studente" },
   { value: "altro", label: "Altro" },
-] as const;
+];
 
-
+// v3.1.1 audit-fix L1-3: niente `as unknown as`. Modelliamo input "loose"
+// (defaultValues con `""`/`false` accettati dal form) vs output "strict"
+// (post-refine: Ruolo/true). useForm<Input, ctx, Output> di react-hook-form 7
+// supporta nativamente il pattern di trasformazione zod.
 const signupSchema = z.object({
   nome: z.string().trim().min(1, "Nome richiesto").max(80),
   cognome: z.string().trim().min(1, "Cognome richiesto").max(80),
@@ -59,15 +71,18 @@ const signupSchema = z.object({
     .string()
     .min(8, "Almeno 8 caratteri")
     .max(72, "Massimo 72 caratteri"),
-  ruolo: z.enum(["ingegnere", "architetto", "docente", "studente", "altro"], {
-    message: "Seleziona un ruolo professionale",
-  }),
-  acceptedTerms: z.literal(true, {
+  ruolo: z
+    .union([z.enum(RUOLO_VALUES), z.literal("")])
+    .refine((v): v is Ruolo => v !== "", {
+      message: "Seleziona un ruolo professionale",
+    }),
+  acceptedTerms: z.boolean().refine((v): v is true => v === true, {
     message: "Devi accettare termini e privacy policy",
   }),
 });
 
-type SignupForm = z.infer<typeof signupSchema>;
+type SignupFormInput = z.input<typeof signupSchema>;
+type SignupFormOutput = z.output<typeof signupSchema>;
 
 
 export function SignupPage() {
@@ -80,17 +95,18 @@ export function SignupPage() {
     handleSubmit,
     watch,
     formState: { errors, isSubmitting },
-  } = useForm<SignupForm>({
+  } = useForm<SignupFormInput, unknown, SignupFormOutput>({
     resolver: zodResolver(signupSchema),
+    // v3.1.1 audit-fix L1-3: defaultValues ora type-safe, no `as unknown as`.
+    // `ruolo: ""` non passa il refine (mostra error all'submit), `acceptedTerms:
+    // false` idem. Migliora narrowing TS senza UX trade-off.
     defaultValues: {
       nome: "",
       cognome: "",
       email: "",
       password: "",
-      // Cast: zod literal(true) accetta solo true; React permette undefined
-      // initial value finché il submit forza la validation.
-      ruolo: undefined as unknown as SignupForm["ruolo"],
-      acceptedTerms: undefined as unknown as true,
+      ruolo: "",
+      acceptedTerms: false,
     },
     mode: "onSubmit",
   });
@@ -98,7 +114,7 @@ export function SignupPage() {
   const passwordValue = watch("password") ?? "";
   const acceptedTerms = watch("acceptedTerms");
 
-  async function onSubmit(data: SignupForm): Promise<void> {
+  async function onSubmit(data: SignupFormOutput): Promise<void> {
     setSubmitError(null);
     try {
       const res = await apiRegister({
@@ -112,11 +128,18 @@ export function SignupPage() {
       setAuth(res.token, res.user);
       navigate("/", { replace: true });
     } catch (err: unknown) {
-      const detail =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
-        (err as Error)?.message ??
-        "Errore sconosciuto";
-      setSubmitError(humanizeSignupError(String(detail)));
+      // v3.1.1 audit-fix L1-4: 3-step (detail stringa → humanizer → axios fallback).
+      const errObj = err as { response?: { status?: number; data?: { detail?: unknown } }; message?: string };
+      const detail = errObj?.response?.data?.detail;
+      const status = errObj?.response?.status;
+      if (typeof detail === "string" && detail.length > 0) {
+        setSubmitError(humanizeSignupError(detail));
+      } else if (status != null && errObj?.response) {
+        const { title, description } = translateAxiosError(status, errObj.response.data);
+        setSubmitError(description ? `${title} · ${description}` : title);
+      } else {
+        setSubmitError(humanizeSignupError(errObj?.message ?? "Errore sconosciuto"));
+      }
     }
   }
 

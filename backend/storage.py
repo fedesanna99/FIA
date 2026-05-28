@@ -8,6 +8,7 @@ Disattivare la persistenza esportando FEA_NO_PERSIST=1.
 from __future__ import annotations
 import json
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 from uuid import uuid4
@@ -73,7 +74,19 @@ def get_model(model_id: str) -> FEAModel | None:
     return _MODELS.get(model_id)
 
 
+def _utcnow_iso() -> str:
+    """ISO-8601 UTC con suffisso 'Z' (es. `2026-05-28T18:42:11.123456+00:00`)."""
+    return datetime.now(timezone.utc).isoformat()
+
+
 def save_model(model: FEAModel) -> FEAModel:
+    """v3.1.1 audit-fix L2-4: aggiorna `updated_at` ad ogni save, e popola
+    `created_at` se mancante (modello nuovo o pre-migration). Permette al
+    frontend Dashboard di ordinare la lista "recenti" reale."""
+    now = _utcnow_iso()
+    if not model.created_at:
+        model.created_at = now
+    model.updated_at = now
     _MODELS[model.id] = model
     _write_to_disk(model)
     return model

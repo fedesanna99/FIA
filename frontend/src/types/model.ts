@@ -92,4 +92,13 @@ export interface FEAModel {
    * alpha.30 Task 3 (rimuove cast `as unknown` precedente).
    */
   materials?: { id?: string; name?: string; color?: string }[];
+  /**
+   * v3.1.1 audit-fix L2-4: timestamp ISO della creazione/ultimo update
+   * (lato backend). Optional per retrocompat con modelli pre-migration.
+   * Usato in Dashboard per ordinamento "recenti" (vedi `DashboardPage`).
+   */
+  created_at?: string;
+  updated_at?: string;
+  /** v3.1.1 audit-fix L2-3: owner_id propagato dal backend per filtro user-only. */
+  owner_id?: string | null;
 }

@@ -45,6 +45,19 @@ interface AuthState {
 let bootstrapPromise: Promise<void> | null = null;
 
 
+/**
+ * v3.1.1 audit-fix L1-5: distinguere errori "auth invalid" (401) da
+ * network/server transient (no response / 5xx / timeout). Logout solo
+ * sul primo caso così l'utente non perde sessione per backend down.
+ */
+function isAuthFailure(err: unknown): boolean {
+  if (!err || typeof err !== "object") return false;
+  const resp = (err as { response?: { status?: number } }).response;
+  if (!resp || typeof resp.status !== "number") return false;
+  return resp.status === 401 || resp.status === 403;
+}
+
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -62,8 +75,17 @@ export const useAuthStore = create<AuthState>()(
           const user = await getMe(tok);
           set({ user });
           return true;
-        } catch {
-          set({ token: "", user: null });
+        } catch (err) {
+          // v3.1.1 audit-fix L1-5: distinguere 401 da network/5xx. Solo su
+          // 401 il token è realmente invalido → logout. Errori di rete o
+          // server (5xx) NON devono buttare giù la sessione (utente vede
+          // app pulita post-deploy, non perde lavoro per backend transient).
+          if (isAuthFailure(err)) {
+            set({ token: "", user: null });
+            return false;
+          }
+          // Errori transient: mantieni token+user, ritorna false così
+          // l'AuthGate riprova al prossimo bootstrap.
           return false;
         }
       },
@@ -80,9 +102,17 @@ export const useAuthStore = create<AuthState>()(
           try {
             const user = await getMe(tok);
             set({ user, bootstrapping: false });
-          } catch {
-            // Token scaduto / invalido → logout silenzioso.
-            set({ token: "", user: null, bootstrapping: false });
+          } catch (err) {
+            // v3.1.1 audit-fix L1-5: solo 401 = logout. Network/5xx = mantieni
+            // sessione (con `user` precedentemente persistito) per non perdere
+            // l'utente quando il backend è down al boot.
+            if (isAuthFailure(err)) {
+              set({ token: "", user: null, bootstrapping: false });
+            } else {
+              // Conserva token; user può rimanere quello persistito (può
+              // essere stale ma è ok per UX offline-first).
+              set({ bootstrapping: false });
+            }
           }
         })();
         return bootstrapPromise;

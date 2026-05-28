@@ -120,6 +120,12 @@ class FEAModel(BaseModel):
     # pubblico/demo (es. esempi pre-popolati). Popolato al POST/PUT da
     # API routes models quando l'utente è autenticato.
     owner_id: Optional[str] = None
+    # v3.1.1 audit-fix L2-4: timestamp ISO-8601 di creazione/ultimo update.
+    # Popolato da `storage.save_model` (touch automatico). Permette al
+    # frontend Dashboard di ordinare la lista "recenti" per data di modifica.
+    # Optional per retrocompat con modelli serializzati pre-migration.
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 
 
 class ModelUpdate(BaseModel):

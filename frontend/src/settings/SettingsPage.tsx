@@ -6,12 +6,12 @@
  *
  * Route: /settings dentro AuthGate.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   BadgeCheck, Bell, CreditCard, Key, KeyRound, LogOut, Mail, Settings as SettingsIcon,
   User, UserCircle, Weight,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 
 import { useAuthStore } from "../store/authStore";
 
@@ -20,9 +20,27 @@ import "../styles/settings.css";
 
 type Section = "account" | "profile" | "billing" | "api" | "prefs" | "units" | "shortcuts" | "about" | "logout";
 
+const VALID_SECTIONS = new Set<Section>([
+  "account", "profile", "billing", "api", "prefs", "units", "shortcuts", "about", "logout",
+]);
+
+function parseSection(raw: string | null): Section {
+  if (raw && VALID_SECTIONS.has(raw as Section)) return raw as Section;
+  return "account";
+}
+
 
 export function SettingsPage(): JSX.Element {
-  const [active, setActive] = useState<Section>("account");
+  // v3.1.1 audit-fix L2-2: leggi `?section=billing` per consentire deep-link
+  // dalla Dashboard (es. "Scopri Pro" → /settings?section=billing). Default
+  // su "account" se param assente o non riconosciuto.
+  const [searchParams] = useSearchParams();
+  const [active, setActive] = useState<Section>(() => parseSection(searchParams.get("section")));
+  // Reagisce a navigate() successivi (in-app navigation) cambiando tab live.
+  useEffect(() => {
+    const next = parseSection(searchParams.get("section"));
+    setActive(next);
+  }, [searchParams]);
   const user = useAuthStore((s) => s.user);
   // v2.8.1 Sprint A M6: fallback non hardcoded. Se user  null
   // (logout in corso), mostro placeholder neutro invece di "Federico Sanna".

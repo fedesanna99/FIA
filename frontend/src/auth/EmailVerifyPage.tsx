@@ -58,14 +58,16 @@ export function EmailVerifyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(RESEND_COUNTDOWN_SECONDS);
 
-  // Countdown decrement ogni 1s. Cleanup interval su unmount.
+  // v3.1.1 audit-fix L1-1: countdown decrement ogni 1s, deps array vuoto.
+  // Prima `[resendCountdown]` ri-creava l'interval ad ogni tick (1Hz) →
+  // spreco CPU + drift cumulativo su tab background. Ora il functional
+  // setState legge il valore corrente senza dipendere dalla closure stale.
   useEffect(() => {
-    if (resendCountdown <= 0) return;
     const id = window.setInterval(() => {
       setResendCountdown((sec) => (sec > 0 ? sec - 1 : 0));
     }, 1000);
     return () => window.clearInterval(id);
-  }, [resendCountdown]);
+  }, []);
 
   const canResend = resendCountdown === 0;
   const canSubmit = otp.length === OTP_LENGTH && !submitting;

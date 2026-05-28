@@ -72,15 +72,32 @@ describe("authStore", () => {
     expect(useAuthStore.getState().user).toEqual(fresh);
   });
 
-  it("verifyToken clears state if /me throws (expired/invalid)", async () => {
+  it("verifyToken clears state on 401 (token expired/invalid)", async () => {
     useAuthStore.setState({ token: "expired-token", user: mockUser });
-    (getMe as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("401"));
+    // v3.1.1 audit-fix L1-5: distinguere 401 da network. Solo 401 → logout.
+    const axios401 = Object.assign(new Error("401 Unauthorized"), {
+      response: { status: 401, data: { detail: "Token expired" } },
+    });
+    (getMe as ReturnType<typeof vi.fn>).mockRejectedValue(axios401);
 
     const ok = await useAuthStore.getState().verifyToken();
     expect(ok).toBe(false);
     const s = useAuthStore.getState();
     expect(s.token).toBe("");
     expect(s.user).toBeNull();
+  });
+
+  it("verifyToken preserves state on network/5xx (backend down)", async () => {
+    // v3.1.1 audit-fix L1-5: errori transient NON devono buttare la sessione.
+    useAuthStore.setState({ token: "valid-token", user: mockUser });
+    (getMe as ReturnType<typeof vi.fn>).mockRejectedValue(new Error("Network Error"));
+
+    const ok = await useAuthStore.getState().verifyToken();
+    expect(ok).toBe(false);
+    const s = useAuthStore.getState();
+    // Token + user mantenuti (l'app può riprovare al prossimo bootstrap).
+    expect(s.token).toBe("valid-token");
+    expect(s.user).toEqual(mockUser);
   });
 
   it("isLoggedIn requires both token AND user", () => {

@@ -6,14 +6,17 @@
  * page route `/templates` accessibile da DashboardPage tile "Apri un template"
  * o da `feapro:open-template-gallery` event (legacy compat per altri call site).
  *
- * Backend: i template "ex_*" sono pre-caricati nel DB SQLite del backend
- * (`backend/data/templates/`). Click su un template card → POST
- * `/api/models/from-template?id=ex_uc1` che clona il template come modello
- * user editabile, poi navigate("/") con `setActiveId` per aprire il workspace.
+ * Backend: i template "ex_*" sono pre-caricati nel DB del backend (vedi
+ * `backend/examples.py`). Click su un template card → POST
+ * `/api/models/from-template/{backendId}` che deep-copia il template come
+ * modello editabile con `owner_id` dell'utente corrente. Quindi dispatch
+ * `feapro:load-template` con il NEW model id → App.tsx fa setActiveId →
+ * Viewport3D si monta.
  *
- * Per ora (MVP v2.7.2): click → toast "Caricamento template..." +
- * dispatch event `feapro:load-template` (handler in App.tsx riusa il flow
- * esistente di TemplateGalleryDialog → POST + setActiveId + navigate).
+ * v3.1.1 audit-fix L2-1 (P0): prima il frontend caricava direttamente
+ * l'ID del template (`feapro:load-template { templateId: "ex_simple_beam_2d" }`)
+ * e qualsiasi edit (PUT nodi/carichi) mutava il template per TUTTI gli
+ * utenti. Ora la clonazione lato backend garantisce isolamento.
  *
  * Reference: ui_kits/webapp_desktop/Templates.html (407 righe) +
  *            templates.css (333 righe namespaced .tg).
@@ -24,6 +27,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 import { useAuthStore } from "../store/authStore";
 import { toast } from "../store/toastStore";
+import { modelsApi } from "../api/client";
 
 import "../styles/templates.css";
 
@@ -144,7 +148,11 @@ const CATEGORY_LABELS: Record<TplCategory | "tutti", string> = {
 export function TemplatesPage() {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState<TplCategory | "tutti">("tutti");
-  const [tierFilter, setTierFilter] = useState<TplTier | "all">("free");
+  // v3.1.1 audit-fix L2-12: default "all" invece di "free" così l'utente
+  // vede subito anche i template Pro (lockati a livello UX, non nascosti).
+  const [tierFilter, setTierFilter] = useState<TplTier | "all">("all");
+  // v3.1.1 audit-fix L2-14: subscribe a useAuthStore (era .getState() inline).
+  const userEmail = useAuthStore((s) => s.user?.email);
 
   const filtered = TEMPLATES.filter((t) => {
     if (activeCategory !== "tutti") {
@@ -167,7 +175,7 @@ export function TemplatesPage() {
     sismica: TEMPLATES.filter((t) => t.ec === "EC8" || t.type === "sismica").length,
   };
 
-  const onOpenTemplate = (tpl: Template) => {
+  const onOpenTemplate = async (tpl: Template) => {
     // v3.0.1 Bug fix #3: gestisci esplicitamente il caso "template senza
     // backend wiring" (UC5/UC8/UC9/UC10). Mostriamo un toast informativo
     // invece di lasciare loading infinito.
@@ -179,18 +187,37 @@ export function TemplatesPage() {
       );
       return;
     }
-    toast("info", `Caricamento template ${tpl.code} · ${tpl.title}…`, 3000);
-    // v3.0.1 Bug fix #2: l'evento `feapro:load-template` è ora ascoltato in
-    // App.tsx (setActiveId via detail.templateId). Il backend serve il
-    // modello via GET /api/models/{templateId} → useLoadModel popola lo
-    // store → Shell con Viewport3D si monta automaticamente.
-    window.dispatchEvent(
-      new CustomEvent("feapro:load-template", { detail: { templateId: tpl.backendId } }),
-    );
-    // Redirect a home: appena activeId si setta, App.tsx switcha a Shell
-    // con Viewport3D. Se la fetch fallisce (404, network), l'utente resta
-    // in dashboard e vede solo il toast (no UI rotta).
-    navigate("/", { replace: false });
+    // v3.1.1 audit-fix L2-1 (P0 critico): clona il template via POST
+    // /api/models/from-template/{id} così l'utente lavora su una sua
+    // copia con `owner_id` proprio. Senza questo passaggio l'edit
+    // successivo (PUT nodi/carichi/...) avrebbe sovrascritto il template
+    // CONDIVISO per tutti gli utenti — bug P0 dell'audit 2026-05-28.
+    // v3.1.1 audit-fix L2-9: gestisci esplicitamente 404/errore con toast
+    // dedicato + nessun navigate (evita Viewport3D vuoto).
+    // TTL breve del loading toast (2.5s) per non sovrapporsi all'eventuale
+    // error toast in caso di fallimento clone.
+    toast("info", `Caricamento template ${tpl.code} · ${tpl.title}…`, 2_500);
+    try {
+      const cloned = await modelsApi.fromTemplate(tpl.backendId);
+      // L'evento porta ora il NEW model id (non più il template id):
+      // App.tsx fa setActiveId → useLoadModel → Viewport3D si monta.
+      window.dispatchEvent(
+        new CustomEvent("feapro:load-template", {
+          detail: { templateId: cloned.id },
+        }),
+      );
+      navigate("/", { replace: false });
+    } catch (err) {
+      // L'axios interceptor mostra già un toast errore generico (HTTP 4xx/5xx);
+      // qui aggiungiamo il contesto specifico del template. Niente navigate
+      // per non lasciare l'utente con uno Shell vuoto su activeId inesistente.
+      toast(
+        "error",
+        `Impossibile aprire ${tpl.code}. Riprova fra qualche secondo o scegli un altro template.`,
+        5_000,
+      );
+      void err;
+    }
   };
 
   return (
@@ -212,7 +239,7 @@ export function TemplatesPage() {
           <kbd>⌘ K</kbd>
         </button>
         <button type="button" className="tg-avatar" aria-label="Profilo" onClick={() => window.dispatchEvent(new Event("feapro:open-account-dialog"))}>
-          {initialsFromEmail(useAuthStore.getState().user?.email)}
+          {initialsFromEmail(userEmail)}
         </button>
       </header>
 

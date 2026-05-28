@@ -25,7 +25,7 @@
  * Reference: `ui_kits/webapp_desktop/Dashboard new.html` (566 righe) +
  * `dashboard-new.css` (672 righe namespaced sotto `.dash`).
  */
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import {
@@ -35,6 +35,8 @@ import {
 import { getQuota } from "../api/billing";
 import { useAuthStore } from "../store/authStore";
 import { useAnalysisStore } from "../store/analysisStore";
+import { toast } from "../store/toastStore";
+import { modelsApi } from "../api/client";
 import { APP_TAG, APP_VERSION } from "../lib/version";
 import type { FEAModel } from "../types/model";
 
@@ -79,22 +81,47 @@ export function DashboardPage({
   const authUser = useAuthStore((s) => s.user);
   const userId = authUser?.id ?? "demo_user";
 
-  const { data: quota } = useQuery({
+  const { data: quota, isError: quotaError } = useQuery({
     queryKey: ["billing-quota", userId],
     queryFn: () => getQuota(userId),
     staleTime: 30_000,
     retry: 1,
   });
 
-  // User-visible models (esclude template "ex_*")
-  const userModels = useMemo(() => models.filter((m) => !m.id.startsWith("ex_")), [models]);
+  // v3.1.1 audit-fix L2-3: filtro user-models centralizzato. Esclude i
+  // template `ex_*` E filtra per `owner_id` quando autenticato (multi-utente).
+  // Ordinati per `updated_at` desc (backend già ordina, ma replichiamo per
+  // robustezza con modelli pre-migration senza timestamp).
+  const userModels = useMemo(() => {
+    const filtered = models.filter((m) => {
+      if (m.id.startsWith("ex_")) return false;
+      if (authUser?.id && m.owner_id && m.owner_id !== authUser.id) return false;
+      return true;
+    });
+    return [...filtered].sort((a, b) => {
+      const aT = a.updated_at ?? "";
+      const bT = b.updated_at ?? "";
+      if (aT !== bT) return bT.localeCompare(aT);
+      return a.id.localeCompare(b.id);
+    });
+  }, [models, authUser?.id]);
 
-  // Saluto contestuale ora del giorno
-  const greeting = useMemo(() => greetingForHour(new Date().getHours()), []);
+  // v3.1.1 audit-fix L2-10: greeting dinamico. Prima `useMemo([])` fissava
+  // il valore al primo mount (utente che lavora dalle 17:59 alle 22:00 vedeva
+  // "Buon pomeriggio" tutto il tempo). Ora useState + interval ogni 5 min.
+  const [greeting, setGreeting] = useState(() => greetingForHour(new Date().getHours()));
+  useEffect(() => {
+    const id = window.setInterval(() => {
+      setGreeting(greetingForHour(new Date().getHours()));
+    }, 5 * 60 * 1000);
+    return () => window.clearInterval(id);
+  }, []);
   const firstName = useMemo(() => extractFirstName(authUser?.email, authUser?.nome), [authUser]);
 
   // Usage card: deriva da quota.tier + progetti attivi (proxy: userModels.length)
-  const tierLabel = (quota?.tier ?? "free").toUpperCase();
+  // v3.1.1 audit-fix L2-19: se quota non disponibile (backend down / errore),
+  // mostra placeholder neutro "—" invece del fallback silenzioso "FREE".
+  const tierLabel = quotaError ? "—" : (quota?.tier ?? "free").toUpperCase();
   const projCap = quota?.tier === "free" ? 5 : 50;
   const projUsed = Math.min(userModels.length, projCap);
 
@@ -111,6 +138,7 @@ export function DashboardPage({
           projUsed={projUsed}
           projCap={projCap}
           isRunning={isRunning}
+          onSelect={onSelect}
         />
         <ActionRow />
         <RecentSection
@@ -131,6 +159,9 @@ export function DashboardPage({
 // ── DashTopBar ──────────────────────────────────────────────────────────
 function DashTopBar() {
   const goTemplates = useGoTemplates();
+  // v3.1.1 audit-fix L2-13: subscribe a useAuthStore (era .getState() inline
+  // → niente re-render quando user cambia in sessione).
+  const userEmail = useAuthStore((s) => s.user?.email);
   const openPalette = () =>
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
   return (
@@ -144,7 +175,8 @@ function DashTopBar() {
       </Link>
 
       <nav className="dash-nav" aria-label="Navigazione principale">
-        <button type="button" className="nav-link is-active">Home</button>
+        {/* v3.1.1 audit-fix L2-16: aria-current="page" per SR su link attivo. */}
+        <button type="button" className="nav-link is-active" aria-current="page">Home</button>
         <button type="button" className="nav-link" onClick={() => goTemplates()}>
           Progetti
         </button>
@@ -173,7 +205,7 @@ function DashTopBar() {
         <HelpCircle width={16} height={16} aria-hidden="true" />
       </button>
       <button type="button" className="avatar" aria-label="Profilo" data-testid="dash-avatar" onClick={() => window.dispatchEvent(new Event("feapro:open-account-dialog"))}>
-        {initialsFromEmail(useAuthStore.getState().user?.email)}
+        {initialsFromEmail(userEmail)}
       </button>
     </header>
   );
@@ -190,13 +222,13 @@ interface HeroProps {
   projUsed: number;
   projCap: number;
   isRunning: boolean;
+  onSelect: (id: string) => void;
 }
-function Hero({ greeting, firstName, modelsCount, latestModel, tierLabel, projUsed, projCap, isRunning }: HeroProps) {
+function Hero({ greeting, firstName, modelsCount, latestModel, tierLabel, projUsed, projCap, isRunning, onSelect }: HeroProps) {
   const projsActive = isRunning ? "1 analisi in corso" : `${modelsCount} progett${modelsCount === 1 ? "o" : "i"} in lavorazione`;
   const pct = projCap > 0 ? Math.round((projUsed / projCap) * 100) : 0;
   const openBilling = () => window.dispatchEvent(new Event("feapro:open-billing"));
   const goPercorsoUC1 = useGoPercorsoUC1();
-  const navigate = useNavigate();
   // v3.0.0 Sprint E M7: ultima sessione dinamico (era hardcoded "UC1").
   // Se ci sono model dell'utente → mostra il primo. Se zero → fallback narrativo.
   const hasModels = latestModel !== null;
@@ -209,9 +241,11 @@ function Hero({ greeting, firstName, modelsCount, latestModel, tierLabel, projUs
           {projsActive} · 2 percorsi guidati attivi · {hasModels ? (
             <>
               ultima sessione su{" "}
+              {/* v3.1.1 audit-fix L2-5: click apre il modello (prima
+                  preventDefault + navigate("/") restava in Dashboard). */}
               <a
                 href="/"
-                onClick={(e) => { e.preventDefault(); navigate("/"); }}
+                onClick={(e) => { e.preventDefault(); onSelect(latestModel.id); }}
               >
                 {latestModel.name ?? latestModel.id}
               </a>.
@@ -326,10 +360,22 @@ interface RecentSectionProps {
   onRetryModels?: () => void;
   onSelect: (id: string) => void;
 }
+type RecentFilter = "tutti" | "acciaio" | "ca" | "sismica";
+
 function RecentSection({ models, modelsUnavailable, modelsRefreshing, onRetryModels, onSelect }: RecentSectionProps) {
+  // v3.1.1 audit-fix L2-6: filter segmented era pura decorazione. Ora stato
+  // reale + filtro su `materials[].name` (heuristic) o `description`.
+  const [filter, setFilter] = useState<RecentFilter>("tutti");
+  const filteredModels = useMemo(() => {
+    if (filter === "tutti") return models;
+    return models.filter((m) => modelMatchesCategory(m, filter));
+  }, [models, filter]);
   // Top 4 per ordine di mantenimento. Se vuoto, mostra demo cards mockup.
-  const recent = useMemo(() => models.slice(0, 4), [models]);
-  const showDemos = recent.length === 0;
+  const recent = useMemo(() => filteredModels.slice(0, 4), [filteredModels]);
+  // Demo cards solo se la lista raw (non filtrata) è vuota — se l'utente
+  // ha modelli ma il filter li nasconde mostriamo "nessun risultato".
+  const showDemos = models.length === 0;
+  const showEmptyFilter = !showDemos && recent.length === 0;
   const goTemplates = useGoTemplates();
 
   return (
@@ -341,10 +387,18 @@ function RecentSection({ models, modelsUnavailable, modelsRefreshing, onRetryMod
         </div>
         <div className="block-actions">
           <div className="seg" role="group" aria-label="Filtro categoria">
-            <button type="button" className="seg-btn is-active">Tutti</button>
-            <button type="button" className="seg-btn">Acciaio</button>
-            <button type="button" className="seg-btn">CA</button>
-            <button type="button" className="seg-btn">Sismica</button>
+            {(["tutti", "acciaio", "ca", "sismica"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                className={`seg-btn${filter === k ? " is-active" : ""}`}
+                onClick={() => setFilter(k)}
+                aria-pressed={filter === k}
+                data-testid={`dash-recent-filter-${k}`}
+              >
+                {k === "tutti" ? "Tutti" : k === "ca" ? "CA" : k.charAt(0).toUpperCase() + k.slice(1)}
+              </button>
+            ))}
           </div>
           <button type="button" className="btn-secondary btn-sm" onClick={() => goTemplates()}>
             Vedi tutti
@@ -366,14 +420,26 @@ function RecentSection({ models, modelsUnavailable, modelsRefreshing, onRetryMod
       )}
 
       <div className="recent-grid">
-        {showDemos ? <DemoRecentCards /> : recent.map((m, i) => (
-          <RecentModelCard
-            key={m.id}
-            model={m}
-            active={i === 0}
-            onClick={() => onSelect(m.id)}
-          />
-        ))}
+        {showDemos ? (
+          <DemoRecentCards onSelect={onSelect} />
+        ) : showEmptyFilter ? (
+          <div className="usage-card" data-testid="dash-recent-filter-empty" style={{ gridColumn: "1 / -1" }}>
+            <span className="eyebrow">Nessun progetto nella categoria selezionata</span>
+            <span className="usage-meta">Prova un altro filtro o usa "Tutti" per vedere tutti i progetti.</span>
+            <button type="button" className="usage-cta" onClick={() => setFilter("tutti")} style={{ color: "var(--accent)" }}>
+              Mostra tutti →
+            </button>
+          </div>
+        ) : (
+          recent.map((m, i) => (
+            <RecentModelCard
+              key={m.id}
+              model={m}
+              active={i === 0}
+              onClick={() => onSelect(m.id)}
+            />
+          ))
+        )}
       </div>
 
       {modelsRefreshing && !showDemos && (
@@ -384,12 +450,46 @@ function RecentSection({ models, modelsUnavailable, modelsRefreshing, onRetryMod
 }
 
 
+// v3.1.1 audit-fix L2-6: heuristic per filtrare modelli per categoria UI.
+// Backend non ha campo `category`, quindi inferiamo da `name`/`description`/
+// id template tip. Casi unmatched cadono fuori dal filter (vista "vuota").
+function modelMatchesCategory(m: FEAModel, cat: RecentFilter): boolean {
+  if (cat === "tutti") return true;
+  const haystack = [
+    m.name ?? "",
+    m.description ?? "",
+    m.id,
+    ...(m.materials ?? []).map((mat) => mat.name ?? ""),
+  ].join(" ").toLowerCase();
+  if (cat === "acciaio") return /acciaio|steel|s355|s275|ipe|hea|heb/.test(haystack);
+  if (cat === "ca") return /\bca\b|calcestruzzo|concrete|c25|c30|c35|c40/.test(haystack);
+  if (cat === "sismica") return /sismic|seismic|ec8|spettro|response.spectrum|modale|modal/.test(haystack);
+  return false;
+}
+
+
 // ── DemoRecentCards (mockup hardcoded UC1/UC2/UC3/UC5) ──────────────────
-function DemoRecentCards() {
-  const goTemplates = useGoTemplates();
+// v3.1.1 audit-fix L2-7: prima ogni card mandava a /templates. Ora clona
+// il rispettivo template tramite POST /api/models/from-template/{id} e
+// apre il workspace col modello nuovo (vedi onLoadDemo). UC5 non ha
+// backend wiring → toast info "in arrivo".
+function DemoRecentCards({ onSelect }: { onSelect: (id: string) => void }) {
+  const onLoadDemo = async (backendId: string | null, label: string) => {
+    if (!backendId) {
+      toast("info", `${label} è ancora in arrivo. Per ora prova UC1, UC2 o UC3.`, 4500);
+      return;
+    }
+    toast("info", `Caricamento ${label}…`, 2_500);
+    try {
+      const cloned = await modelsApi.fromTemplate(backendId);
+      onSelect(cloned.id);
+    } catch {
+      toast("error", `Impossibile aprire ${label}. Riprova fra qualche secondo.`, 5_000);
+    }
+  };
   return (
     <>
-      <button type="button" className="recent-card recent-card-active" onClick={() => goTemplates()}>
+      <button type="button" className="recent-card recent-card-active" onClick={() => onLoadDemo("ex_simple_beam_2d", "UC1 · Trave bi-appoggiata")}>
         <div className="recent-thumb">
           <BeamThumb />
           <span className="recent-trust trust-prelim">PRELIM</span>
@@ -413,7 +513,7 @@ function DemoRecentCards() {
         </div>
       </button>
 
-      <button type="button" className="recent-card" onClick={() => goTemplates()}>
+      <button type="button" className="recent-card" onClick={() => onLoadDemo("ex_portal_frame_2d", "UC2 · Portale 2D")}>
         <div className="recent-thumb">
           <PortalThumb />
           <span className="recent-trust trust-draft">DRAFT</span>
@@ -437,7 +537,7 @@ function DemoRecentCards() {
         </div>
       </button>
 
-      <button type="button" className="recent-card" onClick={() => goTemplates()}>
+      <button type="button" className="recent-card" onClick={() => onLoadDemo("ex_tower_3d", "UC3 · Torre 8 piani")}>
         <div className="recent-thumb">
           <TowerThumb />
           <span className="recent-trust trust-prelim">PRELIM</span>
@@ -461,7 +561,7 @@ function DemoRecentCards() {
         </div>
       </button>
 
-      <button type="button" className="recent-card" onClick={() => goTemplates()}>
+      <button type="button" className="recent-card" onClick={() => onLoadDemo(null, "UC5 · Mensola incastrata")}>
         <div className="recent-thumb">
           <CantileverThumb />
           <span className="recent-trust trust-prelim">PRELIM</span>
@@ -531,6 +631,9 @@ function RecentModelCard({ model, active, onClick }: RecentModelCardProps) {
 
 // ── DualRow (Percorsi + Changelog) ──────────────────────────────────────
 function DualRow() {
+  // v3.1.1 audit-fix L2-8: "Vedi tutti i percorsi" navigava a niente.
+  // Ora apre /percorsi/uc1 come fallback (route concreta presente).
+  const goPercorsoUC1 = useGoPercorsoUC1();
   return (
     <section className="dual-row" data-testid="dash-dual-row">
       <div className="block block-half">
@@ -539,7 +642,9 @@ function DualRow() {
             <span className="eyebrow">Percorsi guidati</span>
             <h2>Continua un percorso</h2>
           </div>
-          <button type="button" className="btn-secondary btn-sm">Vedi tutti i percorsi</button>
+          <button type="button" className="btn-secondary btn-sm" onClick={() => goPercorsoUC1()} data-testid="dash-percorsi-see-all">
+            Vedi tutti i percorsi
+          </button>
         </header>
         <div className="percorso-list">
           <PercorsoRow id="UC1" title="Trave bi-appoggiata · Statica" step="Step 3/6 · Aggiungi i carichi distribuiti" pct={50} color="var(--accent)" />
@@ -554,7 +659,16 @@ function DualRow() {
             <span className="eyebrow">Novità · {APP_TAG}</span>
             <h2>Cosa è cambiato</h2>
           </div>
-          <button type="button" className="btn-secondary btn-sm">Changelog completo</button>
+          {/* v3.1.1 audit-fix L2-8: changelog completo punta a GitHub releases. */}
+          <a
+            className="btn-secondary btn-sm"
+            href="https://github.com/fedesanna99/FIA/releases"
+            target="_blank"
+            rel="noreferrer"
+            data-testid="dash-changelog-link"
+          >
+            Changelog completo
+          </a>
         </header>
         <div className="changelog">
           <ClRow pill="new" title="Dashboard mockup-driven v2.7.1" desc="Hub home replicato pixel-faithful da Dashboard new.html (Phase 4.2 chiusa)." when="oggi" />
@@ -580,7 +694,8 @@ function PercorsoRow({ id, title, step, pct, color = "var(--accent)", suggested 
               cx={18} cy={18} r={15}
               fill="none" stroke={color} strokeWidth={3}
               strokeDasharray={`${pct * 0.9425} 100`}
-              strokeDashoffset={100 - pct * 0.9425 - 47.13 + 47.13}
+              /* v3.1.1 audit-fix L2-15: rimossa expression dead `-47.13 + 47.13 = 0`. */
+              strokeDashoffset={100 - pct * 0.9425}
               transform="rotate(-90 18 18)"
               strokeLinecap="round"
             />

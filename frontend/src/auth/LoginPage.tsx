@@ -33,10 +33,11 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowRight, Check, Eye, EyeOff, Lock, Mail } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 import { login as apiLogin } from "../api/auth";
 import { useAuthStore } from "../store/authStore";
+import { translateAxiosError } from "../lib/apiErrors";
 
 import { AuthCard } from "./components/AuthCard";
 import { AuthDivider } from "./components/AuthDivider";
@@ -57,7 +58,12 @@ export function LoginPage() {
   const [showPwd, setShowPwd] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
   const setAuth = useAuthStore((s) => s.setAuth);
+  // v3.1.1 audit-fix L1-2: leggi `state.from` per redirect post-login al
+  // path originale (deep-link). AuthGate.tsx già passa `state: { from }`
+  // quando reindirizza a /login un utente non autenticato. Default "/" .
+  const redirectTo = (location.state as { from?: string } | null)?.from ?? "/";
 
   const {
     register,
@@ -77,13 +83,28 @@ export function LoginPage() {
     try {
       const res = await apiLogin(data.email.trim(), data.password);
       setAuth(res.token, res.user);
-      navigate("/", { replace: true });
+      // v3.1.1 audit-fix L1-2: redirect a `state.from` se presente (deep-link
+      // preservato da AuthGate). Default "/" se l'utente è andato direttamente
+      // su /login senza un redirect inbound.
+      navigate(redirectTo, { replace: true });
     } catch (err: unknown) {
-      const detail =
-        (err as { response?: { data?: { detail?: string } } })?.response?.data?.detail ??
-        (err as Error)?.message ??
-        "Errore sconosciuto";
-      setSubmitError(humanizeLoginError(String(detail)));
+      // v3.1.1 audit-fix L1-4: error narrowing robusto. Strategia 3-step:
+      // 1) leggi `detail` stringa (caso FastAPI HTTPException semplice)
+      // 2) prova humanizeLoginError (mapping IT per messaggi noti login)
+      // 3) fallback translateAxiosError per detail strutturati (array 422 ecc.)
+      const errObj = err as { response?: { status?: number; data?: { detail?: unknown } }; message?: string };
+      const detail = errObj?.response?.data?.detail;
+      const status = errObj?.response?.status;
+      if (typeof detail === "string" && detail.length > 0) {
+        // Caso comune: FastAPI ritorna {detail: "Invalid email or password"}.
+        setSubmitError(humanizeLoginError(detail));
+      } else if (status != null && errObj?.response) {
+        // FastAPI 422 array di issues / payload strutturato.
+        const { title, description } = translateAxiosError(status, errObj.response.data);
+        setSubmitError(description ? `${title} · ${description}` : title);
+      } else {
+        setSubmitError(humanizeLoginError(errObj?.message ?? "Errore sconosciuto"));
+      }
     }
   }
 

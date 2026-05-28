@@ -25,6 +25,7 @@
  */
 import { useCallback, useEffect, useState, lazy, Suspense } from "react";
 import { X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "./components/ui/cn";
 import { TopBar } from "./components/shell/TopBar";
 import { MissionBar } from "./components/shell/MissionBar";
@@ -175,6 +176,10 @@ export default function App() {
   // v2.6.2 T8: wire useTheme hook all'inizio dell'App — setta data-theme
   // su <html> + sync con localStorage. UI toggle aggiunto in Fase 3+.
   useTheme();
+
+  // v3.1.1 audit-fix L2-2: react-router navigate per i 4 listener globali
+  // aggiunti più sotto (open-percorso-uc1, open-billing, open-account-dialog).
+  const navigate = useNavigate();
 
   const modelsQuery = useModelList();
   const models = modelsQuery.data;
@@ -329,9 +334,24 @@ export default function App() {
     // l'evento era dispatchato ma nessuno ascoltava → loading infinito.
     const onLoadTemplate = (e: Event) => {
       const detail = (e as CustomEvent).detail as { templateId?: string } | undefined;
+      // v3.1.1 audit-fix L2-1: ora `templateId` è in realtà il NEW model id
+      // restituito da POST /api/models/from-template/{id} — il template
+      // originale resta inalterato per gli altri utenti.
       if (detail?.templateId) setActiveId(detail.templateId);
     };
     window.addEventListener("feapro:load-template", onLoadTemplate);
+    // v3.1.1 audit-fix L2-2 (P0 critico): 4 listener globali che erano dead
+    // dispatched da DashboardPage/TemplatesPage (Docs/Help nav, Pro upgrade,
+    // percorso cards in DualRow, avatar profilo). Senza questi listener
+    // cliccando quei bottoni in Dashboard fullscreen non succedeva nulla.
+    const openHelp = () => setDialog("help");
+    window.addEventListener("feapro:open-help", openHelp);
+    const openBilling = () => navigate("/settings?section=billing");
+    window.addEventListener("feapro:open-billing", openBilling);
+    const openPercorsoUC1 = () => navigate("/percorsi/uc1");
+    window.addEventListener("feapro:open-percorso-uc1", openPercorsoUC1);
+    const openAccountDialog = () => navigate("/settings?section=account");
+    window.addEventListener("feapro:open-account-dialog", openAccountDialog);
     return () => {
       window.removeEventListener("feapro:open-import-wizard", openImport);
       window.removeEventListener("feapro:model-imported", onImported);
@@ -340,8 +360,12 @@ export default function App() {
       window.removeEventListener("feapro:open-export-pdf", openExportPdf);
       window.removeEventListener("feapro:open-new-model", openNewModel);
       window.removeEventListener("feapro:load-template", onLoadTemplate);
+      window.removeEventListener("feapro:open-help", openHelp);
+      window.removeEventListener("feapro:open-billing", openBilling);
+      window.removeEventListener("feapro:open-percorso-uc1", openPercorsoUC1);
+      window.removeEventListener("feapro:open-account-dialog", openAccountDialog);
     };
-  }, []);
+  }, [navigate, setDialog]);
 
   // v1.5 Task 34 follow-up: dispatcher wizardStore.
   // Quando la palette / shortcut chiama wizardStore.open(kind, payload),

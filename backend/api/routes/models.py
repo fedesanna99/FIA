@@ -28,7 +28,15 @@ class CreateModelRequest(BaseModel):
 
 @router.get("/", response_model=list[FEAModel])
 def list_all():
-    return storage.list_models()
+    """v3.1.1 audit-fix L2-4: ritorna modelli ordinati per `updated_at`
+    discendente (più recenti prima). Modelli pre-migration con
+    updated_at=None finiscono in fondo (ordinati per id come tie-breaker)."""
+    models = storage.list_models()
+    return sorted(
+        models,
+        key=lambda m: (m.updated_at or "", m.id),
+        reverse=True,
+    )
 
 
 @router.post("/", response_model=FEAModel)
@@ -73,6 +81,39 @@ def duplicate_model(
     copy.name = f"{m.name} (copia)"
     # v2.4.6 #22bis: la copia è dell'utente corrente (non eredita il proprietario).
     copy.owner_id = current_user.id if current_user else None
+    return storage.save_model(copy)
+
+
+@router.post("/from-template/{template_id}", response_model=FEAModel)
+def from_template(
+    template_id: str,
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """v3.1.1 audit-fix L2-1: clona un template (es. `ex_simple_beam_2d`)
+    come modello editabile dell'utente corrente.
+
+    Garantisce: deep copy, `new_id()`, `owner_id` valorizzato. Niente
+    mutazione del template originale (cross-user safety): senza questo
+    endpoint il frontend caricava direttamente l'ID del template e
+    qualsiasi edit successivo sovrascriveva il template per TUTTI gli
+    utenti — bug P0 dell'audit `2026-05-28`.
+
+    Accetta SOLO ID che iniziano con `ex_` (i template precaricati);
+    per duplicare modelli utente esistenti vedi `duplicate_model`.
+    """
+    if not template_id.startswith("ex_"):
+        raise HTTPException(
+            400,
+            f"{template_id} non è un template valido (deve iniziare con 'ex_')",
+        )
+    tpl = storage.get_model(template_id)
+    if not tpl:
+        raise HTTPException(404, f"Template {template_id} non trovato")
+    copy = tpl.model_copy(deep=True)
+    copy.id = storage.new_id()
+    copy.owner_id = current_user.id if current_user else None
+    # name resta uguale al template per coerenza UX ("Trave bi-appoggiata"
+    # non "Trave bi-appoggiata (copia)"); l'utente può rinominare in UI.
     return storage.save_model(copy)
 
 

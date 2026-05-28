@@ -119,6 +119,12 @@ export const modelsApi = {
     api.post<FEAModel>("/api/models/import", payload).then(r => r.data),
   duplicate: (id: string) =>
     api.post<FEAModel>(`/api/models/${id}/duplicate`).then(r => r.data),
+  // v3.1.1 audit-fix L2-1: clona un template (es. `ex_simple_beam_2d`) come
+  // modello editabile dell'utente corrente. Senza questo endpoint il
+  // frontend carica direttamente l'ID del template e qualsiasi edit
+  // sovrascrive il template per TUTTI gli utenti.
+  fromTemplate: (templateId: string) =>
+    api.post<FEAModel>(`/api/models/from-template/${templateId}`).then(r => r.data),
   validate: (id: string) =>
     api.get<ValidationReport>(`/api/models/${id}/validate`).then(r => r.data),
 
