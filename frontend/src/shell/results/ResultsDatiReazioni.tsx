@@ -66,6 +66,23 @@ function sumLoads(model: FEAModel | null): { fx: number; fy: number; fz: number 
   return { fx, fy, fz };
 }
 
+/**
+ * Modello ha load NON aggregati dalla somma di controllo (distribuiti,
+ * pressioni, peso proprio). Quando true, il "Δ equilibrio" calcolato
+ * sui soli nodali sarebbe FALSO NEGATIVO ("✗") — il modello potrebbe
+ * essere in perfetto equilibrio fisico col solver, e il delta non-zero
+ * riflette solo l'esclusione dei distribuiti dal riassunto.
+ *
+ * rifinitura 2d FIX B: la riga delta usa questo flag per scegliere il
+ * tono (info neutro vs ok verde vs warn ambra) e il testo onesto.
+ */
+function modelHasUnaccountedLoads(model: FEAModel | null): boolean {
+  if (!model || !model.loads) return false;
+  return model.loads.some(
+    (l) => l.type === "distributed" || l.type === "pressure" || l.type === "self_weight",
+  );
+}
+
 export function ResultsDatiReazioni() {
   const model = useModelStore((s) => s.model);
   const staticResults = useResultsStore((s) => s.staticResults);
@@ -106,6 +123,26 @@ export function ResultsDatiReazioni() {
   const inEquilibrium = appliedMag < 1e-9
     ? deltaMag < 1e-6
     : deltaMag / appliedMag < 1e-3;
+
+  // rifinitura 2d FIX B: il "Δ equilibrio" ambra-✗ era un falso negativo
+  // spaventante quando il modello aveva carichi distribuiti (esclusi dalla
+  // somma). Stesso peccato simmetrico del falso positivo "Tutti in
+  // sicurezza" curato in FAM B. Filosofia: NO BUGIE VISIVE.
+  //
+  // Tono della riga Δ:
+  //   - "info"  (neutro): se il modello ha distribuiti → la somma esclude
+  //             i loro contributi, quindi NON dire ✗ all'utente. Mostra
+  //             una nota informativa.
+  //   - "ok"    (verde):  no distribuiti + Δ ≈ 0 → vero equilibrio.
+  //   - "warn"  (ambra):  no distribuiti + Δ != 0 → vero sbilanciamento
+  //             (caso reale, va segnalato).
+  const hasUnaccountedLoads = modelHasUnaccountedLoads(model);
+  type DeltaTone = "info" | "ok" | "warn";
+  const deltaTone: DeltaTone = hasUnaccountedLoads
+    ? "info"
+    : inEquilibrium
+    ? "ok"
+    : "warn";
 
   if (!staticResults) {
     return (
@@ -183,24 +220,38 @@ export function ResultsDatiReazioni() {
           </span>
         </div>
         <div
-          className={`results-data-sum-row results-data-sum-row--delta${inEquilibrium ? " is-ok" : " is-warn"}`}
+          className={`results-data-sum-row results-data-sum-row--delta is-${deltaTone}`}
           data-testid="reazioni-sum-delta"
+          data-tone={deltaTone}
           data-equilibrium={inEquilibrium ? "true" : "false"}
         >
           <span>Δ equilibrio (ΣR + ΣF)</span>
           <span className="results-data-sum-val">
-            {inEquilibrium
+            {deltaTone === "ok"
               ? "≈ 0 ✓"
-              : `(${fmt(delta.fx / 1000)}, ${fmt(delta.fy / 1000)}, ${fmt(delta.fz / 1000)}) kN ✗`}
+              : deltaTone === "info"
+              ? "distribuiti esclusi dal riassunto"
+              : `(${fmt(delta.fx / 1000)}, ${fmt(delta.fy / 1000)}, ${fmt(delta.fz / 1000)}) kN`}
           </span>
         </div>
       </div>
 
       <p className="results-data-hint">
         Il controllo a mano del senior: <b>ΣR + ΣF</b> deve essere ≈ 0 in
-        equilibrio. Σ carichi qui considera solo i carichi <i>nodali</i>;
-        distribuiti/pressioni/peso proprio sono esclusi dal controllo
-        riassuntivo (step futuro).
+        equilibrio.{" "}
+        {hasUnaccountedLoads ? (
+          <>
+            Il modello ha carichi <i>distribuiti / pressioni / peso proprio</i>:
+            il loro contributo al riassunto sarà aggiunto in una versione futura.
+            Per ora la somma considera solo i carichi <i>nodali</i>.
+          </>
+        ) : (
+          <>
+            Σ carichi qui considera solo i carichi <i>nodali</i>;
+            distribuiti/pressioni/peso proprio sono esclusi dal controllo
+            riassuntivo (step futuro).
+          </>
+        )}
       </p>
     </div>
   );

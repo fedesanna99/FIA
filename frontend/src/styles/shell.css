@@ -981,6 +981,16 @@ body.shell-sharp .results-data-export { border-radius: 0; }
   color: var(--warn, #B45309);
   font-weight: 600;
 }
+/* rifinitura 2d FIX B: tono "info" (neutro) per il riquadro Δ
+   equilibrio quando il modello ha carichi distribuiti — la somma esclude
+   i loro contributi e non c'e' un vero errore di equilibrio da segnalare.
+   Niente ambra, niente ✗ spaventante: solo nota informativa grigio chiaro. */
+.results-data-sum-row--delta.is-info {
+  background: var(--bg, #FAFAFA);
+  color: var(--ink-dim, #7B808A);
+  font-weight: 500;
+  font-style: italic;
+}
 body.shell-sharp .results-data-sum-row { border-radius: 0; }
 
 .results-data-hint {
