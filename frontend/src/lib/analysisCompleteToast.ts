@@ -1,25 +1,27 @@
-// redesign/workspace-fasi · rifinitura FETTA 2b
+// redesign/workspace-fasi · rifinitura 2b + 2c
 //
 // Helper non-invasivo per il toast "Analisi completata → Vai ai Risultati":
 //   - mostrato SOLO se l'utente NON è già sulla fase Risultati
 //   - persistente 10s (TTL > default 3500ms success)
-//   - CTA "Vai ai Risultati →" che dispatcha `feapro:shell:goto-workspace`;
-//     Shell.tsx ascolta e cambia activeWs a "risultati"
+//   - CTA "Vai ai Risultati →" che richiede il cambio workspace via
+//     shellIntentStore.requestWorkspace("risultati"); Shell.tsx osserva
+//     lo store e chiama setActiveWs + consume()
 //   - in caso di FAIL non chiamare questa funzione (rotta errori gia' esistente)
 //
-// Scelte di design:
-//   - Niente nuovo store di "navigation intent": riusa il pattern feapro:*
-//     events gia' in App.tsx + Shell.tsx, no superficie nuova
+// Scelte di design (rifinitura 2c):
+//   - HMR-safe: usiamo uno Zustand store globale invece di window
+//     CustomEvent. Lo store sopravvive a hot reload del file Shell.tsx;
+//     i componenti si re-subscribono. Niente listener fantasma di
+//     istanze smontate.
 //   - "Sapere se siamo gia' su risultati" leggendo sessionStorage:
 //     `feapro:shell:active-workspace` e' la chiave persisted da Shell.tsx
-//     (vedi Shell.tsx:102). Lettura sincrona, no hook circular import.
-//   - Testabile come pura funzione mockando solo sessionStorage e toast.
+//     (vedi Shell.tsx). Lettura sincrona, no hook circular import.
 
 import { toast } from "../store/toastStore";
+import { useShellIntentStore } from "../store/shellIntentStore";
 import type { AnalysisType } from "../types/results";
 
 const SHELL_WORKSPACE_KEY = "feapro:shell:active-workspace";
-const GOTO_EVENT = "feapro:shell:goto-workspace";
 const TOAST_TTL_MS = 10_000;
 
 const TYPE_LABELS: Record<AnalysisType, string> = {
@@ -62,10 +64,10 @@ export function showAnalysisCompleteToast(
       label: "Vai ai Risultati →",
       testid: "analysis-complete-goto",
       onClick: () => {
-        if (typeof window === "undefined") return;
-        window.dispatchEvent(
-          new CustomEvent(GOTO_EVENT, { detail: { ws: "risultati" } }),
-        );
+        // rifinitura 2c: invece di window.dispatchEvent (fragile su HMR
+        // con listener fantasma), usiamo il store globale. Shell.tsx
+        // osserva pendingWorkspace e applica + consume.
+        useShellIntentStore.getState().requestWorkspace("risultati");
       },
     },
     { testid: "analysis-complete-toast" },
@@ -85,6 +87,3 @@ function isOnResultsWorkspace(): boolean {
     return false;
   }
 }
-
-/** Nome dell'evento custom dispatchato dalla CTA. Esportato per Shell.tsx. */
-export const ANALYSIS_GOTO_EVENT = GOTO_EVENT;

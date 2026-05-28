@@ -47,9 +47,11 @@ import { ViewPanel } from "./panels/ViewPanel";
 // content di Sintesi (embed) dentro ResultsTabsPanel.
 import { ResultsTabsPanel } from "./results/ResultsTabsPanel";
 import { ResultsVerdictStrip } from "./results/ResultsVerdictStrip";
-// redesign/workspace-fasi rifinitura 2b: nome evento "vai al workspace"
-// usato dalla CTA del toast "Analisi completata".
-import { ANALYSIS_GOTO_EVENT } from "../lib/analysisCompleteToast";
+// redesign/workspace-fasi rifinitura 2c: intent store HMR-safe per
+// la CTA del toast "Analisi completata → Vai ai Risultati". Sostituisce
+// il vecchio window event "feapro:shell:goto-workspace" che era fragile
+// rispetto a hot reload di Shell.tsx (closure-stale).
+import { useShellIntentStore } from "../store/shellIntentStore";
 // v2.6.5 D.1: rail expanded vs collapsed (single source of truth) per
 // sincronizzare grid `--rail-w` con il render del rail.
 // v2.6.6 E.2: hook promosso da `shell/useRailExpansion.ts` a `lib/` per
@@ -173,21 +175,23 @@ export function Shell({ children }: ShellProps) {
     return () => window.removeEventListener("keydown", onKey);
   }, [setActiveWs]);
 
-  // redesign/workspace-fasi rifinitura 2b: listener globale
-  // `feapro:shell:goto-workspace` (CTA del toast "Analisi completata
-  // → Vai ai Risultati"). Il toast e' non-invasivo: la navigazione
-  // avviene SOLO se l'utente clicca esplicitamente l'azione.
+  // redesign/workspace-fasi rifinitura 2c: osserva l'intent store
+  // (CTA del toast "Analisi completata → Vai ai Risultati"). HMR-safe:
+  // lo store sopravvive a hot reload, niente listener fantasma su
+  // istanze Shell smontate. Quando pendingWorkspace e' settato,
+  // applichiamo subito (se workspace valido) e consumiamo.
+  const pendingWorkspace = useShellIntentStore((s) => s.pendingWorkspace);
+  const consumeIntent = useShellIntentStore((s) => s.consume);
   useEffect(() => {
-    const onGoto = (e: Event) => {
-      const detail = (e as CustomEvent).detail as { ws?: string } | undefined;
-      const ws = detail?.ws;
-      if (ws && VALID_WS.has(ws as ShellWorkspaceId)) {
-        setActiveWs(ws as ShellWorkspaceId);
-      }
-    };
-    window.addEventListener(ANALYSIS_GOTO_EVENT, onGoto);
-    return () => window.removeEventListener(ANALYSIS_GOTO_EVENT, onGoto);
-  }, [setActiveWs]);
+    if (pendingWorkspace && VALID_WS.has(pendingWorkspace as ShellWorkspaceId)) {
+      setActiveWs(pendingWorkspace as ShellWorkspaceId);
+      consumeIntent();
+    } else if (pendingWorkspace) {
+      // Workspace sconosciuto: consume comunque per non lasciare lo
+      // store sporco. Niente cambio activeWs (silent fallback).
+      consumeIntent();
+    }
+  }, [pendingWorkspace, setActiveWs, consumeIntent]);
 
   return (
     <div

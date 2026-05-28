@@ -1,25 +1,27 @@
 /**
- * analysisCompleteToast.test.ts · redesign/workspace-fasi rifinitura 2b.
+ * analysisCompleteToast.test.ts · rifinitura 2b + 2c.
  *
  * Verifica:
  *  - mostra il toast quando non sono su risultati (qualunque altro WS o nessuno)
  *  - NON mostra il toast quando sono gia' sulla fase Risultati
  *  - testid del toast + dell'action sono "analysis-complete-toast" e
- *    "analysis-complete-goto" (richiesti dal prompt)
+ *    "analysis-complete-goto" (richiesti dal prompt 2b)
  *  - TTL = 10000ms (non si chiude da solo nei 3.5s di default success)
- *  - action.onClick dispatcha l'evento `feapro:shell:goto-workspace`
- *    con detail.ws="risultati"
+ *  - action.onClick scrive shellIntentStore.pendingWorkspace = "risultati"
+ *    (rifinitura 2c: niente piu' window event, store-based)
  *  - messaggio include il tipo analisi + tempo solver se presente
  */
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { showAnalysisCompleteToast, ANALYSIS_GOTO_EVENT } from "./analysisCompleteToast";
+import { describe, it, expect, beforeEach } from "vitest";
+import { showAnalysisCompleteToast } from "./analysisCompleteToast";
 import { useToastStore } from "../store/toastStore";
+import { useShellIntentStore } from "../store/shellIntentStore";
 
 const WS_KEY = "feapro:shell:active-workspace";
 
-describe("showAnalysisCompleteToast · rifinitura 2b", () => {
+describe("showAnalysisCompleteToast · rifinitura 2b + 2c", () => {
   beforeEach(() => {
     useToastStore.setState({ toasts: [] });
+    useShellIntentStore.setState({ pendingWorkspace: null });
     try { window.sessionStorage.removeItem(WS_KEY); } catch { /* ignore */ }
   });
 
@@ -77,17 +79,13 @@ describe("showAnalysisCompleteToast · rifinitura 2b", () => {
     expect(useToastStore.getState().toasts[0].ttlMs).toBe(10_000);
   });
 
-  it("action.onClick dispatcha feapro:shell:goto-workspace con ws='risultati'", () => {
-    const spy = vi.fn();
-    window.addEventListener(ANALYSIS_GOTO_EVENT, spy as EventListener);
+  it("rifinitura 2c: action.onClick scrive pendingWorkspace='risultati' nello store", () => {
+    expect(useShellIntentStore.getState().pendingWorkspace).toBeNull();
     showAnalysisCompleteToast("static");
     const action = useToastStore.getState().toasts[0]?.action;
     expect(action).toBeDefined();
     action!.onClick();
-    expect(spy).toHaveBeenCalledOnce();
-    const evt = spy.mock.calls[0][0] as CustomEvent;
-    expect(evt.detail).toEqual({ ws: "risultati" });
-    window.removeEventListener(ANALYSIS_GOTO_EVENT, spy as EventListener);
+    expect(useShellIntentStore.getState().pendingWorkspace).toBe("risultati");
   });
 
   it("label CTA: 'Vai ai Risultati →'", () => {

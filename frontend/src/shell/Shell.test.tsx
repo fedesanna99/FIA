@@ -6,8 +6,12 @@
  * `children` è solo un wrapper data-testid.
  */
 import { describe, it, expect, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { Shell } from "./Shell";
+import {
+  useShellIntentStore,
+  type ShellWorkspaceIntent,
+} from "../store/shellIntentStore";
 
 // Mock dei panel content (children non sono rilevanti, solo che Shell.tsx
 // orchestri correttamente takeover vs normal).
@@ -87,6 +91,8 @@ describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
   beforeEach(() => {
     // Reset focus mode prima di ogni test (Zustand store è singleton).
     useWorkspaceStore.setState({ isEmptyState: false });
+    // rifinitura 2c: reset intent store (Zustand singleton).
+    useShellIntentStore.setState({ pendingWorkspace: null });
     // Reset workspace persisted in sessionStorage (default = modello).
     try { window.sessionStorage.removeItem("feapro:shell:active-workspace"); } catch { /* ignore */ }
   });
@@ -165,25 +171,34 @@ describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
     expect(screen.queryByTestId("mock-results-verdict-strip")).toBeNull();
   });
 
-  it("rifinitura 2b: listener feapro:shell:goto-workspace cambia activeWs", () => {
-    render(<Shell><div /></Shell>);
+  it("rifinitura 2c: Shell consumes pendingWorkspace from intent store and updates activeWs", () => {
+    // Bug catturato dal vivo: CTA toast non navigava (window event con
+    // closure stale post-HMR). Fix: store globale Zustand, immune a HMR.
     // Default workspace = modello
+    render(<Shell><div /></Shell>);
     expect(screen.getByTestId("mock-rail").getAttribute("data-active")).toBe("modello");
-    // Dispatch evento custom → Shell ascolta e setta activeWs="risultati"
-    fireEvent(
-      window,
-      new CustomEvent("feapro:shell:goto-workspace", { detail: { ws: "risultati" } }),
-    );
+    expect(useShellIntentStore.getState().pendingWorkspace).toBeNull();
+
+    // Esterna mente richiede risultati (come fa la CTA del toast)
+    act(() => {
+      useShellIntentStore.getState().requestWorkspace("risultati");
+    });
+
+    // Shell ha applicato l'intent (activeWs cambiato) E consumato (pending=null)
     expect(screen.getByTestId("mock-rail").getAttribute("data-active")).toBe("risultati");
+    expect(useShellIntentStore.getState().pendingWorkspace).toBeNull();
   });
 
-  it("rifinitura 2b: evento con ws sconosciuto NON cambia activeWs (silent)", () => {
+  it("rifinitura 2c: pendingWorkspace con valore sconosciuto NON cambia activeWs (silent + consume)", () => {
     render(<Shell><div /></Shell>);
-    fireEvent(
-      window,
-      new CustomEvent("feapro:shell:goto-workspace", { detail: { ws: "non-esiste" } }),
-    );
+    act(() => {
+      useShellIntentStore.setState({
+        pendingWorkspace: "non-esiste" as unknown as ShellWorkspaceIntent,
+      });
+    });
     expect(screen.getByTestId("mock-rail").getAttribute("data-active")).toBe("modello");
+    // Comunque consumato per non lasciare lo store sporco
+    expect(useShellIntentStore.getState().pendingWorkspace).toBeNull();
   });
 });
 
@@ -191,6 +206,7 @@ describe("Shell · focus mode (redesign/workspace-fasi FETTA 0)", () => {
   beforeEach(() => {
     // Reset Zustand singleton fra i test
     useWorkspaceStore.setState({ isEmptyState: false });
+    useShellIntentStore.setState({ pendingWorkspace: null });
     try { window.sessionStorage.removeItem("feapro:shell:active-workspace"); } catch { /* ignore */ }
   });
 
