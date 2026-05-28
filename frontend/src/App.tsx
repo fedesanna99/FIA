@@ -192,7 +192,30 @@ export default function App() {
 
   const modelsQuery = useModelList();
   const models = modelsQuery.data;
-  const [activeId, setActiveId] = useState<string | null>(null);
+  // v3.1.4 audit-fix E2E-BUG#2 (P1): activeId persisted in sessionStorage così
+  // un F5 sul modello aperto NON butta l'utente nella Dashboard. SessionStorage
+  // (non localStorage) per scope tab-only: chiudere la tab azzera, ok per UX
+  // (l'utente apre comunque dalla Dashboard "Recenti"). Validato al mount via
+  // useModelList: se l'ID non esiste più sul server, lo puliamo.
+  const ACTIVE_ID_KEY = "feapro:active-model-id";
+  const [activeId, setActiveIdState] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null;
+    try { return window.sessionStorage.getItem(ACTIVE_ID_KEY); } catch { return null; }
+  });
+  const setActiveId = useCallback((id: string | null) => {
+    setActiveIdState(id);
+    try {
+      if (id) window.sessionStorage.setItem(ACTIVE_ID_KEY, id);
+      else window.sessionStorage.removeItem(ACTIVE_ID_KEY);
+    } catch { /* ignore quota/private mode */ }
+  }, []);
+  // Validation: se l'activeId persisted punta a un model non più esistente
+  // (utente cancellato modello in altra sessione), pulisci.
+  useEffect(() => {
+    if (!activeId || !models) return;
+    const exists = models.some((m) => m.id === activeId);
+    if (!exists) setActiveId(null);
+  }, [activeId, models, setActiveId]);
   const [usePwaSafeArea, setUsePwaSafeArea] = useState(pwaSafeAreaEnabled);
   // v1.5 Task 29: stato wizard import (listener su 2 eventi globali
   // dispatchati da Dashboard/palette per aprire il wizard 4-step).
