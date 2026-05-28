@@ -126,6 +126,56 @@ body.shell-density-compact { font-size: 12px; }
   flex-direction: column;
 }
 
+/* redesign/workspace-fasi (FETTA 0): focus mode dentro Shell custom.
+   La grid passa a 2-row (topbar+viewport, statusbar collapsata) e la
+   shell-mid a 1-col (solo viewport pieno; rail+panel non renderizzati
+   da Shell.tsx). La topbar resta come "bussola" per uscire dal focus
+   via tasto F oppure il pill `.shell-focus-exit` floating top-right.
+   Non si sovrappone a `.shell-takeover-on`: in focus mode il takeover
+   non viene comunque renderizzato (Shell.tsx). */
+.shell.shell-focus-on {
+  grid-template-rows: var(--topbar-h) 1fr 0;
+}
+.shell.shell-focus-on .shell-mid {
+  grid-template-columns: 1fr;
+}
+.shell-focus-exit {
+  position: fixed;
+  top: calc(var(--topbar-h, 48px) + 12px);
+  right: 16px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px 6px 10px;
+  border-radius: 999px;
+  background: var(--bg-panel, #ffffff);
+  border: 1px solid var(--border, #e5e7eb);
+  color: var(--ink, #0f172a);
+  font: 500 12px/1 var(--font-sans, system-ui, sans-serif);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+.shell-focus-exit:hover {
+  background: var(--bg-panel-hover, var(--bg, #f8fafc));
+  transform: translateY(-1px);
+}
+.shell-focus-exit:focus-visible {
+  outline: 2px solid var(--accent, #2563eb);
+  outline-offset: 2px;
+}
+.shell-focus-exit kbd {
+  font: 600 10px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  padding: 3px 6px;
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 4px;
+  background: var(--bg, #f8fafc);
+  color: var(--ink-dim, var(--ink-3, #475569));
+}
+body.shell-sharp .shell-focus-exit { border-radius: 0; }
+body.shell-sharp .shell-focus-exit kbd { border-radius: 0; }
+
 /* v2.6.5 D.2: sezione "Modelli recenti" home dashboard (mockup A1).
    4 card grid responsive (4 col desktop, 2 col mid, 1 col mobile).
    Card: thumbnail SVG placeholder + nome + status badge + metadata mono. */

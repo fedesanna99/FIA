@@ -572,9 +572,14 @@ export default function App() {
   const showRails = !isFocusMode && !isMobile;
 
   // v2.6.2 T9: usa la nuova Shell quando l'utente ha un modello attivo,
-  // è su desktop, e non è in focus mode. Negli altri casi (Dashboard
-  // home, mobile, focus mode) resta il chrome legacy.
-  const useNewShell = activeId !== null && !isMobile && !isFocusMode;
+  // è su desktop. Negli altri casi (Dashboard home, mobile) resta il
+  // chrome legacy.
+  // redesign/workspace-fasi (FETTA 0): rimosso `!isFocusMode` dalla
+  // condizione. Su desktop con modello attivo il focus mode ora vive
+  // DENTRO Shell custom (vedi `shell-focus-on` in Shell.tsx + shell.css)
+  // invece di cadere sul chrome legacy. Mobile e Dashboard restano
+  // sul legacy invariati.
+  const useNewShell = activeId !== null && !isMobile;
 
   // v2.7.1.1 (Phase 4.2): la home dashboard mockup-driven (Dashboard new.html)
   // è una pagina FULL-SCREEN che sostituisce sia Shell custom sia chrome

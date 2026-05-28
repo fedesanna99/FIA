@@ -17,7 +17,13 @@
 // Mapping completo refactor: Fase 5.
 
 import { ReactNode, useCallback, useEffect, useState } from "react";
+import { X } from "lucide-react";
 import { useThemeStore } from "../store/themeStore";
+// redesign/workspace-fasi (FETTA 0): focus mode wiring dentro Shell custom.
+// `isEmptyState` è il flag di focus (vedi workspaceStore.enterEmptyState /
+// exitEmptyState, triggerati da F / Shift+Space / palette `focus-toggle` /
+// AvatarMenu).
+import { useWorkspaceStore } from "../store/workspaceStore";
 import { ShellTopBar } from "./ShellTopBar";
 import { ShellRail } from "./ShellRail";
 import { ShellViewport } from "./ShellViewport";
@@ -110,6 +116,20 @@ export function Shell({ children }: ShellProps) {
   // via prop perché la grid CSS deve essere sincrona col rail render.
   const { isExpanded: railExpanded } = useRailExpansion();
 
+  // redesign/workspace-fasi (FETTA 0): focus mode dentro Shell custom.
+  // Quando isFocusMode è true, nascondiamo Rail/Panel/StatusBar e teniamo
+  // solo TopBar (come bussola) + Viewport pieno. Il tasto F / Shift+Space
+  // continuano a togglare via App.tsx; in più offriamo un pill "Esci focus"
+  // sempre visibile per discoverability. Mentre Takeover si esclude
+  // mutualmente (in takeover non senso entrare in focus dello stesso workspace).
+  const isFocusMode = useWorkspaceStore((s) => s.isEmptyState);
+  const exitFocus = useWorkspaceStore((s) => s.exitEmptyState);
+  // Nota: se isTakeover && isFocusMode il focus vince — il takeover-content
+  // resta logicamente attivo (workspace=verifiche) ma non viene renderizzato
+  // in focus per dare priorità al viewport pieno. All'uscita dal focus
+  // il takeover ritorna come prima.
+  const showFocusChrome = isFocusMode;
+
   // v3.3.0 audit-fix L3.1-P1-1: theme className derivato da themeStore.
   // Prima era hardcoded `theme-light` → dark mode rotto in Shell custom.
   const theme = useThemeStore((s) => s.resolved);
@@ -143,29 +163,53 @@ export function Shell({ children }: ShellProps) {
       // di matchare via `:has([data-app-mode="studio-legacy"])` invece di
       // dependency sulle class `.shell.shell-soft` (brittle a rename).
       data-app-mode="studio-legacy"
+      // redesign/workspace-fasi (FETTA 0): aggiunto `shell-focus-on` quando
+      // isFocusMode → la grid passa a 1-col / topbar+viewport (CSS in shell.css).
+      data-focus-mode={isFocusMode ? "true" : undefined}
       className={`shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-${theme}${
         isTakeover ? " shell-takeover-on" : ""
-      }${railExpanded ? " shell-rail-expanded" : ""}`}
+      }${isFocusMode ? " shell-focus-on" : ""}${railExpanded ? " shell-rail-expanded" : ""}`}
     >
       <ShellTopBar />
 
       <div className="shell-mid">
-        <ShellRail active={activeWs} onChange={setActiveWs} />
-        {isTakeover && takeoverContent ? (
+        {!showFocusChrome && <ShellRail active={activeWs} onChange={setActiveWs} />}
+        {!showFocusChrome && isTakeover && takeoverContent ? (
           <main className="shell-takeover-content" data-testid="shell-takeover-content">
             {takeoverContent}
           </main>
         ) : (
           <>
             <ShellViewport>{children}</ShellViewport>
-            <ShellPanel workspace={activeWs}>{WORKSPACE_CONTENT_NORMAL[activeWs]}</ShellPanel>
+            {!showFocusChrome && (
+              <ShellPanel workspace={activeWs}>{WORKSPACE_CONTENT_NORMAL[activeWs]}</ShellPanel>
+            )}
           </>
         )}
       </div>
 
-      <ShellStatusBar />
+      {!showFocusChrome && <ShellStatusBar />}
 
       <ShellCommandPalette />
+
+      {/* redesign/workspace-fasi (FETTA 0): pill "Esci focus" sempre visibile
+          quando isFocusMode. Reversibilità garantita anche se l'utente
+          non ricorda lo shortcut F. Il pill è position:fixed top-right
+          sotto la topbar (vedi `.shell-focus-exit` in shell.css). */}
+      {isFocusMode && (
+        <button
+          type="button"
+          onClick={exitFocus}
+          className="shell-focus-exit"
+          data-testid="shell-focus-exit"
+          aria-label="Esci da focus mode"
+          title="Esci da focus mode (F)"
+        >
+          <X size={14} aria-hidden />
+          <span>Esci focus</span>
+          <kbd>F</kbd>
+        </button>
+      )}
     </div>
   );
 }

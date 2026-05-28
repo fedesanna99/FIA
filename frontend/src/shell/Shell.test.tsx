@@ -63,10 +63,16 @@ vi.mock("./ShellCommandPalette", () => ({
 }));
 
 import { vi } from "vitest";
+// redesign/workspace-fasi (FETTA 0): reset isFocusMode (=isEmptyState)
+// fra i test per evitare carry-over fra describe blocks (Zustand è singleton).
+import { useWorkspaceStore } from "../store/workspaceStore";
 
 describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
   beforeEach(() => {
-    // Reset DOM between tests
+    // Reset focus mode prima di ogni test (Zustand store è singleton).
+    useWorkspaceStore.setState({ isEmptyState: false });
+    // Reset workspace persisted in sessionStorage (default = modello).
+    try { window.sessionStorage.removeItem("feapro:shell:active-workspace"); } catch { /* ignore */ }
   });
 
   it("default workspace=modello: renders ShellViewport + ShellPanel (normal mode)", () => {
@@ -116,5 +122,63 @@ describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
 
     fireEvent.click(screen.getByTestId("rail-modello"));
     expect(root?.className).not.toContain("shell-takeover-on");
+  });
+});
+
+describe("Shell · focus mode (redesign/workspace-fasi FETTA 0)", () => {
+  beforeEach(() => {
+    // Reset Zustand singleton fra i test
+    useWorkspaceStore.setState({ isEmptyState: false });
+    try { window.sessionStorage.removeItem("feapro:shell:active-workspace"); } catch { /* ignore */ }
+  });
+
+  it("focus mode: rail/panel/statusbar non renderizzati, topbar+viewport restano, pill exit visibile", () => {
+    useWorkspaceStore.setState({ isEmptyState: true });
+    render(<Shell><div data-testid="canvas-children">Canvas R3F</div></Shell>);
+
+    // Viewport e canvas restano (Shell custom NON cade più sul legacy)
+    expect(screen.getByTestId("mock-viewport")).toBeInTheDocument();
+    expect(screen.getByTestId("canvas-children")).toBeInTheDocument();
+    // Topbar resta (bussola)
+    expect(screen.getByTestId("mock-topbar")).toBeInTheDocument();
+    // Rail / Panel / StatusBar nascosti
+    expect(screen.queryByTestId("mock-rail")).toBeNull();
+    expect(screen.queryByTestId("mock-shell-panel")).toBeNull();
+    expect(screen.queryByTestId("mock-statusbar")).toBeNull();
+    // Pill di uscita visibile + reversibile
+    const exit = screen.getByTestId("shell-focus-exit");
+    expect(exit).toBeInTheDocument();
+    expect(exit.getAttribute("aria-label")).toBe("Esci da focus mode");
+  });
+
+  it("shell-focus-on class + data-focus-mode applicati al root quando isFocusMode=true", () => {
+    useWorkspaceStore.setState({ isEmptyState: true });
+    const { container } = render(<Shell><div /></Shell>);
+    const root = container.querySelector(".shell");
+    expect(root?.className).toContain("shell-focus-on");
+    expect(root?.getAttribute("data-focus-mode")).toBe("true");
+  });
+
+  it("click su pill 'Esci focus' chiama exitEmptyState e ripristina chrome completo", () => {
+    useWorkspaceStore.setState({ isEmptyState: true });
+    render(<Shell><div data-testid="canvas-children" /></Shell>);
+
+    expect(screen.getByTestId("shell-focus-exit")).toBeInTheDocument();
+    fireEvent.click(screen.getByTestId("shell-focus-exit"));
+
+    // Stato store aggiornato → rerender → rail/panel/statusbar tornano
+    expect(useWorkspaceStore.getState().isEmptyState).toBe(false);
+    expect(screen.getByTestId("mock-rail")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-shell-panel")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-statusbar")).toBeInTheDocument();
+    expect(screen.queryByTestId("shell-focus-exit")).toBeNull();
+  });
+
+  it("default (no focus): nessuna classe shell-focus-on, nessun pill exit", () => {
+    const { container } = render(<Shell><div /></Shell>);
+    const root = container.querySelector(".shell");
+    expect(root?.className).not.toContain("shell-focus-on");
+    expect(root?.getAttribute("data-focus-mode")).toBeNull();
+    expect(screen.queryByTestId("shell-focus-exit")).toBeNull();
   });
 });
