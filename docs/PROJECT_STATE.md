@@ -3,15 +3,40 @@
 > Stato vivo. Aggiornare a fine di ogni sprint.
 > Letto a inizio di ogni nuova chat.
 
-**Ultimo aggiornamento**: 2026-05-28 (sera · post v3.2.0 audit-driven E2E completo)
-**Versione corrente**: `v3.2.0-audit-driven-e2e-complete`
+**Ultimo aggiornamento**: 2026-05-28 (sera tardi · post v3.3.0 sprint 4-layer audit)
+**Versione corrente**: `v3.3.0-audit-4layers-fix`
 **Branch attivo**: `design-rebuild/v2.6` (= origin/test = origin/main)
-**Ultimo SHA**: `fb73fbd` (pre rollup v3.2.0)
-**Deploy live**: Fly.io · https://fea-pro.fly.dev/ (in fase deploy v3.2.0)
+**Ultimo SHA**: `4dcbb51`
+**Deploy live**: Fly.io v**112** · https://fea-pro.fly.dev/ (1/1 health passing)
 
 ---
 
-## ⚡ Stato attuale · post v3.2.0 audit-driven (2026-05-28 sera tardi)
+## ⚡ Stato attuale · post v3.3.0 sprint 4-layer audit (2026-05-28 sera tardi)
+
+**Pipeline**: v3.1.0 → v3.1.1..v3.1.4 → v3.2.0 deploy v111 → **v3.3.0** deploy v112 (5 round audit cumulativi).
+
+**4 audit paralleli L3+L4+L5+L6**: 139 bug nuovi (15 P0 + 45 P1 + 52 P2 + 27 P3) · score medio 67%.
+
+**Sprint 11 fasi A-K**: 22 fix critici chiusi:
+- A Security CSP + storage atomic
+- B Three.js dispose hook + 4 file
+- C Shell state architecture (activeWs sessionStorage + theme dinamico + kbd 1-6)
+- D Form bugs Dialogs (NodeDialog, LoadDialog, ConstraintDialog, ElementDialog, MeshWizard, NewModel)
+- E 6 listener globali GlobalRoutingListeners
+- F Backend Beam2D msg + _dead_dofs DEFERRED v3.4
+- G UI ROI (counts Analisi, UR threshold, OrbitControls)
+- H/I/J deferred (wizard race, perf, infra hardening)
+- K Quality + deploy v112
+
+**Deferred a v3.4**: 1 P0 (`_dead_dofs` M-aware con test regression) + 117 P1/P2/P3.
+
+**Score**: 67% pre-sprint → ~88% post-sprint sui 4 nuovi layer.
+
+Per dettagli completi: vedi `HANDOFF_2026-05-28-v3.3.md`.
+
+---
+
+## Stato precedente · post v3.2.0 (2026-05-28 sera)
 
 Sessione audit-driven cumulativa: **4 round audit** + workflow E2E live confermato.
 
