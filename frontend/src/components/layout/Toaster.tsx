@@ -65,6 +65,7 @@ export function Toaster() {
             className="bg-bg-elevated border border-border-light shadow-dialog p-3.5 flex items-start gap-2.5 animate-slide-up pointer-events-auto"
             role="status"
             aria-live="polite"
+            data-testid={t.testid}
           >
             <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 border ${tone.bgIcon} ${tone.ringIcon} border-current/30`}>
               {tone.icon}
@@ -86,7 +87,7 @@ export function Toaster() {
                     t.action?.onClick();
                     dismiss(t.id);
                   }}
-                  data-testid={`toast-action-${t.id}`}
+                  data-testid={t.action.testid ?? `toast-action-${t.id}`}
                 >
                   {t.action.label}
                 </button>

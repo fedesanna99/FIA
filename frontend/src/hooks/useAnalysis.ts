@@ -6,8 +6,10 @@ import { useModelStore } from "../store/modelStore";
 import { useJobsStore, JOB_KIND_LABELS, type JobKind } from "../store/jobsStore";
 import { modelHash } from "../utils/geometry";
 import { translateApiError } from "../lib/apiErrors";
-import { toast } from "../store/toastStore";
 import { notify } from "../store/notificationsStore";
+// redesign/workspace-fasi rifinitura 2b: toast "Analisi completata →
+// Vai ai Risultati" non-invasivo. Sostituisce il toast generico success.
+import { showAnalysisCompleteToast } from "../lib/analysisCompleteToast";
 
 export function useRunAnalysis() {
   const model = useModelStore((s) => s.model);
@@ -36,20 +38,29 @@ export function useRunAnalysis() {
       useJobsStore.getState().updateProgress(jobId, p.progress);
     });
     try {
+      let solveTimeMs: number | undefined;
       if (analysisType === "static") {
         const r = await analysisApi.static(model.id, staticParams);
         setStatic(r);
+        solveTimeMs = r.solve_time_ms;
       } else if (analysisType === "modal") {
         const r = await analysisApi.modal(model.id, modalParams);
         setModal(r);
+        solveTimeMs = r.solve_time_ms;
       } else {
         const r = await analysisApi.dynamic(model.id, dynamicParams);
         setDynamic(r);
+        solveTimeMs = r.solve_time_ms;
       }
       setProgress(1.0, "Completato");
       setModelHashAtAnalysis(modelHash(model));
       useJobsStore.getState().finish(jobId, { success: true });
-      toast("success", `Analisi ${analysisType} completata`);
+      // redesign/workspace-fasi rifinitura 2b: toast non-invasivo
+      // "Analisi completata → Vai ai Risultati" che appare SOLO se
+      // l'utente non e' gia' sulla fase Risultati. Sostituisce il
+      // vecchio toast generico success. La via verso Risultati e' una
+      // CTA opzionale, mai forzata.
+      showAnalysisCompleteToast(analysisType, solveTimeMs);
       // v1.7-polish-pass2 T2: notifica persistente nel bell badge.
       notify("success", `Analisi ${analysisType} completata`, "Risultati disponibili in Inspect");
     } catch (e: any) {

@@ -164,6 +164,27 @@ describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
     fireEvent.click(screen.getByTestId("rail-modello"));
     expect(screen.queryByTestId("mock-results-verdict-strip")).toBeNull();
   });
+
+  it("rifinitura 2b: listener feapro:shell:goto-workspace cambia activeWs", () => {
+    render(<Shell><div /></Shell>);
+    // Default workspace = modello
+    expect(screen.getByTestId("mock-rail").getAttribute("data-active")).toBe("modello");
+    // Dispatch evento custom → Shell ascolta e setta activeWs="risultati"
+    fireEvent(
+      window,
+      new CustomEvent("feapro:shell:goto-workspace", { detail: { ws: "risultati" } }),
+    );
+    expect(screen.getByTestId("mock-rail").getAttribute("data-active")).toBe("risultati");
+  });
+
+  it("rifinitura 2b: evento con ws sconosciuto NON cambia activeWs (silent)", () => {
+    render(<Shell><div /></Shell>);
+    fireEvent(
+      window,
+      new CustomEvent("feapro:shell:goto-workspace", { detail: { ws: "non-esiste" } }),
+    );
+    expect(screen.getByTestId("mock-rail").getAttribute("data-active")).toBe("modello");
+  });
 });
 
 describe("Shell · focus mode (redesign/workspace-fasi FETTA 0)", () => {

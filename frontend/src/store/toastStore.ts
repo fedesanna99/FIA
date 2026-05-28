@@ -12,6 +12,8 @@ export type ToastLevel = "success" | "error" | "info" | "warning";
 export interface ToastAction {
   label: string;
   onClick: () => void;
+  /** redesign/workspace-fasi rifinitura 2b: testid opzionale per E2E/unit. */
+  testid?: string;
 }
 
 export interface Toast {
@@ -21,11 +23,19 @@ export interface Toast {
   ttlMs: number;
   /** v2.6.6: CTA opzionale renderizzata dal Toaster accanto al titolo. */
   action?: ToastAction;
+  /** redesign/workspace-fasi rifinitura 2b: testid opzionale sul wrapper. */
+  testid?: string;
 }
 
 interface ToastState {
   toasts: Toast[];
-  push: (level: ToastLevel, message: string, ttlMs?: number, action?: ToastAction) => void;
+  push: (
+    level: ToastLevel,
+    message: string,
+    ttlMs?: number,
+    action?: ToastAction,
+    opts?: { testid?: string },
+  ) => void;
   dismiss: (id: number) => void;
 }
 
@@ -47,14 +57,17 @@ const STACK_LIMIT = 3;
 
 export const useToastStore = create<ToastState>((set, get) => ({
   toasts: [],
-  push: (level, message, ttlMs, action) => {
+  push: (level, message, ttlMs, action, opts) => {
     const id = ++counter;
     const duration = ttlMs ?? DEFAULT_TTL[level];
     set((s) => {
       if (s.toasts.some((t) => t.level === level && t.message === message)) {
         return s;
       }
-      const next = [...s.toasts, { id, level, message, ttlMs: duration, action }];
+      const next = [
+        ...s.toasts,
+        { id, level, message, ttlMs: duration, action, testid: opts?.testid },
+      ];
       // v1.5.2 Task 38: stack limit — droppa i piu' vecchi per non
       // sommergere lo schermo con catene di errori HTTP.
       while (next.length > STACK_LIMIT) next.shift();
@@ -78,6 +91,12 @@ export const useToastStore = create<ToastState>((set, get) => ({
  *     onClick: () => openTemplateGallery(),
  *   });
  */
-export function toast(level: ToastLevel, message: string, ttlMs?: number, action?: ToastAction) {
-  useToastStore.getState().push(level, message, ttlMs, action);
+export function toast(
+  level: ToastLevel,
+  message: string,
+  ttlMs?: number,
+  action?: ToastAction,
+  opts?: { testid?: string },
+) {
+  useToastStore.getState().push(level, message, ttlMs, action, opts);
 }
