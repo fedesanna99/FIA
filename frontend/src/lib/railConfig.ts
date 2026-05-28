@@ -28,6 +28,7 @@ import {
   FileText,
   BookOpen,
   HelpCircle,
+  Eye,
   type LucideIcon,
 } from "lucide-react";
 
@@ -35,7 +36,10 @@ import {
  * Tipo workspace condiviso (ShellRail custom + LeftRail legacy).
  * Match `ShellWorkspaceId` in `shell/ShellRail.tsx` per backward compat.
  */
-export type WorkspaceId = "modello" | "analisi" | "verifiche" | "risultati" | "io";
+// v3.1 Fase 2c: aggiunto "view" come 6° workspace per esporre ViewPanel
+// (overlay viewport: deformata/colormap/diagrammi/grid/labels + 4 view preset).
+// Prima raggiungibile solo via right-rail legacy (= mobile/focus mode) o palette.
+export type WorkspaceId = "modello" | "analisi" | "verifiche" | "risultati" | "io" | "view";
 
 /** Preset analisi default per le voci SOLVE (Lineare/Dinamica/Sismica). */
 export type AnalysisPreset = "static" | "dynamic" | "seismic";
@@ -154,6 +158,15 @@ export const RAIL_SECTIONS: Record<RailSectionId, RailItem[]> = {
       label: "Report",
       icon: FileText,
       action: "open-report-dialog",
+      requiresModel: true,
+    },
+    // v3.1 Fase 2c: voce View esposta (overlay viewport, view preset)
+    {
+      id: "view",
+      label: "View",
+      icon: Eye,
+      action: "workspace",
+      workspace: "view",
       requiresModel: true,
     },
   ],

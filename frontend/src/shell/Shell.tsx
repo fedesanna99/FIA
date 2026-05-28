@@ -28,13 +28,16 @@ import { SolvePanel } from "./panels/SolvePanel";
 import { VerifyPanel } from "./panels/VerifyPanel";
 import { InspectPanel } from "./panels/InspectPanel";
 import { ToolsPanel } from "./panels/ToolsPanel";
+// v3.1 Fase 2c: ViewPanel ora esposto come 6° workspace (overlay viewport
+// + view preset). Prima raggiungibile solo via right-rail legacy o palette.
+import { ViewPanel } from "./panels/ViewPanel";
 // v2.6.5 D.1: rail expanded vs collapsed (single source of truth) per
 // sincronizzare grid `--rail-w` con il render del rail.
 // v2.6.6 E.2: hook promosso da `shell/useRailExpansion.ts` a `lib/` per
 // condivisione con LeftRail legacy.
 import { useRailExpansion } from "../lib/useRailExpansion";
 
-type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io";
+type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io" | "view";
 
 interface ShellProps {
   /** Canvas R3F (Viewport3D) — montato dal chiamante per separation of concerns. */
@@ -62,6 +65,8 @@ const WORKSPACE_CONTENT_NORMAL: Record<ShellWorkspaceId, ReactNode> = {
   risultati: <InspectPanel />,
   verifiche: <VerifyPanel />,
   io: <ToolsPanel />,
+  // v3.1 Fase 2c: ViewPanel come 6° workspace
+  view: <ViewPanel />,
 };
 
 // In takeover mode passiamo `fullArea` al panel content quando lo supporta,

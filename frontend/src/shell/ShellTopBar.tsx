@@ -23,6 +23,10 @@ import { useNotificationsStore } from "../store/notificationsStore";
 import { APP_VERSION } from "../lib/version";
 // v2.6.4 A.2: "Rivedi tour onboarding" replay
 import { useResetOnboarding, startOnboardingTour } from "../lib/onboarding";
+// v3.1 Fase 2a: AvatarMenu rich (Theme/Account/Location/Logout/Focus/Export)
+// — prima era stub "FS" placeholder, ora è il dropdown vero con 5 feature
+// sepolte rese accessibili anche in Shell custom (oltre che in chrome legacy).
+import { AvatarMenu } from "../components/shell/topbar/AvatarMenu";
 
 function formatSavedAt(d: Date | null): string {
   if (!d) return "—";
@@ -185,10 +189,12 @@ export function ShellTopBar() {
         </button>
       </div>
 
-      {/* Avatar — placeholder (apre AvatarMenu in T9 wiring) */}
-      <button type="button" className="tb-avatar" aria-label="Account" title="Account">
-        FS
-      </button>
+      {/* v3.1 Fase 2a: AvatarMenu rich (Focus / Account / Location / Theme /
+          Export JSON/CSV/PDF / Help / Logout). Prima era stub statico "FS" e
+          l'utente in Shell custom non aveva accesso a queste 5 feature
+          (raggiungibili solo via Cmd+K). Audit 2026-05-28 ha confermato il
+          problema UX critico. */}
+      <AvatarMenu />
     </header>
   );
 }

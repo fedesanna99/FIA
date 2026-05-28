@@ -21,13 +21,18 @@ import { useLeftRailStore } from "../../store/leftRailStore";
 import { useModelStore } from "../../store/modelStore";
 import { useRunAnalysis } from "../../hooks/useAnalysis";
 import { useAnalysisStore } from "../../store/analysisStore";
+import { useState } from "react";
 import { ModelTree } from "../../components/panels/ModelTree";
 import { EmptyState } from "../../components/ui/EmptyState";
 import { ModelStatsBadge } from "../../components/ui/ModelStatsBadge";
+// v3.1 Fase 2e: dialog per creare materiali/sezioni custom direttamente
+// dal MakePanel (prima accessibili solo via picker dentro ElementDialog).
+import { CustomMaterialDialog } from "../../components/dialogs/CustomMaterialDialog";
+import { CustomSectionDialog } from "../../components/dialogs/CustomSectionDialog";
 import { PanelChrome } from "./PanelChrome";
 import { PanelHub, PanelBreadcrumb, type HubCard } from "../../components/shell/panels/PanelHubNav";
 import { InsightPanel } from "../../components/shell/InsightPanel";
-import { Box, Layers as LayersIcon, ArrowDownToLine, Anchor, ArrowRightLeft as Swap, Check, AlertTriangle, Circle, Play } from "lucide-react";
+import { Box, Layers as LayersIcon, ArrowDownToLine, Anchor, ArrowRightLeft as Swap, Check, AlertTriangle, Circle, Play, Wind, Snowflake, Waves, Mountain, type LucideIcon } from "lucide-react";
 
 
 // v1.8 (post-T6): rimosso TABS array — Make drill-in usa solo
@@ -76,6 +81,9 @@ export function MakePanel() {
   // per i titoli "Carichi (N)" / "Vincoli (N)" dei tab.
   const loadsCount = model?.loads.length ?? 0;
   const constraintsCount = model?.constraints.length ?? 0;
+  // v3.1 Fase 2e: state per i 2 dialog "Crea custom" (materiale/sezione).
+  const [customMaterialOpen, setCustomMaterialOpen] = useState(false);
+  const [customSectionOpen, setCustomSectionOpen] = useState(false);
 
   if (isHub) {
     return (
@@ -131,6 +139,29 @@ export function MakePanel() {
                   data-testid="make-stats-badge"
                 />
               </Section>
+              {/* v3.1 Fase 2e: shortcut "Crea custom" per materiali e sezioni.
+                  Prima accessibili solo dentro picker di ElementDialog. */}
+              <Section title="Libreria custom">
+                <div className="grid grid-cols-2 gap-1.5">
+                  <SecondaryButton
+                    icon={IconPlus}
+                    label="Materiale custom…"
+                    onClick={() => setCustomMaterialOpen(true)}
+                    testId="make-custom-material"
+                  />
+                  <SecondaryButton
+                    icon={IconPlus}
+                    label="Sezione custom…"
+                    onClick={() => setCustomSectionOpen(true)}
+                    testId="make-custom-section"
+                  />
+                </div>
+                <p className="text-[11px] text-ink-3 mt-2 leading-relaxed">
+                  Crea materiali/sezioni custom riutilizzabili nel modello.
+                  Libreria standard (S235/S355, IPE/HEA/HEB...) sempre disponibile
+                  via picker elemento.
+                </p>
+              </Section>
               <div className="flex-1 overflow-auto px-2 pb-2">
                 <ModelTree />
               </div>
@@ -171,13 +202,54 @@ export function MakePanel() {
               shortcut="L"
               testId="make-add-load"
             />
-            <p className="text-[12px] text-ink-2 mt-2.5 leading-relaxed">
-              Per Climate Loads (vento / neve / sismica): apri la palette{" "}
-              <kbd className="font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">⌘ K</kbd>{" "}
-              e cerca{" "}
-              <kbd className="font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">Location</kbd>
-              {" "}· oppure dall'AvatarMenu → "Loads location".
-            </p>
+            {/* v3.1 Fase 2d: 4 bottoni cliccabili per Climate Loads
+                (Vento/Neve/Sismica/Altimetria). Prima il testo rimandava
+                passivamente a Cmd+K / AvatarMenu. Tutti aprono lo stesso
+                LocationPickerDialog (l'utente sceglie poi quale loads
+                applicare dal tab dialog). */}
+            <div className="mt-3">
+              <h4 className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-2">
+                Climate Loads · normative
+              </h4>
+              <div className="grid grid-cols-2 gap-1.5">
+                <ClimateButton
+                  icon={Wind}
+                  label="Vento"
+                  norm="EN 1991-1-4"
+                  onClick={() => window.dispatchEvent(new Event("feapro:open-location"))}
+                  disabled={!model}
+                  testId="make-climate-wind"
+                />
+                <ClimateButton
+                  icon={Snowflake}
+                  label="Neve"
+                  norm="EN 1991-1-3"
+                  onClick={() => window.dispatchEvent(new Event("feapro:open-location"))}
+                  disabled={!model}
+                  testId="make-climate-snow"
+                />
+                <ClimateButton
+                  icon={Waves}
+                  label="Sismica"
+                  norm="NTC 2018"
+                  onClick={() => window.dispatchEvent(new Event("feapro:open-location"))}
+                  disabled={!model}
+                  testId="make-climate-seismic"
+                />
+                <ClimateButton
+                  icon={Mountain}
+                  label="Altimetria"
+                  norm="DEM 90m"
+                  onClick={() => window.dispatchEvent(new Event("feapro:open-location"))}
+                  disabled={!model}
+                  testId="make-climate-elevation"
+                />
+              </div>
+              <p className="text-[11px] text-ink-3 mt-2 leading-relaxed">
+                Apri il <strong>Location picker</strong> per impostare coordinate,
+                quote, classe esposizione · si applica al modello attivo.
+              </p>
+            </div>
           </Section>
         </div>
       )}
@@ -225,6 +297,18 @@ export function MakePanel() {
           </Section>
         </div>
       )}
+
+      {/* v3.1 Fase 2e: dialog Custom material/section (renderizzati sempre,
+          visibili solo quando open=true). Permettono di creare voci di libreria
+          custom riutilizzabili dal MakePanel hub-card Geometria. */}
+      <CustomMaterialDialog
+        open={customMaterialOpen}
+        onClose={() => setCustomMaterialOpen(false)}
+      />
+      <CustomSectionDialog
+        open={customSectionOpen}
+        onClose={() => setCustomSectionOpen(false)}
+      />
     </PanelChrome>
   );
 }
@@ -290,6 +374,41 @@ function SecondaryButton({
     >
       <Icon size={14} className="text-ink-3" />
       <span className="flex-1 text-left">{label}</span>
+    </button>
+  );
+}
+
+
+/**
+ * v3.1 Fase 2d: compact button per Climate Loads (Vento/Neve/Sismica/DEM).
+ * Grid 2-col, ognuno apre LocationPickerDialog via evento globale.
+ * Lucide icon + label + sub-text "norma EC/NTC" + accent color al hover.
+ */
+function ClimateButton({
+  icon: Icon, label, norm, onClick, disabled, testId,
+}: {
+  icon: LucideIcon;
+  label: string;
+  norm: string;
+  onClick: () => void;
+  disabled?: boolean;
+  testId?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      data-testid={testId}
+      className="flex flex-col items-start gap-1 px-2.5 py-2 text-left border border-border-light text-ink hover:text-accent hover:bg-bg-info hover:border-accent/40 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+    >
+      <div className="flex items-center gap-1.5 w-full">
+        <Icon size={14} className="text-ink-3" />
+        <span className="text-[12px] font-medium">{label}</span>
+      </div>
+      <span className="font-mono text-[10px] uppercase tracking-wide-1 text-ink-3">
+        {norm}
+      </span>
     </button>
   );
 }

@@ -26,6 +26,7 @@ import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import {
   User, MapPin, LogOut, Sun, Moon, Monitor,
   Eye, FileJson, FileSpreadsheet, FileText, HelpCircle,
+  Settings as SettingsIcon, Compass,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 import { useThemeStore } from "../../../store/themeStore";
@@ -99,6 +100,11 @@ export function AvatarMenu() {
   const logout = useAuthStore((s) => s.logout);
   const themeMode = useThemeStore((s) => s.mode);
   const cycleTheme = useThemeStore((s) => s.cycle);
+  // v3.1 Fase 2b/2f: navigate via window.location.assign (no router
+  // dependency — il componente è importato sia in Shell custom che chrome
+  // legacy, test isolati senza BrowserRouter). Full-page nav è ok per
+  // /settings (route mockup-driven full-screen) e /percorsi/uc1 (idem).
+  const goTo = (path: string) => { window.location.assign(path); };
 
   // v2.1.4 auth-gate: AvatarMenu è raggiungibile SOLO ad autenticazione
   // completata (l'AuthGate blocca App finché user è null). Difensivo: se
@@ -164,6 +170,16 @@ export function AvatarMenu() {
               Tema
               <span className="ml-auto font-mono text-[10px] uppercase tracking-wide-1 bg-bg-hover border border-border-light text-ink-2 px-1 py-0.5 font-medium">{THEME_LABEL[themeMode]}</span>
             </DropdownMenu.Item>
+            {/* v3.1 Fase 2f: Percorsi guidati raggiungibili dal workspace
+                (prima solo da home Dashboard o URL manuale). */}
+            <DropdownMenu.Item
+              onSelect={(e) => { e.preventDefault(); goTo("/percorsi/uc1"); }}
+              className={ITEM_CLS}
+              data-testid="avatar-menu-percorsi"
+            >
+              <Compass className="w-3.5 h-3.5 text-ink-3" />
+              Percorsi guidati
+            </DropdownMenu.Item>
           </div>
 
           <DropdownMenu.Separator className="h-px bg-border" />
@@ -195,6 +211,17 @@ export function AvatarMenu() {
           <DropdownMenu.Separator className="h-px bg-border" />
 
           <div className="py-1">
+            {/* v3.1 Fase 2b: link a /settings (8 tab Account/Profilo/Billing/
+                Api Keys/Preferences/Units/Shortcuts/About). Prima accessibile
+                solo via URL manuale. */}
+            <DropdownMenu.Item
+              onSelect={(e) => { e.preventDefault(); goTo("/settings"); }}
+              className={ITEM_CLS}
+              data-testid="avatar-menu-settings"
+            >
+              <SettingsIcon className="w-3.5 h-3.5 text-ink-3" />
+              Impostazioni
+            </DropdownMenu.Item>
             <DropdownMenu.Item
               onSelect={(e) => { e.preventDefault(); useUIStore.getState().setOpenDialog("help"); }}
               className={ITEM_CLS}

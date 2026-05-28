@@ -12,7 +12,7 @@
  */
 import {
   IconChartArea, IconArrowRight, IconWaveSine, IconActivity,
-  IconBox, IconRefresh,
+  IconBox, IconRefresh, IconStack, IconTriangle,
 } from "@tabler/icons-react";
 import { useWorkspaceStore } from "../../store/workspaceStore";
 import { useRightRailStore } from "../../store/rightRailStore";
@@ -34,6 +34,14 @@ import { ConvergencePanel } from "../../components/panels/ConvergencePanel";
 import { IsosurfacePanel } from "../../components/panels/IsosurfacePanel";
 import { FatiguePanel } from "../../components/panels/FatiguePanel";
 import { LiveMonitorPanel } from "../../components/panels/LiveMonitorPanel";
+// v3.1 Fase 2g: 5 panel orfani wirati come hub-card top-level.
+// Backend endpoint live (vedi audit B 2026-05-28): buckling, fft,
+// response_spectrum, mode_superposition, zz_error.
+import { BucklingPanel } from "../../components/results/BucklingPanel";
+import { FFTChart } from "../../components/results/FFTChart";
+import { ResponseSpectrumPanel } from "../../components/results/ResponseSpectrumPanel";
+import { ModeSuperpositionPanel } from "../../components/panels/ModeSuperpositionPanel";
+import { ZZErrorPanel } from "../../components/panels/ZZErrorPanel";
 
 
 // v1.7 T2: hub-first navigation per Inspect. 5 card primarie coerenti
@@ -44,6 +52,9 @@ const HUB_CARDS: HubCard[] = [
   { id: "dinamica", label: "Dinamica", sub: "Time-history · drift · convergenza",      icon: IconActivity as unknown as HubCard["icon"],   tone: "purple" },
   { id: "iso3d",    label: "Iso 3D",   sub: "Iso-superfici 3D di Von Mises",          icon: IconBox as unknown as HubCard["icon"],        tone: "coral" },
   { id: "fatica",   label: "Fatica",   sub: "Verifica EC3-1-9 · cicli · UR",          icon: IconRefresh as unknown as HubCard["icon"],    tone: "warn" },
+  // v3.1 Fase 2g: 2 nuovi hub-card per esporre 5 panel/endpoint orfani.
+  { id: "buckling", label: "Buckling", sub: "Stabilità · autovalori critici · modi", icon: IconTriangle as unknown as HubCard["icon"],   tone: "info" },
+  { id: "avanzato", label: "Avanzato", sub: "FFT · spettro risposta · sovrap. modale · errore ZZ", icon: IconStack as unknown as HubCard["icon"], tone: "purple" },
 ];
 
 
@@ -53,6 +64,8 @@ const TAB_LABELS: Record<string, string> = {
   dinamica: "Dinamica",
   iso3d:    "Iso 3D",
   fatica:   "Fatica",
+  buckling: "Buckling",
+  avanzato: "Avanzato",
 };
 
 
@@ -223,6 +236,35 @@ export function InspectPanel() {
             <Section title="Fatica EC3-1-9" icon={IconRefresh}>
               <FatiguePanel />
             </Section>
+          )}
+
+          {/* v3.1 Fase 2g: Buckling (analisi stabilità). Backend endpoint
+              live `POST /api/analysis/buckling/{id}`. */}
+          {tab === "buckling" && (
+            <Section title="Analisi buckling" icon={IconTriangle}>
+              <BucklingPanel />
+            </Section>
+          )}
+
+          {/* v3.1 Fase 2g: Avanzato hub di 4 panel orfani con endpoint live.
+              FFT (spettro frequenze segnale TH), Response Spectrum (spettro
+              risposta sismica), Mode Superposition (sovrapposizione modale
+              dinamica), ZZ Error (stima errore Zienkiewicz-Zhu). */}
+          {tab === "avanzato" && (
+            <div className="space-y-3">
+              <Section title="Spettro segnale (FFT)" icon={IconWaveSine}>
+                <FFTChart />
+              </Section>
+              <Section title="Spettro risposta sismico" icon={IconActivity}>
+                <ResponseSpectrumPanel />
+              </Section>
+              <Section title="Sovrapposizione modale" icon={IconWaveSine}>
+                <ModeSuperpositionPanel />
+              </Section>
+              <Section title="Errore stima (Zienkiewicz-Zhu)" icon={IconRefresh}>
+                <ZZErrorPanel />
+              </Section>
+            </div>
           )}
         </div>
       </div>

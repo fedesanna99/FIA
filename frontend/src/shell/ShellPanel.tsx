@@ -14,10 +14,10 @@
 // scope Fase 3+. Il chrome del pannello è già del design system nuovo.
 
 import { ReactNode } from "react";
-import { Box, Cog, Activity, CheckCircle, Shuffle } from "lucide-react";
+import { Box, Cog, Activity, CheckCircle, Shuffle, Eye } from "lucide-react";
 import * as Tabs from "@radix-ui/react-tabs";
 
-type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io";
+type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io" | "view";
 
 interface ShellPanelConfig {
   icon: typeof Box;
@@ -82,6 +82,17 @@ const CONFIG: Record<ShellWorkspaceId, ShellPanelConfig> = {
       { id: "ai", label: "AI · Collab" },
     ],
     defaultTab: "import",
+  },
+  // v3.1 Fase 2c: View workspace (ViewPanel = overlay viewport + view preset)
+  view: {
+    icon: Eye,
+    title: "View",
+    desc: "Overlay viewport (deformata, colormap, diagrammi, vincoli, etichette) e view preset.",
+    tabs: [
+      { id: "overlay", label: "Overlay" },
+      { id: "preset", label: "Preset" },
+    ],
+    defaultTab: "overlay",
   },
 };
 

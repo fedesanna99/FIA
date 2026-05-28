@@ -16,10 +16,10 @@ describe("RailSections (v2.6.6 E.2 shared)", () => {
     expect(screen.getByTestId("rail-section-RISORSE")).toBeInTheDocument();
   });
 
-  it("renders all 12 items from railConfig", () => {
+  it("renders all 13 items from railConfig (v3.1 Fase 2c: +view)", () => {
     render(<RailSections onItemClick={vi.fn()} onCollapse={vi.fn()} />);
     const items = getAllRailItems();
-    expect(items).toHaveLength(12);
+    expect(items).toHaveLength(13);
     for (const item of items) {
       expect(screen.getByTestId(`rail-item-${item.id}`)).toBeInTheDocument();
     }

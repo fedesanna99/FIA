@@ -21,7 +21,7 @@
 
 import {
   Box, Cog, Activity, CheckCircle, Shuffle, Bug, BookOpen, Settings,
-  ChevronRight,
+  ChevronRight, Eye,
 } from "lucide-react";
 import { useWorkspaceStore } from "../store/workspaceStore";
 import { useAnalysisStore } from "../store/analysisStore";
@@ -30,7 +30,7 @@ import { useRailDispatch } from "../lib/railDispatch";
 import { type RailItem } from "../lib/railConfig";
 import { RailSections } from "../components/shell/shared/RailSections";
 
-type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io";
+type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io" | "view";
 
 interface RailEntry {
   id: ShellWorkspaceId;
@@ -45,6 +45,9 @@ const WORKSPACES: RailEntry[] = [
   { id: "risultati", label: "Risultati", kbd: "3", Icon: Activity },
   { id: "verifiche", label: "Verifiche", kbd: "4", Icon: CheckCircle },
   { id: "io", label: "I/O & Collab", kbd: "5", Icon: Shuffle },
+  // v3.1 Fase 2c: View exposes overlay viewport toggles + 4 view preset
+  // (engineer/cad/review/perf). Prima accessibile solo da right-rail legacy.
+  { id: "view", label: "View", kbd: "6", Icon: Eye },
 ];
 
 interface ShellRailProps {
@@ -66,6 +69,7 @@ function resolveActiveItemId(
   if (active === "verifiche") return "checks";
   if (active === "risultati") return "results";
   if (active === "modello") return "home";
+  if (active === "view") return "view"; // v3.1 Fase 2c: View workspace
   if (active === "analisi") {
     if (analysisType === "dynamic") return "dynamic";
     if (analysisType === "modal") return "seismic"; // modal = sismica
@@ -84,7 +88,8 @@ export function ShellRail({ active = "modello", onChange }: ShellRailProps) {
   const wsToLegacy = (id: ShellWorkspaceId): "model" | "analysis" | "verify" => {
     if (id === "modello") return "model";
     if (id === "analisi") return "analysis";
-    return "verify"; // risultati, verifiche, io → verify content
+    // risultati, verifiche, io, view → verify content (legacy compat)
+    return "verify";
   };
 
   const handleWorkspace = (id: ShellWorkspaceId) => {

@@ -40,6 +40,8 @@ export const WORKSPACE_TO_LEGACY: Record<WorkspaceId, "model" | "analysis" | "ve
   verifiche: "verify",
   risultati: "verify", // Inspect content vive in workspace "verify" (right rail)
   io: "verify", // placeholder I/O & Collab → workspace verify temporaneamente
+  // v3.1 Fase 2c: View overlay/preset workspace (vive in legacy "verify" content)
+  view: "verify",
 };
 
 /**
