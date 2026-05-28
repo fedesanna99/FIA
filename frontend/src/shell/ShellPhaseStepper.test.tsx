@@ -163,13 +163,52 @@ describe("ShellPhaseStepper · redesign/workspace-fasi (FETTA 1)", () => {
   });
 
   // ── Stato Esegui ────────────────────────────────────────────────────────
-  it("Run: isRunning=false → state='empty'", () => {
+  it("Run: isRunning=false + nessun risultato → state='empty'", () => {
     useAnalysisStore.setState({ isRunning: false });
+    useResultsStore.setState({ staticResults: null, modalResults: null, dynamicResults: null });
     render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
     expect(screen.getByTestId("phase-step-run").getAttribute("data-state")).toBe("empty");
   });
 
-  it("Run: isRunning=true → state='running'", () => {
+  it("Run: isRunning=true → state='running' (spinner)", () => {
+    useAnalysisStore.setState({ isRunning: true });
+    render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
+    expect(screen.getByTestId("phase-step-run").getAttribute("data-state")).toBe("running");
+  });
+
+  it("Run: calcolo fresco (results + hash matching) → state='done' (✓ Esegui)", () => {
+    useModelStore.setState({ model: makeModel() });
+    useResultsStore.setState({
+      staticResults: makeStaticResults(),
+      // null modelHashAtAnalysis = mai stale (pattern StaleResultsBanner)
+      modelHashAtAnalysis: null,
+    });
+    useAnalysisStore.setState({ isRunning: false });
+    render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
+    expect(screen.getByTestId("phase-step-run").getAttribute("data-state")).toBe("done");
+    // E Risultati anche done
+    expect(screen.getByTestId("phase-step-results").getAttribute("data-state")).toBe("done");
+  });
+
+  it("Run: risultati STALE → state='empty' (la ✓ si stacca, va con Risultati⚠)", () => {
+    useModelStore.setState({ model: makeModel({ nodes: [{ id: 1, x: 0, y: 0, z: 0 } as never] }) });
+    useResultsStore.setState({
+      staticResults: makeStaticResults(),
+      modelHashAtAnalysis: "hash-vecchio-non-matchante",
+    });
+    useAnalysisStore.setState({ isRunning: false });
+    render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
+    expect(screen.getByTestId("phase-step-run").getAttribute("data-state")).toBe("empty");
+    // Risultati invece passa a stale (la spina racconta "rilancia")
+    expect(screen.getByTestId("phase-step-results").getAttribute("data-state")).toBe("stale");
+  });
+
+  it("Run: isRunning=true prevale sullo stale (mostra spinner anche se stale)", () => {
+    useModelStore.setState({ model: makeModel({ nodes: [{ id: 1, x: 0, y: 0, z: 0 } as never] }) });
+    useResultsStore.setState({
+      staticResults: makeStaticResults(),
+      modelHashAtAnalysis: "hash-vecchio",
+    });
     useAnalysisStore.setState({ isRunning: true });
     render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
     expect(screen.getByTestId("phase-step-run").getAttribute("data-state")).toBe("running");

@@ -66,12 +66,23 @@ export function ShellPhaseStepper({ active, onChange }: ShellPhaseStepperProps) 
     return "empty";
   }, [model]);
 
-  const runState: PhaseStepState = isRunning ? "running" : "empty";
-
+  // Pattern stale identico a `components/viewport/StaleResultsBanner.tsx`.
+  // hasResults + isFresh sono CONDIVISI fra runState e resultsState: la
+  // spina racconta una storia coerente "calcolo fresco vs da rilanciare".
   const hasResults = !!(staticResults || modalResults || dynamicResults);
   const currentHash = useMemo(() => modelHash(model), [model]);
   const stale =
     hasResults && modelHashAtAnalysis !== null && currentHash !== modelHashAtAnalysis;
+  const isFresh = hasResults && !stale;
+
+  // Run state: durante il calcolo è "running" (spinner). Senza calcolo o
+  // con calcolo STALE è "empty" — la ✓ si stacca insieme allo stale di
+  // Risultati per segnalare "devi rilanciare" (Esegui◦ + Risultati⚠).
+  // Con calcolo fresco è "done" (✓ verde).
+  const runState: PhaseStepState = isRunning ? "running" : (isFresh ? "done" : "empty");
+
+  // Results state: empty se nessun calcolo, stale (⚠) se modello cambiato
+  // dopo il calcolo, done (✓) altrimenti.
   const resultsState: PhaseStepState = !hasResults ? "empty" : stale ? "stale" : "done";
 
   const stateByTestid: Record<StepConfig["testid"], PhaseStepState> = {

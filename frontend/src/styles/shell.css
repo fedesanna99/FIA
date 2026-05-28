@@ -221,22 +221,48 @@ body.shell-sharp .shell-focus-exit kbd { border-radius: 0; }
   align-items: center;
   gap: 8px;
   padding: 4px 12px 4px 6px;
-  border: 1px solid transparent;
+  border: 1px solid var(--border-light, #D4D6DA);
   border-radius: 999px;
   background: transparent;
   color: var(--ink-dim, #7B808A);
   font: 500 12px/1 var(--font-sans, system-ui, sans-serif);
   cursor: pointer;
-  transition: background-color 120ms, border-color 120ms, color 120ms;
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
+  transform: translateY(0);
+  transition: background-color 120ms ease, border-color 120ms ease,
+              color 120ms ease, box-shadow 140ms ease, transform 140ms ease;
 }
+/* Affordance "ci si può cliccare": vale per OGNI pillola (anche done /
+   stale / running) per far capire che la spina è una mappa di
+   navigazione, non una checklist conclusa. */
 .shell-phase-step:hover {
   background: var(--bg-hover, var(--bg, #f4f5f7));
+  border-color: var(--border-strong, var(--border, #E5E6E8));
   color: var(--ink, #15161A);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
+}
+.shell-phase-step:active {
+  /* tap-feedback: torna a piatto al click per dare la sensazione di pressione */
+  transform: translateY(0);
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0);
 }
 .shell-phase-step.is-active {
+  /* "sono QUI": bordo accent + bg pieno-subtle + font leggermente più
+     pesante per dominare visivamente anche su hover delle altre. */
   background: var(--accent-subtle, rgba(8, 145, 178, 0.10));
   border-color: var(--accent, #0891B2);
   color: var(--accent, #0891B2);
+  font-weight: 600;
+}
+.shell-phase-step.is-active:hover {
+  /* Sull'attivo l'hover NON cambia background (resta accent-subtle), ma
+     mantiene la micro-elevazione per coerenza tattile. */
+  background: var(--accent-subtle, rgba(8, 145, 178, 0.10));
+  border-color: var(--accent, #0891B2);
+  color: var(--accent, #0891B2);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  transform: translateY(-1px);
 }
 .shell-phase-step:focus-visible {
   outline: 2px solid var(--accent, #0891B2);
