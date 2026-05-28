@@ -84,10 +84,23 @@ def _build_le1(nx: int, ny: int, et: ElementType = ElementType.SHELL_Q4) -> FEAM
     # uniforme, perdendo 10-15% del carico totale e producendo
     # distribuzione non bilanciata su archi non uniformi. Ora ogni nodo
     # riceve forza proporzionale a (semi-arco-left + semi-arco-right).
-    edge_nodes_raw = [
-        n for n in nodes
-        if abs((n.x / a_o) ** 2 + (n.y / b_o) ** 2 - 1.0) < 0.05
-    ]
+    #
+    # FIX 2026-05-30 (causa C "carico esplosivo"): selezione dei nodi del
+    # bordo esterno passata da GEOMETRICA (|r| < 0.05 sul residuo ellittico)
+    # a TOPOLOGICA (ultima colonna della griglia strutturata, i=nx).
+    # La tolleranza geometrica fissa catturava anelli interni raffinando:
+    #     8×8   →   9 nodi  (atteso 9, ok)
+    #     16×16 →  20 nodi  (atteso 17,  +3 intrusi)
+    #     32×32 →  72 nodi  (atteso 33, +39 intrusi)
+    #     64×64 → 244 nodi  (atteso 65, +179 intrusi — 2 anelli interi)
+    # Il carico applicato cresceva di 1.93× a 64×64 vs teorico, facendo
+    # divergere σ_y(D) da 66.5 MPa (8×8) a 143.8 MPa (64×64) invece di
+    # convergere a ~92.7 MPa. Diagnosi e prova: vedi audit 2026-05-30.
+    # Il criterio topologico è coerente col layout del mesher
+    # `core/mesh/elliptic.py:60-102` (grid_ids[j][i], i=nx ⇒ bordo esterno).
+    # Node ID = first_node_id + j·(nx+1) + i  (first_node_id=1 da default).
+    outer_ids = {1 + j * (nx + 1) + nx for j in range(ny + 1)}
+    edge_nodes_raw = [n for n in nodes if n.id in outer_ids]
     # Ordina lungo l'arco (angolo polare parametrico ellisse: atan2(y/b, x/a))
     edge_nodes = sorted(
         edge_nodes_raw,
@@ -168,3 +181,95 @@ def test_le1_convergence_h_refinement():
 def _solve(nx: int, ny: int):
     m = _build_le1(nx=nx, ny=ny, et=ElementType.SHELL_Q4)
     return m, StaticSolver(m).solve()
+
+
+@pytest.mark.xfail(
+    strict=True,
+    reason=(
+        "Q4 standard a mesh moderata 16x16 raggiunge -15.1% sul target NAFEMS "
+        "(sigma_y(D) = 78.7 MPa vs +92.7 MPa). La precisione +-5% si ottiene "
+        "a mesh 64x64 (-3.8%, vedi test_le1_sigma_y_at_D_strict_64). NON e' un "
+        "bug del solver: e' la convergenza in corso del Q4 al bordo curvo con "
+        "concentrazione di sforzo. NON allargare la tolleranza per mascherarlo."
+    ),
+)
+def test_le1_sigma_y_at_D_honest():
+    """Libro mastro del LIMITE NOTO Q4 a mesh moderata (xfail atteso).
+
+    Tiene a registro coi numeri il fatto che il Q4 standard NON raggiunge la
+    precisione NAFEMS +-5% a mesh 16x16: il valore misurato e' +78.7 MPa
+    (-15.1% sul target +92.7 MPa). E' la convergenza in corso, non un bug.
+
+    Quando questo test passera' (xfail -> pass), vorra' dire che qualcuno ha
+    migliorato l'accuratezza del Q4 al bordo curvo (es. MITC4 reale,
+    integrazione selettiva, o stress recovery migliore). Quel giorno:
+    cambiare strict=True in strict=False o rimuovere xfail.
+
+    Il test "verde" gemello (`test_le1_sigma_y_at_D_strict_64`) usa mesh
+    64x64 e raggiunge -3.8% (dentro +-5% NAFEMS): il bollino e' la' che
+    certifica la fisica corretta del solver. Questo invece tiene il limite
+    a vista nella suite veloce.
+
+    Estrazione invariata rispetto al test storico: nodo piu' vicino a
+    (a_inner, 0) = (2, 0), media degli elementi adiacenti, sigma_y ricucito
+    (post nodal_stress_recovery).
+    """
+    TOL = 0.05  # +-5% NAFEMS ufficiale — mantenuto strict, e' cio' che rende l'xfail significativo
+
+    m = _build_le1(nx=16, ny=16, et=ElementType.SHELL_Q4)
+    r = StaticSolver(m).solve()
+    sigma_y_D = _sigma_y_at_point_D(m, r)
+
+    err = abs(abs(sigma_y_D) - SIGMA_TARGET)
+    max_err = SIGMA_TARGET * TOL
+    assert err <= max_err, (
+        f"σ_y(D) = {sigma_y_D/1e6:.3f} MPa "
+        f"vs target NAFEMS {SIGMA_TARGET/1e6:.3f} MPa "
+        f"(err = {(abs(sigma_y_D) - SIGMA_TARGET)/SIGMA_TARGET*100:+.1f}%, "
+        f"tolleranza ±{TOL*100:.0f}%) — LIMITE ATTESO Q4 a mesh moderata"
+    )
+
+
+def test_le1_sigma_y_at_D_strict_64():
+    """Test "strict" NAFEMS LE1 — bollino ufficiale a mesh 64x64, ±5%.
+
+    🟢 TEST VERDE ONESTO (audit "fix carico topologico" 2026-05-30):
+    Confronta σ_y(D) col target NAFEMS +92.7 MPa alla tolleranza ufficiale
+    ±5%. Su mesh 64×64 col carico applicato correttamente (criterio
+    topologico, vedi `_build_le1`) il valore misurato è +89.1 MPa (errore
+    −3.8%, dentro ±5%).
+
+    🚩 SCELTE DEL TEST:
+
+    1. **Mesh 64×64**: necessaria per la convergenza NAFEMS ±5%. A mesh
+       più grosse il Q4 standard sotto-stima (8×8: −28%, 16×16: −15%,
+       32×32: −7.7%, 64×64: −3.8%). La curva di convergenza è monotona
+       grazie al fix carico (era divergente pre-fix, vedi audit 2026-05-30).
+       COSTO: ~7 s solve. Pensato per esecuzione meno frequente.
+
+    2. **Stessa estrazione del test honest 16×16** (`_sigma_y_at_point_D`):
+       nodo più vicino a (a_inner, 0) = (2.0, 0.0), media degli elementi
+       adiacenti, `sigma_y` ricucito post nodal_stress_recovery. NESSUN
+       cambio di metodo: questo è ciò che ha validato il −3.8%.
+
+    3. **Tolleranza ±5%** NAFEMS ufficiale strict. Non maggiore.
+
+    Riferimento: NAFEMS Standard Benchmarks (1990), TNSB Rev. 3, "Elliptic
+    membrane" LE1. Target σ_y(D) = +92.7 MPa al punto D = (a_inner, 0)
+    sul bordo del foro, asse maggiore (concentrazione di sforzo per
+    trazione radiale del bordo esterno).
+    """
+    TOL = 0.05  # ±5% NAFEMS ufficiale strict
+
+    m = _build_le1(nx=64, ny=64, et=ElementType.SHELL_Q4)
+    r = StaticSolver(m).solve()
+    sigma_y_D = _sigma_y_at_point_D(m, r)
+
+    err = abs(abs(sigma_y_D) - SIGMA_TARGET)
+    max_err = SIGMA_TARGET * TOL
+    assert err <= max_err, (
+        f"σ_y(D) = {sigma_y_D/1e6:.3f} MPa "
+        f"vs target NAFEMS {SIGMA_TARGET/1e6:.3f} MPa "
+        f"(err = {(abs(sigma_y_D) - SIGMA_TARGET)/SIGMA_TARGET*100:+.1f}%, "
+        f"tolleranza ±{TOL*100:.0f}%)"
+    )

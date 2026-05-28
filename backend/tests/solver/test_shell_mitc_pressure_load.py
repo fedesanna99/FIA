@@ -54,16 +54,43 @@ def test_mitc_pressure_load_produces_finite_displacement():
 
 
 def test_q4_pressure_load_unchanged_after_fix():
+    """Sanity: il fix dispatch v2.4.3a NON ha alterato il comportamento di SHELL_Q4.
+
+    Garanzia di regressione: dopo il dispatch fix v2.4.3a (NEW-3, aggiunta del
+    branch SHELL_Q4_MITC nel solver), il SHELL_Q4 standard sulla SAME geometria
+    `_build_le10` deve ancora produrre lo stesso max|uz| (entro un range esplicito).
+    Se questo test fallisce, qualcuno ha alterato il dispatch del Q4 nel solver.
+
+    🔄 BASELINE RIALLINEATO 2026-05-30: pre-fix il baseline era ~6.4e-3 m,
+    ancorato alla GEOMETRIA FALSIFICATA del LE10 (foro piccolo a_i=b_i=0.5,
+    "evitiamo singolarità di mesh" — vedi audit "Via A" 2026-05-29). Quella
+    geometria non era la LE10 NAFEMS vera; `_build_le10` è stato corretto al
+    foro NAFEMS ufficiale (a_i=2.0, b_i=1.0). La struttura è cambiata
+    (foro 4× più grande in area → meno superficie portante → freccia minore):
+    nuovo max|uz| = 3.334e-3 m. Decomposizione coi numeri verificata:
+        - foro vecchio + vincoli vecchi : 6.386 mm  (pre-tutto)
+        - foro vecchio + vincoli topo   : 6.386 mm  (+0.000)
+        - foro nuovo   + vincoli vecchi : 3.334 mm  (−3.052)
+        - foro nuovo   + vincoli topo   : 3.334 mm  (stato attuale)
+    → l'intero cambio è dovuto alla geometria onesta, ZERO contributo dal
+    solver/dispatch/lumping. Il dispatch Q4 è ancora identico a pre-v2.4.3a.
+
+    Tolleranza ±15% intorno al nuovo baseline 3.334e-3 m: ampia abbastanza da
+    sopravvivere a futuri ri-arrangiamenti minori della mesher, stretta
+    abbastanza da catturare un effettivo cambio del Q4 dispatch.
     """
-    Sanity: il fix dispatch NON ha alterato il comportamento di SHELL_Q4.
-    Baseline pre-v2.4.3a: uz_max ~ 6.4e-3 m per LE10 mesh 8x8 p=1MPa.
-    """
+    EXPECTED_UZ_MAX = 3.334e-3  # m, LE10 mesh 8x8 p=1MPa Q4 standard, geom NAFEMS vera
+    TOL = 0.15                   # ±15% — vedi docstring
+
     m = _build_le10(nx=8, ny=8, p=1e6, element_type=ElementType.SHELL_Q4)
     r = StaticSolver(m).solve()
     uz_max = max(abs(d.uz) for d in r.displacements)
-    # Range generoso ±20% attorno al baseline noto
-    assert 5e-3 < uz_max < 8e-3, (
-        f"max|uz|={uz_max:.3e}, fuori range baseline Q4 [5e-3, 8e-3]"
+
+    lo, hi = EXPECTED_UZ_MAX * (1 - TOL), EXPECTED_UZ_MAX * (1 + TOL)
+    assert lo < uz_max < hi, (
+        f"max|uz|={uz_max:.3e} fuori da {EXPECTED_UZ_MAX:.3e} ±{TOL*100:.0f}% "
+        f"[{lo:.3e}, {hi:.3e}]. Se il dispatch del Q4 NON è stato toccato, "
+        f"controllare se _build_le10 ha cambiato la geometria."
     )
 
 

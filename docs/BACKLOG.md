@@ -72,6 +72,27 @@
 - **L5-P1-3** Orchestrator NotImplementedError chain provider.
 - **L5-P1-4** seismic_loads baseline 4.5 noted ma frontend non parse.
 
+### 🔴 Pre-esistenti tracciati 2026-05-30 (NOT regressioni NAFEMS-honest)
+Identificati durante il quality gate del fix NAFEMS LE1/LE10. Già rossi sul
+commit 271a7c1 prima dei nostri cambi, **non correlati** ai fix carico/vincoli.
+
+- **PREEX-1** `tests/billing/test_estimator_calibration.py::test_estimate_within_tolerance_of_actual`:
+  3 parametri fuori ±30%:
+    - `[ex_shell_plate-modal-params3]`     err 92.5%
+    - `[ex_tower_3d-modal-params4]`        err 68.6%
+    - `[ex_cable_bridge_2d-nonlinear-params6]` err 63.5%
+  Cost estimator (`eta_s`) drift rispetto ai tempi reali del solver attuale.
+  Fix proposto: ri-calibrare constants `eta_s` su benchmark hardware corrente
+  (rinnovare `billing/cost_estimator.py` con misure aggiornate).
+
+- **PREEX-2** `tests/services/providers/elevation/test_elevation_integration.py::test_real_usgs_outside_us_raises`:
+  USGS Elevation API live ritorna risposta non-JSON per coordinate fuori USA;
+  test assertion si aspetta substring `"no data"` o `"outside"` nel messaggio
+  di errore, ma il messaggio è `"response not JSON: Expecting value..."`.
+  Test fragile per design (live network + payload-dependent assertion).
+  Fix proposto: mock dell'endpoint con fixture, oppure relax assertion a
+  semplice "deve sollevare ProviderError", oppure skip se USGS instabile.
+
 ---
 
 ## 🟢 P2 (52)

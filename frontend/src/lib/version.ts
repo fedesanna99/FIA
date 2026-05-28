@@ -8,4 +8,4 @@
 export const APP_VERSION = "v3.3";
 
 /** Tag completo dell'ultima release (per UI debug/Account). */
-export const APP_TAG = "v3.3.0-audit-4layers-fix";
+export const APP_TAG = "v3.3.1-nafems-honest";
