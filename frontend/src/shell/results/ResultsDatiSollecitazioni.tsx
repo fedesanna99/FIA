@@ -16,6 +16,7 @@ import { useMemo, useState } from "react";
 import { AlertTriangle, Download, ChevronUp, ChevronDown } from "lucide-react";
 import { useModelStore } from "../../store/modelStore";
 import { useResultsStore } from "../../store/resultsStore";
+import { toast } from "../../store/toastStore";
 import { isSuspicious, SUSPICIOUS_REASON } from "./resultsHonest";
 import type { ElementType } from "../../types/model";
 import type { StaticResults, ElementForces, ElementStress } from "../../types/results";
@@ -152,9 +153,14 @@ export function ResultsDatiSollecitazioni() {
   };
 
   const handleExportPlaceholder = () => {
-    // eslint-disable-next-line no-alert
-    window.alert(
-      "Export CSV — in arrivo. Per ora puoi copiare i numeri a mano dalla tabella."
+    // rifinitura 2d FIX A: prima window.alert silenzioso/intrusivo
+    // (l'utente cliccava e niente sembrava succedere se gestiva
+    // popup-blocker). Ora usa il toast system esistente (toastStore)
+    // → feedback visibile non-bloccante, allineato al resto della
+    // UX (errori solver, "analisi completata", ecc.).
+    toast(
+      "info",
+      "Esportazione CSV — in arrivo nelle prossime versioni",
     );
   };
 

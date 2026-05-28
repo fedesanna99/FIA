@@ -15,6 +15,7 @@ import { render, screen, fireEvent } from "@testing-library/react";
 import { ResultsDatiSollecitazioni } from "./ResultsDatiSollecitazioni";
 import { useModelStore } from "../../store/modelStore";
 import { useResultsStore } from "../../store/resultsStore";
+import { useToastStore } from "../../store/toastStore";
 import type { StaticResults, ElementForces, ElementStress } from "../../types/results";
 import type { FEAModel, Element } from "../../types/model";
 
@@ -58,6 +59,7 @@ describe("ResultsDatiSollecitazioni · FAM C", () => {
   beforeEach(() => {
     useModelStore.setState({ model: null });
     useResultsStore.setState({ staticResults: null, modalResults: null, dynamicResults: null });
+    useToastStore.setState({ toasts: [] });
   });
 
   it("placeholder onesto senza staticResults", () => {
@@ -210,7 +212,10 @@ describe("ResultsDatiSollecitazioni · FAM C", () => {
     expect(screen.queryByTestId("results-data-sollec-warn")).toBeNull();
   });
 
-  it("export CSV: bottone placeholder, click apre alert onesto 'in arrivo'", () => {
+  it("rifinitura 2d FIX A: export CSV click → toast info onesto, NO alert silenzioso", () => {
+    // Regressione testing dell'exploratory testing dal vivo: prima il
+    // bottone usava window.alert (intrusivo + bloccabile da popup-blocker).
+    // Ora deve usare il toast system → feedback visibile, non-bloccante.
     const alertSpy = vi.spyOn(window, "alert").mockImplementation(() => undefined);
     useModelStore.setState({
       model: makeModel([{ id: 1, type: "beam2d", nodes: [1, 2], material_id: "m1" }]),
@@ -219,10 +224,19 @@ describe("ResultsDatiSollecitazioni · FAM C", () => {
       staticResults: makeResults([makeForces(1)], [makeStress(1, 100e6)]),
     });
     render(<ResultsDatiSollecitazioni />);
+
+    expect(useToastStore.getState().toasts.length).toBe(0);
     fireEvent.click(screen.getByTestId("sollec-export-csv"));
-    expect(alertSpy).toHaveBeenCalledOnce();
-    expect(alertSpy.mock.calls[0][0]).toContain("Export CSV");
-    expect(alertSpy.mock.calls[0][0]).toContain("in arrivo");
+
+    // 1. Mai più window.alert (UX bug pre-fix)
+    expect(alertSpy).not.toHaveBeenCalled();
+    // 2. Toast info pushato col messaggio onesto richiesto da prompt
+    const toasts = useToastStore.getState().toasts;
+    expect(toasts.length).toBe(1);
+    expect(toasts[0].level).toBe("info");
+    expect(toasts[0].message).toContain("Esportazione CSV");
+    expect(toasts[0].message).toContain("in arrivo");
+
     alertSpy.mockRestore();
   });
 });
