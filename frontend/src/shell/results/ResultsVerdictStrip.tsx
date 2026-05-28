@@ -1,24 +1,41 @@
-// redesign/workspace-fasi · FETTA 2a · Striscia verdetto + toggle viste
+// redesign/workspace-fasi · FETTA 2b · Striscia verdetto onesta
 //
 // Overlay del viewport quando il workspace attivo e' "risultati":
-//   - top-center: striscia con 4 metriche (Verifica EC3, σ max, freccia, UR)
-//     - σ max e freccia: derivati DIRETTAMENTE da resultsStore.staticResults
-//       (valori gia' disponibili, formattati in MPa/mm)
-//     - Verifica EC3 e UR: "—" perche' richiedono un check normativo non
-//       sincronizzato sincronamente in store. Verra' cablato nello step 2b
-//       (oggi vivono in VerifyPanel che fa fetch on-demand /api/verify_ext).
-//   - top-right: 3 toggle viste (Deformata / Sforzi σ / Momento) collegati
-//     ai toggle GIA' presenti negli store:
-//       - showDeformed / toggleDeformed                 (resultsStore)
-//       - showStressColormap / toggleStressColormap     (resultsStore)
-//       - showDiagrams / toggleDiagrams + diagramComponent (analysisStore)
-//     Non riscriviamo overlay viewport: solo nuovi entry-point UI per i
-//     flag esistenti.
+//   - top-center: striscia con 4 celle metriche (EC3 / sigma max / freccia / UR)
+//   - top-right: 3 toggle viste (Deformata / Sforzi / Momento)
+//
+// FAMIGLIA A (FETTA 2b):
+//   - Cella EC3: legge UR vero e lo classifica (Passa ✓ verde / Non passa ✗
+//     rosso). "n/a" se geometria non normata. "—" se non ancora calcolato.
+//   - Cella UR: numero vero / "n/a" / "—"
+//   - RILEVATORE CALCOLO SOSPETTO: se max_stress ≈ 0 && max_disp ≈ 0 (con
+//     risultati presenti), la cella EC3 diventa "⚠ Calcolo sospetto" ambra,
+//     e tutte le celle (sigma/freccia/UR) prendono il bordo ambra. No
+//     applausi verdi su modelli degeneri.
 
+import { useModelStore } from "../../store/modelStore";
 import { useResultsStore } from "../../store/resultsStore";
 import { useAnalysisStore } from "../../store/analysisStore";
+import {
+  isEC3Applicable,
+  isSuspicious,
+  computeUREC3,
+  SUSPICIOUS_REASON,
+  EC3_NA_REASON,
+} from "./resultsHonest";
+
+type EC3Tone = "neutral" | "pass" | "fail" | "na" | "warn";
+
+interface CellState {
+  text: string;
+  unit?: string;
+  tone: EC3Tone;
+  tooltip?: string;
+  testid: string;
+}
 
 export function ResultsVerdictStrip() {
+  const model = useModelStore((s) => s.model);
   const staticResults = useResultsStore((s) => s.staticResults);
   const showDeformed = useResultsStore((s) => s.showDeformed);
   const showStress = useResultsStore((s) => s.showStressColormap);
@@ -30,29 +47,110 @@ export function ResultsVerdictStrip() {
   const toggleDiagrams = useAnalysisStore((s) => s.toggleDiagrams);
   const setDiagramComponent = useAnalysisStore((s) => s.setDiagramComponent);
 
-  // σ max: backend salva in Pa. UI rende in MPa. Se il valore manca,
-  // mostriamo solo "—" senza unità (non "— MPa", che e' rumore visivo).
-  const sigmaAvailable = staticResults?.max_stress != null;
-  const sigmaMaxMPa = sigmaAvailable
-    ? (staticResults!.max_stress / 1e6).toLocaleString("it-IT", {
-        maximumFractionDigits: 0,
-      })
-    : null;
+  const hasResults = !!staticResults;
+  const suspicious = isSuspicious(staticResults);
+  const ec3Applicable = isEC3Applicable(model);
 
-  // freccia: backend salva in m, in valore assoluto rende mm.
-  const frecciaAvailable = staticResults?.max_displacement != null;
-  const frecciaMaxMm = frecciaAvailable
-    ? (Math.abs(staticResults!.max_displacement) * 1000).toLocaleString(
-        "it-IT",
-        { minimumFractionDigits: 2, maximumFractionDigits: 2 }
-      )
-    : null;
+  // ── Stati onesti delle 4 celle ────────────────────────────────────────
+  // Calcolo UR EC3 (solo se applicabile + ha results + non sospetto)
+  const urEC3 =
+    hasResults && ec3Applicable && !suspicious
+      ? computeUREC3(staticResults!.max_stress)
+      : null;
 
+  // Cella EC3 (verdetto Passa/Non passa/n/a/—/sospetto)
+  const ec3Cell: CellState = (() => {
+    if (suspicious) {
+      return {
+        text: "⚠ Sospetto",
+        tone: "warn",
+        tooltip: SUSPICIOUS_REASON,
+        testid: "verdict-cell-ec3",
+      };
+    }
+    if (!hasResults) {
+      return { text: "—", tone: "neutral", testid: "verdict-cell-ec3" };
+    }
+    if (!ec3Applicable) {
+      return {
+        text: "n/a",
+        tone: "na",
+        tooltip: EC3_NA_REASON,
+        testid: "verdict-cell-ec3",
+      };
+    }
+    return urEC3! <= 1
+      ? { text: "Passa ✓", tone: "pass", testid: "verdict-cell-ec3" }
+      : { text: "Non passa ✗", tone: "fail", testid: "verdict-cell-ec3" };
+  })();
+
+  // Cella σ max
+  const sigmaCell: CellState = (() => {
+    if (!hasResults) {
+      return { text: "—", tone: "neutral", testid: "verdict-cell-sigma" };
+    }
+    const sigmaMPa = (staticResults!.max_stress / 1e6).toLocaleString("it-IT", {
+      maximumFractionDigits: 0,
+    });
+    return {
+      text: sigmaMPa,
+      unit: "MPa",
+      tone: suspicious ? "warn" : "neutral",
+      tooltip: suspicious ? SUSPICIOUS_REASON : undefined,
+      testid: "verdict-cell-sigma",
+    };
+  })();
+
+  // Cella freccia
+  const frecciaCell: CellState = (() => {
+    if (!hasResults) {
+      return { text: "—", tone: "neutral", testid: "verdict-cell-freccia" };
+    }
+    const mm = (Math.abs(staticResults!.max_displacement) * 1000).toLocaleString(
+      "it-IT",
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+    );
+    return {
+      text: mm,
+      unit: "mm",
+      tone: suspicious ? "warn" : "neutral",
+      tooltip: suspicious ? SUSPICIOUS_REASON : undefined,
+      testid: "verdict-cell-freccia",
+    };
+  })();
+
+  // Cella UR (numero o n/a / — / —, NON warn — quel ruolo e' di EC3)
+  const urCell: CellState = (() => {
+    if (suspicious) {
+      // Sospetto: numero non significativo, ma cornice ambra per coerenza
+      return {
+        text: "—",
+        tone: "warn",
+        tooltip: SUSPICIOUS_REASON,
+        testid: "verdict-cell-ur",
+      };
+    }
+    if (!hasResults) {
+      return { text: "—", tone: "neutral", testid: "verdict-cell-ur" };
+    }
+    if (!ec3Applicable) {
+      return {
+        text: "n/a",
+        tone: "na",
+        tooltip: EC3_NA_REASON,
+        testid: "verdict-cell-ur",
+      };
+    }
+    return {
+      text: urEC3!.toFixed(2),
+      tone: urEC3! <= 1 ? "pass" : "fail",
+      testid: "verdict-cell-ur",
+    };
+  })();
+
+  // ── Toggle Momento (showDiagrams + diagramComponent="M") ──────────────
   const momentoActive = showDiagrams && diagramComponent === "M";
   const handleMomento = () => {
-    // Click su "Momento":
-    //   - se gia' attivo (showDiagrams=true && component=M): spegne
-    //   - altrimenti: accende showDiagrams + forza component="M"
     if (momentoActive) {
       toggleDiagrams();
     } else {
@@ -64,33 +162,16 @@ export function ResultsVerdictStrip() {
   return (
     <>
       <div
-        className="results-verdict"
+        className={`results-verdict${suspicious ? " is-suspicious" : ""}`}
         data-testid="results-verdict-strip"
+        data-suspicious={suspicious ? "true" : undefined}
         role="status"
         aria-label="Verdetto risultati"
       >
-        <div className="results-verdict-cell">
-          <span className="k">Verifica EC3</span>
-          <span className="v" data-testid="verdict-cell-ec3">—</span>
-        </div>
-        <div className="results-verdict-cell">
-          <span className="k">σ max</span>
-          <span className="v" data-testid="verdict-cell-sigma">
-            {sigmaMaxMPa ?? "—"}
-            {sigmaMaxMPa !== null && <small> MPa</small>}
-          </span>
-        </div>
-        <div className="results-verdict-cell">
-          <span className="k">freccia</span>
-          <span className="v" data-testid="verdict-cell-freccia">
-            {frecciaMaxMm ?? "—"}
-            {frecciaMaxMm !== null && <small> mm</small>}
-          </span>
-        </div>
-        <div className="results-verdict-cell">
-          <span className="k">UR</span>
-          <span className="v" data-testid="verdict-cell-ur">—</span>
-        </div>
+        <VerdictCell label="Verifica EC3" cell={ec3Cell} />
+        <VerdictCell label="σ max" cell={sigmaCell} />
+        <VerdictCell label="freccia" cell={frecciaCell} />
+        <VerdictCell label="UR" cell={urCell} />
       </div>
 
       <div
@@ -127,5 +208,21 @@ export function ResultsVerdictStrip() {
         </button>
       </div>
     </>
+  );
+}
+
+function VerdictCell({ label, cell }: { label: string; cell: CellState }) {
+  return (
+    <div
+      className={`results-verdict-cell results-verdict-cell--${cell.tone}`}
+      data-tone={cell.tone}
+      title={cell.tooltip}
+    >
+      <span className="k">{label}</span>
+      <span className="v" data-testid={cell.testid}>
+        {cell.text}
+        {cell.unit && <small> {cell.unit}</small>}
+      </span>
+    </div>
   );
 }

@@ -377,6 +377,38 @@ body.shell-sharp .shell-phase-num { border-radius: 0; }
   color: var(--ink-dim, #7B808A);
 }
 
+/* FETTA 2b · FAMIGLIA A: toni onesti per cella (pass/fail/na/warn/neutral).
+   - neutral: testo ink (default)
+   - pass:    verde (UR ≤ 1, Passa ✓)
+   - fail:    rosso (UR > 1, Non passa ✗)
+   - na:      ink-dim corsivo (geometria non normata)
+   - warn:    ambra (calcolo sospetto, modello degenere) */
+.results-verdict-cell--pass .v { color: var(--success, #65A30D); }
+.results-verdict-cell--fail .v { color: var(--danger, #DC2626); }
+.results-verdict-cell--na .v {
+  color: var(--ink-dim, #7B808A);
+  font-style: italic;
+  font-weight: 500;
+}
+.results-verdict-cell--warn .v {
+  color: var(--warn, #B45309);
+}
+.results-verdict-cell--warn,
+.results-verdict-cell--fail {
+  background: rgba(180, 83, 9, 0.04); /* warn subtle */
+}
+.results-verdict-cell--fail {
+  background: rgba(220, 38, 38, 0.04); /* danger subtle */
+}
+
+/* "Calcolo sospetto": l'intera strip prende un bordo ambra per
+   segnalare che il verdetto non e' affidabile. Le celle warn al
+   loro interno hanno il proprio sfondo subtle. */
+.results-verdict.is-suspicious {
+  border-color: var(--warn, #B45309);
+  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.12);
+}
+
 .results-view-toggles {
   position: absolute;
   top: 14px;
