@@ -30,6 +30,10 @@ import { DisplacementTable } from "../../components/results/DisplacementTable";
 // FETTA 2b · FAM B: nuovo content scheda Sintesi (sostituisce InspectPanel
 // embed). InspectPanel.tsx resta nel codebase ma non e' piu' importato qui.
 import { ResultsSintesi } from "./ResultsSintesi";
+// FETTA 2b · FAM C: tabelle Sollecitazioni e Reazioni con banner sospetto
+// e somma di controllo (sostituiscono i placeholder "in arrivo step 2b").
+import { ResultsDatiSollecitazioni } from "./ResultsDatiSollecitazioni";
+import { ResultsDatiReazioni } from "./ResultsDatiReazioni";
 
 interface ResultsTabsPanelProps {
   /** Callback "Itera" → torna al workspace Costruisci (passato da Shell.tsx). */
@@ -186,19 +190,11 @@ export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
                   dal passo <b>Esegui</b> per vedere la tabella spostamenti.
                 </ResultsPlaceholder>
               ))}
-            {subtab === "sollecitazioni" && (
-              <ResultsPlaceholder>
-                Tabella sollecitazioni (N · V · M per elemento) — in arrivo
-                nello <b>step 2b</b>. Per ora le solleci­tazioni sono leggibili
-                via overlay viewport o dalle card di Sintesi.
-              </ResultsPlaceholder>
-            )}
-            {subtab === "reazioni" && (
-              <ResultsPlaceholder>
-                Tabella reazioni vincolari + somma di controllo (ΣR ≟ −ΣF) —
-                in arrivo nello <b>step 2b</b>.
-              </ResultsPlaceholder>
-            )}
+            {/* FETTA 2b · FAM C: tabelle reali. I 2 componenti gestiscono
+                anche lo stato "nessun calcolo" (placeholder onesto interno)
+                e il banner ambra "calcolo sospetto" in cima. */}
+            {subtab === "sollecitazioni" && <ResultsDatiSollecitazioni />}
+            {subtab === "reazioni" && <ResultsDatiReazioni />}
           </div>
         </div>
       )}

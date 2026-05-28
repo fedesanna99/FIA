@@ -30,6 +30,17 @@ vi.mock("./ResultsSintesi", () => ({
     </div>
   ),
 }));
+// FETTA 2b · FAM C: tabelle Sollecitazioni e Reazioni (no piu' placeholder).
+vi.mock("./ResultsDatiSollecitazioni", () => ({
+  ResultsDatiSollecitazioni: () => (
+    <div data-testid="mock-results-data-sollecitazioni">Sollecitazioni</div>
+  ),
+}));
+vi.mock("./ResultsDatiReazioni", () => ({
+  ResultsDatiReazioni: () => (
+    <div data-testid="mock-results-data-reazioni">Reazioni</div>
+  ),
+}));
 
 function makeStaticResults(): StaticResults {
   return {
@@ -104,20 +115,19 @@ describe("ResultsTabsPanel · FETTA 2a", () => {
     expect(screen.getByTestId("mock-displacement-table")).toBeInTheDocument();
   });
 
-  it("Dati > Sollecitazioni: placeholder 'in arrivo step 2b' (no dati finti)", () => {
+  it("FAM C: Dati > Sollecitazioni monta ResultsDatiSollecitazioni (no placeholder)", () => {
     useResultsStore.setState({ staticResults: makeStaticResults() });
     render(<ResultsTabsPanel />);
     fireEvent.click(screen.getByTestId("results-tab-dati"));
     fireEvent.click(screen.getByTestId("results-subtab-sollecitazioni"));
-    expect(screen.getByTestId("results-placeholder")).toBeInTheDocument();
-    expect(screen.queryByTestId("mock-displacement-table")).toBeNull();
+    expect(screen.getByTestId("mock-results-data-sollecitazioni")).toBeInTheDocument();
   });
 
-  it("Dati > Reazioni: placeholder 'in arrivo step 2b'", () => {
+  it("FAM C: Dati > Reazioni monta ResultsDatiReazioni (no placeholder)", () => {
     render(<ResultsTabsPanel />);
     fireEvent.click(screen.getByTestId("results-tab-dati"));
     fireEvent.click(screen.getByTestId("results-subtab-reazioni"));
-    expect(screen.getByTestId("results-placeholder")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-results-data-reazioni")).toBeInTheDocument();
   });
 
   it("click su tab Verifiche: embed VerifyPanel visibile", () => {
