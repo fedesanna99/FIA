@@ -29,10 +29,10 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  // Fetta E3.1: rimossi Bell/HelpCircle/Search (erano solo nella vecchia
-  // DashTopBar interna, ora il nuovo componente ./DashTopBar.tsx ha i
-  // suoi import). Mantengo gli altri perche' usati in Hero/ActionRow/etc.
-  ArrowRight, LayoutGrid, ListChecks, Plus,
+  // Fetta E3.1+E3.3: rimossi Bell/HelpCircle/Search (DashTopBar) +
+  // LayoutGrid/ListChecks/Plus (ActionRow). ArrowRight resta perche'
+  // ancora usato in altri sotto-componenti (RecentSection, DashFoot).
+  ArrowRight,
 } from "lucide-react";
 
 import { getQuota } from "../api/billing";
@@ -51,6 +51,7 @@ import "../styles/dashboard.css";
 // .claude/ricordi/handoffs/05-claude-design-round2-response.md.
 import { DashTopBar } from "./DashTopBar";
 import { DashHero, type DashHeroState } from "./DashHero";
+import { NewModelTileSection } from "./NewModelTileSection";
 
 
 // v2.7.2 Phase 4.3: hook condiviso per navigare a /templates da qualsiasi
@@ -161,7 +162,7 @@ export function DashboardPage({
             rimossa. La nuova <DashHero /> sopra sostituisce la prima parte
             (eyebrow+h1+sub variant). La usage card embedded sara' spostata
             in QuotaBanner (E3.7) e pagina /settings/billing (E3.8). */}
-        <ActionRow />
+        <NewModelTileSection />
         <RecentSection
           models={userModels}
           modelsUnavailable={modelsUnavailable}
@@ -196,80 +197,11 @@ export function DashboardPage({
 // /settings/billing (E3.8).
 
 
-// ── ActionRow ───────────────────────────────────────────────────────────
-function ActionRow() {
-  const goTemplates = useGoTemplates();
-  const goPercorsoUC1 = useGoPercorsoUC1();
-  return (
-    <section className="action-row" data-testid="dash-action-row">
-      <ActionTile
-        primary
-        iconBg="rgba(8,145,178,0.10)"
-        iconColor="var(--accent)"
-        icon={<Plus width={24} height={24} aria-hidden="true" />}
-        title="Nuovo modello vuoto"
-        desc="Costruisci da zero: scegli unità, sistema coordinato, e parti dal canvas."
-        metaLeft={<><kbd>⌘ N</kbd></>}
-        metaRight="3 step di setup"
-        onClick={() => window.dispatchEvent(new Event("feapro:open-new-model"))}
-        testId="dash-action-new"
-      />
-      <ActionTile
-        iconBg="rgba(83,74,183,0.10)"
-        iconColor="var(--purple)"
-        icon={<LayoutGrid width={24} height={24} aria-hidden="true" />}
-        title="Apri un template"
-        desc="9 modelli ricorrenti: trave, mensola, telaio, torre, piastra, reticolare…"
-        metaLeft={<span className="badge-tag">9 template</span>}
-        metaRight="configurati EC3/NTC18"
-        onClick={() => goTemplates()}
-        testId="dash-action-template"
-      />
-      <ActionTile
-        iconBg="rgba(180,83,9,0.10)"
-        iconColor="var(--warn)"
-        icon={<ListChecks width={24} height={24} aria-hidden="true" />}
-        title="Segui un percorso guidato"
-        desc="Onboarding step-by-step su casi d'uso reali. Ideale alle prime esperienze FEM."
-        metaLeft={<span className="badge-tag">2 attivi</span>}
-        metaRight="UC1 al 50% · UC3 al 12%"
-        onClick={() => goPercorsoUC1()}
-        testId="dash-action-percorso"
-      />
-    </section>
-  );
-}
-
-interface ActionTileProps {
-  primary?: boolean;
-  iconBg: string;
-  iconColor: string;
-  icon: ReactNode;
-  title: string;
-  desc: string;
-  metaLeft: ReactNode;
-  metaRight: string;
-  onClick: () => void;
-  testId: string;
-}
-function ActionTile({ primary, iconBg, iconColor, icon, title, desc, metaLeft, metaRight, onClick, testId }: ActionTileProps) {
-  return (
-    <button type="button" className={`action-tile${primary ? " action-primary" : ""}`} onClick={onClick} data-testid={testId}>
-      <div className="tile-icon" style={{ background: iconBg, color: iconColor }}>{icon}</div>
-      <div className="tile-body">
-        <h3>{title}</h3>
-        <p>{desc}</p>
-        <div className="tile-meta">
-          {metaLeft}
-          <span>{metaRight}</span>
-        </div>
-      </div>
-      <span className="tile-arrow">
-        <ArrowRight width={16} height={16} aria-hidden="true" />
-      </span>
-    </button>
-  );
-}
+// ── ActionRow + ActionTile legacy v2.7.1 RIMOSSE (Fetta E3.3) ───────────
+// Sostituite dal componente esportato `./NewModelTileSection.tsx` che
+// implementa la decisione IA Dashboard #2 di Federico: "1 sola tile
+// primaria 'Nuovo modello' + 2 link sobri laterali (Template/Percorso)".
+// Il vecchio pattern "3 tile uguali" e' stato rifiutato in Round 1.
 
 
 // ── RecentSection ───────────────────────────────────────────────────────

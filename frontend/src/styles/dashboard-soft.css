@@ -242,3 +242,147 @@
   color: var(--accent-hover);
   text-decoration: underline;
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+ * NewModelTileSection — Fetta E3.3
+ * Tile primaria CTA "Nuovo modello" + 2 link sobri laterali
+ * (Apri da template · Segui un percorso). Decisione IA Dashboard #2.
+ * ════════════════════════════════════════════════════════════════════════ */
+.action-zone {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) 1fr;
+  gap: 16px;
+  align-items: stretch;
+  margin-bottom: 44px;
+}
+.new-model-tile {
+  position: relative; overflow: hidden;
+  display: flex; align-items: center; gap: 20px;
+  padding: 24px 26px;
+  background: var(--bg-panel);
+  border: 1px solid rgba(var(--accent-rgb, 8, 145, 178), 0.35);
+  border-radius: var(--r-2xl, 16px);
+  box-shadow: var(--shadow-card);
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    box-shadow var(--d-mid, 200ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    border-color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    transform var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.new-model-tile::after {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(120% 140% at 100% 0%, var(--accent-subtle) 0%, transparent 55%);
+  pointer-events: none;
+}
+.new-model-tile:hover {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-1px);
+}
+.nmt-icon {
+  position: relative; z-index: 1; flex-shrink: 0;
+  display: grid; place-items: center;
+  width: 56px; height: 56px;
+  color: #fff; background: var(--accent);
+  border-radius: var(--r-xl, 12px);
+  box-shadow: 0 4px 10px -3px rgba(var(--accent-rgb, 8, 145, 178), 0.5);
+}
+.nmt-icon svg { width: 28px; height: 28px; }
+.nmt-body { position: relative; z-index: 1; flex: 1; min-width: 0; }
+.nmt-body h2 {
+  margin: 0; font-family: var(--font-display);
+  font-weight: 700; font-size: 19px;
+  letter-spacing: var(--ls-tight-1, -0.015em);
+  color: var(--ink);
+}
+.nmt-body p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.nmt-tail {
+  position: relative; z-index: 1; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 10px;
+}
+.nmt-kbd { display: flex; align-items: center; gap: 4px; }
+.nmt-kbd kbd {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 600;
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px;
+  color: var(--ink-dim);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm, 6px);
+}
+.nmt-go {
+  display: grid; place-items: center;
+  width: 38px; height: 38px;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border-radius: var(--r-full, 9999px);
+  transition:
+    background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.new-model-tile:hover .nmt-go {
+  background: var(--accent);
+  color: #fff;
+}
+.nmt-go svg { width: 18px; height: 18px; }
+
+/* Secondary sober links column */
+.action-aside {
+  display: flex; flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-2xl, 16px);
+  overflow: hidden;
+}
+.action-link {
+  display: flex; align-items: center; gap: 14px;
+  flex: 1; padding: 16px 20px;
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.action-link + .action-link { border-top: 1px solid var(--border); }
+.action-link:hover { background: var(--bg-hover); }
+.al-icon {
+  flex-shrink: 0; display: grid; place-items: center;
+  width: 34px; height: 34px;
+  color: var(--ink-muted);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg, 10px);
+}
+.al-icon svg { width: 17px; height: 17px; }
+.al-body {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+}
+.al-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.al-sub {
+  font-size: 11.5px;
+  color: var(--ink-dim);
+  margin-top: 1px;
+}
+.al-arrow {
+  color: var(--ink-faint);
+  display: grid; place-items: center;
+  transition: color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.al-arrow svg { width: 15px; height: 15px; }
+.action-link:hover .al-arrow { color: var(--accent); }
+
+/* Responsive: action-zone → 1 colonna su tablet */
+@media (max-width: 1100px) {
+  .action-zone { grid-template-columns: 1fr; }
+}
