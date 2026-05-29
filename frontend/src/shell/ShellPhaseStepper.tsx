@@ -4,19 +4,29 @@
 // rail sinistra (railConfig.ts LOCKED): è una MAPPA gerarchica del
 // flusso "uso un FEA" — Costruisci → Esegui → Risultati.
 //
-// REGOLE (vedi prompt FETTA 1):
-//   1. Ogni passo è SEMPRE cliccabile (mai disabilitare). Cliccare un
-//      passo porta al workspace corrispondente (Costruisci→"modello",
-//      Esegui→"analisi", Risultati→"risultati") via la stessa via
-//      usata dalla rail sinistra (setActiveWs in Shell.tsx).
+// REGOLE (aggiornate 29/05/2026 sera — vedi conversazione Federico
+// "Per la spina confermo!! sono indeciso per il poter saltare una voce,
+// effettivamente non dovresti poter skippare esegui per andare diretto
+// ai risultati"):
+//   1. **Blocco skip in avanti**: una fase è cliccabile solo se la
+//      precedente è almeno `done` (o `stale` per Verifica). Esempio:
+//      non puoi cliccare "Esegui" se "Costruisci" non e' completo; non
+//      puoi cliccare "Verifica" (Risultati) se non hai mai eseguito.
+//      Indietro sempre permesso (la fase attiva resta cliccabile anche
+//      se diventa "blocked" — l'utente puo' rimanere dov'e').
 //   2. Stato visivo derivato dagli store reali (modelStore /
-//      analysisStore / resultsStore). Nessuna nuova logica.
-//   3. Lo stato è SOLO informativo: niente blocchi, niente toast,
-//      niente redirect forzati.
+//      analysisStore / resultsStore). Nessuna nuova logica di calcolo.
+//   3. Bloccato → tooltip esplicativo + cursor-not-allowed + opacita'
+//      ridotta + aria-disabled. Click su passo bloccato e' no-op
+//      silenzioso (niente toast / niente redirect / niente errore).
 //
 // Pattern "stale" identico a `components/viewport/StaleResultsBanner.tsx`:
 //   modelHash(model) !== resultsStore.modelHashAtAnalysis → risultati
 //   obsoleti (cerchietto warning sul passo Risultati).
+//
+// Decisione 29/05/2026: il passo "Risultati" sara' rinominato "Verifica"
+// in fetta E2.5 (cleanup 6→3 workspace) — qui resta "Risultati" finche'
+// non arriva quella migrazione. Vedi ROADMAP.md sezione "In corso".
 
 import { useMemo } from "react";
 import { Check, Loader2, AlertTriangle, Circle } from "lucide-react";
@@ -91,12 +101,34 @@ export function ShellPhaseStepper({ active, onChange }: ShellPhaseStepperProps) 
     "phase-step-results": resultsState,
   };
 
+  // ── v3.4 29/05 sera · blocco skip in avanti ────────────────────────
+  // Una fase e' cliccabile (canEnter) solo se la precedente e' "done"
+  // (o "stale" per Verifica — i risultati esistono, anche se obsoleti).
+  // L'utente puo' rimanere sulla fase attiva anche se diventa bloccata
+  // (active prende precedenza su blocked — vedi render sotto).
+  const canEnter: Record<StepConfig["testid"], boolean> = {
+    "phase-step-build":   true,
+    "phase-step-run":     buildState === "done",
+    "phase-step-results": hasResults, // include stale
+  };
+  const blockedReason: Record<StepConfig["testid"], string> = {
+    "phase-step-build":   "",
+    "phase-step-run":     "Completa 'Costruisci' prima (modello con nodi, elementi e vincoli)",
+    "phase-step-results": "Esegui un'analisi prima di vedere i risultati",
+  };
+
   return (
     <nav className="shell-phase" data-shell="phase" aria-label="Fasi del progetto">
       <ol className="shell-phase-list">
         {STEPS.map((step, i) => {
           const state = stateByTestid[step.testid];
           const isActive = active === step.workspace;
+          // v3.4 29/05 sera: una fase bloccata e' no-op al click ma resta
+          // visibile come riferimento. La fase ATTIVA non viene mai
+          // bloccata (anche se canEnter=false): l'utente puo' rimanere
+          // dov'e' anche se ha resettato il modello.
+          const blocked = !canEnter[step.testid] && !isActive;
+          const reason = blocked ? blockedReason[step.testid] : "";
           return (
             <li key={step.testid} className="shell-phase-li">
               <button
@@ -105,12 +137,18 @@ export function ShellPhaseStepper({ active, onChange }: ShellPhaseStepperProps) 
                   "shell-phase-step",
                   `shell-phase-step--${state}`,
                   isActive ? "is-active" : "",
+                  blocked ? "is-blocked" : "",
                 ].filter(Boolean).join(" ")}
                 data-testid={step.testid}
                 data-state={state}
+                data-blocked={blocked ? "true" : undefined}
                 aria-current={isActive ? "step" : undefined}
-                onClick={() => onChange(step.workspace)}
-                title={`${step.label} — ${describeState(state)}`}
+                aria-disabled={blocked ? "true" : undefined}
+                disabled={blocked}
+                onClick={() => { if (!blocked) onChange(step.workspace); }}
+                title={blocked
+                  ? `${step.label} — ${reason}`
+                  : `${step.label} — ${describeState(state)}`}
               >
                 <span className="shell-phase-num" aria-hidden>{step.index}</span>
                 <span className="shell-phase-label">{step.label}</span>

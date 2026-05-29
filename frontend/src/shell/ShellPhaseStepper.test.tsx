@@ -1,11 +1,15 @@
 /**
- * ShellPhaseStepper.test.tsx · redesign/workspace-fasi (FETTA 1).
+ * ShellPhaseStepper.test.tsx · redesign/workspace-fasi (FETTA 1
+ * + Fix blocco skip 29/05/2026 sera).
  *
  * Verifica la spina 3 fasi (Costruisci → Esegui → Risultati):
  *   - rendering dei 3 passi + separatori
- *   - cliccare un passo chiama `onChange(workspace)`
+ *   - cliccare un passo abilitato chiama `onChange(workspace)`
  *   - lo stato visivo riflette modelStore / analysisStore / resultsStore
- *   - mai un passo è disabilitato (è una mappa, non un wizard)
+ *   - **blocco skip in avanti**: Esegui disabled senza modello "done",
+ *     Risultati disabled senza analisi. Costruisci sempre cliccabile.
+ *   - **active escape**: la fase attiva resta cliccabile anche se
+ *     diventa "blocked" (utente puo' rimanere dov'e').
  *
  * Gli store Zustand sono singleton: reset in `beforeEach`.
  */
@@ -57,22 +61,33 @@ describe("ShellPhaseStepper · redesign/workspace-fasi (FETTA 1)", () => {
     });
   });
 
+  /** Helper: modello "done" (≥1 nodo + ≥1 elemento + ≥1 vincolo) per
+   *  sbloccare la fase Esegui senza dover ripetere i campi ovunque. */
+  function setDoneModel() {
+    useModelStore.setState({
+      model: makeModel({
+        nodes: [{ id: 1, x: 0, y: 0, z: 0 } as never],
+        elements: [{ id: 1, type: "beam2d", nodes: [1, 2] } as never],
+        constraints: [{ id: 1, node_id: 1, type: "FIX" } as never],
+      }),
+    });
+  }
+
+  /** Helper: stato "analisi eseguita" (sblocca Risultati). */
+  function setAnalysisDone() {
+    setDoneModel();
+    useResultsStore.setState({
+      staticResults: makeStaticResults(),
+      modelHashAtAnalysis: null,
+    });
+  }
+
   // ── Render base ─────────────────────────────────────────────────────────
-  it("renderizza i 3 passi (Costruisci / Esegui / Risultati) sempre cliccabili", () => {
-    const onChange = vi.fn();
-    render(<ShellPhaseStepper active="modello" onChange={onChange} />);
-    const build = screen.getByTestId("phase-step-build");
-    const run = screen.getByTestId("phase-step-run");
-    const results = screen.getByTestId("phase-step-results");
-
-    expect(build).toBeInTheDocument();
-    expect(run).toBeInTheDocument();
-    expect(results).toBeInTheDocument();
-
-    // Mai disabilitati (regola: mappa non wizard).
-    expect(build).not.toBeDisabled();
-    expect(run).not.toBeDisabled();
-    expect(results).not.toBeDisabled();
+  it("renderizza i 3 passi (Costruisci / Esegui / Risultati)", () => {
+    render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
+    expect(screen.getByTestId("phase-step-build")).toBeInTheDocument();
+    expect(screen.getByTestId("phase-step-run")).toBeInTheDocument();
+    expect(screen.getByTestId("phase-step-results")).toBeInTheDocument();
   });
 
   it("ogni passo è un <button> con label visibile", () => {
@@ -83,22 +98,25 @@ describe("ShellPhaseStepper · redesign/workspace-fasi (FETTA 1)", () => {
   });
 
   // ── Navigation ──────────────────────────────────────────────────────────
-  it("click su 'Costruisci' chiama onChange('modello')", () => {
+  it("click su 'Costruisci' chiama onChange('modello') (sempre cliccabile)", () => {
     const onChange = vi.fn();
+    setAnalysisDone();
     render(<ShellPhaseStepper active="risultati" onChange={onChange} />);
     fireEvent.click(screen.getByTestId("phase-step-build"));
     expect(onChange).toHaveBeenCalledWith("modello");
   });
 
-  it("click su 'Esegui' chiama onChange('analisi')", () => {
+  it("click su 'Esegui' con modello done → chiama onChange('analisi')", () => {
     const onChange = vi.fn();
+    setDoneModel();
     render(<ShellPhaseStepper active="modello" onChange={onChange} />);
     fireEvent.click(screen.getByTestId("phase-step-run"));
     expect(onChange).toHaveBeenCalledWith("analisi");
   });
 
-  it("click su 'Risultati' chiama onChange('risultati')", () => {
+  it("click su 'Risultati' con analisi eseguita → chiama onChange('risultati')", () => {
     const onChange = vi.fn();
+    setAnalysisDone();
     render(<ShellPhaseStepper active="modello" onChange={onChange} />);
     fireEvent.click(screen.getByTestId("phase-step-results"));
     expect(onChange).toHaveBeenCalledWith("risultati");
@@ -127,12 +145,93 @@ describe("ShellPhaseStepper · redesign/workspace-fasi (FETTA 1)", () => {
     expect(screen.getByTestId("phase-step-run").className).not.toContain("is-active");
   });
 
-  it("active='verifiche' (workspace fuori dalle 3 fasi) → nessuno dei 3 è attivo, restano cliccabili", () => {
+  it("active='verifiche' (workspace fuori dalle 3 fasi) → nessuno dei 3 è attivo", () => {
     render(<ShellPhaseStepper active="verifiche" onChange={vi.fn()} />);
     expect(screen.getByTestId("phase-step-build").className).not.toContain("is-active");
     expect(screen.getByTestId("phase-step-run").className).not.toContain("is-active");
     expect(screen.getByTestId("phase-step-results").className).not.toContain("is-active");
+    // Build resta SEMPRE cliccabile (prima fase, canEnter=true).
     expect(screen.getByTestId("phase-step-build")).not.toBeDisabled();
+  });
+
+  // ── Blocco skip in avanti (Fix 29/05/2026 sera) ─────────────────────────
+  it("BLOCCO: senza modello, Esegui e Verifica sono disabled (Costruisci no)", () => {
+    useModelStore.setState({ model: null });
+    render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
+    expect(screen.getByTestId("phase-step-build")).not.toBeDisabled();
+    expect(screen.getByTestId("phase-step-run")).toBeDisabled();
+    expect(screen.getByTestId("phase-step-results")).toBeDisabled();
+    // aria-disabled + data-blocked anche per a11y/CSS
+    expect(screen.getByTestId("phase-step-run").getAttribute("aria-disabled")).toBe("true");
+    expect(screen.getByTestId("phase-step-run").getAttribute("data-blocked")).toBe("true");
+  });
+
+  it("BLOCCO: click su Esegui bloccato è no-op (onChange NON chiamato)", () => {
+    const onChange = vi.fn();
+    useModelStore.setState({ model: null });
+    render(<ShellPhaseStepper active="modello" onChange={onChange} />);
+    fireEvent.click(screen.getByTestId("phase-step-run"));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("BLOCCO: click su Risultati bloccato (no analisi) è no-op", () => {
+    const onChange = vi.fn();
+    setDoneModel(); // modello ok ma niente risultati
+    render(<ShellPhaseStepper active="modello" onChange={onChange} />);
+    fireEvent.click(screen.getByTestId("phase-step-results"));
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
+  it("BLOCCO: con modello done, Esegui si sblocca; Risultati resta bloccato", () => {
+    setDoneModel();
+    useResultsStore.setState({
+      staticResults: null, modalResults: null, dynamicResults: null,
+    });
+    render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
+    expect(screen.getByTestId("phase-step-run")).not.toBeDisabled();
+    expect(screen.getByTestId("phase-step-results")).toBeDisabled();
+  });
+
+  it("BLOCCO: con analisi eseguita, anche Risultati si sblocca", () => {
+    setAnalysisDone();
+    render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
+    expect(screen.getByTestId("phase-step-run")).not.toBeDisabled();
+    expect(screen.getByTestId("phase-step-results")).not.toBeDisabled();
+  });
+
+  it("BLOCCO: risultati STALE → Risultati resta sbloccato (l'utente puo' tornare a vedere)", () => {
+    setDoneModel();
+    useResultsStore.setState({
+      staticResults: makeStaticResults(),
+      modelHashAtAnalysis: "hash-vecchio",
+    });
+    render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
+    expect(screen.getByTestId("phase-step-results")).not.toBeDisabled();
+    expect(screen.getByTestId("phase-step-results").getAttribute("data-state")).toBe("stale");
+  });
+
+  it("ACTIVE ESCAPE: la fase attiva resta cliccabile anche se canEnter=false", () => {
+    // Utente in Risultati, poi resetta tutto. La fase risultati e' bloccata
+    // logicamente (no model, no analisi) MA siccome e' active, resta non-disabled
+    // — cosi' l'utente puo' rimanere dov'e' senza che la spina lo cacci via.
+    useModelStore.setState({ model: null });
+    useResultsStore.setState({
+      staticResults: null, modalResults: null, dynamicResults: null,
+    });
+    render(<ShellPhaseStepper active="risultati" onChange={vi.fn()} />);
+    expect(screen.getByTestId("phase-step-results")).not.toBeDisabled();
+    expect(screen.getByTestId("phase-step-results").className).toContain("is-active");
+    // Esegui invece NON e' active, quindi blocked
+    expect(screen.getByTestId("phase-step-run")).toBeDisabled();
+  });
+
+  it("BLOCCO: tooltip differenziato (title) per stato blocked", () => {
+    useModelStore.setState({ model: null });
+    render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
+    const run = screen.getByTestId("phase-step-run");
+    expect(run.getAttribute("title")).toContain("Completa 'Costruisci'");
+    const results = screen.getByTestId("phase-step-results");
+    expect(results.getAttribute("title")).toContain("Esegui un'analisi");
   });
 
   // ── Stato Costruisci ────────────────────────────────────────────────────

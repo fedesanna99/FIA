@@ -32,7 +32,11 @@
 // albero (es. click su "Nodi" → seleziona tutti i nodi nel viewport).
 // Quello e' scope E2.3 / E3. Qui solo lettura + count.
 
-import { X, Circle, Spline, Layers, Anchor, ArrowDownToLine, ListTree } from "lucide-react";
+import { useMemo } from "react";
+import {
+  X, Circle, Spline, Layers, Anchor, ArrowDownToLine,
+  GitBranch, ListTree,
+} from "lucide-react";
 
 import { useLeftTreeStore } from "../store/leftTreeStore";
 import { useModelStore } from "../store/modelStore";
@@ -40,20 +44,31 @@ import { useModelStore } from "../store/modelStore";
 
 interface TreeSection {
   /** Identificatore stabile (usato in data-testid + key). */
-  key: "nodes" | "elements" | "materials" | "constraints" | "loads";
-  /** Label user-facing italiano. */
+  key:
+    | "nodes" | "elements" | "sections-materials"
+    | "loads" | "constraints" | "combinations";
+  /** Label user-facing italiano (matching prototipo v3 mockup). */
   label: string;
   /** Icona Lucide (stroke 1.8 come convention dei tb-iconbtn). */
   Icon: typeof Circle;
 }
 
 
+// v3.4 Fetta E2.4-bis (29/05 sera): ordine e nomi allineati al
+// prototipo v3 mockup (`socio/05-prototipi-workspace-v3/`):
+//   Nodi → Elementi → Sezioni · materiali (combinati) →
+//   Carichi → Vincoli → Combinazioni
+// Sezioni e Materiali sono fusi in una sola sezione perche' nel
+// modello dominio sono accoppiati (ogni Element ha `material_id` +
+// `section_id`). Combinazioni e' attualmente "—" (non implementato
+// nel modello dominio) — vedi `counts` sotto.
 const SECTIONS: TreeSection[] = [
-  { key: "nodes",       label: "Nodi",       Icon: Circle },
-  { key: "elements",    label: "Elementi",   Icon: Spline },
-  { key: "materials",   label: "Materiali",  Icon: Layers },
-  { key: "constraints", label: "Vincoli",    Icon: Anchor },
-  { key: "loads",       label: "Carichi",    Icon: ArrowDownToLine },
+  { key: "nodes",              label: "Nodi",                Icon: Circle           },
+  { key: "elements",           label: "Elementi",            Icon: Spline           },
+  { key: "sections-materials", label: "Sezioni · materiali", Icon: Layers           },
+  { key: "loads",              label: "Carichi",             Icon: ArrowDownToLine  },
+  { key: "constraints",        label: "Vincoli",             Icon: Anchor           },
+  { key: "combinations",       label: "Combinazioni",        Icon: GitBranch        },
 ];
 
 
@@ -61,16 +76,37 @@ export function ShellLeftTreePanel() {
   const close = useLeftTreeStore((s) => s.close);
   const model = useModelStore((s) => s.model);
 
-  // v3.4 Fetta E2-IA Commit E2.4: count tabular-nums delle sezioni.
-  // `materials` e' opzionale nel FEAModel (vedi types/model.ts riga 94)
-  // — fallback a 0 evita "—" nei test e in render. Lo stato veramente
-  // "non applicabile" e' modeo === null (empty state separato sotto).
-  const counts: Record<TreeSection["key"], number> = {
-    nodes:       model?.nodes.length ?? 0,
-    elements:    model?.elements.length ?? 0,
-    materials:   model?.materials?.length ?? 0,
-    constraints: model?.constraints.length ?? 0,
-    loads:       model?.loads.length ?? 0,
+  // v3.4 Fetta E2.4-bis (29/05 sera): count "Sezioni · materiali"
+  // derivato dal numero di `section_id` distinti tra gli elementi del
+  // modello. Pattern: ogni Element ha section_id + material_id, e nel
+  // mockup v3 il count rappresenta la sezione che "tiene tutto" (es.
+  // "IPE 300 / S355" = 1 sezione). Fallback 0 se model vuoto.
+  const sectionsMaterialsCount = useMemo(() => {
+    if (!model || model.elements.length === 0) return 0;
+    const ids = new Set(
+      model.elements
+        .map((e) => e.section_id)
+        .filter((s): s is string => typeof s === "string" && s.length > 0),
+    );
+    // Se nessun section_id e' definito (modelli legacy/template senza
+    // sezione esplicita) ma ci sono materiali, conta i materiali.
+    if (ids.size === 0) return model.materials?.length ?? 0;
+    return ids.size;
+  }, [model]);
+
+  // v3.4 Fetta E2.4-bis: count delle 6 sezioni. Tipo `number | null`
+  // perche' "Combinazioni" non e' ancora implementato nel modello
+  // dominio → render mostra "—" (pattern "4 stati onesti": preferire
+  // l'onesto-vago al falso-preciso, vedi CULTURE.md filosofia 🤍).
+  const counts: Record<TreeSection["key"], number | null> = {
+    nodes:                 model?.nodes.length ?? 0,
+    elements:              model?.elements.length ?? 0,
+    "sections-materials":  sectionsMaterialsCount,
+    loads:                 model?.loads.length ?? 0,
+    constraints:           model?.constraints.length ?? 0,
+    // TODO: cablare a un futuro `combinationsStore` (SLU / SLE / Sisma).
+    // Per ora "—": non implementato, NON falso 0.
+    combinations:          null,
   };
 
   const isEmpty = model === null;
@@ -117,33 +153,51 @@ export function ShellLeftTreePanel() {
           </p>
         </div>
       ) : (
-        <ul
-          className="slt-list"
-          aria-label="Sezioni del modello"
-        >
-          {SECTIONS.map((sec) => {
-            const SecIcon = sec.Icon;
-            const count = counts[sec.key];
-            return (
-              <li
-                key={sec.key}
-                className="slt-item"
-                data-testid={`shell-left-tree-${sec.key}`}
-              >
-                <span className="slt-item-icon">
-                  <SecIcon size={14} strokeWidth={1.8} aria-hidden />
-                </span>
-                <span className="slt-item-label">{sec.label}</span>
-                <span
-                  className="slt-item-count"
-                  data-testid={`shell-left-tree-${sec.key}-count`}
+        <>
+          <ul
+            className="slt-list"
+            aria-label="Sezioni del modello"
+          >
+            {SECTIONS.map((sec) => {
+              const SecIcon = sec.Icon;
+              const count = counts[sec.key];
+              // 4 stati onesti: null → "—" (non implementato/non applicabile).
+              const display = count === null ? "—" : count;
+              return (
+                <li
+                  key={sec.key}
+                  className="slt-item"
+                  data-testid={`shell-left-tree-${sec.key}`}
                 >
-                  {count}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
+                  <span className="slt-item-icon">
+                    <SecIcon size={14} strokeWidth={1.8} aria-hidden />
+                  </span>
+                  <span className="slt-item-label">{sec.label}</span>
+                  <span
+                    className="slt-item-count"
+                    data-testid={`shell-left-tree-${sec.key}-count`}
+                  >
+                    {display}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          {/* v3.4 Fetta E2.4-bis (29/05 sera) · tree-note del prototipo v3.
+              Riproduce testualmente la nota del mockup
+              `socio/05-prototipi-workspace-v3/fea-pro-prototipo-v2-strato-esperto.html`
+              come ancora UX: spiega che il panel SX e' "strato esperto a
+              richiesta" + accenna al comportamento futuro (apertura
+              automatica per modelli grandi). */}
+          <div className="slt-tree-note" data-testid="shell-left-tree-note">
+            <p>
+              Di default questo pannello è <strong>chiuso</strong>: il workspace
+              resta pulito. Si apre a richiesta — e comparirà <strong>da solo</strong>
+              {" "}sui modelli grandi (oltre ~50 elementi), dove navigare a vista
+              non basta più.
+            </p>
+          </div>
+        </>
       )}
     </aside>
   );

@@ -55,22 +55,47 @@ describe("ShellLeftTreePanel", () => {
     expect(screen.queryByTestId("shell-left-tree-nodes")).toBeNull();
   });
 
-  it("model presente ma vuoto: 5 sezioni con count=0 (pattern '4 stati onesti')", () => {
+  it("model presente ma vuoto: 6 sezioni in ordine prototipo v3, count=0 per le prime 5", () => {
     useModelStore.setState({
       model: buildModel({ name: "Modello vuoto" }),
     });
     render(<ShellLeftTreePanel />);
+    // 6 sezioni nell'ordine canonico del prototipo v3
     expect(screen.getByTestId("shell-left-tree-nodes")).toBeInTheDocument();
     expect(screen.getByTestId("shell-left-tree-elements")).toBeInTheDocument();
-    expect(screen.getByTestId("shell-left-tree-materials")).toBeInTheDocument();
-    expect(screen.getByTestId("shell-left-tree-constraints")).toBeInTheDocument();
+    expect(screen.getByTestId("shell-left-tree-sections-materials")).toBeInTheDocument();
     expect(screen.getByTestId("shell-left-tree-loads")).toBeInTheDocument();
-    // Tutti i count = 0
+    expect(screen.getByTestId("shell-left-tree-constraints")).toBeInTheDocument();
+    expect(screen.getByTestId("shell-left-tree-combinations")).toBeInTheDocument();
+    // count = 0 per le sezioni cablate al modello
     expect(screen.getByTestId("shell-left-tree-nodes-count").textContent).toBe("0");
     expect(screen.getByTestId("shell-left-tree-elements-count").textContent).toBe("0");
-    expect(screen.getByTestId("shell-left-tree-materials-count").textContent).toBe("0");
+    expect(screen.getByTestId("shell-left-tree-sections-materials-count").textContent).toBe("0");
     expect(screen.getByTestId("shell-left-tree-constraints-count").textContent).toBe("0");
     expect(screen.getByTestId("shell-left-tree-loads-count").textContent).toBe("0");
+    // 4 stati onesti: combinazioni "—" (non implementato nel modello dominio)
+    expect(screen.getByTestId("shell-left-tree-combinations-count").textContent).toBe("—");
+  });
+
+  it("ordine sezioni rispetta il prototipo v3: nodi → elementi → sezioni·materiali → carichi → vincoli → combinazioni", () => {
+    useModelStore.setState({
+      model: buildModel({ name: "Test ordine" }),
+    });
+    render(<ShellLeftTreePanel />);
+    const list = screen.getByRole("list", { name: /sezioni del modello/i });
+    const items = Array.from(list.querySelectorAll("[data-testid^='shell-left-tree-']"))
+      .filter((el) => /^shell-left-tree-(nodes|elements|sections-materials|loads|constraints|combinations)$/.test(
+        el.getAttribute("data-testid") || "",
+      ))
+      .map((el) => el.getAttribute("data-testid"));
+    expect(items).toEqual([
+      "shell-left-tree-nodes",
+      "shell-left-tree-elements",
+      "shell-left-tree-sections-materials",
+      "shell-left-tree-loads",
+      "shell-left-tree-constraints",
+      "shell-left-tree-combinations",
+    ]);
   });
 
   it("mostra i count reali letti da modelStore (verita' di dominio)", () => {
@@ -79,19 +104,73 @@ describe("ShellLeftTreePanel", () => {
       model: buildModel({
         name: "Telaio portale 2D",
         nodes: [{} as any, {} as any, {} as any],          // 3
-        elements: [{} as any, {} as any],                   // 2
+        elements: [
+          { id: 1, type: "beam2d", nodes: [1, 2], material_id: "s355", section_id: "IPE300" } as any,
+          { id: 2, type: "beam2d", nodes: [2, 3], material_id: "s355", section_id: "IPE300" } as any,
+        ], // 2 elementi, 1 sezione unica
         loads: [{} as any],                                 // 1
         constraints: [{} as any, {} as any],                // 2
-        materials: [{ id: "s275", name: "S275" }],         // 1
+        materials: [{ id: "s355", name: "S355" }],         // 1 (per fallback)
       }),
     });
     /* eslint-enable @typescript-eslint/no-explicit-any */
     render(<ShellLeftTreePanel />);
     expect(screen.getByTestId("shell-left-tree-nodes-count").textContent).toBe("3");
     expect(screen.getByTestId("shell-left-tree-elements-count").textContent).toBe("2");
-    expect(screen.getByTestId("shell-left-tree-materials-count").textContent).toBe("1");
+    // sezioni-materiali: 1 section_id unico → count=1
+    expect(screen.getByTestId("shell-left-tree-sections-materials-count").textContent).toBe("1");
     expect(screen.getByTestId("shell-left-tree-constraints-count").textContent).toBe("2");
     expect(screen.getByTestId("shell-left-tree-loads-count").textContent).toBe("1");
+    // Combinazioni resta "—" anche con modello completo (non implementato)
+    expect(screen.getByTestId("shell-left-tree-combinations-count").textContent).toBe("—");
+  });
+
+  it("sezioni·materiali: 2 section_id distinti → count=2", () => {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    useModelStore.setState({
+      model: buildModel({
+        name: "Misto IPE+HEB",
+        elements: [
+          { id: 1, type: "beam2d", nodes: [1, 2], material_id: "s355", section_id: "IPE300" } as any,
+          { id: 2, type: "beam2d", nodes: [2, 3], material_id: "s355", section_id: "HEB200" } as any,
+        ],
+      }),
+    });
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    render(<ShellLeftTreePanel />);
+    expect(screen.getByTestId("shell-left-tree-sections-materials-count").textContent).toBe("2");
+  });
+
+  it("sezioni·materiali: fallback su materials count se nessun section_id e' definito", () => {
+    /* eslint-disable @typescript-eslint/no-explicit-any */
+    useModelStore.setState({
+      model: buildModel({
+        name: "Legacy senza section_id",
+        elements: [{ id: 1, type: "beam2d", nodes: [1, 2], material_id: "s355" } as any], // no section_id
+        materials: [{ id: "s355" }, { id: "s275" }],
+      }),
+    });
+    /* eslint-enable @typescript-eslint/no-explicit-any */
+    render(<ShellLeftTreePanel />);
+    // Fallback su materials.length perche' nessun section_id presente
+    expect(screen.getByTestId("shell-left-tree-sections-materials-count").textContent).toBe("2");
+  });
+
+  it("tree-note del prototipo v3 visibile quando il modello e' presente", () => {
+    useModelStore.setState({ model: buildModel({ name: "Test" }) });
+    render(<ShellLeftTreePanel />);
+    const note = screen.getByTestId("shell-left-tree-note");
+    expect(note).toBeInTheDocument();
+    expect(note.textContent).toContain("chiuso");
+    expect(note.textContent).toContain("da solo");
+    expect(note.textContent).toContain("50 elementi");
+  });
+
+  it("tree-note NON visibile in empty state (sostituito dal call-to-action)", () => {
+    useModelStore.setState({ model: null });
+    render(<ShellLeftTreePanel />);
+    expect(screen.queryByTestId("shell-left-tree-note")).toBeNull();
+    expect(screen.getByTestId("shell-left-tree-empty")).toBeInTheDocument();
   });
 
   it("mostra il nome del modello nell'header (slot eyebrow)", () => {

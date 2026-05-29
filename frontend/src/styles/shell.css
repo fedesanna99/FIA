@@ -343,6 +343,26 @@ body.shell-sharp .shell-focus-exit kbd { border-radius: 0; }
 }
 
 body.shell-sharp .shell-phase-step { border-radius: 0; }
+
+/* v3.4 29/05 sera · blocco skip in avanti nella spina.
+   Una fase non ancora raggiungibile (Esegui senza modello, Verifica
+   senza analisi) e' disabled: cursor-not-allowed, opacita' ridotta,
+   nessun hover feedback. Il tooltip differenziato spiega cosa serve
+   (vedi ShellPhaseStepper.tsx `blockedReason`). La fase ATTIVA resta
+   sempre cliccabile (l'utente puo' rimanere dov'e' anche dopo reset).*/
+.shell-phase-step.is-blocked,
+.shell-phase-step[data-blocked="true"] {
+  cursor: not-allowed;
+  opacity: 0.38;
+}
+.shell-phase-step.is-blocked:hover,
+.shell-phase-step[data-blocked="true"]:hover {
+  background: transparent;
+  color: var(--ink-dim, #7B808A);
+  border-color: var(--border-light, #D4D6DA);
+  box-shadow: none;
+  transform: none;
+}
 body.shell-sharp .shell-phase-num { border-radius: 0; }
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -2294,6 +2314,28 @@ body.shell-sharp .slt-head .slt-close { border-radius: 0; }
   border-radius: 999px;
 }
 body.shell-sharp .slt-item-count { border-radius: 0; }
+
+/* v3.4 Fetta E2.4-bis (29/05 sera) · tree-note del prototipo v3.
+   Box ancorato in basso del panel SX (sotto .slt-list), spiega che il
+   panel e' "strato esperto a richiesta" + accenna al comportamento
+   futuro (apertura auto per modelli grandi). Tono dimesso, non
+   competitor del workspace content. */
+.slt-tree-note {
+  margin-top: auto; /* spinge in fondo se la lista non riempie l'altezza */
+  padding: 12px 14px;
+  background: var(--bg-hover, var(--bg));
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--ink-muted);
+}
+.slt-tree-note p {
+  margin: 0;
+}
+.slt-tree-note strong {
+  color: var(--ink);
+  font-weight: 600;
+}
 
 /* Results metrics tile row */
 .metrics {
