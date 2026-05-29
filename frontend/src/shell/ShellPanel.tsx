@@ -14,8 +14,12 @@
 // scope Fase 3+. Il chrome del pannello è già del design system nuovo.
 
 import { ReactNode } from "react";
-import { Box, Cog, Activity, CheckCircle, Shuffle, Eye } from "lucide-react";
+import { Box, Cog, Activity, CheckCircle, Shuffle, Eye, X } from "lucide-react";
 import * as Tabs from "@radix-ui/react-tabs";
+// v3.4 Fetta E2-IA Commit E2.2: store del panel destro Shell custom per
+// chiudere il pannello via bottone X nell'header (vedi sp-close sotto).
+// Default "open" → comportamento attuale invariato.
+import { useRightPanelStore } from "../store/rightPanelStore";
 
 type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io" | "view";
 
@@ -115,6 +119,19 @@ export function ShellPanel({ workspace = "modello", children }: ShellPanelProps)
           <h2>{config.title}</h2>
           <button type="button" className="sp-help" aria-label="Aiuto" title="Aiuto">
             ?
+          </button>
+          {/* v3.4 Fetta E2-IA Commit E2.2: bottone X chiusura panel destro.
+              Click → rightPanelStore.close() → Shell.tsx rimpiazza
+              ShellPanel con ShellRightReopenTab (tab verticale 32px). */}
+          <button
+            type="button"
+            className="sp-close"
+            onClick={() => useRightPanelStore.getState().close()}
+            aria-label="Chiudi pannello"
+            title="Chiudi pannello"
+            data-testid="shell-panel-close"
+          >
+            <X size={14} strokeWidth={1.8} aria-hidden />
           </button>
         </div>
         <p className="sp-desc">{config.desc}</p>

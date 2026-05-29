@@ -59,6 +59,17 @@ vi.mock("./ShellPanel", () => ({
     <aside data-testid="mock-shell-panel" data-workspace={workspace}>{children}</aside>
   ),
 }));
+// v3.4 Fetta E2-IA Commit E2.2: mock della ShellRightReopenTab. La tab
+// verticale destra prende il posto di ShellPanel quando il rightPanelStore
+// e' in stato "closed". Il behaviour interno (label, click open()) e'
+// coperto da ShellRightReopenTab.test.tsx — qui mockata per orchestrazione.
+vi.mock("./ShellRightReopenTab", () => ({
+  ShellRightReopenTab: ({ workspace }: { workspace: string }) => (
+    <button data-testid="mock-shell-right-reopen-tab" data-workspace={workspace}>
+      ReopenTab
+    </button>
+  ),
+}));
 vi.mock("./ShellStatusBar", () => ({
   ShellStatusBar: () => <div data-testid="mock-statusbar">StatusBar</div>,
 }));
@@ -86,6 +97,9 @@ import { vi } from "vitest";
 // redesign/workspace-fasi (FETTA 0): reset isFocusMode (=isEmptyState)
 // fra i test per evitare carry-over fra describe blocks (Zustand è singleton).
 import { useWorkspaceStore } from "../store/workspaceStore";
+// v3.4 Fetta E2-IA Commit E2.2: reset panel destro stato fra i test
+// (default "open" → comportamento invariato sui test pre-esistenti).
+import { useRightPanelStore } from "../store/rightPanelStore";
 
 describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
   beforeEach(() => {
@@ -95,6 +109,11 @@ describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
     useShellIntentStore.setState({ pendingWorkspace: null });
     // Reset workspace persisted in sessionStorage (default = modello).
     try { window.sessionStorage.removeItem("feapro:shell:active-workspace"); } catch { /* ignore */ }
+    // v3.4 Fetta E2-IA Commit E2.2: reset panel destro a "open"
+    // (default) cosi' i test pre-esistenti sul takeover/normal mode
+    // vedono il ShellPanel come prima.
+    useRightPanelStore.setState({ panelState: "open" });
+    try { window.localStorage.removeItem("feapro-right-panel"); } catch { /* ignore */ }
   });
 
   it("default workspace=modello: renders ShellViewport + ShellPanel (normal mode)", () => {
@@ -208,6 +227,9 @@ describe("Shell · focus mode (redesign/workspace-fasi FETTA 0)", () => {
     useWorkspaceStore.setState({ isEmptyState: false });
     useShellIntentStore.setState({ pendingWorkspace: null });
     try { window.sessionStorage.removeItem("feapro:shell:active-workspace"); } catch { /* ignore */ }
+    // v3.4 Fetta E2-IA Commit E2.2: reset panel destro a "open".
+    useRightPanelStore.setState({ panelState: "open" });
+    try { window.localStorage.removeItem("feapro-right-panel"); } catch { /* ignore */ }
   });
 
   it("focus mode: rail/panel/statusbar non renderizzati, topbar+viewport restano, pill exit visibile", () => {
@@ -263,5 +285,73 @@ describe("Shell · focus mode (redesign/workspace-fasi FETTA 0)", () => {
     expect(root?.className).not.toContain("shell-focus-on");
     expect(root?.getAttribute("data-focus-mode")).toBeNull();
     expect(screen.queryByTestId("shell-focus-exit")).toBeNull();
+  });
+});
+
+// v3.4 Fetta E2-IA Commit E2.2: panel destro 2 stati (open / closed).
+// Quando "open" ShellPanel renderizzato come prima (zero regression).
+// Quando "closed" ShellRightReopenTab prende il posto della terza colonna
+// della grid `.shell-mid` (32px via override --panel-w in shell.css).
+// Focus mode e takeover restano prioritari (rail+panel+statusbar non
+// renderizzati comunque).
+describe("Shell · Fetta E2-IA E2.2 panel destro 2 stati", () => {
+  beforeEach(() => {
+    useWorkspaceStore.setState({ isEmptyState: false });
+    useShellIntentStore.setState({ pendingWorkspace: null });
+    try { window.sessionStorage.removeItem("feapro:shell:active-workspace"); } catch { /* ignore */ }
+    useRightPanelStore.setState({ panelState: "open" });
+    try { window.localStorage.removeItem("feapro-right-panel"); } catch { /* ignore */ }
+  });
+
+  it("default panelState=open → ShellPanel renderizzato, tab NON renderizzata", () => {
+    render(<Shell><div /></Shell>);
+    expect(screen.getByTestId("mock-shell-panel")).toBeInTheDocument();
+    expect(screen.queryByTestId("mock-shell-right-reopen-tab")).toBeNull();
+  });
+
+  it("panelState=closed → ShellRightReopenTab visibile, ShellPanel NON renderizzato", () => {
+    useRightPanelStore.setState({ panelState: "closed" });
+    render(<Shell><div /></Shell>);
+    expect(screen.getByTestId("mock-shell-right-reopen-tab")).toBeInTheDocument();
+    expect(screen.queryByTestId("mock-shell-panel")).toBeNull();
+  });
+
+  it("data-panel-state attribute riflette lo stato corrente sul root .shell", () => {
+    const { container } = render(<Shell><div /></Shell>);
+    const root = container.querySelector(".shell");
+    expect(root?.getAttribute("data-panel-state")).toBe("open");
+
+    act(() => {
+      useRightPanelStore.getState().close();
+    });
+    expect(root?.getAttribute("data-panel-state")).toBe("closed");
+  });
+
+  it("focus mode prende precedenza su panelState=closed (niente di entrambi)", () => {
+    useWorkspaceStore.setState({ isEmptyState: true });
+    useRightPanelStore.setState({ panelState: "closed" });
+    render(<Shell><div data-testid="canvas" /></Shell>);
+    expect(screen.queryByTestId("mock-shell-panel")).toBeNull();
+    expect(screen.queryByTestId("mock-shell-right-reopen-tab")).toBeNull();
+    // In focus mode il viewport resta visibile (pieno), tab/panel no.
+    expect(screen.getByTestId("mock-viewport")).toBeInTheDocument();
+  });
+
+  it("takeover (verifiche) prende precedenza su panelState (niente tab in takeover)", () => {
+    useRightPanelStore.setState({ panelState: "closed" });
+    render(<Shell><div /></Shell>);
+    fireEvent.click(screen.getByTestId("rail-verifiche"));
+    // In takeover c'e' solo il takeover-content, niente panel ne' tab
+    expect(screen.getByTestId("shell-takeover-content")).toBeInTheDocument();
+    expect(screen.queryByTestId("mock-shell-panel")).toBeNull();
+    expect(screen.queryByTestId("mock-shell-right-reopen-tab")).toBeNull();
+  });
+
+  it("workspace prop e' passato alla ShellRightReopenTab", () => {
+    useRightPanelStore.setState({ panelState: "closed" });
+    render(<Shell><div /></Shell>);
+    fireEvent.click(screen.getByTestId("rail-risultati"));
+    const tab = screen.getByTestId("mock-shell-right-reopen-tab");
+    expect(tab.getAttribute("data-workspace")).toBe("risultati");
   });
 });

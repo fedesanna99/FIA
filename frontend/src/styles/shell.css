@@ -105,6 +105,15 @@ body.theme-dark {
 }
 body.shell-panel-w-320 .shell { --panel-w: 320px; }
 body.shell-panel-w-420 .shell { --panel-w: 420px; }
+/* v3.4 Fetta E2-IA Commit E2.2: panel destro Shell custom chiuso.
+   Quando rightPanelStore.panelState === "closed", Shell.tsx setta
+   data-panel-state="closed" sul root .shell e renderizza la
+   ShellRightReopenTab al posto di ShellPanel. La colonna grid del
+   shell-mid passa da 380px (--panel-w default) a 32px per ospitare
+   la tab verticale di riapertura.
+   Precedenze: shell-takeover-on (collassa a 2-col) e shell-focus-on
+   (collassa a 1-col) restano prioritarie — vedi regole sotto. */
+.shell[data-panel-state="closed"] { --panel-w: 32px; }
 body.shell-density-compact { font-size: 12px; }
 
 /* v2.6.5 D.1: rail expanded mode (default v2.6.5+, persistito in localStorage).
@@ -2088,6 +2097,69 @@ body.shell-sharp .sp-tab.active::after { border-radius: 0; }
   background: transparent; border: none; cursor: pointer;
 }
 .sp-section-action:hover { color: var(--accent); }
+
+/* v3.4 Fetta E2-IA Commit E2.2: bottone X chiusura panel destro
+   nell'header ShellPanel. Stile gemello al `.sp-help` (24×24, bordo
+   sottile, hover accent) per coerenza visiva dell'header. Click via
+   onClick handler in ShellPanel.tsx → rightPanelStore.close(). */
+.sp-head .sp-close {
+  height: 24px;
+  width: 24px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  color: var(--ink-dim);
+  transition: color 120ms ease, border-color 120ms ease;
+}
+body.shell-sharp .sp-head .sp-close { border-radius: 0; }
+.sp-head .sp-close:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* v3.4 Fetta E2-IA Commit E2.2: tab verticale destra di riapertura
+   panel. Visibile SOLO quando rightPanelStore.panelState === "closed"
+   (Shell.tsx la renderizza al posto di ShellPanel nella terza colonna
+   della grid `.shell-mid`, larghezza ridotta a 32px via override
+   `--panel-w` su `.shell[data-panel-state="closed"]`).
+   Click → rightPanelStore.open() → ShellPanel torna al suo posto. */
+.shell-right-reopen-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+  padding: 14px 0;
+  width: 100%;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  color: var(--ink-dim);
+  cursor: pointer;
+  font: inherit;
+  transition: background-color 120ms ease, color 120ms ease;
+}
+.shell-right-reopen-tab:hover {
+  background: var(--bg-hover, var(--bg));
+  color: var(--ink);
+}
+.shell-right-reopen-tab:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.shell-right-reopen-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: inherit;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+}
 
 /* Results metrics tile row */
 .metrics {

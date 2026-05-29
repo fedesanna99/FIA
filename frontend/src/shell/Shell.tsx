@@ -24,10 +24,20 @@ import { useThemeStore } from "../store/themeStore";
 // exitEmptyState, triggerati da F / Shift+Space / palette `focus-toggle` /
 // AvatarMenu).
 import { useWorkspaceStore } from "../store/workspaceStore";
+// v3.4 Fetta E2-IA Commit E2.2: stato del panel destro Shell custom.
+// Default "open" → comportamento invariato per tutti gli utenti
+// esistenti. Quando "closed" la ShellRightReopenTab prende il posto
+// di ShellPanel (vedi JSX sotto + shell.css `[data-panel-state]`).
+import { useRightPanelStore } from "../store/rightPanelStore";
 import { ShellTopBar } from "./ShellTopBar";
 import { ShellRail } from "./ShellRail";
 import { ShellViewport } from "./ShellViewport";
 import { ShellPanel } from "./ShellPanel";
+// v3.4 Fetta E2-IA Commit E2.2: tab verticale destra che sostituisce
+// ShellPanel quando il panel e' chiuso (rightPanelStore.panelState).
+// Pattern simmetrico al focus-exit pill (Fetta 0): affordance sempre
+// visibile per riaprire qualcosa che e' stato chiuso volontariamente.
+import { ShellRightReopenTab } from "./ShellRightReopenTab";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandPalette } from "./ShellCommandPalette";
 // redesign/workspace-fasi (FETTA 1): spina 3 fasi additiva sotto la topbar.
@@ -153,6 +163,15 @@ export function Shell({ children }: ShellProps) {
   // Prima era hardcoded `theme-light` → dark mode rotto in Shell custom.
   const theme = useThemeStore((s) => s.resolved);
 
+  // v3.4 Fetta E2-IA Commit E2.2: stato del panel destro (open / closed).
+  // Subscribe persistito → ricarica preserva la scelta dell'utente power.
+  // Default "open" → comportamento invariato per tutti gli utenti
+  // esistenti al primo render dopo l'introduzione di questo store.
+  // Quando "closed": ShellRightReopenTab prende il posto di ShellPanel e
+  // la grid `.shell-mid` restringe la colonna destra da 380px a 32px
+  // (override `--panel-w` via `[data-panel-state="closed"]` in shell.css).
+  const panelState = useRightPanelStore((s) => s.panelState);
+
   // v3.3.0 audit-fix L3.1-P1-4: keyboard shortcut 1-6 per workspace switch.
   // Prima App.tsx aveva solo 1/2/3, ShellRail mostrava kbd 4/5/6 dead.
   useEffect(() => {
@@ -203,6 +222,11 @@ export function Shell({ children }: ShellProps) {
       // redesign/workspace-fasi (FETTA 0): aggiunto `shell-focus-on` quando
       // isFocusMode → la grid passa a 1-col / topbar+viewport (CSS in shell.css).
       data-focus-mode={isFocusMode ? "true" : undefined}
+      // v3.4 Fetta E2-IA Commit E2.2: data-panel-state per CSS override
+      // `--panel-w` (32px tab vs 380px panel). Letto da `.shell[data-panel-state="closed"]`
+      // in shell.css. Quando "open" il valore non viene letto da nessun
+      // selettore CSS (default `--panel-w: 380px` invariato).
+      data-panel-state={panelState}
       className={`shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-${theme}${
         isTakeover ? " shell-takeover-on" : ""
       }${isFocusMode ? " shell-focus-on" : ""}${railExpanded ? " shell-rail-expanded" : ""}`}
@@ -235,7 +259,7 @@ export function Shell({ children }: ShellProps) {
                 <ResultsVerdictStrip />
               )}
             </ShellViewport>
-            {!showFocusChrome && (
+            {!showFocusChrome && (panelState === "open" ? (
               <ShellPanel workspace={activeWs}>
                 {/* redesign/workspace-fasi (FETTA 2b · FAM B): wira onIterate
                     su Risultati cosi' la Sintesi puo' tornare a "modello"
@@ -244,7 +268,15 @@ export function Shell({ children }: ShellProps) {
                   ? <ResultsTabsPanel onIterate={() => setActiveWs("modello")} />
                   : WORKSPACE_CONTENT_NORMAL[activeWs]}
               </ShellPanel>
-            )}
+            ) : (
+              /* v3.4 Fetta E2-IA Commit E2.2: panel destro chiuso →
+                 ShellRightReopenTab prende il posto di ShellPanel nella
+                 terza colonna grid `.shell-mid` (32px via override
+                 `--panel-w` su `[data-panel-state="closed"]`). Click
+                 sulla tab → rightPanelStore.open() → ShellPanel torna.
+                 Workspace prop = label workspace corrente. */
+              <ShellRightReopenTab workspace={activeWs} />
+            ))}
           </>
         )}
       </div>
