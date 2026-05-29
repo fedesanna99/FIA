@@ -1743,6 +1743,54 @@ body.shell-sharp .tb-avatar { border-radius: 0; }
     font-size: 12px;
     gap: 6px;
   }
+
+  /* ── M1-polish · workspace mobile usabile (30/05/2026) ────────────
+     Nasconde rail SX (200/56px) + Albero modello panel (240px) +
+     panel DX (380px) + reopen tab (32px) su mobile. Il viewport
+     occupa tutto lo spazio orizzontale (375px puliti senza scroll-x).
+     ADR 004 D1 prevede questo cleanup: "<640 chrome=0, zero rail SX,
+     panel a sheet". Le fette M3 (Albero drawer) e M4 (Panel DX bottom
+     sheet) ri-introdurranno quei pannelli come overlay swipe-friendly
+     invece che come colonne grid sempre presenti.
+     I componenti restano renderizzati nel DOM (Shell.tsx logica
+     invariata) — solo display:none via CSS. Quando arrivano M3/M4,
+     i loro componenti override potranno tornare visibili. */
+
+  /* Forza il root `.shell` (grid 4-row) a una colonna che NON si
+     stira al max-content del child. Senza `grid-template-columns`
+     esplicito la cella implicit e' `auto` (= max-content), e il
+     canvas Three.js (Viewport3D) mantiene la sua larghezza iniziale
+     dal primo render desktop (es. 717px) costringendo l'intera grid
+     a quel width. `minmax(0, 1fr)` consente alla colonna di
+     shrinkare sotto il content e fitta sempre il viewport. */
+  .shell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* Grid `.shell-mid` collassa a 1-col (solo viewport) anche quando
+     `data-left-tree-state="open"` (utente power desktop che aveva
+     l'Albero aperto come preferenza persistita non vede colonne
+     orfane su mobile). minmax(0, 1fr) stesso razionale del root. */
+  .shell .shell-mid,
+  .shell[data-left-tree-state="open"] .shell-mid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .shell .shell-rail,
+  .shell .shell-left-tree,
+  .shell .shell-panel,
+  .shell .shell-right-reopen-tab {
+    display: none;
+  }
+
+  /* min-width: 0 sui flex/grid intermedi: i flex item default hanno
+     `min-width: auto` (= intrinsic size del child = canvas width fisso)
+     che impedirebbe lo shrink. min-width: 0 li sblocca. */
+  .shell .shell-topbar,
+  .shell .shell-mid,
+  .shell .shell-viewport {
+    min-width: 0;
+  }
 }
 
 /* ── Left Rail ────────────────────────────────────────────────── */
