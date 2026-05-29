@@ -142,6 +142,63 @@ l'IA, il mockup CD è il riferimento per l'estetica"** vale come una
 regola di confronto — se i due divergono su una decisione di IA, il
 prototipo v3 vince.
 
+## Convention cristallizzate dalla Fetta E2-IA (29-30/05/2026)
+
+Cinque pattern emersi durante la chiusura della Fetta E2-IA. Il prossimo
+Claude deve averli in tasca PRIMA di mettere mano al codice — vivono
+qui (ADR 003) e in versione narrativa in `socio/06-cose-belle-fetta-e2-ia.md`.
+
+### 1. Prototipo HTML vince sull'IA, mockup CD vince sull'estetica
+
+Se in qualsiasi momento i due artefatti divergono su una decisione, il
+prototipo v3 (`socio/05-prototipi-workspace-v3/`) è il riferimento
+canonico per **layout / ordine sezioni / icone / count / testo**; il
+mockup Claude Design è il riferimento per **colori / font / spacing /
+radius**. Caso reale che ha consacrato la regola: l'Albero modello
+E2.4 avevo 5 sezioni in ordine inventato, il prototipo ne dichiarava 6
+in ordine canonico — fetta E2.4-bis polish per allineare (commit `5776f05`).
+
+### 2. Junior fuori, senior dentro
+
+Nei panel multi-livello (es. panel DX di Verifica), il dato fondamentale
+è SEMPRE visibile in cima (verdict, UR, σmax — per studente / ingegnere
+junior), gli approfondimenti sono in sezioni collassabili sotto (per
+chi vuole scavare). Non è solo UX, è una postura filosofica: chi non sa
+niente vede subito il verdetto, chi sa di più scava. Vedi
+`ResultsTabsPanel.tsx` accordion E2.5c (commit `87800b5`).
+
+### 3. Active escape
+
+Quando un controllo diventa logicamente disabilitato (es. fase spina
+quando il modello viene resettato, voci menu quando un prerequisito
+sparisce), la posizione **ATTIVA dell'utente resta sempre raggiungibile**.
+Non scaravelarlo via. Click su passo bloccato e' no-op silenzioso, ma
+se sei già là, resti. Vedi `ShellPhaseStepper.tsx` `canEnter` + `isActive`
+escape (commit `5776f05`).
+
+### 4. Onora il testo del designer (copia VERBATIM)
+
+Quando il prototipo include note / tooltip / empty-state con testo
+letterale, copialo verbatim. Non riformulare per "professionalità": la
+voce del designer originale ha valore di per sé. Caso paradigmatico: la
+tree-note del panel SX *"Di default questo pannello è chiuso: il
+workspace resta pulito. Si apre a richiesta — e comparirà da solo sui
+modelli grandi (oltre ~50 elementi)"* viene letteralmente dal prototipo
+v2-strato-esperto.html.
+
+### 5. 4 stati onesti applicato OVUNQUE
+
+Non solo nei numeri strutturali (era ADR 001 NAFEMS). Applica anche a:
+- **Routing**: pagine placeholder con razionale + dove la feature vive
+  oggi, NON "Coming soon" generici (E2.5d)
+- **Count nel chrome**: count = `null` → render `"—"` quando la feature
+  non è implementata nel modello dominio (es. Combinazioni in Albero E2.4)
+- **Stati visivi**: cursor-not-allowed + tooltip esplicativo + click no-op
+  silenzioso quando un controllo è disabilitato (E2.5b spina blocco skip)
+- **Persistenza**: store con default che NON rompe il comportamento
+  esistente di tutti gli utenti già installati (es. rightPanelStore
+  default "open", leftTreeStore default "closed")
+
 ## Cosa ha sbloccato
 
 - **Convention "additivo prima, sottrattivo dopo"**: in transizioni
