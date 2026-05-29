@@ -56,6 +56,17 @@ gerarchizzato — vedi ADR 003). E2.1 chiuso, E2.2-E2.5 in attesa.
 - [x] **E2.5d** 4 route mancanti `/modelli` `/jobs` `/cronologia` `/docs` + handler topbar (commit `c4d2f2f`)
 
 🎉 **Fetta E2-IA completata** — IA prototipo v3 implementata end-to-end (topbar 3 icone + menu profilo + spina blocco skip + panel DX 3 stati con accordion + panel SX Albero + rail cleanup 6→3 + 4 route placeholder). ADR 003 chiuso. Restano scope futuro: selezione bidirezionale viewport↔Albero↔inspector (E2.3+E2.4-foglie fuse), View overlay → toolbar viewport, I/O smistato in palette+AvatarMenu, rimozione VerifyPanel takeover.
+
+### 📱 Fette mobile M1-M5 (ADR 004 chiuso · pronto per implementazione)
+
+- [ ] **M1** Topbar mobile + hamburger menu (~2h) — sblocca tutto, partire da qui
+- [ ] **M2** Spina compatta `1 · 2 · 3 + label fase attiva` (~1h)
+- [ ] **M3** Albero modello drawer semi-modal swipe-laterale (~2h)
+- [ ] **M4** Panel DX Verifica bottom sheet swipe-up (header UR+verdict sempre visibile) (~3h)
+- [ ] **M5** Viewport doppio-tap = focus mode full-screen (~1h)
+
+**Decisioni IA cristallizzate**: vedi `decisioni/004-mobile.md` (6 decisioni
++ filtro scope + convention E2-IA applicate al mobile).
 - [ ] **E2.5** Rail SX eliminazione + verifica accorpamento voci (residue route mancanti `/modelli`, `/jobs`, `/cronologia`, `/docs`)
 
 ### Fetta E3 — Dashboard redesign React (CHIUSA 29/05, 8 commit)
