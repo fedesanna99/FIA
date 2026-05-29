@@ -1,10 +1,20 @@
 # ADR 003 — IA prototipo v3 (Information Architecture)
 
 - **Data**: 29/05/2026 (sera)
-- **Stato**: 🟡 IN CORSO (Fetta E2-IA, 5 commit, E2.1 chiuso)
-- **Commit chiave attuale**: `4f9e0a8` — `feat(shell): topbar IA
-  prototipo v3 — 3 icone fisse + menu profilo + toggle Albero/Focus
-  (Fetta E2-IA · Commit E2.1)`
+- **Stato**: ✅ **CHIUSO 29/05/2026 notte** (Fetta E2-IA completata
+  end-to-end, 7 commit + 3 polish)
+- **Commit chiave finale**: `c4d2f2f` — `feat(shell): 4 route
+  placeholder + cablaggio handler topbar (Fetta E2.5d)`. Vitest
+  1058/1058, TypeScript silenzioso.
+- **Catena commit Fetta E2-IA**: `4f9e0a8` (E2.1 topbar) → `912e285`
+  (E2.2 panel DX 2 stati) → `1415f03` (E2.4 Albero) → `5776f05` (polish
+  spina + Albero allineato prototipo) → `e61facd` (E2.5a+b rail cleanup
+  6→3 + rinomina) → `87800b5` (E2.5c panel DX accordion) → `c4d2f2f`
+  (E2.5d 4 route placeholder)
+- **NB**: E2.3 (inspector contestuale + foglie Albero per selezione
+  bidirezionale viewport↔panel) NON e' incluso nella chiusura — vive
+  come scope futuro perche' tocca lo store di selezione viewport
+  (zona delicata). Vedi "Cosa resta fuori" sotto.
 
 ## Contesto
 
