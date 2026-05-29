@@ -1,12 +1,19 @@
 /** @type {import('tailwindcss').Config} */
-// FEA Pro · Tailwind config · Precision direction v2.0
+// FEA Pro · Tailwind config · Soft v2.1 (post FETTA E0-fix Commit 2)
 //
-// Le palette referenziano CSS variables in `src/index.css`. Tutti i radius
-// sono 0 (sharp). Hairline-only shadow. Cyan singolo come accento.
+// Le palette referenziano CSS variables in `src/index.css` (e `styles/tokens.css`).
+// Cyan #0891B2 singolo come accent. Soft radius (DEFAULT=md=8px) opt-out via
+// `data-radius="sharp"` su <html> (vedi tokens.css). Hairline-only shadow.
 //
-// Alias legacy preservati (accent.primary, success/warn/danger top-level,
-// percorsi) per non rompere i componenti esistenti — saranno rimossi
-// in PR successive man mano che i componenti vengono ri-stilati.
+// IMPORTANTE — perché esistono le --c-* (RGB triplet) accanto alle --bg/--accent ecc.:
+// Tailwind colors leggono le --c-* (RGB triplet, intenzionale) per supportare i
+// modificatori alpha tipo bg-accent/50, border-border/30, text-ink-muted/70.
+// La forma `rgb(var(--c-bg) / <alpha-value>)` richiede il triplet sgrezzo.
+// Non sono valori "fossili": sono il "binario alpha" del bridge tokens → tailwind.
+//
+// Alias legacy preservati (accent.primary, success/warn/danger top-level, percorsi)
+// per non rompere i componenti esistenti — saranno rimossi in PR successive man mano
+// che i componenti vengono ri-stilati.
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   darkMode: ["selector", '[data-theme="dark"]'],
@@ -74,30 +81,14 @@ export default {
         danger:   "rgb(var(--c-danger) / <alpha-value>)",
         info:     "rgb(var(--c-info) / <alpha-value>)",
         error:    "rgb(var(--c-danger) / <alpha-value>)",
-        // ── v2.6.1 foundation · Soft v2.1 bridge to tokens.css ──
-        // Nuovi top-level che mappano direttamente alle CSS variables
-        // definite in `src/styles/tokens.css` (senza prefisso --c-).
-        // Coesistono con le entry legacy: i componenti esistenti
-        // continuano a usare le nested (bg.panel, accent.hover, ecc.).
-        panel:           "var(--bg-panel)",
-        elevated:        "var(--bg-elevated)",
-        hover:           "var(--bg-hover)",
-        viewport:        "var(--bg-viewport)",
-        active:          "var(--bg-active)",
-        "border-light":  "var(--border-light)",
-        "border-strong": "var(--border-strong)",
-        "ink-muted":     "var(--ink-muted)",
-        "ink-dim":       "var(--ink-dim)",
-        "ink-faint":     "var(--ink-faint)",
-        "accent-hover":  "var(--accent-hover)",
-        "accent-active": "var(--accent-active)",
-        "accent-subtle": "var(--accent-subtle)",
-        "bg-success":    "var(--bg-success)",
-        "bg-warn":       "var(--bg-warn)",
-        "bg-coral":      "var(--bg-coral)",
-        "bg-purple":     "var(--bg-purple)",
-        "bg-info":       "var(--bg-info)",
-        "bg-danger":     "var(--bg-danger)",
+        // FETTA E0-fix Commit 2: rimosso blocco "ghost" Soft v2.1 duplicato
+        // (panel/elevated/hover/viewport/active/border-light/border-strong/
+        //  ink-*/accent-*/bg-*). Tutti questi nomi sono gia' definiti sopra
+        // nel blocco con --c-* (RGB triplet), che e' la fonte canonica con
+        // supporto <alpha-value>. Il blocco ghost mappava agli alias
+        // --bg-panel/--accent-hover/etc, ma senza alpha — rompeva
+        // bg-panel/50, accent-hover/30 ecc. Eliminato per evitare
+        // duplicazione + regressione silente.
       },
       fontFamily: {
         // v2.6.1 foundation: Plus Jakarta Sans diventa il display nuovo,
@@ -117,19 +108,23 @@ export default {
         "3xl": ["30px", { lineHeight: "34px" }],
         "4xl": ["44px", { lineHeight: "46px" }],
       },
-      // v2.6.1 foundation · Soft v2.1: radius non-zero (Plus Jakarta + Inter aesthetic).
-      // PRESERVA: none=0, DEFAULT=0, full=9999px (compatibilità con Precision sharp).
-      // SHARP MODE opt-in: `data-radius="sharp"` su <html> (vedi tokens.css).
+      // FETTA E0-fix Commit 2 · Soft v2.1: il cambio CENTRALE.
+      // DEFAULT = var(--r-md) = 8px (era 0 = sharp Precision).
+      // Ogni componente con classe "rounded" senza modificatore d'ora in
+      // poi e' Soft 8px. I componenti che vogliono restare sharp devono
+      // dichiarare `rounded-none` esplicitamente.
+      // SHARP MODE opt-in globale: `data-radius="sharp"` su <html> (vedi
+      // tokens.css `[data-radius="sharp"]` override delle --r-* a 0).
       borderRadius: {
         none:    "0",
-        DEFAULT: "0",
-        xs:      "4px",
-        sm:      "6px",
-        md:      "8px",
-        lg:      "10px",
-        xl:      "12px",
-        "2xl":   "16px",
-        "3xl":   "20px",
+        DEFAULT: "var(--r-md)",
+        xs:      "var(--r-xs)",
+        sm:      "var(--r-sm)",
+        md:      "var(--r-md)",
+        lg:      "var(--r-lg)",
+        xl:      "var(--r-xl)",
+        "2xl":   "var(--r-2xl)",
+        "3xl":   "var(--r-3xl)",
         full:    "9999px",
       },
       boxShadow: {
