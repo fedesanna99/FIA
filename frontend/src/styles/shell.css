@@ -1791,6 +1791,45 @@ body.shell-sharp .tb-avatar { border-radius: 0; }
   .shell .shell-viewport {
     min-width: 0;
   }
+
+  /* ── M2 · Spina compatta mobile (30/05/2026 · ADR 004 D3) ─────────
+     Riduce la spina 3 fasi su mobile: le pillole inattive diventano
+     solo cerchietto numerato (1 · 2 · 3 senza label né icona stato),
+     la pillola attiva mantiene num + label + icona stato. Altezza row
+     della grid `.shell` ridotta da 44px a 36px per recuperare 8px
+     verticali per il viewport.
+     Pattern visivo: `①` `②` `③ Verifica` (compact + label dominante).
+     Coerente con desktop: tap su un cerchietto naviga; blocco skip
+     (Verifica disabled finche' non c'e' analisi) resta invariato. */
+
+  .shell { --phase-h: 36px; }
+
+  .shell-phase {
+    padding: 0 12px;
+  }
+  .shell-phase-list {
+    gap: 4px;
+  }
+  .shell-phase-sep {
+    padding: 0;
+    font-size: 11px;
+  }
+
+  /* Pillole inattive: cerchietto numero only. No label, no icon. */
+  .shell-phase-step:not(.is-active) {
+    padding: 2px;
+    border-radius: 50%;
+    gap: 0;
+  }
+  .shell-phase-step:not(.is-active) .shell-phase-label,
+  .shell-phase-step:not(.is-active) .shell-phase-icon {
+    display: none;
+  }
+
+  /* Pillola attiva: padding ridotto + label dominante. */
+  .shell-phase-step.is-active {
+    padding: 2px 10px 2px 3px;
+  }
 }
 
 /* ── Left Rail ────────────────────────────────────────────────── */
