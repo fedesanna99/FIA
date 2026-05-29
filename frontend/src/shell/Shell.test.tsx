@@ -70,6 +70,17 @@ vi.mock("./ShellRightReopenTab", () => ({
     </button>
   ),
 }));
+// v3.4 Fetta E2-IA Commit E2.4: mock del ShellLeftTreePanel. Il panel
+// SX "Albero modello" viene renderizzato tra Rail e Viewport quando
+// `leftTreeStore.treeState === "open"`. Il behaviour interno (sezioni,
+// count modelStore, click X) e' coperto da ShellLeftTreePanel.test.tsx
+// — qui mockato per testare l'orchestrazione (conditional rendering,
+// data-attribute root, precedenze focus/takeover).
+vi.mock("./ShellLeftTreePanel", () => ({
+  ShellLeftTreePanel: () => (
+    <aside data-testid="mock-shell-left-tree-panel">LeftTreePanel</aside>
+  ),
+}));
 vi.mock("./ShellStatusBar", () => ({
   ShellStatusBar: () => <div data-testid="mock-statusbar">StatusBar</div>,
 }));
@@ -100,6 +111,9 @@ import { useWorkspaceStore } from "../store/workspaceStore";
 // v3.4 Fetta E2-IA Commit E2.2: reset panel destro stato fra i test
 // (default "open" → comportamento invariato sui test pre-esistenti).
 import { useRightPanelStore } from "../store/rightPanelStore";
+// v3.4 Fetta E2-IA Commit E2.4: reset panel SX "Albero" stato fra i
+// test (default "closed" → grid 3-col invariata sui test pre-esistenti).
+import { useLeftTreeStore } from "../store/leftTreeStore";
 
 describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
   beforeEach(() => {
@@ -114,6 +128,10 @@ describe("Shell · workspace takeover (v2.6.3.1 BUG-#1)", () => {
     // vedono il ShellPanel come prima.
     useRightPanelStore.setState({ panelState: "open" });
     try { window.localStorage.removeItem("feapro-right-panel"); } catch { /* ignore */ }
+    // v3.4 Fetta E2-IA Commit E2.4: reset panel SX Albero a "closed"
+    // (default) cosi' la grid resta 3-col come prima.
+    useLeftTreeStore.setState({ treeState: "closed" });
+    try { window.localStorage.removeItem("feapro-left-tree"); } catch { /* ignore */ }
   });
 
   it("default workspace=modello: renders ShellViewport + ShellPanel (normal mode)", () => {
@@ -230,6 +248,9 @@ describe("Shell · focus mode (redesign/workspace-fasi FETTA 0)", () => {
     // v3.4 Fetta E2-IA Commit E2.2: reset panel destro a "open".
     useRightPanelStore.setState({ panelState: "open" });
     try { window.localStorage.removeItem("feapro-right-panel"); } catch { /* ignore */ }
+    // v3.4 Fetta E2-IA Commit E2.4: reset panel SX Albero a "closed".
+    useLeftTreeStore.setState({ treeState: "closed" });
+    try { window.localStorage.removeItem("feapro-left-tree"); } catch { /* ignore */ }
   });
 
   it("focus mode: rail/panel/statusbar non renderizzati, topbar+viewport restano, pill exit visibile", () => {
@@ -353,5 +374,92 @@ describe("Shell · Fetta E2-IA E2.2 panel destro 2 stati", () => {
     fireEvent.click(screen.getByTestId("rail-risultati"));
     const tab = screen.getByTestId("mock-shell-right-reopen-tab");
     expect(tab.getAttribute("data-workspace")).toBe("risultati");
+  });
+});
+
+// v3.4 Fetta E2-IA Commit E2.4: panel SX "Albero modello" 2 stati
+// (open / closed). Default "closed" → grid 3-col come prima (zero
+// regression). Quando "open" il ShellLeftTreePanel viene inserito
+// fra Rail e Viewport come 2a colonna della grid `.shell-mid`
+// (`--left-tree-w` 240px). Focus mode e takeover restano prioritari
+// e fanno apparire data-left-tree-state="closed" anche se l'utente
+// aveva treeState="open" come preferenza (vedi isLeftTreeVisible
+// in Shell.tsx).
+describe("Shell · Fetta E2-IA E2.4 panel SX Albero modello", () => {
+  beforeEach(() => {
+    useWorkspaceStore.setState({ isEmptyState: false });
+    useShellIntentStore.setState({ pendingWorkspace: null });
+    try { window.sessionStorage.removeItem("feapro:shell:active-workspace"); } catch { /* ignore */ }
+    useRightPanelStore.setState({ panelState: "open" });
+    try { window.localStorage.removeItem("feapro-right-panel"); } catch { /* ignore */ }
+    useLeftTreeStore.setState({ treeState: "closed" });
+    try { window.localStorage.removeItem("feapro-left-tree"); } catch { /* ignore */ }
+  });
+
+  it("default treeState=closed → ShellLeftTreePanel NON renderizzato", () => {
+    render(<Shell><div /></Shell>);
+    expect(screen.queryByTestId("mock-shell-left-tree-panel")).toBeNull();
+  });
+
+  it("treeState=open → ShellLeftTreePanel renderizzato fra Rail e Viewport", () => {
+    useLeftTreeStore.setState({ treeState: "open" });
+    render(<Shell><div /></Shell>);
+    expect(screen.getByTestId("mock-shell-left-tree-panel")).toBeInTheDocument();
+    // Coesiste con rail (sempre presente) e viewport
+    expect(screen.getByTestId("mock-rail")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-viewport")).toBeInTheDocument();
+  });
+
+  it("data-left-tree-state riflette stato 'open' quando reso visibile", () => {
+    useLeftTreeStore.setState({ treeState: "open" });
+    const { container } = render(<Shell><div /></Shell>);
+    const root = container.querySelector(".shell");
+    expect(root?.getAttribute("data-left-tree-state")).toBe("open");
+  });
+
+  it("data-left-tree-state e' 'closed' per default", () => {
+    const { container } = render(<Shell><div /></Shell>);
+    const root = container.querySelector(".shell");
+    expect(root?.getAttribute("data-left-tree-state")).toBe("closed");
+  });
+
+  it("focus mode fa apparire data-left-tree-state='closed' anche se store='open'", () => {
+    useWorkspaceStore.setState({ isEmptyState: true });
+    useLeftTreeStore.setState({ treeState: "open" });
+    const { container } = render(<Shell><div /></Shell>);
+    const root = container.querySelector(".shell");
+    // L'attributo riflette isLeftTreeVisible (NON treeState diretto):
+    // in focus la grid resta 1-col e nessun panel SX visibile.
+    expect(root?.getAttribute("data-left-tree-state")).toBe("closed");
+    expect(screen.queryByTestId("mock-shell-left-tree-panel")).toBeNull();
+  });
+
+  it("takeover (verifiche) fa apparire data-left-tree-state='closed' anche se store='open'", () => {
+    useLeftTreeStore.setState({ treeState: "open" });
+    render(<Shell><div /></Shell>);
+    fireEvent.click(screen.getByTestId("rail-verifiche"));
+    // In takeover la grid passa a 2-col → niente panel SX
+    expect(screen.queryByTestId("mock-shell-left-tree-panel")).toBeNull();
+    // E il data-attribute lo segnala
+    const root = document.querySelector(".shell");
+    expect(root?.getAttribute("data-left-tree-state")).toBe("closed");
+  });
+
+  it("toggle ripetuto via store: open → closed riflette nel DOM in real-time", () => {
+    const { container } = render(<Shell><div /></Shell>);
+    const root = container.querySelector(".shell");
+    expect(root?.getAttribute("data-left-tree-state")).toBe("closed");
+
+    act(() => {
+      useLeftTreeStore.getState().open();
+    });
+    expect(root?.getAttribute("data-left-tree-state")).toBe("open");
+    expect(screen.getByTestId("mock-shell-left-tree-panel")).toBeInTheDocument();
+
+    act(() => {
+      useLeftTreeStore.getState().close();
+    });
+    expect(root?.getAttribute("data-left-tree-state")).toBe("closed");
+    expect(screen.queryByTestId("mock-shell-left-tree-panel")).toBeNull();
   });
 });

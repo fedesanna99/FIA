@@ -6,6 +6,10 @@ import { render, screen, fireEvent, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ShellTopBar, modelShortId } from "./ShellTopBar";
 import { useWorkspaceStore } from "../store/workspaceStore";
+// v3.4 Fetta E2-IA Commit E2.4: reset leftTreeStore fra i test
+// (il toggle Albero ora cabla a uno store Zustand singleton invece
+// di useState locale → deve essere isolato fra i test).
+import { useLeftTreeStore } from "../store/leftTreeStore";
 
 // Stub hook useRunAnalysis (importa libreria pesante quando reale)
 vi.mock("../hooks/useAnalysis", () => ({
@@ -23,6 +27,9 @@ describe("ShellTopBar", () => {
     // v3.4 Fetta E2-IA Commit E2.1: assicura che il focus mode sia OFF
     // all'inizio di ogni test (il toggle Focus lo cambia).
     useWorkspaceStore.getState().exitEmptyState();
+    // v3.4 Fetta E2-IA Commit E2.4: reset toggle Albero a "closed".
+    useLeftTreeStore.setState({ treeState: "closed" });
+    try { window.localStorage.removeItem("feapro-left-tree"); } catch { /* ignore */ }
   });
 
   it("renders brand block with FEA Pro + version", () => {

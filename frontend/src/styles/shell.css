@@ -85,6 +85,10 @@ body.theme-dark {
   --phase-h: 44px;
   --rail-w: 56px;
   --panel-w: 380px;
+  /* v3.4 Fetta E2-IA Commit E2.4: larghezza del panel SX "Albero
+     modello" quando aperto. Override a 0px su default tramite
+     `[data-left-tree-state]="closed"` (vedi sotto). */
+  --left-tree-w: 240px;
   width: 100%;
   height: 100%;
   min-height: 0;
@@ -114,6 +118,17 @@ body.shell-panel-w-420 .shell { --panel-w: 420px; }
    Precedenze: shell-takeover-on (collassa a 2-col) e shell-focus-on
    (collassa a 1-col) restano prioritarie — vedi regole sotto. */
 .shell[data-panel-state="closed"] { --panel-w: 32px; }
+/* v3.4 Fetta E2-IA Commit E2.4: panel SX "Albero modello" aperto →
+   grid `.shell-mid` passa da 3-col (rail + 1fr + panel) a 4-col
+   (rail + left-tree + 1fr + panel). Default closed → regola non
+   triggera, grid resta 3-col.
+   Shell.tsx setta data-left-tree-state="closed" anche in takeover
+   e focus mode (vedi isLeftTreeVisible) → non serve override CSS
+   esplicito per quei casi: la regola sotto semplicemente non si
+   attiva. */
+.shell[data-left-tree-state="open"] .shell-mid {
+  grid-template-columns: var(--rail-w) var(--left-tree-w) 1fr var(--panel-w);
+}
 body.shell-density-compact { font-size: 12px; }
 
 /* v2.6.5 D.1: rail expanded mode (default v2.6.5+, persistito in localStorage).
@@ -2160,6 +2175,125 @@ body.shell-sharp .sp-head .sp-close { border-radius: 0; }
   transform: rotate(180deg);
   white-space: nowrap;
 }
+
+/* ── v3.4 Fetta E2-IA Commit E2.4 · Left Tree Panel ──────────────────
+   Panel sinistro "Albero modello" inserito tra Rail e Viewport come
+   2a colonna grid `.shell-mid` (var(--left-tree-w), default 240px,
+   visibile solo se Shell.tsx ha setato data-left-tree-state="open").
+   Pattern visivo simmetrico al ShellPanel destro ma snello + densita'
+   maggiore (la lista sezioni e' lineare, niente tabs Radix). */
+.shell-left-tree {
+  background: var(--bg-panel);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.slt-head {
+  padding: 14px 16px 12px;
+  border-bottom: 1px solid var(--border);
+  display: flex; flex-direction: column; gap: 6px;
+}
+.slt-head-row { display: flex; align-items: center; gap: 8px; }
+.slt-head .slt-icon {
+  width: 28px; height: 28px;
+  background: var(--accent-subtle); color: var(--accent);
+  display: grid; place-items: center;
+  border-radius: 8px;
+}
+body.shell-sharp .slt-head .slt-icon { border-radius: 0; }
+.slt-head h2 {
+  font-family: inherit;
+  font-size: 14px; font-weight: 700; letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--ink);
+}
+.slt-head .slt-close {
+  margin-left: auto;
+  height: 24px; width: 24px;
+  background: transparent; border: 1px solid var(--border);
+  border-radius: 6px;
+  display: grid; place-items: center; cursor: pointer;
+  color: var(--ink-dim);
+  transition: color 120ms ease, border-color 120ms ease;
+}
+body.shell-sharp .slt-head .slt-close { border-radius: 0; }
+.slt-head .slt-close:hover { color: var(--accent); border-color: var(--accent); }
+.slt-desc {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin: 0;
+}
+
+/* Empty state quando model === null */
+.slt-empty {
+  padding: 20px 16px;
+  color: var(--ink-dim);
+}
+.slt-empty-msg {
+  font: 600 13px/1.4 inherit;
+  margin: 0 0 6px;
+  color: var(--ink-muted);
+}
+.slt-empty-hint {
+  font: 400 12px/1.5 inherit;
+  margin: 0;
+  color: var(--ink-dim);
+}
+.slt-empty-hint strong {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Lista delle 5 sezioni del modello (nodi/elementi/materiali/vincoli/carichi).
+   Click su una riga oggi e' inerte: la selezione bidirezionale viewport
+   ↔ albero e' scope E2.3 (vedi handoff 06). */
+.slt-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-light) transparent;
+}
+.slt-item {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 16px;
+  font: 500 12px/1 inherit;
+  color: var(--ink);
+  cursor: default;
+  transition: background-color 120ms ease;
+}
+.slt-item:hover {
+  background: var(--bg-hover, var(--bg));
+}
+.slt-item-icon {
+  display: grid; place-items: center;
+  color: var(--ink-dim);
+}
+.slt-item-label {
+  font-weight: 500;
+  color: var(--ink);
+}
+.slt-item-count {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+body.shell-sharp .slt-item-count { border-radius: 0; }
 
 /* Results metrics tile row */
 .metrics {

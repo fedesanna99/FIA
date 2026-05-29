@@ -44,6 +44,11 @@ import { useResetOnboarding, startOnboardingTour } from "../lib/onboarding";
 // v3.4 Fetta E2-IA Commit E2.1: AvatarMenu esteso con voci IA prototipo v3
 // (Cronologia, Template, Docs) — vedi AvatarMenu.tsx.
 import { AvatarMenu } from "../components/shell/topbar/AvatarMenu";
+// v3.4 Fetta E2-IA Commit E2.4: cablaggio del toggle Albero al
+// `leftTreeStore`. Sostituisce lo `useState(treeOpen)` locale di E2.1
+// (placeholder) con uno store Zustand persisted che governa anche
+// il rendering del `ShellLeftTreePanel` in Shell.tsx.
+import { useLeftTreeStore } from "../store/leftTreeStore";
 
 function formatSavedAt(d: Date | null): string {
   if (!d) return "—";
@@ -89,11 +94,14 @@ export function ShellTopBar() {
   const enterFocus = useWorkspaceStore((s) => s.enterEmptyState);
   const exitFocus = useWorkspaceStore((s) => s.exitEmptyState);
 
-  // v3.4 Fetta E2-IA Commit E2.1: toggle Albero placeholder.
-  // TODO E2.4: cablare al panel SX albero quando arriva la fetta E2.4.
-  // Per ora è un toggle visivo locale per dare affordance dell'esistenza
-  // della feature e validare il pattern data-state="on|off".
-  const [treeOpen, setTreeOpen] = useState(false);
+  // v3.4 Fetta E2-IA Commit E2.4: toggle Albero cablato al `leftTreeStore`.
+  // Sostituisce l'useState(treeOpen) placeholder di E2.1: ora il click
+  // apre/chiude il `ShellLeftTreePanel` (panel SX con gerarchia del
+  // modello — vedi `shell/ShellLeftTreePanel.tsx`). Lo stato e' persistito
+  // in localStorage chiave `feapro-left-tree` cosi' la preferenza
+  // sopravvive al refresh per l'utente power.
+  const treeOpen = useLeftTreeStore((s) => s.treeState === "open");
+  const toggleTree = useLeftTreeStore((s) => s.toggle);
 
   const handleRun = () => {
     if (!isRunning && model) {
@@ -224,7 +232,7 @@ export function ShellTopBar() {
         <button
           type="button"
           className="tb-iconbtn"
-          onClick={() => setTreeOpen((v) => !v)}
+          onClick={toggleTree}
           aria-label="Albero modello — mostra/nascondi"
           aria-pressed={treeOpen}
           data-state={treeOpen ? "on" : "off"}

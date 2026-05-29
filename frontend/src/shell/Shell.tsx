@@ -29,6 +29,10 @@ import { useWorkspaceStore } from "../store/workspaceStore";
 // esistenti. Quando "closed" la ShellRightReopenTab prende il posto
 // di ShellPanel (vedi JSX sotto + shell.css `[data-panel-state]`).
 import { useRightPanelStore } from "../store/rightPanelStore";
+// v3.4 Fetta E2-IA Commit E2.4: stato del panel SX "Albero modello".
+// Default "closed" → grid 3-col invariata. Cablato al toggle Albero
+// della ShellTopBar (E2.1) ora che ha un consumer reale.
+import { useLeftTreeStore } from "../store/leftTreeStore";
 import { ShellTopBar } from "./ShellTopBar";
 import { ShellRail } from "./ShellRail";
 import { ShellViewport } from "./ShellViewport";
@@ -38,6 +42,11 @@ import { ShellPanel } from "./ShellPanel";
 // Pattern simmetrico al focus-exit pill (Fetta 0): affordance sempre
 // visibile per riaprire qualcosa che e' stato chiuso volontariamente.
 import { ShellRightReopenTab } from "./ShellRightReopenTab";
+// v3.4 Fetta E2-IA Commit E2.4: panel SX "Albero modello" con gerarchia
+// del modello caricato (5 sezioni read-only da modelStore). Default
+// closed → grid 3-col invariata. Aperto → grid 4-col con seconda
+// colonna `--left-tree-w` (240px).
+import { ShellLeftTreePanel } from "./ShellLeftTreePanel";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandPalette } from "./ShellCommandPalette";
 // redesign/workspace-fasi (FETTA 1): spina 3 fasi additiva sotto la topbar.
@@ -172,6 +181,24 @@ export function Shell({ children }: ShellProps) {
   // (override `--panel-w` via `[data-panel-state="closed"]` in shell.css).
   const panelState = useRightPanelStore((s) => s.panelState);
 
+  // v3.4 Fetta E2-IA Commit E2.4: stato del panel SX "Albero modello".
+  // Default "closed" → la grid `.shell-mid` resta 3-col come prima
+  // (zero regression). Quando "open" la grid passa a 4-col tramite
+  // override CSS su `[data-left-tree-state="open"]` (vedi shell.css)
+  // e il `ShellLeftTreePanel` viene renderizzato tra Rail e Viewport.
+  // Focus/takeover restano prioritari (in entrambi i casi il panel
+  // SX non viene renderizzato per lasciare massimo spazio).
+  const treeState = useLeftTreeStore((s) => s.treeState);
+  // v3.4 Fetta E2-IA Commit E2.4: stato "effettivo" del panel SX.
+  // L'utente puo' avere `treeState === "open"` come preferenza persistita,
+  // ma in focus mode o takeover il panel SX non viene comunque
+  // renderizzato (chrome nascosto o workspace fullArea). Usiamo lo stesso
+  // boolean per (a) decidere se renderizzare `ShellLeftTreePanel` e
+  // (b) settare il data-attribute CSS — cosi' grid e DOM restano coerenti
+  // senza dover scrivere override CSS speciali su takeover/focus.
+  const isLeftTreeVisible =
+    !isFocusMode && !isTakeover && treeState === "open";
+
   // v3.3.0 audit-fix L3.1-P1-4: keyboard shortcut 1-6 per workspace switch.
   // Prima App.tsx aveva solo 1/2/3, ShellRail mostrava kbd 4/5/6 dead.
   useEffect(() => {
@@ -227,6 +254,12 @@ export function Shell({ children }: ShellProps) {
       // in shell.css. Quando "open" il valore non viene letto da nessun
       // selettore CSS (default `--panel-w: 380px` invariato).
       data-panel-state={panelState}
+      // v3.4 Fetta E2-IA Commit E2.4: data-left-tree-state per CSS
+      // override grid `.shell-mid` (4-col quando "open", 3-col quando
+      // "closed"). Usiamo `isLeftTreeVisible` (NON `treeState` diretto)
+      // cosi' in focus/takeover l'attributo e' "closed" e la grid resta
+      // 3-col anche se l'utente aveva treeState="open" come preferenza.
+      data-left-tree-state={isLeftTreeVisible ? "open" : "closed"}
       className={`shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-${theme}${
         isTakeover ? " shell-takeover-on" : ""
       }${isFocusMode ? " shell-focus-on" : ""}${railExpanded ? " shell-rail-expanded" : ""}`}
@@ -243,6 +276,12 @@ export function Shell({ children }: ShellProps) {
 
       <div className="shell-mid">
         {!showFocusChrome && <ShellRail active={activeWs} onChange={setActiveWs} />}
+        {/* v3.4 Fetta E2-IA Commit E2.4: panel SX "Albero modello"
+            inserito tra Rail e Viewport quando isLeftTreeVisible.
+            Stesso boolean usato dal data-attribute sul root → grid
+            CSS e DOM restano coerenti senza override speciali per
+            takeover/focus. */}
+        {isLeftTreeVisible && <ShellLeftTreePanel />}
         {!showFocusChrome && isTakeover && takeoverContent ? (
           <main className="shell-takeover-content" data-testid="shell-takeover-content">
             {takeoverContent}
