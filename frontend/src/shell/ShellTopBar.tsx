@@ -15,7 +15,8 @@
 //   - Search pill apre la palette via workspaceStore.setPalette
 //
 // Aggiunge in E2.1:
-//   - 3 icone fisse Home/Modelli/Jobs accanto al brand (Modelli/Jobs TODO E2.5)
+//   - 3 icone fisse Home/Modelli/Jobs accanto al brand (cablate Fetta
+//     E2.5d → route placeholder PlaceholderPages.tsx)
 //   - Toggle Albero (placeholder useState, cablato in E2.4 al panel SX)
 //   - Toggle Focus cablato a workspaceStore.enterEmptyState/exitEmptyState
 //     (focus mode già implementato in Fetta 0, qui SOLO il cablaggio toggle)
@@ -156,7 +157,8 @@ export function ShellTopBar() {
           Pattern `tb-iconbtn` esistente (32×32, rounded-md var(--r-md),
           hover bg-hover) per coerenza con gli iconbtn destra (Undo/Redo/
           Help/Bell). gap 2 tra ognuna, padding-left 8 per stacco dal
-          brand block. Modelli/Jobs sono no-op TODO E2.5 (vedi handler). */}
+          brand block. Modelli/Jobs cablati in Fetta E2.5d → /modelli e
+          /jobs (vedi handler navigate + PlaceholderPages.tsx). */}
       <div
         className="tb-quick-nav"
         data-testid="topbar-quick-nav"

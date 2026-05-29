@@ -246,8 +246,10 @@ function RecentsBlockWired(props: {
 // Sostituita dal componente esportato `./DashTopBar.tsx` (import sopra)
 // nella Fetta E3.1 del redesign workspace-fasi. Il nuovo componente
 // replica ShellTopBar E2.1 (IA prototipo v3): brand + 3 nav fissi
-// (Home/Modelli/Jobs) + ⌘K + help + bell + AvatarMenu Radix. Le 2 route
-// mancanti (/modelli /jobs) sono TODO E2.5 segnalati inline.
+// (Home/Modelli/Jobs) + ⌘K + help + bell + AvatarMenu Radix.
+// v3.4 Pulizia post-E2-IA (29/05 notte): le 2 route /modelli e /jobs
+// sono state create in Fetta E2.5d (PlaceholderPages), cablate in
+// DashTopBar.handleModelli/handleJobs via useNavigate.
 
 
 // ── Hero legacy v2.7.1 RIMOSSO ──────────────────────────────────────────

@@ -20,7 +20,7 @@
  * dal mockup, vince il mockup. Riferimento:
  *   .claude/ricordi/handoffs/05-claude-design-round2-response.md
  */
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Home, Box, Activity, Search, HelpCircle, Bell } from "lucide-react";
 import { APP_VERSION } from "../lib/version";
 import { useNotificationsStore } from "../store/notificationsStore";
@@ -43,6 +43,10 @@ export interface DashTopBarProps {
 export function DashTopBar({ activePath = "home", tierLabel = "FREE" }: DashTopBarProps) {
   const setPalette = useWorkspaceStore((s) => s.setPalette);
   const unread = useNotificationsStore((s) => s.items.filter((n) => !n.read).length);
+  // v3.4 Pulizia post-E2-IA (29/05 notte): cablato Modelli + Jobs alle
+  // route placeholder create in Fetta E2.5d. Prima erano no-op (bug —
+  // l'utente cliccava dalla Dashboard e non succedeva niente).
+  const navigate = useNavigate();
 
   const handleHome = () => {
     // Già in home — comportamento idle (no navigation). Confronto con
@@ -51,14 +55,11 @@ export function DashTopBar({ activePath = "home", tierLabel = "FREE" }: DashTopB
   };
 
   const handleModelli = () => {
-    // TODO E2.5 (o backlog): route /modelli mancante. ModelliBrowser
-    // esiste come overlay full-screen ma non c'è pagina dedicata.
-    // Stesso TODO di ShellTopBar.
+    navigate("/modelli");
   };
 
   const handleJobs = () => {
-    // TODO E2.5 (o backlog): route /jobs mancante. useJobsStore +
-    // activeJob esistono ma no pagina dedicata coda processi.
+    navigate("/jobs");
   };
 
   return (

@@ -234,8 +234,9 @@ export function AvatarMenu() {
           </div>
 
           {/* v3.4 Fetta E2-IA Commit E2.1: gruppo IA prototipo v3 (Cronologia
-              / Template / Docs). Cronologia e Docs sono TODO E2.5 (no route),
-              Template → /templates esistente (v2.7.2 Phase 4.3). Aggiunte in
+              / Template / Docs). Cronologia/Docs cablate in Fetta E2.5d alle
+              route placeholder (/cronologia, /docs), Template → /templates
+              esistente (v2.7.2 Phase 4.3). Aggiunte in
               fondo (sopra Logout) per mantenere additività zero rimozioni —
               "Impostazioni" resta nel suo gruppo Settings/Help. */}
           <DropdownMenu.Separator className="h-px bg-border" />
