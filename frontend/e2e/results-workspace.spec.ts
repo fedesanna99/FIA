@@ -129,10 +129,14 @@ test.describe("Results workspace · 2b/2c/2d E2E suite", () => {
     await expect(resultsStep).toHaveClass(/is-active/);
     await expect(resultsStep).toHaveAttribute("data-state", "done");
 
-    // Atteso #3: il panel destro mostra le 3 tab (Sintesi/Dati/Verifiche)
-    await expect(page.locator('[data-testid="results-tab-sintesi"]')).toBeVisible();
-    await expect(page.locator('[data-testid="results-tab-dati"]')).toBeVisible();
-    await expect(page.locator('[data-testid="results-tab-verifiche"]')).toBeVisible();
+    // Atteso #3: il panel destro mostra le 5 sezioni accordion
+    // (v3.4 Fetta E2.5c: era 3 tabs orizzontali, ora accordion verticale
+    // con Sintesi sempre aperta + 4 sezioni collassabili).
+    await expect(page.locator('[data-testid="results-section-sintesi"]')).toBeVisible();
+    await expect(page.locator('[data-testid="results-section-displacements"]')).toBeVisible();
+    await expect(page.locator('[data-testid="results-section-forces"]')).toBeVisible();
+    await expect(page.locator('[data-testid="results-section-reactions"]')).toBeVisible();
+    await expect(page.locator('[data-testid="results-section-ec3"]')).toBeVisible();
   });
 
   // TEST 2 — utente già su Risultati: niente toast, dati aggiornati silente ─
@@ -185,8 +189,8 @@ test.describe("Results workspace · 2b/2c/2d E2E suite", () => {
     const beamId = await cloneTemplate(auth.token, "ex_simple_beam_2d");
     await openModelInShell(page, auth, beamId, "risultati");
     await runAnalysisAndWait(page);
-    // Sintesi è il tab di default in Risultati, ma cliccarlo è idempotente
-    await page.locator('[data-testid="results-tab-sintesi"]').click();
+    // v3.4 Fetta E2.5c: Sintesi e' SEMPRE aperta in cima al panel DX
+    // (`.results-section--always-open`) — niente click necessario.
     const trustBeam = page.locator('[data-testid="sintesi-trust-badge"]');
     await expect(trustBeam).toHaveAttribute("data-tone", "validated");
     await expect(trustBeam).toContainText("Validato");
@@ -195,7 +199,7 @@ test.describe("Results workspace · 2b/2c/2d E2E suite", () => {
     const cubeId = await cloneTemplate(auth.token, "ex_cube_solid_h8");
     await openModelInShell(page, auth, cubeId, "risultati");
     await runAnalysisAndWait(page);
-    await page.locator('[data-testid="results-tab-sintesi"]').click();
+    // v3.4 Fetta E2.5c: Sintesi sempre aperta, niente click.
     const trustCube = page.locator('[data-testid="sintesi-trust-badge"]');
     await expect(trustCube).toHaveAttribute("data-tone", "estimate");
     await expect(trustCube).toContainText("Stima");
@@ -209,9 +213,9 @@ test.describe("Results workspace · 2b/2c/2d E2E suite", () => {
     await openModelInShell(page, auth, modelId, "risultati");
     await runAnalysisAndWait(page);
 
-    // Vai a Dati > Reazioni
-    await page.locator('[data-testid="results-tab-dati"]').click();
-    await page.locator('[data-testid="results-subtab-reazioni"]').click();
+    // v3.4 Fetta E2.5c: era "tab Dati > subtab Reazioni" (2 click).
+    // Ora la sezione Reazioni e' un accordion diretto (1 click).
+    await page.locator('[data-testid="results-section-reactions-head"]').click();
 
     const delta = page.locator('[data-testid="reazioni-sum-delta"]');
     await expect(delta).toBeVisible({ timeout: 5_000 });
@@ -239,9 +243,9 @@ test.describe("Results workspace · 2b/2c/2d E2E suite", () => {
       await dialog.dismiss().catch(() => undefined);
     });
 
-    // Vai a Dati > Sollecitazioni
-    await page.locator('[data-testid="results-tab-dati"]').click();
-    await page.locator('[data-testid="results-subtab-sollecitazioni"]').click();
+    // v3.4 Fetta E2.5c: era "tab Dati > subtab Sollecitazioni" (2 click).
+    // Ora la sezione Sollecitazioni e' un accordion diretto (1 click).
+    await page.locator('[data-testid="results-section-forces-head"]').click();
 
     // Click sul bottone CSV
     await page.locator('[data-testid="sollec-export-csv"]').click();

@@ -1,50 +1,62 @@
-// redesign/workspace-fasi · FETTA 2a · Risultati — guscio 3 schede
+// v3.4 Fetta E2.5c (29/05 sera) · Panel DX di Verifica — accordion
 //
-// Nuovo panel-content del workspace "risultati" (sostituisce InspectPanel
-// come content di default del workspace, ma NON cancella InspectPanel:
-// e' embeddato come Sintesi finche' lo step 2b non rifa quel contenuto).
+// REFACTOR (era 3 tabs orizzontali Sintesi/Dati/Verifiche): adottato
+// accordion verticale come deciso con Federico (Tensione 1 · Opzione A,
+// vedi `socio/05-prototipi-workspace-v3/`):
 //
-// Struttura (bersaglio prototipo):
-//   [Header] Risultati · Statica lineare · stato
-//   [Tabs]   Sintesi | Dati | Verifiche
-//     Sintesi   -> <InspectPanel/> (hub esistente, embed onesto)
-//     Dati      -> subtab Spostamenti | Sollecitazioni | Reazioni
-//       Spostamenti    -> <DisplacementTable/> (esistente) o placeholder
-//       Sollecitazioni -> placeholder onesto "in arrivo step 2b"
-//       Reazioni       -> placeholder onesto "in arrivo step 2b"
-//     Verifiche -> <VerifyPanel/> (esistente, embed onesto)
+//   [Header]   ✓ Verifica · Statica · SLU · completata        [✕]
+//   ──────────────────────────────────────────────────────────
+//   ▼ SINTESI (sempre aperta — NON collassabile)
+//       UR / σmax / δmax + verdict + trust badge + [Itera] [Report]
+//   ──────────────────────────────────────────────────────────
+//   ▸ Spostamenti                                          ⌄
+//   ▸ Sollecitazioni                                       ⌄
+//   ▸ Reazioni                                             ⌄
+//   ▸ Verifica EC3                                         ⌄
 //
-// VINCOLI FETTA 2a:
-//   - Solo CHROME: niente nuova logica, niente nuovi store-read oltre
-//     quelli gia' presenti nei componenti embeddati.
-//   - Placeholder onesti: se non c'e' contenuto reale, lo dico esplicitamente.
-//   - InspectPanel/VerifyPanel restano come workspace-content di altri
-//     workspace (verifiche), questo wrapper li EMBEDDA solo qui.
+// Filosofia "junior fuori, senior dentro":
+//   - Sintesi sempre visibile in cima (dati fondamentali per studente/
+//     ingegnere junior: UR · σmax · freccia · verdict EC3 · trust badge)
+//   - 4 sezioni collassabili sotto (per chi vuole approfondire: tabelle
+//     per nodo/elemento, reazioni con equilibrio, formula EC3 in chiaro)
+//   - Multi-open: l'utente puo' aprire piu' sezioni contemporaneamente
+//     per confrontare (gestito da `verifyAccordionStore`)
+//
+// IMPORTANTE — niente perdita di content rispetto al passato:
+//   - Sintesi  → ResultsSintesi (FAM B, invariato)
+//   - Spostamenti → DisplacementTable (FAM C, era subtab Dati)
+//   - Sollecitazioni → ResultsDatiSollecitazioni (FAM C, era subtab Dati)
+//   - Reazioni → ResultsDatiReazioni (FAM C, era subtab Dati)
+//   - Verifica EC3 → ResultsVerifiche (FAM D, era tab Verifiche)
+//
+// Workspace `verifiche` takeover (VerifyPanel full-hub con 6 norme:
+// Live/EC2/EC3/EC5/EC8/NTC18) resta raggiungibile via ⌘K palette per
+// chi vuole il flusso power-user con breadcrumb. Sara' candidato a
+// rimozione in una fetta successiva quando ResultsVerifiche avra'
+// assorbito quel contenuto (oggi `ResultsVerifiche` e' la versione
+// junior-friendly allineata al prototipo `risultati-senior.html`).
 
-import { useState } from "react";
-import { Activity } from "lucide-react";
+import { ReactNode } from "react";
+import { Activity, ChevronRight } from "lucide-react";
+
 import { useResultsStore } from "../../store/resultsStore";
 import { useAnalysisStore } from "../../store/analysisStore";
+import {
+  useVerifyAccordionStore,
+  type VerifySectionKey,
+} from "../../store/verifyAccordionStore";
 import { DisplacementTable } from "../../components/results/DisplacementTable";
-// FETTA 2b · FAM B: nuovo content scheda Sintesi (sostituisce InspectPanel
-// embed). InspectPanel.tsx resta nel codebase ma non e' piu' importato qui.
 import { ResultsSintesi } from "./ResultsSintesi";
-// FETTA 2b · FAM C: tabelle Sollecitazioni e Reazioni con banner sospetto
-// e somma di controllo (sostituiscono i placeholder "in arrivo step 2b").
 import { ResultsDatiSollecitazioni } from "./ResultsDatiSollecitazioni";
 import { ResultsDatiReazioni } from "./ResultsDatiReazioni";
-// FETTA 2b · FAM D: nuova scheda Verifiche con EC3 in chiaro + n/a +
-// banner sospetto. Sostituisce embed VerifyPanel (incoerente in Risultati).
-// VerifyPanel resta nel codebase per il workspace "verifiche" full-area.
 import { ResultsVerifiche } from "./ResultsVerifiche";
+
 
 interface ResultsTabsPanelProps {
   /** Callback "Itera" → torna al workspace Costruisci (passato da Shell.tsx). */
   onIterate?: () => void;
 }
 
-type ResultsTab = "sintesi" | "dati" | "verifiche";
-type DatiSubTab = "spostamenti" | "sollecitazioni" | "reazioni";
 
 const ANALYSIS_LABEL: Record<string, string> = {
   static: "Statica lineare",
@@ -53,9 +65,8 @@ const ANALYSIS_LABEL: Record<string, string> = {
   buckling: "Buckling",
 };
 
+
 export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
-  const [tab, setTab] = useState<ResultsTab>("sintesi");
-  const [subtab, setSubtab] = useState<DatiSubTab>("spostamenti");
   const hasStatic = useResultsStore((s) => !!s.staticResults);
   const hasModal = useResultsStore((s) => !!s.modalResults);
   const hasDynamic = useResultsStore((s) => !!s.dynamicResults);
@@ -76,151 +87,125 @@ export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
           <Activity size={16} />
         </span>
         <div className="results-panel-h-text">
-          <div className="results-panel-t">Verifica</div>{/* v3.4 Fetta E2.5b */}
+          <div className="results-panel-t">Verifica</div>
           <div className="results-panel-s">{subtitle}</div>
         </div>
       </header>
 
-      {/* Tab list: state locale, niente Radix (Radix Tabs in jsdom non
-          triggera onValueChange via fireEvent.click affidabilmente;
-          allineato anche al prototipo HTML che usa state JS semplice). */}
-      <div className="results-tabs" role="tablist" aria-label="Schede risultati">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "sintesi"}
-          aria-controls="results-tab-body-sintesi"
-          className={`results-tab${tab === "sintesi" ? " is-active" : ""}`}
-          data-state={tab === "sintesi" ? "active" : "inactive"}
-          data-testid="results-tab-sintesi"
-          onClick={() => setTab("sintesi")}
-        >
-          Sintesi
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "dati"}
-          aria-controls="results-tab-body-dati"
-          className={`results-tab${tab === "dati" ? " is-active" : ""}`}
-          data-state={tab === "dati" ? "active" : "inactive"}
-          data-testid="results-tab-dati"
-          onClick={() => setTab("dati")}
-        >
-          Dati
-        </button>
-        <button
-          type="button"
-          role="tab"
-          aria-selected={tab === "verifiche"}
-          aria-controls="results-tab-body-verifiche"
-          className={`results-tab${tab === "verifiche" ? " is-active" : ""}`}
-          data-state={tab === "verifiche" ? "active" : "inactive"}
-          data-testid="results-tab-verifiche"
-          onClick={() => setTab("verifiche")}
-        >
-          Verifiche
-        </button>
-      </div>
-
-      {tab === "sintesi" && (
-        <div
-          id="results-tab-body-sintesi"
-          role="tabpanel"
-          className="results-tab-body"
-          data-testid="results-tab-body-sintesi"
-        >
-          {/* FETTA 2b · FAM B: nuovo content Sintesi (metriche aggregate +
-              affidabilita' + toggle + Itera/Report). Banner ambra "calcolo
-              sospetto" in cima quando isSuspicious — niente applausi
-              su un calcolo banale. InspectPanel.tsx resta nel codebase
-              ma non e' piu' embeddato qui. */}
+      {/* SINTESI · sempre aperta in cima (junior tile fondamentali) */}
+      <section
+        className="results-section results-section--always-open"
+        data-testid="results-section-sintesi"
+      >
+        <div className="results-section-body">
           <ResultsSintesi onIterate={onIterate} />
         </div>
-      )}
+      </section>
 
-      {tab === "dati" && (
-        <div
-          id="results-tab-body-dati"
-          role="tabpanel"
-          className="results-tab-body"
-          data-testid="results-tab-body-dati"
-        >
-          <div
-            className="results-subtabs"
-            role="tablist"
-            aria-label="Tipo di dato"
-          >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={subtab === "spostamenti"}
-              className={`results-subtab${subtab === "spostamenti" ? " is-active" : ""}`}
-              data-testid="results-subtab-spostamenti"
-              onClick={() => setSubtab("spostamenti")}
-            >
-              Spostamenti
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={subtab === "sollecitazioni"}
-              className={`results-subtab${subtab === "sollecitazioni" ? " is-active" : ""}`}
-              data-testid="results-subtab-sollecitazioni"
-              onClick={() => setSubtab("sollecitazioni")}
-            >
-              Sollecitazioni
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={subtab === "reazioni"}
-              className={`results-subtab${subtab === "reazioni" ? " is-active" : ""}`}
-              data-testid="results-subtab-reazioni"
-              onClick={() => setSubtab("reazioni")}
-            >
-              Reazioni
-            </button>
-          </div>
+      {/* 4 sezioni accordion (multi-open via verifyAccordionStore) */}
+      <AccordionSection
+        sectionKey="displacements"
+        label="Spostamenti"
+        testid="results-section-displacements"
+      >
+        {hasStatic ? (
+          <DisplacementTable />
+        ) : (
+          <ResultsPlaceholder>
+            Nessun calcolo statico disponibile. Lancia un'analisi statica
+            dal passo <b>Esegui</b> per vedere la tabella spostamenti.
+          </ResultsPlaceholder>
+        )}
+      </AccordionSection>
 
-          <div className="results-subtab-body">
-            {subtab === "spostamenti" &&
-              (hasStatic ? (
-                <DisplacementTable />
-              ) : (
-                <ResultsPlaceholder>
-                  Nessun calcolo statico disponibile. Lancia un'analisi statica
-                  dal passo <b>Esegui</b> per vedere la tabella spostamenti.
-                </ResultsPlaceholder>
-              ))}
-            {/* FETTA 2b · FAM C: tabelle reali. I 2 componenti gestiscono
-                anche lo stato "nessun calcolo" (placeholder onesto interno)
-                e il banner ambra "calcolo sospetto" in cima. */}
-            {subtab === "sollecitazioni" && <ResultsDatiSollecitazioni />}
-            {subtab === "reazioni" && <ResultsDatiReazioni />}
-          </div>
-        </div>
-      )}
+      <AccordionSection
+        sectionKey="forces"
+        label="Sollecitazioni"
+        testid="results-section-forces"
+      >
+        <ResultsDatiSollecitazioni />
+      </AccordionSection>
 
-      {tab === "verifiche" && (
-        <div
-          id="results-tab-body-verifiche"
-          role="tabpanel"
-          className="results-tab-body"
-          data-testid="results-tab-body-verifiche"
-        >
-          {/* FETTA 2b · FAM D: nuova scheda Verifiche aderente al prototipo
-              (testata EC3 + formula in chiaro + altre verifiche con badge
-              validato/stima/"in arrivo"). VerifyPanel resta usato dal
-              workspace "verifiche" full-area (takeover) come prima. */}
-          <ResultsVerifiche />
-        </div>
-      )}
+      <AccordionSection
+        sectionKey="reactions"
+        label="Reazioni"
+        testid="results-section-reactions"
+      >
+        <ResultsDatiReazioni />
+      </AccordionSection>
+
+      <AccordionSection
+        sectionKey="ec3"
+        label="Verifica EC3"
+        testid="results-section-ec3"
+      >
+        <ResultsVerifiche />
+      </AccordionSection>
     </div>
   );
 }
 
-function ResultsPlaceholder({ children }: { children: React.ReactNode }) {
+
+/** Sezione accordion del panel DX di Verifica. Cabla allo store per
+ *  toggle e read-only state; il body viene renderizzato solo quando
+ *  aperto (no display:none per evitare costo render dei tab pesanti). */
+interface AccordionSectionProps {
+  sectionKey: VerifySectionKey;
+  label: string;
+  testid: string;
+  children: ReactNode;
+}
+
+function AccordionSection({
+  sectionKey,
+  label,
+  testid,
+  children,
+}: AccordionSectionProps) {
+  // useState locale non basta: lo stato e' persistito via Zustand store
+  // cosi' sopravvive a refresh + e' condiviso fra istanze (Shell HMR-safe).
+  const isOpen = useVerifyAccordionStore((s) =>
+    s.openSections.includes(sectionKey),
+  );
+  const toggle = useVerifyAccordionStore((s) => s.toggle);
+
+  return (
+    <section
+      className={`results-section${isOpen ? " is-open" : ""}`}
+      data-testid={testid}
+      data-state={isOpen ? "open" : "closed"}
+    >
+      <button
+        type="button"
+        className="results-section-head"
+        onClick={() => toggle(sectionKey)}
+        aria-expanded={isOpen}
+        aria-controls={`${testid}-body`}
+        data-testid={`${testid}-head`}
+      >
+        <ChevronRight
+          className="results-section-chevron"
+          size={14}
+          strokeWidth={2}
+          aria-hidden
+        />
+        <span className="results-section-label">{label}</span>
+      </button>
+      {isOpen && (
+        <div
+          id={`${testid}-body`}
+          className="results-section-body"
+          data-testid={`${testid}-body`}
+        >
+          {children}
+        </div>
+      )}
+    </section>
+  );
+}
+
+
+function ResultsPlaceholder({ children }: { children: ReactNode }) {
   return (
     <div className="results-placeholder" data-testid="results-placeholder">
       {children}
