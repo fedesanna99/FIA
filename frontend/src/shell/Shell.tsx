@@ -47,6 +47,13 @@ import { ShellRightReopenTab } from "./ShellRightReopenTab";
 // closed → grid 3-col invariata. Aperto → grid 4-col con seconda
 // colonna `--left-tree-w` (240px).
 import { ShellLeftTreePanel } from "./ShellLeftTreePanel";
+// v3.4 Fetta M4 mobile (30/05/2026 notte): bottom sheet "Verifica" su
+// mobile. Renderizzato solo quando isMobile && activeWs === "risultati"
+// (su desktop il ShellPanel desktop 380px prende il suo posto). Wrappa
+// ResultsTabsPanel come sheet sticky bottom con header peek/expanded.
+// Vedi ADR 004 D5.
+import { ShellPanelMobileSheet } from "./ShellPanelMobileSheet";
+import { useIsMobile } from "../hooks/useIsMobile";
 import { ShellStatusBar } from "./ShellStatusBar";
 import { ShellCommandPalette } from "./ShellCommandPalette";
 // redesign/workspace-fasi (FETTA 1): spina 3 fasi additiva sotto la topbar.
@@ -153,6 +160,20 @@ export function Shell({ children }: ShellProps) {
   // of truth via hook localStorage-backed (default true). Niente override
   // via prop perché la grid CSS deve essere sincrona col rail render.
   const { isExpanded: railExpanded } = useRailExpansion();
+
+  // v3.4 Fetta M4 mobile (30/05/2026 notte): isMobile per render
+  // condizionale del bottom sheet Verifica. Sotto 768 (breakpoint
+  // useIsMobile legacy) il ShellPanel desktop e' display:none via CSS
+  // M1-polish, e su workspace=risultati renderizziamo il sheet sticky
+  // bottom. Usiamo il breakpoint 768 dello useIsMobile esistente (non
+  // 640 dell'ADR 004 D1) per coerenza con il gate `.shell-panel
+  // {display:none}` di M1-polish — entrambi devono triggerare insieme,
+  // altrimenti su tablet 641-768 avremmo entrambi visibili (doppio
+  // panel) o entrambi nascosti (niente panel). Trade-off accettato: tra
+  // 641 e 768 il sheet si attiva pur essendo "tablet" per ADR D1 — i
+  // 128px di range tablet stretto sono comunque touch e il sheet rende
+  // bene. Future M-tablet polish potra' raffinare se serve.
+  const isMobile = useIsMobile();
 
   // redesign/workspace-fasi (FETTA 0): focus mode dentro Shell custom.
   // Quando isFocusMode è true, nascondiamo Rail/Panel/StatusBar e teniamo
@@ -323,6 +344,22 @@ export function Shell({ children }: ShellProps) {
       {!showFocusChrome && <ShellStatusBar />}
 
       <ShellCommandPalette />
+
+      {/* v3.4 Fetta M4 mobile (30/05/2026 notte): bottom sheet "Verifica"
+          su mobile in fase risultati. Renderizzato come overlay position:
+          fixed bottom dal CSS (.shell-panel-sheet), wrappa ResultsTabsPanel
+          col proprio header peek/expanded toggle. Su desktop e' nascosto
+          via CSS @media (default display:none, mostrato solo sotto 640).
+          Su mobile + altre fasi (Costruisci/Esegui) non e' montato →
+          viewport pieno. Doppio mount accettato (sheet + ShellPanel
+          desktop display:none) come trade-off scope: refactor in
+          M4-polish se servira'.
+          NB: showFocusChrome guard evita render in focus mode. */}
+      {!showFocusChrome && isMobile && activeWs === "risultati" && (
+        <ShellPanelMobileSheet>
+          <ResultsTabsPanel onIterate={() => setActiveWs("modello")} />
+        </ShellPanelMobileSheet>
+      )}
 
       {/* redesign/workspace-fasi (FETTA 0): pill "Esci focus" sempre visibile
           quando isFocusMode. Reversibilità garantita anche se l'utente
