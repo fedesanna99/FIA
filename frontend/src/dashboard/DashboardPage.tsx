@@ -45,14 +45,12 @@ import type { FEAModel } from "../types/model";
 
 import "../styles/dashboard.css";
 
-// Fetta E3.1 (redesign workspace-fasi): la DashTopBar interna v2.7.1
-// e' sostituita dal nuovo componente esportato `./DashTopBar.tsx` che
-// replica visivamente ShellTopBar E2.1 (IA prototipo v3), come da
-// mockup Claude Design Round 2 (Handoff 05). I 4 link nav legacy
-// (Progetti/Template/Percorsi/Docs) sono ridotti a 3 (Home/Modelli/Jobs)
-// con TODO E2.5 sulle 2 route mancanti. Vedi
+// Fetta E3.1+E3.2 (redesign workspace-fasi): la DashTopBar+Hero interne
+// v2.7.1 sono sostituite da componenti esportati che replicano il
+// mockup Claude Design Round 2 (Handoff 05). Vedi
 // .claude/ricordi/handoffs/05-claude-design-round2-response.md.
 import { DashTopBar } from "./DashTopBar";
+import { DashHero, type DashHeroState } from "./DashHero";
 
 
 // v2.7.2 Phase 4.3: hook condiviso per navigare a /templates da qualsiasi
@@ -141,17 +139,28 @@ export function DashboardPage({
     <div className="dash" data-testid="dashboard-page">
       <DashTopBar tierLabel={tierLabel} />
       <main className="dash-main">
-        <Hero
+        <DashHero
           greeting={greeting}
           firstName={firstName}
-          modelsCount={userModels.length}
-          latestModel={userModels[0] ?? null}
-          tierLabel={tierLabel}
-          projUsed={projUsed}
-          projCap={projCap}
-          isRunning={isRunning}
-          onSelect={onSelect}
+          state={
+            // Fetta E3.2: stato Hero derivato deterministicamente.
+            // C = primo accesso (zero modelli utente).
+            // B = quota >80% sul piano corrente.
+            // A = abituale, default.
+            userModels.length === 0
+              ? ("C" as DashHeroState)
+              : projCap > 0 && projUsed / projCap > 0.8
+                ? ("B" as DashHeroState)
+                : ("A" as DashHeroState)
+          }
+          latestModel={userModels[0] ? { id: userModels[0].id, name: userModels[0].name } : null}
+          onResume={(id) => onSelect(id)}
+          onArchive={() => window.dispatchEvent(new Event("feapro:open-billing"))}
         />
+        {/* Fetta E3.2: vecchia <Hero /> v2.7.1 (greeting+h1+sub+usage card)
+            rimossa. La nuova <DashHero /> sopra sostituisce la prima parte
+            (eyebrow+h1+sub variant). La usage card embedded sara' spostata
+            in QuotaBanner (E3.7) e pagina /settings/billing (E3.8). */}
         <ActionRow />
         <RecentSection
           models={userModels}
@@ -176,76 +185,15 @@ export function DashboardPage({
 // mancanti (/modelli /jobs) sono TODO E2.5 segnalati inline.
 
 
-// ── Hero ────────────────────────────────────────────────────────────────
-interface HeroProps {
-  greeting: string;
-  firstName: string;
-  modelsCount: number;
-  latestModel: FEAModel | null;
-  tierLabel: string;
-  projUsed: number;
-  projCap: number;
-  isRunning: boolean;
-  onSelect: (id: string) => void;
-}
-function Hero({ greeting, firstName, modelsCount, latestModel, tierLabel, projUsed, projCap, isRunning, onSelect }: HeroProps) {
-  const projsActive = isRunning ? "1 analisi in corso" : `${modelsCount} progett${modelsCount === 1 ? "o" : "i"} in lavorazione`;
-  // v3.1.3 audit-fix VIS-6: "percorsi attivi" hardcoded a "2" prima.
-  // Per ora torna sempre 0 (no backend per persistere progress UC) ma il
-  // wording si adatta al numero. Quando aggiungeremo /api/user/percorsi
-  // questo diventerà dinamico.
-  const percorsiAttivi = 0;
-  const percorsiLabel = percorsiAttivi === 0
-    ? "nessun percorso in corso"
-    : `${percorsiAttivi} percors${percorsiAttivi === 1 ? "o" : "i"} guidat${percorsiAttivi === 1 ? "o" : "i"} attiv${percorsiAttivi === 1 ? "o" : "i"}`;
-  const pct = projCap > 0 ? Math.round((projUsed / projCap) * 100) : 0;
-  const openBilling = () => window.dispatchEvent(new Event("feapro:open-billing"));
-  const goPercorsoUC1 = useGoPercorsoUC1();
-  // v3.0.0 Sprint E M7: ultima sessione dinamico (era hardcoded "UC1").
-  // Se ci sono model dell'utente → mostra il primo. Se zero → fallback narrativo.
-  const hasModels = latestModel !== null;
-  return (
-    <section className="hero" data-testid="dash-hero">
-      <div className="hero-l">
-        <span className="eyebrow">{greeting}, {firstName}</span>
-        <h1 className="hero-title">Da dove ricominci<br />oggi?</h1>
-        <p className="hero-sub">
-          {projsActive} · {percorsiLabel} · {hasModels ? (
-            <>
-              ultima sessione su{" "}
-              {/* v3.1.1 audit-fix L2-5: click apre il modello (prima
-                  preventDefault + navigate("/") restava in Dashboard). */}
-              <a
-                href="/"
-                onClick={(e) => { e.preventDefault(); onSelect(latestModel.id); }}
-              >
-                {latestModel.name ?? latestModel.id}
-              </a>.
-            </>
-          ) : (
-            <>
-              ancora nessun modello — <a
-                href="/percorsi/uc1"
-                onClick={(e) => { e.preventDefault(); goPercorsoUC1(); }}
-              >inizia con il percorso UC1</a>.
-            </>
-          )}
-        </p>
-      </div>
-      <div className="hero-r">
-        <div className="usage-card" data-testid="dash-usage-card">
-          <span className="eyebrow">Piano {tierLabel} · Utilizzo</span>
-          <div className="usage-row">
-            <div className="usage-bar"><span style={{ width: `${pct}%` }} /></div>
-            <span className="usage-val">{projUsed} / {projCap}</span>
-          </div>
-          <span className="usage-meta">progetti attivi · upgrade a Pro per illimitati</span>
-          <button type="button" className="usage-cta" onClick={openBilling}>Scopri Pro →</button>
-        </div>
-      </div>
-    </section>
-  );
-}
+// ── Hero legacy v2.7.1 RIMOSSO ──────────────────────────────────────────
+// Sostituito dal componente esportato `./DashHero.tsx` (Fetta E3.2).
+// Il vecchio Hero aveva: greeting+h1+sub con metadati "X progetti in
+// lavorazione · N percorsi · ultima sessione su Y" + usage card embedded
+// con "Piano FREE · Utilizzo 2/5 · Scopri Pro". La nuova DashHero ha
+// solo eyebrow+h1+sub (3 varianti per stato A/B/C). I metadati spariscono
+// (info ridondante con RecentsCarousel "Riprendi" che arriva in E3.4),
+// la usage card viene spostata a QuotaBanner (E3.7) + pagina
+// /settings/billing (E3.8).
 
 
 // ── ActionRow ───────────────────────────────────────────────────────────
