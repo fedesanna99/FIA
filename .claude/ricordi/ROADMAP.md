@@ -26,6 +26,9 @@
 | **Fetta 2-tests** | 6 Playwright E2E protezione regressioni 2b/2c/2d: CTA cambia phase (anti-HMR), silent update, TTL autodismiss, badge Validato vs Stima, Δ equilibrio neutro, export CSV toast. | `e2e/results-workspace.spec.ts` + webServer config |
 | **Fetta E0-fix** (3 commit) | Foundation alignment Soft v2.1: pulizia `tokens.ts` stale Precision v2.0 + dedupe fonts + JBM 700; default radius Soft md + rimozione ghost block + doc `--c-*` alpha binary; Button.tsx migrato a Soft v2.1. | Adozione Foundation: ~55% → ~95% |
 | **Fetta E2-IA · Commit E2.1** | Topbar IA prototipo v3 ADDITIVA: 3 icone fisse Home/Modelli/Jobs accanto al brand + 2 toggle Albero/Focus prima della ⌘K palette + AvatarMenu esteso con gruppo Cronologia/Template/Docs. | `ShellTopBar.tsx`, `AvatarMenu.tsx`, `GlobalRoutingListeners.tsx`, `App.tsx`, `shell.css`. Vitest 991/991, Playwright 6/6 |
+| **Fetta D0** | Bootstrap `.claude/ricordi/` cross-progetto: 6 file (README/CONTEXT/CULTURE/ROADMAP/BACKLOG) + 3 ADR (NAFEMS-honest, Soft v2.1, IA prototipo v3) + 3 handoff Claude Code↔Claude Design. | `.claude/ricordi/**` (738+ righe markdown) |
+| **Deploy live v3.4** (29/05) | Push branch redesign + fast-forward test/main + `fly deploy --remote-only`. Sito live su <https://fea-pro.fly.dev/> con 4 stati onesti + Soft v2.1 + IA prototipo v3 topbar | Image `01KSS92H2TKTEJGY17BN38CR9Z`, HTTP 200, bundle `index-DyMXagIm.js` |
+| **Fetta E3 — Dashboard redesign React** (8 commit, Step E) | Implementazione fetta-per-fetta del mockup Claude Design Round 2 (Handoff 05). DashTopBar replica E2.1, Hero sobrio 3 stati, NewModelTile 1+2, RecentsCarousel + Riprendi, TemplateGallery 9 template, EmptyOnboarding stato C, QuotaBanner sticky condizionale, Settings/Billing page completa. | `frontend/src/dashboard/*` (5 nuovi componenti), `frontend/src/settings/SettingsBillingPage.tsx`, `frontend/src/styles/dashboard-soft.css` + `settings-billing.css`. Vitest 991/991, Playwright 6/6 |
 
 ### Fetta D0 (questa)
 - **D0 — Memoria di progetto** (29/05/2026) — Bootstrap `.claude/ricordi/`
@@ -34,15 +37,33 @@
 
 ## 🟡 In corso
 
-### Fetta E2-IA (5 commit totali)
+### Fetta E2-IA (5 commit totali) — in pausa post-E3
 Adottare l'IA del prototipo v3 dentro Soft v2.1 (opzione B + (c) mix
-gerarchizzato — vedi ADR 003).
+gerarchizzato — vedi ADR 003). E2.1 chiuso, E2.2-E2.5 in attesa.
 
-- [x] **E2.1** Topbar 3 icone + menu profilo + toggle Albero/Focus
+- [x] **E2.1** Topbar 3 icone + menu profilo + toggle Albero/Focus (commit `4f9e0a8`)
 - [ ] **E2.2** Panel DX stato "closed" + reopen tab verticale destra
 - [ ] **E2.3** Panel DX stato "inspector" contestuale (selezione bidirezionale)
 - [ ] **E2.4** Albero modello in panel SX collassato di default (cabla il toggle Albero di E2.1)
 - [ ] **E2.5** Rail SX eliminazione + verifica accorpamento voci (residue route mancanti `/modelli`, `/jobs`, `/cronologia`, `/docs`)
+
+### Fetta E3 — Dashboard redesign React (CHIUSA 29/05, 8 commit)
+
+Implementazione fetta-per-fetta del mockup Claude Design Round 2.
+Pattern stabilito: commit atomico per fetta, baseline verde sempre,
+DashTopBar prima (golden reference live = ShellTopBar E2.1).
+
+- [x] **E3.1** DashTopBar replica ShellTopBar (commit `2a9dd0b`)
+- [x] **E3.2** DashHero sobrio + 3 stati A/B/C (commit `56a2cbb`)
+- [x] **E3.3** NewModelTile 1+2 (1 CTA primaria + 2 link sobri, commit `d59add1`)
+- [x] **E3.4** RecentsCarousel + Riprendi (commit `5e42434`)
+- [x] **E3.5** TemplateGallery 9 template prominenti (commit `90fc934`)
+- [x] **E3.6** EmptyOnboarding stato C (commit `d4641f6`)
+- [x] **E3.7** QuotaBanner sticky stato B (commit `711a46e`)
+- [x] **E3.8** SettingsBillingPage `/settings/billing` (commit `8a46e96`)
+
+**Dettagli completi**: vedi `handoffs/06-step-E-complete.md` per
+sintesi tecnica + cosa è successo + stato repo + TODO non bloccanti.
 
 ## 🔵 Prossime
 
