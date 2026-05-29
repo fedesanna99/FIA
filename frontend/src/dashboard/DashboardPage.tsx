@@ -29,7 +29,10 @@ import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import {
-  ArrowRight, Bell, HelpCircle, LayoutGrid, ListChecks, Plus, Search,
+  // Fetta E3.1: rimossi Bell/HelpCircle/Search (erano solo nella vecchia
+  // DashTopBar interna, ora il nuovo componente ./DashTopBar.tsx ha i
+  // suoi import). Mantengo gli altri perche' usati in Hero/ActionRow/etc.
+  ArrowRight, LayoutGrid, ListChecks, Plus,
 } from "lucide-react";
 
 import { getQuota } from "../api/billing";
@@ -41,6 +44,15 @@ import { APP_TAG, APP_VERSION } from "../lib/version";
 import type { FEAModel } from "../types/model";
 
 import "../styles/dashboard.css";
+
+// Fetta E3.1 (redesign workspace-fasi): la DashTopBar interna v2.7.1
+// e' sostituita dal nuovo componente esportato `./DashTopBar.tsx` che
+// replica visivamente ShellTopBar E2.1 (IA prototipo v3), come da
+// mockup Claude Design Round 2 (Handoff 05). I 4 link nav legacy
+// (Progetti/Template/Percorsi/Docs) sono ridotti a 3 (Home/Modelli/Jobs)
+// con TODO E2.5 sulle 2 route mancanti. Vedi
+// .claude/ricordi/handoffs/05-claude-design-round2-response.md.
+import { DashTopBar } from "./DashTopBar";
 
 
 // v2.7.2 Phase 4.3: hook condiviso per navigare a /templates da qualsiasi
@@ -127,7 +139,7 @@ export function DashboardPage({
 
   return (
     <div className="dash" data-testid="dashboard-page">
-      <DashTopBar />
+      <DashTopBar tierLabel={tierLabel} />
       <main className="dash-main">
         <Hero
           greeting={greeting}
@@ -156,67 +168,12 @@ export function DashboardPage({
 }
 
 
-// ── DashTopBar ──────────────────────────────────────────────────────────
-function DashTopBar() {
-  const goTemplates = useGoTemplates();
-  // v3.1.1 audit-fix L2-13: subscribe a useAuthStore (era .getState() inline
-  // → niente re-render quando user cambia in sessione).
-  const userEmail = useAuthStore((s) => s.user?.email);
-  const openPalette = () =>
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", metaKey: true, ctrlKey: true }));
-  return (
-    <header className="dash-topbar" data-testid="dash-topbar">
-      <Link className="brand" to="/" style={{ textDecoration: "none" }}>
-        <span className="brand-square">F</span>
-        <div className="brand-stack">
-          <span className="brand-name">FEA Pro</span>
-          <span className="brand-ver">{APP_VERSION}</span>
-        </div>
-      </Link>
-
-      <nav className="dash-nav" aria-label="Navigazione principale">
-        {/* v3.1.1 audit-fix L2-16: aria-current="page" per SR su link attivo. */}
-        <button type="button" className="nav-link is-active" aria-current="page">Home</button>
-        <button type="button" className="nav-link" onClick={() => goTemplates()}>
-          Progetti
-        </button>
-        <button type="button" className="nav-link" onClick={() => goTemplates()}>
-          Template
-        </button>
-        <button type="button" className="nav-link" onClick={() => window.dispatchEvent(new Event("feapro:open-percorso-uc1"))}>
-          Percorsi
-        </button>
-        <button type="button" className="nav-link" onClick={() => window.dispatchEvent(new Event("feapro:open-help"))}>
-          Docs
-        </button>
-      </nav>
-
-      <button type="button" className="cmd-pill" onClick={openPalette} data-testid="dash-cmd-pill">
-        <Search width={14} height={14} aria-hidden="true" />
-        <span>Cerca progetti, template, azioni…</span>
-        <kbd>⌘ K</kbd>
-      </button>
-
-      {/* v3.1.2 audit-fix L2-14: bottone Notifiche aveva zero onClick → click muto. */}
-      <button
-        type="button"
-        className="icon-btn"
-        aria-label="Notifiche"
-        data-testid="dash-notifications"
-        onClick={() => toast("info", "Centro notifiche in arrivo nei prossimi sprint.", 3500)}
-      >
-        <span className="dot" />
-        <Bell width={16} height={16} aria-hidden="true" />
-      </button>
-      <button type="button" className="icon-btn" aria-label="Help" onClick={() => window.dispatchEvent(new Event("feapro:open-help"))}>
-        <HelpCircle width={16} height={16} aria-hidden="true" />
-      </button>
-      <button type="button" className="avatar" aria-label="Profilo" data-testid="dash-avatar" onClick={() => window.dispatchEvent(new Event("feapro:open-account-dialog"))}>
-        {initialsFromEmail(userEmail)}
-      </button>
-    </header>
-  );
-}
+// ── DashTopBar legacy v2.7.1 RIMOSSA ────────────────────────────────────
+// Sostituita dal componente esportato `./DashTopBar.tsx` (import sopra)
+// nella Fetta E3.1 del redesign workspace-fasi. Il nuovo componente
+// replica ShellTopBar E2.1 (IA prototipo v3): brand + 3 nav fissi
+// (Home/Modelli/Jobs) + ⌘K + help + bell + AvatarMenu Radix. Le 2 route
+// mancanti (/modelli /jobs) sono TODO E2.5 segnalati inline.
 
 
 // ── Hero ────────────────────────────────────────────────────────────────
@@ -947,15 +904,11 @@ function extractFirstName(email?: string, nome?: string | null): string {
   return seg.charAt(0).toUpperCase() + seg.slice(1);
 }
 
-function initialsFromEmail(email?: string): string {
-  if (!email) return "??";
-  const handle = email.split("@")[0];
-  const parts = handle.split(/[._-]/);
-  if (parts.length >= 2) {
-    return (parts[0][0] + parts[1][0]).toUpperCase();
-  }
-  return handle.substring(0, 2).toUpperCase();
-}
+// Fetta E3.1: `initialsFromEmail` rimossa — era usata SOLO dalla vecchia
+// DashTopBar interna (eliminata in questa fetta). Le iniziali in topbar
+// adesso vengono dal componente `CollabAvatars` interno di `AvatarMenu`
+// (frontend/src/components/shell/topbar/CollabAvatars.tsx, ha la sua
+// funzione `initials(email)`). Se serve altrove, riusare quella.
 
 type ThumbVariant = "beam" | "portal" | "tower" | "cantilever";
 

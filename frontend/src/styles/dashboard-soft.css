@@ -1,0 +1,188 @@
+/* ──────────────────────────────────────────────────────────────────────
+ * Dashboard Soft v2.1 — Fetta E3 redesign workspace-fasi
+ * Stili portati dal mockup Claude Design Round 2 (Handoff 05).
+ * Built on src/styles/tokens.css (Soft v2.1 · Light default · Cyan singular).
+ *
+ * Componenti coperti progressivamente per fetta:
+ *   E3.1 · DashTopBar (questo file, sezione presente)
+ *   E3.2 · DashHero
+ *   E3.3 · NewModelTile + action-aside
+ *   E3.4 · RecentsCarousel + RecentCard + Resume
+ *   E3.5 · TemplateGallery
+ *   E3.6 · EmptyOnboarding
+ *   E3.7 · QuotaBanner (sticky condizionale)
+ *   E3.8 · Avatar dropdown extended + Settings/Billing page
+ *
+ * Convention: tutte le classi del mockup CD (.dash-topbar, .tb-*, .cmd-pill
+ * ecc.) sono scoped a `.dash-topbar > ...` per evitare conflitto con le
+ * regole `.tb-*` esistenti in `shell.css` (ShellTopBar custom workspace).
+ * ────────────────────────────────────────────────────────────────────── */
+
+/* ════════════════════════════════════════════════════════════════════════
+ * DashTopBar — replica visiva di ShellTopBar E2.1 (IA prototipo v3)
+ * brand · 3 nav fissi (Home/Modelli/Jobs) · ⌘K · help · notifiche · avatar
+ * NIENTE model selector / save / Run / undo·redo / toggle (workspace-only).
+ * ════════════════════════════════════════════════════════════════════════ */
+.dash-topbar {
+  position: sticky; top: 0; z-index: var(--z-toolbar);
+  height: 48px;
+  display: flex; align-items: center; gap: 4px;
+  padding: 0 16px 0 0;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.dash-topbar .tb-brand {
+  display: flex; align-items: center; gap: 10px;
+  height: 100%; padding: 0 16px;
+  border-right: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.dash-topbar .tb-mark {
+  display: grid; place-items: center;
+  width: 26px; height: 26px;
+  font-family: var(--font-display);
+  font-weight: 800; font-size: 14px;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border: 1px solid rgba(var(--accent-rgb, 8, 145, 178), 0.4);
+  border-radius: var(--r-md);
+}
+.dash-topbar .tb-brand-stack {
+  display: flex; flex-direction: column;
+  line-height: 1.05; gap: 1px;
+  flex-shrink: 0; white-space: nowrap;
+}
+.dash-topbar .tb-brand-row {
+  display: flex; align-items: center; gap: 7px;
+}
+.dash-topbar .tb-brand-name {
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 14px;
+  letter-spacing: var(--ls-tight-1, -0.015em);
+  white-space: nowrap;
+  color: var(--ink);
+}
+.dash-topbar .tb-tier {
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 600;
+  letter-spacing: var(--ls-wide-2, 0.08em);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  padding: 1px 5px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+}
+.dash-topbar .tb-ver {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-faint);
+}
+
+.dash-topbar .tb-nav {
+  display: flex; align-items: center; gap: 2px;
+  margin-left: 8px;
+}
+.dash-topbar .tb-navlink {
+  display: inline-flex; align-items: center; gap: 7px;
+  height: 32px; padding: 0 11px;
+  font-size: 13px; font-weight: 500;
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition:
+    background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-topbar .tb-navlink:hover {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+.dash-topbar .tb-navlink.is-active {
+  background: var(--accent-subtle);
+  color: var(--accent);
+}
+.dash-topbar .tb-navlink:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.dash-topbar .tb-spacer { flex: 1; }
+
+.dash-topbar .cmd-pill {
+  display: inline-flex; align-items: center; gap: 9px;
+  height: 32px; min-width: 260px;
+  padding: 0 8px 0 12px;
+  color: var(--ink-dim);
+  font-size: 12.5px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition:
+    border-color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-topbar .cmd-pill span {
+  flex: 1; text-align: left; white-space: nowrap;
+}
+.dash-topbar .cmd-pill:hover {
+  border-color: var(--border-light);
+  background: var(--bg-panel);
+}
+.dash-topbar .cmd-pill kbd {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 500;
+  color: var(--ink-muted);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  padding: 1px 5px;
+}
+
+.dash-topbar .tb-iconbtn {
+  position: relative;
+  display: grid; place-items: center;
+  width: 32px; height: 32px;
+  color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-md);
+  cursor: pointer;
+  transition:
+    background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-topbar .tb-iconbtn:hover {
+  background: var(--bg-hover);
+  color: var(--ink);
+}
+.dash-topbar .tb-iconbtn .dot {
+  position: absolute; top: 6px; right: 7px;
+  width: 6px; height: 6px;
+  border-radius: var(--r-full);
+  background: var(--coral);
+  border: 1.5px solid var(--bg-panel);
+}
+
+/* avatar wrap — l'AvatarMenu esistente (Radix) viene montato qui dentro */
+.dash-topbar .tb-avatar-slot {
+  margin-left: 4px;
+  display: flex; align-items: center;
+}
+
+/* Responsive 768–1199px (secondary):
+ *   ≤1100 → action-zone collassa (vedi E3.3+)
+ *   ≤860  → nav topbar icon-only, cmd-pill solo icona
+ */
+@media (max-width: 860px) {
+  .dash-topbar .tb-navlink span { display: none; }
+  .dash-topbar .tb-navlink { padding: 0 8px; }
+  .dash-topbar .cmd-pill span { display: none; }
+  .dash-topbar .cmd-pill { min-width: auto; padding: 0 8px; gap: 0; }
+  .dash-topbar .cmd-pill kbd { display: none; }
+}
+
+/* Sharp opt-in (data-radius="sharp" su <html>) — tokens.css azzera --r-* */
