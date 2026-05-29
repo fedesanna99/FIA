@@ -41,16 +41,36 @@ image, free tier).
 - Design system: **Soft v2.1** consolidato (vedi ADR 002).
 - IA workspace: in transizione verso **prototipo v3** (vedi ADR 003).
 
-## Chi è Federico
+## Il team
 
-- **Founder solo** di FEA Pro. Web developer di mestiere, **non
-  ingegnere strutturale**. Quando si parla di FEM va spiegato in
-  termini semplici, con analogie e numeri reali — vedi `CULTURE.md`
+FEA Pro è co-fondato da **Federico Sanna** + **Paolo** (da maggio 2026
+ufficialmente in team).
+
+### Federico
+
+- **Co-founder + lead product**. Web developer di mestiere, **non
+  ingegnere strutturale**. Guida il prodotto, scrive il codice insieme
+  a Claude Code, decide la roadmap. Quando si parla di FEM va spiegato
+  in termini semplici, con analogie e numeri reali — vedi `CULTURE.md`
   sezione "Come spiegare il FEM a Federico".
 - Mac-user. Quando si parla di shortcut, `⌘` è preferito a `Ctrl`.
 - Lingua di lavoro: **italiano**. Sia chat che messaggi commit possono
   essere in italiano; messaggi commit pubblici (su main) restano in
   inglese tecnico per coerenza con la cronologia del repo.
+
+### Paolo
+
+- **Co-founder + dominio**. Ingegnere civile in specializzazione al
+  Politecnico di Torino. Porta l'expertise strutturale (è
+  letteralmente l'audience target di FEA Pro) e il network accademico /
+  professionale italiano. Primo power user + tester reale interno.
+- Non scrive codice (al momento). La sua leva è dominio + rete.
+
+### Claude Code
+
+- Esecuzione tecnica: implementa le fette su brief di Federico, verifica
+  live, scrive test, fa deploy.
+- Pattern di lavoro completo in `CULTURE.md` sezione "Il patto operativo".
 
 ## Cultura del prodotto
 
