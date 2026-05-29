@@ -4,16 +4,31 @@
 //   [Brand] [Model selector] [Save chip] [Trust badge] —flex— [⌘K search]
 //   [Run] [Undo] [Redo] [Notif] [Avatar]
 //
+// v3.4 Fetta E2-IA · Commit E2.1 — IA prototipo v3 ADDITIVA:
+//   [Brand] [⌂ Home][▦ Modelli][⚙ Jobs] · [Model selector] [Save] [Trust]
+//   —flex— [Toggle Albero][Toggle Focus][⌘K] [Run] [Undo][Redo] [?][🔔][Avatar]
+//
 // Preserva la logica esistente:
 //   - Run button via `useRunAnalysis` (FeatureButton-equivalente)
 //   - Undo/Redo via modelStore + historyStore
 //   - Avatar/Notif via AvatarMenu/notificationsStore (componenti esistenti)
 //   - Search pill apre la palette via workspaceStore.setPalette
 //
+// Aggiunge in E2.1:
+//   - 3 icone fisse Home/Modelli/Jobs accanto al brand (Modelli/Jobs TODO E2.5)
+//   - Toggle Albero (placeholder useState, cablato in E2.4 al panel SX)
+//   - Toggle Focus cablato a workspaceStore.enterEmptyState/exitEmptyState
+//     (focus mode già implementato in Fetta 0, qui SOLO il cablaggio toggle)
+//   - AvatarMenu invariato (vedi AvatarMenu.tsx Fetta E2-IA per estensione)
+//
 // Classi CSS da `frontend/src/styles/shell.css` (.shell-topbar, .tb-*).
+// I 2 toggle usano `data-state="on|off"` per varianti di stile (vedi shell.css).
 
 import { useState } from "react";
-import { Play, Check, Undo2, Redo2, Bell, ChevronDown, HelpCircle } from "lucide-react";
+import {
+  Play, Check, Undo2, Redo2, Bell, ChevronDown, HelpCircle,
+  Home, LayoutGrid, Activity, PanelLeft, Maximize2,
+} from "lucide-react";
 import { useRunAnalysis } from "../hooks/useAnalysis";
 import { useAnalysisStore } from "../store/analysisStore";
 import { useModelStore } from "../store/modelStore";
@@ -26,6 +41,8 @@ import { useResetOnboarding, startOnboardingTour } from "../lib/onboarding";
 // v3.1 Fase 2a: AvatarMenu rich (Theme/Account/Location/Logout/Focus/Export)
 // — prima era stub "FS" placeholder, ora è il dropdown vero con 5 feature
 // sepolte rese accessibili anche in Shell custom (oltre che in chrome legacy).
+// v3.4 Fetta E2-IA Commit E2.1: AvatarMenu esteso con voci IA prototipo v3
+// (Cronologia, Template, Docs) — vedi AvatarMenu.tsx.
 import { AvatarMenu } from "../components/shell/topbar/AvatarMenu";
 
 function formatSavedAt(d: Date | null): string {
@@ -66,6 +83,18 @@ export function ShellTopBar() {
   const unread = useNotificationsStore((s) => s.items.filter((n) => !n.read).length);
   const [trustOpen, setTrustOpen] = useState(false);
 
+  // v3.4 Fetta E2-IA Commit E2.1: focus mode cablato a workspaceStore
+  // (focus mode già live da Fetta 0 — qui SOLO il toggle topbar).
+  const isFocusMode = useWorkspaceStore((s) => s.isEmptyState);
+  const enterFocus = useWorkspaceStore((s) => s.enterEmptyState);
+  const exitFocus = useWorkspaceStore((s) => s.exitEmptyState);
+
+  // v3.4 Fetta E2-IA Commit E2.1: toggle Albero placeholder.
+  // TODO E2.4: cablare al panel SX albero quando arriva la fetta E2.4.
+  // Per ora è un toggle visivo locale per dare affordance dell'esistenza
+  // della feature e validare il pattern data-state="on|off".
+  const [treeOpen, setTreeOpen] = useState(false);
+
   const handleRun = () => {
     if (!isRunning && model) {
       void run();
@@ -73,6 +102,33 @@ export function ShellTopBar() {
   };
   const handleUndo = () => useModelStore.getState().undo();
   const handleRedo = () => useModelStore.getState().redo();
+
+  // v3.4 Fetta E2-IA Commit E2.1: handler navigation 3 icone fisse.
+  const handleHome = () => {
+    // ⌂ Home → torna alla Dashboard. Dispatch custom event raccolto da
+    // GlobalRoutingListeners (cross-route) → navigate("/", { state:
+    // { goHome: true } }) → App.tsx legge state e fa setActiveId(null).
+    window.dispatchEvent(new Event("feapro:go-home"));
+  };
+  const handleModelli = () => {
+    // TODO E2.5 (o backlog): route /modelli mancante. Esiste solo
+    // ModelliBrowser come overlay full-screen lazy in App.tsx
+    // (alpha.31 Task 21). Una route dedicata vivrà nella fetta E2.5
+    // "Rail SX eliminazione + verifica accorpamento voci".
+  };
+  const handleJobs = () => {
+    // TODO E2.5 (o backlog): route /jobs mancante. Esiste useJobsStore
+    // + activeJob ma non c'è una pagina di coda processi. Stesso
+    // discorso del Modelli: arrivera' nella fetta E2.5 / backlog.
+  };
+
+  // v3.4 Fetta E2-IA Commit E2.1: handler toggle Focus.
+  // Pattern simmetrico con il SolverOverlay esistente: leggi isEmptyState
+  // dallo store, attiva/disattiva con i metodi gia' presenti.
+  const handleToggleFocus = () => {
+    if (isFocusMode) exitFocus();
+    else enterFocus();
+  };
 
   return (
     <header className="shell-topbar" data-shell="topbar">
@@ -83,6 +139,48 @@ export function ShellTopBar() {
         <span className="tb-brand-name">FEA Pro</span>
         <span className="tb-tier">FREE</span>
         <span className="tb-ver">{APP_VERSION}</span>
+      </div>
+
+      {/* v3.4 Fetta E2-IA Commit E2.1: 3 icone fisse Home/Modelli/Jobs.
+          Pattern `tb-iconbtn` esistente (32×32, rounded-md var(--r-md),
+          hover bg-hover) per coerenza con gli iconbtn destra (Undo/Redo/
+          Help/Bell). gap 2 tra ognuna, padding-left 8 per stacco dal
+          brand block. Modelli/Jobs sono no-op TODO E2.5 (vedi handler). */}
+      <div
+        className="tb-quick-nav"
+        data-testid="topbar-quick-nav"
+        style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: 8 }}
+      >
+        <button
+          type="button"
+          className="tb-iconbtn"
+          onClick={handleHome}
+          aria-label="Home — torna alla Dashboard"
+          title="Home"
+          data-testid="topbar-nav-home"
+        >
+          <Home size={16} strokeWidth={1.8} />
+        </button>
+        <button
+          type="button"
+          className="tb-iconbtn"
+          onClick={handleModelli}
+          aria-label="Modelli — browser modelli"
+          title="Modelli (in arrivo)"
+          data-testid="topbar-nav-modelli"
+        >
+          <LayoutGrid size={16} strokeWidth={1.8} />
+        </button>
+        <button
+          type="button"
+          className="tb-iconbtn"
+          onClick={handleJobs}
+          aria-label="Jobs — coda processi"
+          title="Jobs (in arrivo)"
+          data-testid="topbar-nav-jobs"
+        >
+          <Activity size={16} strokeWidth={1.8} />
+        </button>
       </div>
 
       {/* Model selector */}
@@ -117,6 +215,41 @@ export function ShellTopBar() {
       </button>
 
       <div className="tb-spacer" />
+
+      {/* v3.4 Fetta E2-IA Commit E2.1: 2 toggle Albero + Focus, posizionati
+          PRIMA della ⌘K palette per stacco visivo dal cluster azioni.
+          Pattern `tb-iconbtn-wrap > tb-iconbtn[data-state]` + `aria-pressed`
+          + badge visivo "on" (vedi shell.css regola `[data-state="on"]`). */}
+      <div className="tb-iconbtn-wrap">
+        <button
+          type="button"
+          className="tb-iconbtn"
+          onClick={() => setTreeOpen((v) => !v)}
+          aria-label="Albero modello — mostra/nascondi"
+          aria-pressed={treeOpen}
+          data-state={treeOpen ? "on" : "off"}
+          title={treeOpen ? "Nascondi albero" : "Mostra albero"}
+          data-testid="topbar-toggle-tree"
+        >
+          <PanelLeft size={16} strokeWidth={1.8} />
+          {treeOpen && <span className="tb-iconbtn-badge" />}
+        </button>
+      </div>
+      <div className="tb-iconbtn-wrap">
+        <button
+          type="button"
+          className="tb-iconbtn"
+          onClick={handleToggleFocus}
+          aria-label="Modalità focus — schermo intero viewport"
+          aria-pressed={isFocusMode}
+          data-state={isFocusMode ? "on" : "off"}
+          title={isFocusMode ? "Esci da focus mode (F)" : "Entra in focus mode (F)"}
+          data-testid="topbar-toggle-focus"
+        >
+          <Maximize2 size={16} strokeWidth={1.8} />
+          {isFocusMode && <span className="tb-iconbtn-badge" />}
+        </button>
+      </div>
 
       {/* ⌘K search pill */}
       <button

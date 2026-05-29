@@ -27,6 +27,8 @@ import {
   User, MapPin, LogOut, Sun, Moon, Monitor,
   Eye, FileJson, FileSpreadsheet, FileText, HelpCircle,
   Settings as SettingsIcon, Compass,
+  // v3.4 Fetta E2-IA Commit E2.1: 3 voci IA prototipo v3 (Cronologia/Template/Docs).
+  History, LayoutTemplate, BookOpen,
 } from "lucide-react";
 import { useAuthStore } from "../../../store/authStore";
 import { useThemeStore } from "../../../store/themeStore";
@@ -229,6 +231,56 @@ export function AvatarMenu() {
               <HelpCircle className="w-3.5 h-3.5 text-ink-3" />
               Aiuto e shortcut
             </DropdownMenu.Item>
+          </div>
+
+          {/* v3.4 Fetta E2-IA Commit E2.1: gruppo IA prototipo v3 (Cronologia
+              / Template / Docs). Cronologia e Docs sono TODO E2.5 (no route),
+              Template → /templates esistente (v2.7.2 Phase 4.3). Aggiunte in
+              fondo (sopra Logout) per mantenere additività zero rimozioni —
+              "Impostazioni" resta nel suo gruppo Settings/Help. */}
+          <DropdownMenu.Separator className="h-px bg-border" />
+
+          <div className="py-1">
+            <DropdownMenu.Item
+              onSelect={(e) => {
+                e.preventDefault();
+                // TODO E2.5 (o backlog): route /cronologia mancante. Esiste
+                // già `useJobsStore.history`, ma una pagina dedicata vivrà
+                // nella fetta E2.5 "Rail SX eliminazione + accorpamento".
+                toast("info", "Cronologia · in arrivo (E2.5)");
+              }}
+              className={ITEM_CLS}
+              data-testid="avatar-menu-cronologia"
+            >
+              <History className="w-3.5 h-3.5 text-ink-3" />
+              Cronologia
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              onSelect={(e) => { e.preventDefault(); goTo("/templates"); }}
+              className={ITEM_CLS}
+              data-testid="avatar-menu-template"
+            >
+              <LayoutTemplate className="w-3.5 h-3.5 text-ink-3" />
+              Template
+            </DropdownMenu.Item>
+            <DropdownMenu.Item
+              onSelect={(e) => {
+                e.preventDefault();
+                // TODO E2.5 (o backlog): route /docs mancante. Pagina
+                // documentazione utente arrivera' nella fetta E2.5 / backlog.
+                toast("info", "Docs · in arrivo (E2.5)");
+              }}
+              className={ITEM_CLS}
+              data-testid="avatar-menu-docs"
+            >
+              <BookOpen className="w-3.5 h-3.5 text-ink-3" />
+              Docs
+            </DropdownMenu.Item>
+          </div>
+
+          <DropdownMenu.Separator className="h-px bg-border" />
+
+          <div className="py-1">
             <DropdownMenu.Item
               onSelect={() => {
                 logout();

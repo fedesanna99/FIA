@@ -16,6 +16,13 @@
  *   - `feapro:open-location`          → navigate("/settings?section=prefs") (LocationPicker pending)
  *   - `feapro:open-new-model`         → navigate("/", { state: { openNewModel: true } })
  *   - `feapro:load-template`          → navigate("/", { state: { pendingActiveId: id } })
+ *   - `feapro:go-home`                → navigate("/", { state: { goHome: true } })
+ *
+ * v3.4 Fetta E2-IA Commit E2.1: `feapro:go-home` cablato all'icona Home (⌂)
+ * della topbar Shell custom. App.tsx legge `state.goHome` e fa
+ * `setActiveId(null)` → useDashboardFullScreen diventa true e si torna alla
+ * home Dashboard mockup-driven. Cross-route così funziona anche da
+ * /templates, /settings, /percorsi/uc1 ecc.
  *
  * v3.3.0 audit-fix L3.1-P0-4: open-account/open-location erano agganciati
  * solo nel TopBar legacy → in Shell custom click → nothing. Ora cross-route.
@@ -68,6 +75,11 @@ export function GlobalRoutingListeners(): null {
         navigate("/", { state: { pendingActiveId: detail.templateId } });
       }
     };
+    // v3.4 Fetta E2-IA Commit E2.1: ⌂ Home topbar → torna a Dashboard
+    // pulendo l'activeId (App.tsx legge state.goHome).
+    const onGoHome = () => {
+      navigate("/", { state: { goHome: true } });
+    };
 
     window.addEventListener("feapro:open-help", openHelp);
     window.addEventListener("feapro:open-billing", openBilling);
@@ -77,6 +89,7 @@ export function GlobalRoutingListeners(): null {
     window.addEventListener("feapro:open-location", openLocation);
     window.addEventListener("feapro:open-new-model", openNewModel);
     window.addEventListener("feapro:load-template", onLoadTemplate);
+    window.addEventListener("feapro:go-home", onGoHome);
 
     return () => {
       window.removeEventListener("feapro:open-help", openHelp);
@@ -87,6 +100,7 @@ export function GlobalRoutingListeners(): null {
       window.removeEventListener("feapro:open-location", openLocation);
       window.removeEventListener("feapro:open-new-model", openNewModel);
       window.removeEventListener("feapro:load-template", onLoadTemplate);
+      window.removeEventListener("feapro:go-home", onGoHome);
     };
   }, [navigate]);
 

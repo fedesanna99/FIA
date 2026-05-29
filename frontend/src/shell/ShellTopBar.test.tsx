@@ -1,7 +1,8 @@
 // v2.6.2 Shell · ShellTopBar tests
 // v2.6.2.1 polish F3: aggiunti test per modelShortId slug semantico.
+// v3.4 Fetta E2-IA Commit E2.1: aggiunti test per 3 icone fisse + 2 toggle.
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ShellTopBar, modelShortId } from "./ShellTopBar";
 import { useWorkspaceStore } from "../store/workspaceStore";
@@ -19,6 +20,9 @@ function renderWithQc(node: React.ReactNode) {
 describe("ShellTopBar", () => {
   beforeEach(() => {
     useWorkspaceStore.getState().setPalette(false);
+    // v3.4 Fetta E2-IA Commit E2.1: assicura che il focus mode sia OFF
+    // all'inizio di ogni test (il toggle Focus lo cambia).
+    useWorkspaceStore.getState().exitEmptyState();
   });
 
   it("renders brand block with FEA Pro + version", () => {
@@ -52,6 +56,68 @@ describe("ShellTopBar", () => {
     const eyebrow = screen.getByTestId("topbar-eyebrow");
     expect(eyebrow).toBeInTheDocument();
     expect(eyebrow.textContent).toBe("WORKSPACE");
+  });
+
+  // ──────────────────────────────────────────────────────────────────────
+  // v3.4 Fetta E2-IA Commit E2.1 — 3 icone fisse + 2 toggle
+  // ──────────────────────────────────────────────────────────────────────
+
+  it("renders 3 icone fisse Home/Modelli/Jobs in topbar quick-nav", () => {
+    renderWithQc(<ShellTopBar />);
+    expect(screen.getByTestId("topbar-quick-nav")).toBeInTheDocument();
+    expect(screen.getByTestId("topbar-nav-home")).toBeInTheDocument();
+    expect(screen.getByTestId("topbar-nav-modelli")).toBeInTheDocument();
+    expect(screen.getByTestId("topbar-nav-jobs")).toBeInTheDocument();
+  });
+
+  it("Home icon dispatches feapro:go-home event on click", () => {
+    renderWithQc(<ShellTopBar />);
+    const spy = vi.fn();
+    window.addEventListener("feapro:go-home", spy);
+    fireEvent.click(screen.getByTestId("topbar-nav-home"));
+    expect(spy).toHaveBeenCalledTimes(1);
+    window.removeEventListener("feapro:go-home", spy);
+  });
+
+  it("Albero toggle defaults off and toggles aria-pressed + data-state", () => {
+    renderWithQc(<ShellTopBar />);
+    const btn = screen.getByTestId("topbar-toggle-tree");
+    expect(btn.getAttribute("aria-pressed")).toBe("false");
+    expect(btn.getAttribute("data-state")).toBe("off");
+    fireEvent.click(btn);
+    expect(btn.getAttribute("aria-pressed")).toBe("true");
+    expect(btn.getAttribute("data-state")).toBe("on");
+    fireEvent.click(btn);
+    expect(btn.getAttribute("aria-pressed")).toBe("false");
+    expect(btn.getAttribute("data-state")).toBe("off");
+  });
+
+  it("Focus toggle enters/exits workspaceStore empty state", () => {
+    renderWithQc(<ShellTopBar />);
+    const btn = screen.getByTestId("topbar-toggle-focus");
+    expect(useWorkspaceStore.getState().isEmptyState).toBe(false);
+    expect(btn.getAttribute("aria-pressed")).toBe("false");
+    fireEvent.click(btn);
+    expect(useWorkspaceStore.getState().isEmptyState).toBe(true);
+    // Nuovo render → il bottone riflette lo store. NB: useWorkspaceStore è
+    // sottoscritto via hook, quindi React deve aver gia' aggiornato il DOM.
+    expect(screen.getByTestId("topbar-toggle-focus").getAttribute("aria-pressed")).toBe("true");
+    expect(screen.getByTestId("topbar-toggle-focus").getAttribute("data-state")).toBe("on");
+    // Toggle off
+    fireEvent.click(screen.getByTestId("topbar-toggle-focus"));
+    expect(useWorkspaceStore.getState().isEmptyState).toBe(false);
+  });
+
+  it("Focus toggle riflette lo store quando entrato in focus dall'esterno", () => {
+    renderWithQc(<ShellTopBar />);
+    const btn = screen.getByTestId("topbar-toggle-focus");
+    expect(btn.getAttribute("aria-pressed")).toBe("false");
+    // Esterno (es. tasto F globale) entra in focus mode → topbar lo riflette.
+    // act() forza il flush del re-render Zustand → React prima dell'assert.
+    act(() => {
+      useWorkspaceStore.getState().enterEmptyState();
+    });
+    expect(screen.getByTestId("topbar-toggle-focus").getAttribute("aria-pressed")).toBe("true");
   });
 });
 

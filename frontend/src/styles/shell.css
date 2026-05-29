@@ -1592,6 +1592,19 @@ body.shell-sharp .tb-iconbtn { border-radius: 0; }
   background: var(--accent);
 }
 .tb-iconbtn-wrap { position: relative; }
+/* v3.4 Fetta E2-IA Commit E2.1: toggle on state (Albero/Focus topbar Shell).
+   data-state="on" rende lo iconbtn accent-tinted con bg-active leggero +
+   border accent. Pattern coerente con il prototipo v3 (icona on = accent). */
+.tb-iconbtn[data-state="on"] {
+  background: var(--bg-active);
+  color: var(--accent);
+  border-color: var(--accent-subtle, var(--border));
+}
+.tb-iconbtn[data-state="on"]:hover {
+  background: var(--bg-active);
+  color: var(--accent-hover);
+  border-color: var(--accent-subtle, var(--border-light));
+}
 
 .tb-run {
   display: inline-flex; align-items: center; gap: 8px;

@@ -376,6 +376,7 @@ export default function App() {
       pendingActiveId?: string;
       openNewModel?: boolean;
       openHelp?: boolean;
+      goHome?: boolean;
     } | null;
     if (!state) return;
     let touched = false;
@@ -389,6 +390,13 @@ export default function App() {
     }
     if (state.openHelp) {
       setDialog("help");
+      touched = true;
+    }
+    // v3.4 Fetta E2-IA Commit E2.1: ⌂ Home topbar Shell custom →
+    // GlobalRoutingListeners dispatcha state.goHome → puliamo activeId →
+    // useDashboardFullScreen ridiventa true, si vede la home Dashboard.
+    if (state.goHome) {
+      setActiveId(null);
       touched = true;
     }
     if (touched) {
