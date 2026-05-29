@@ -1,0 +1,73 @@
+# ROADMAP — fette del redesign workspace
+
+> Vista operativa per Claude. Versioning storico granulare (v1.x → v3.x)
+> sta in `/ROADMAP.md` root del repo. Qui solo le **fette del branch
+> `redesign/workspace-fasi`** + cosa viene dopo.
+>
+> Niente SHA: si trovano con `git log --oneline redesign/workspace-fasi`.
+
+## ✅ Chiuse
+
+### Pre-redesign
+- **v3.3.1-nafems-honest** (28/05/2026) — capitolo NAFEMS LE1/LE10
+  chiuso con tolleranze ufficiali + criterio topologico. 28 PASS + 4
+  xfailed onesti (registrano locking 16×16). Vedi ADR 001.
+
+### Branch `redesign/workspace-fasi`
+
+| Fetta | Cosa | Output |
+|---|---|---|
+| **Fetta 0** | Focus mode dentro Shell custom (Soft v2.1). Su desktop con modello attivo il focus mode non cade più sul chrome legacy. | Shell con `data-shell-focus`, viewport pieno, X di uscita |
+| **Fetta 1** | Spina 3 fasi `Costruisci / Esegui / Risultati` additiva sopra il guscio, con stato `done/stale` + affordance click. | `ShellPhaseStepper.tsx`, store `currentPhase` |
+| **Fetta 2a** | Fase Risultati — guscio 3 schede (Sintesi / Dati / Verifiche) + striscia verdetto. | `Results{TabsPanel,VerdictStrip}.tsx` |
+| **Fetta 2b** | 4 famiglie del workspace Risultati: strip onesta + rilevatore sospetto (warn ambra), Sintesi metriche aggregate, Dati sollecitazioni + reazioni, Verifiche EC3 in chiaro + n/a. | `ResultsSintesi/DatiSollecitazioni/DatiReazioni/Verifiche.tsx` + helper `resultsHonest.ts` |
+| **Fetta 2c** | Toast "Analisi completata → Risultati" non invasivo + intent store HMR-safe (rimpiazza window listener fantasma). | `lib/analysisCompleteToast.ts`, `store/shellIntentStore.ts` |
+| **Fetta 2d** | FIX A export CSV feedback (era silent click), FIX B equilibrio neutro su distribuiti (era falsa-rossa Δ ✗). | Patch a Verifiche + Dati Reazioni |
+| **Fetta 2-tests** | 6 Playwright E2E protezione regressioni 2b/2c/2d: CTA cambia phase (anti-HMR), silent update, TTL autodismiss, badge Validato vs Stima, Δ equilibrio neutro, export CSV toast. | `e2e/results-workspace.spec.ts` + webServer config |
+| **Fetta E0-fix** (3 commit) | Foundation alignment Soft v2.1: pulizia `tokens.ts` stale Precision v2.0 + dedupe fonts + JBM 700; default radius Soft md + rimozione ghost block + doc `--c-*` alpha binary; Button.tsx migrato a Soft v2.1. | Adozione Foundation: ~55% → ~95% |
+| **Fetta E2-IA · Commit E2.1** | Topbar IA prototipo v3 ADDITIVA: 3 icone fisse Home/Modelli/Jobs accanto al brand + 2 toggle Albero/Focus prima della ⌘K palette + AvatarMenu esteso con gruppo Cronologia/Template/Docs. | `ShellTopBar.tsx`, `AvatarMenu.tsx`, `GlobalRoutingListeners.tsx`, `App.tsx`, `shell.css`. Vitest 991/991, Playwright 6/6 |
+
+### Fetta D0 (questa)
+- **D0 — Memoria di progetto** (29/05/2026) — Bootstrap `.claude/ricordi/`
+  cross-progetto. README + CONTEXT + CULTURE + ROADMAP + BACKLOG + 3 ADR.
+  Niente codice toccato, baseline test invariata.
+
+## 🟡 In corso
+
+### Fetta E2-IA (5 commit totali)
+Adottare l'IA del prototipo v3 dentro Soft v2.1 (opzione B + (c) mix
+gerarchizzato — vedi ADR 003).
+
+- [x] **E2.1** Topbar 3 icone + menu profilo + toggle Albero/Focus
+- [ ] **E2.2** Panel DX stato "closed" + reopen tab verticale destra
+- [ ] **E2.3** Panel DX stato "inspector" contestuale (selezione bidirezionale)
+- [ ] **E2.4** Albero modello in panel SX collassato di default (cabla il toggle Albero di E2.1)
+- [ ] **E2.5** Rail SX eliminazione + verifica accorpamento voci (residue route mancanti `/modelli`, `/jobs`, `/cronologia`, `/docs`)
+
+## 🔵 Prossime
+
+### Sequenza dopo E2-IA
+
+| Fetta | Cosa | Stato spec |
+|---|---|---|
+| **F1** | Toolbar viste viewport (3D iso / piano / fronte / lato, presets utili) | Brief da decidere |
+| **F2** | Selezione bidirezionale viewport ↔ albero ↔ inspector | Brief da decidere |
+| **F3** | Tab Reazioni completa (oggi colonne tagliate a dx — vedi BACKLOG Tier-2-A) | Brief da decidere |
+| **Mezza-fetta UI toggle** | Toggle utente per `radius` (soft/sharp), `accent` (cyan/altro?), `density` (compatto/normale). Già esiste l'opt-in `data-radius="sharp"` da DESIGN_HANDOFF §1.3, va esposto come UI control. | Brief da decidere |
+
+### Più avanti (visione, non commitment)
+
+- **E3** UI primitives da rifare (vedi BACKLOG `## UI primitives E3`).
+- Estensione Workspace Costruisci (MakePanel) e Esegui (SolvePanel) con la
+  stessa filosofia 4-stati-onesti del workspace Risultati.
+- Validazione strutturale: chiudere LE1 anti-convergenza mesh fine
+  (centroide stress recovery) + shear locking Q4 (sospetto, da verificare).
+
+## Convention di chiusura fetta
+
+Una fetta è chiusa solo quando **tutti questi** sono veri:
+1. Commit atomico (un solo commit per fetta).
+2. Vitest e Playwright restano al contatore precedente (o aumentano).
+3. Verifica visiva live: server avviati, login, screenshot della
+   feature che dimostra il comportamento.
+4. Federico approva e dice "ok" — niente unilateralità.
