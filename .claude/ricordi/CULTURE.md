@@ -65,8 +65,10 @@ come tale.
 - **Fermati e segnala**: se durante l'esecuzione i numeri non tornano
   (es. test pre-existing che fallisce, design system che si rompe), Claude
   Code **deve fermarsi e riportare**, non improvvisare un fix.
-  Pattern usato in passato per evitare regressioni invisibili (ricordo:
-  diagnosi `--c-*` come binario alpha intenzionale, salvata in extremis).
+  Pattern usato in passato per evitare regressioni invisibili (esempio:
+  diagnosi `--c-*` come binario alpha intenzionale di Tailwind — senza
+  la pausa per verificare, sarebbero saltati tutti i modificatori alpha
+  `bg-accent/50`, `text-ink/70`, ecc., senza errore visibile).
 
 ### Regole non negoziabili
 

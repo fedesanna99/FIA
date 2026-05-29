@@ -79,5 +79,7 @@ image, free tier).
 - Non è SAP2000 web. Non puntiamo a coprire tutto SAP, solo i flussi
   che il 90% degli ingegneri italiani usano davvero.
 - Non è AI-CAE generativo. AI è in supporto, non in sostituzione.
-- Non è freemium aggressivo. Le feature di sicurezza (verifiche
-  normative) non vivono dietro paywall.
+- Non è freemium aggressivo. Posizionamento commerciale ancora in
+  discussione (vedi UX Research del 25/05 — pricing ibrido Fly.io-style
+  con Free + Pro + Crediti). Decisione definitiva su cosa sta dietro
+  paywall: aperta.
