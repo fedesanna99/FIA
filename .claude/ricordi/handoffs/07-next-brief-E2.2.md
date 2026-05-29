@@ -1,6 +1,12 @@
 # Handoff 07 — Starter pack Fetta E2.2 · Panel DX closed + reopen tab
 
-> Scritto 29/05/2026 pomeriggio da Claude Code (la versione che si sta
+> **Status: ✅ CONSUMATO 29/05/2026 sera** da Claude Code post-compaction
+> (sessione "Auto Mode" Federico cit. "ti va di continuare il lavoro
+> iniziato dall'altro socio"). Implementazione completata in commit
+> atomico `912e285` — Vitest 1012/1012 (+21), TypeScript silenzioso,
+> verifica live cycle aperto↔chiuso con persistenza localStorage.
+
+> Scritto 29/05/2026 pomeriggio da Claude Code (la versione che si stava
 > per compattare) come "starter-pack" per il prossimo Claude Code.
 > Federico ti dirà "vai E2.2" — questo file ti dice esattamente cosa fare.
 

@@ -29,6 +29,7 @@
 | **Fetta D0** | Bootstrap `.claude/ricordi/` cross-progetto: 6 file (README/CONTEXT/CULTURE/ROADMAP/BACKLOG) + 3 ADR (NAFEMS-honest, Soft v2.1, IA prototipo v3) + 3 handoff Claude Code↔Claude Design. | `.claude/ricordi/**` (738+ righe markdown) |
 | **Deploy live v3.4** (29/05) | Push branch redesign + fast-forward test/main + `fly deploy --remote-only`. Sito live su <https://fea-pro.fly.dev/> con 4 stati onesti + Soft v2.1 + IA prototipo v3 topbar | Image `01KSS92H2TKTEJGY17BN38CR9Z`, HTTP 200, bundle `index-DyMXagIm.js` |
 | **Fetta E3 — Dashboard redesign React** (8 commit, Step E) | Implementazione fetta-per-fetta del mockup Claude Design Round 2 (Handoff 05). DashTopBar replica E2.1, Hero sobrio 3 stati, NewModelTile 1+2, RecentsCarousel + Riprendi, TemplateGallery 9 template, EmptyOnboarding stato C, QuotaBanner sticky condizionale, Settings/Billing page completa. | `frontend/src/dashboard/*` (5 nuovi componenti), `frontend/src/settings/SettingsBillingPage.tsx`, `frontend/src/styles/dashboard-soft.css` + `settings-billing.css`. Vitest 991/991, Playwright 6/6 |
+| **Fetta E2-IA · Commit E2.2** | Panel DX della Shell custom in 2 stati (`open` / `closed`). Default `open` → zero regression. Quando `closed` la `ShellRightReopenTab` (32px sticky right) sostituisce ShellPanel nella terza colonna grid e permette di riaprirlo. Bottone X aggiunto nell'header `sp-head-row` accanto al `?` help per chiudere. Nuovo `rightPanelStore` Zustand persisted. Focus mode + takeover restano prioritari. | `frontend/src/store/rightPanelStore.ts(+test)`, `frontend/src/shell/ShellRightReopenTab.tsx(+test)`, edit `Shell.tsx`/`ShellPanel.tsx`/`shell.css` + estensione test esistenti. Vitest 1012/1012 (+21), TypeScript silenzioso |
 
 ### Fetta D0 (questa)
 - **D0 — Memoria di progetto** (29/05/2026) — Bootstrap `.claude/ricordi/`
@@ -42,7 +43,7 @@ Adottare l'IA del prototipo v3 dentro Soft v2.1 (opzione B + (c) mix
 gerarchizzato — vedi ADR 003). E2.1 chiuso, E2.2-E2.5 in attesa.
 
 - [x] **E2.1** Topbar 3 icone + menu profilo + toggle Albero/Focus (commit `4f9e0a8`)
-- [ ] **E2.2** Panel DX stato "closed" + reopen tab verticale destra
+- [x] **E2.2** Panel DX stato "closed" + reopen tab verticale destra (commit `912e285`)
 - [ ] **E2.3** Panel DX stato "inspector" contestuale (selezione bidirezionale)
 - [ ] **E2.4** Albero modello in panel SX collassato di default (cabla il toggle Albero di E2.1)
 - [ ] **E2.5** Rail SX eliminazione + verifica accorpamento voci (residue route mancanti `/modelli`, `/jobs`, `/cronologia`, `/docs`)
