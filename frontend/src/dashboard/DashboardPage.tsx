@@ -54,6 +54,7 @@ import { DashHero, type DashHeroState } from "./DashHero";
 import { NewModelTileSection } from "./NewModelTileSection";
 import { RecentsBlock } from "./RecentsBlock";
 import { TemplateGallery } from "./TemplateGallery";
+import { EmptyOnboarding } from "./EmptyOnboarding";
 
 
 // v2.7.2 Phase 4.3: hook condiviso per navigare a /templates da qualsiasi
@@ -165,12 +166,29 @@ export function DashboardPage({
             (eyebrow+h1+sub variant). La usage card embedded sara' spostata
             in QuotaBanner (E3.7) e pagina /settings/billing (E3.8). */}
         <NewModelTileSection />
-        <RecentsBlockWired
-          models={userModels}
-          modelsUnavailable={modelsUnavailable}
-          modelsRefreshing={modelsRefreshing}
-          onSelect={onSelect}
-        />
+        {/* Fetta E3.6: stato C (0 modelli) mostra EmptyOnboarding al posto
+            di RecentsBlock. RecentsBlock gia' torna null se 0 modelli, ma
+            esplicito qui lo switch per leggibilita'. */}
+        {userModels.length === 0 ? (
+          <EmptyOnboarding
+            onStart={(backendId, label) => {
+              window.dispatchEvent(
+                new CustomEvent("feapro:load-template", { detail: { templateId: backendId, label } }),
+              );
+            }}
+            onScrollToGallery={() => {
+              const el = document.getElementById("template-gallery");
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }}
+          />
+        ) : (
+          <RecentsBlockWired
+            models={userModels}
+            modelsUnavailable={modelsUnavailable}
+            modelsRefreshing={modelsRefreshing}
+            onSelect={onSelect}
+          />
+        )}
         {/* Fetta E3.5: TemplateGallery prominente (decisione IA Dashboard #5,
             leva engagement-per-token). Sostituisce DualRow v2.7.1 che
             mostrava Percorsi+Changelog (commentato in fondo al file). */}
