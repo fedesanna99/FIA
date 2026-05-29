@@ -53,6 +53,13 @@ import { AvatarMenu } from "../components/shell/topbar/AvatarMenu";
 // (placeholder) con uno store Zustand persisted che governa anche
 // il rendering del `ShellLeftTreePanel` in Shell.tsx.
 import { useLeftTreeStore } from "../store/leftTreeStore";
+// v3.4 Fetta M1 mobile (30/05/2026): hamburger menu per viewport < 640px.
+// Sempre montato, visibilita' del trigger gestita esclusivamente da CSS
+// (`.tb-mobile-menu` display:none di default, display:grid in @media
+// max-width 639). Niente useIsMobile → niente re-render su resize.
+// Contiene: Home/Modelli/Jobs + Albero/Focus toggle + Cerca/Undo/Redo/
+// Notif/Tour. Vedi ADR 004 D2.
+import { ShellTopBarMobileMenu } from "./ShellTopBarMobileMenu";
 
 function formatSavedAt(d: Date | null): string {
   if (!d) return "—";
@@ -144,6 +151,11 @@ export function ShellTopBar() {
 
   return (
     <header className="shell-topbar" data-shell="topbar">
+      {/* v3.4 Fetta M1 mobile (30/05/2026): hamburger SOLO su viewport
+          < 640px (visibilita' via CSS, vedi shell.css `.tb-mobile-menu`).
+          Sempre montato — niente useIsMobile, niente re-render su resize. */}
+      <ShellTopBarMobileMenu />
+
       {/* Brand block — v2.6.5 D.3: aggiunto eyebrow WORKSPACE mockup A1 */}
       <div className="tb-brand">
         <span className="tb-brand-eyebrow" data-testid="topbar-eyebrow">WORKSPACE</span>
@@ -159,10 +171,13 @@ export function ShellTopBar() {
           Help/Bell). gap 2 tra ognuna, padding-left 8 per stacco dal
           brand block. Modelli/Jobs cablati in Fetta E2.5d → /modelli e
           /jobs (vedi handler navigate + PlaceholderPages.tsx). */}
+      {/* v3.4 Fetta M1 mobile (30/05/2026): style inline rimosso, regole
+          spostate in shell.css (.tb-quick-nav) perche' lo style inline
+          (specificity 1-0-0-0) vinceva sul display:none della @media
+          mobile rendendo il quick-nav visibile a 375px. */}
       <div
         className="tb-quick-nav"
         data-testid="topbar-quick-nav"
-        style={{ display: "flex", alignItems: "center", gap: 4, paddingLeft: 8 }}
       >
         <button
           type="button"

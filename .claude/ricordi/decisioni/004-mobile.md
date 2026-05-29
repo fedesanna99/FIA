@@ -156,6 +156,55 @@ foundation), poi M2/M3/M4/M5 in parallelo dove possibile.
 5. **4 stati onesti applicato OVUNQUE** — anche su mobile: empty state
    mobile, indicatori loading mobile, niente "Coming soon" generici.
 
+## Revisione 30/05/2026 (notte) — Fetta M1 ricognizione live
+
+**Cosa è emerso**: durante l'implementazione di Fetta M1 (hamburger
+topbar), la verifica live a 375px ha mostrato `MobileTabbar` legacy
+invece del nuovo hamburger. Indagine in `App.tsx`:
+
+- Riga 590: `const useNewShell = activeId !== null && !isMobile;`
+- Riga 786: `{isMobile && !isFocusMode && <MobileTabbar />}`
+
+Quindi la **Shell custom non viene mai renderizzata su mobile**
+(< 768px = `useIsMobile` legacy). Al suo posto: chrome legacy +
+`MobileTabbar` 5-voci bottom. Il nuovo `ShellTopBarMobileMenu` di M1
+era invisibile su iPhone.
+
+**Inaccuratezza ADR originale**: la sezione "Contesto" sopra dice
+*"il workspace è rotto / fa scroll-x"*. **Realtà**: il workspace
+custom su mobile non è proprio renderizzato — è la Shell legacy che
+prende il posto. L'ADR è stato scritto con poca ricognizione su
+`App.tsx`. Pattern lesson: per fette mobile, includere SEMPRE una
+verifica del gate `useNewShell` in App.tsx prima di scrivere ADR.
+
+**Patch decisa con Federico (30/05 notte, carta bianca + raccomandazione
+Claude)**: include il gate-removal NELLO STESSO commit M1.
+
+1. `App.tsx` riga 590: rimuovo `&& !isMobile` → `const useNewShell =
+   activeId !== null` (Shell custom diventa l'unica per workspace su
+   ogni viewport quando c'è un modello attivo)
+2. `App.tsx` riga 786: aggiungo `&& !useNewShell` → `{isMobile &&
+   !isFocusMode && !useNewShell && <MobileTabbar />}` (MobileTabbar
+   legacy resta SOLO per Dashboard mobile / no model, zero regressione
+   su quel flusso)
+
+**Conseguenze invariate**:
+- D1 3 breakpoint (640/768/1024) → resta valido, già implementato
+  in `shell.css` (M1 CSS @media 639px)
+- D2 hamburger → resta valido (componente già scritto)
+- D3-D6 → restano valide per fette M2-M5 future
+
+**Conseguenze nuove**:
+- MobileTabbar legacy: resta intatta per Dashboard mobile, non viene
+  più mostrata su workspace mobile. Single source of truth per il
+  workspace = Shell custom su ogni viewport.
+- `showRails = !isFocusMode && !isMobile` (riga 580) NON va toccato —
+  riguarda solo `LeftRail`/`LeftSlidePanel` legacy che sono fuori dalla
+  Shell custom (la Shell custom ha il suo `ShellRail`).
+
+**Fattorizzazione**: la patch è di 2 righe e atomica, single commit
+con M1 è la scelta giusta. Niente M1.5 separato.
+
 ## Per il prossimo Claude
 
 Quando Federico dirà "Fetta M1", apri questo file + `socio/06-cose-belle-fetta-e2-ia.md`

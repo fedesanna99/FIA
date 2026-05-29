@@ -1,8 +1,12 @@
 // v2.6.2 Shell · ShellTopBar tests
 // v2.6.2.1 polish F3: aggiunti test per modelShortId slug semantico.
 // v3.4 Fetta E2-IA Commit E2.1: aggiunti test per 3 icone fisse + 2 toggle.
+// v3.4 Fetta M1 mobile (30/05/2026): aggiunto MemoryRouter al wrap di render
+// (ShellTopBar ora include ShellTopBarMobileMenu che usa useNavigate, in
+// aggiunta a quello gia' presente in ShellTopBar per handleModelli/Jobs).
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, act } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ShellTopBar, modelShortId } from "./ShellTopBar";
 import { useWorkspaceStore } from "../store/workspaceStore";
@@ -16,9 +20,19 @@ vi.mock("../hooks/useAnalysis", () => ({
   useRunAnalysis: () => () => Promise.resolve(),
 }));
 
+// v3.4 Fetta M1 mobile: stub onboarding (importato da ShellTopBarMobileMenu)
+vi.mock("../lib/onboarding", () => ({
+  useResetOnboarding: () => () => Promise.resolve(),
+  startOnboardingTour: vi.fn(),
+}));
+
 function renderWithQc(node: React.ReactNode) {
   const qc = new QueryClient();
-  return render(<QueryClientProvider client={qc}>{node}</QueryClientProvider>);
+  return render(
+    <QueryClientProvider client={qc}>
+      <MemoryRouter>{node}</MemoryRouter>
+    </QueryClientProvider>,
+  );
 }
 
 describe("ShellTopBar", () => {

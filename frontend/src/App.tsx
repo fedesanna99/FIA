@@ -587,7 +587,15 @@ export default function App() {
   // DENTRO Shell custom (vedi `shell-focus-on` in Shell.tsx + shell.css)
   // invece di cadere sul chrome legacy. Mobile e Dashboard restano
   // sul legacy invariati.
-  const useNewShell = activeId !== null && !isMobile;
+  // v3.4 Fetta M1 mobile (30/05/2026): rimosso `&& !isMobile` per
+  // abilitare la Shell custom anche su viewport mobile. La Shell custom
+  // ora ha `ShellTopBarMobileMenu` (hamburger CSS-gated < 640px) +
+  // tutti gli altri componenti adattati via @media. La MobileTabbar
+  // legacy resta solo per la Dashboard (non per il workspace) — vedi
+  // gate `!useNewShell` aggiunto al render del MobileTabbar sotto.
+  // Vedi `.claude/ricordi/decisioni/004-mobile.md` "Revisione 30/05 notte"
+  // per il razionale completo.
+  const useNewShell = activeId !== null;
 
   // v2.7.1.1 (Phase 4.2): la home dashboard mockup-driven (Dashboard new.html)
   // è una pagina FULL-SCREEN che sostituisce sia Shell custom sia chrome
@@ -783,7 +791,12 @@ export default function App() {
           </div>
         )}
       </div>
-      {isMobile && !isFocusMode && <MobileTabbar />}
+      {/* v3.4 Fetta M1 mobile (30/05/2026): MobileTabbar resta SOLO per
+          Dashboard mobile (nessun modello attivo). Quando un modello e'
+          attivo su mobile, la Shell custom prende il posto (gate
+          `useNewShell` sopra) → niente tabbar legacy sotto + zero
+          regressione su Dashboard mobile. Vedi ADR 004 revisione 30/05. */}
+      {isMobile && !isFocusMode && !useNewShell && <MobileTabbar />}
       {!isMobile && !isFocusMode && <StatusBar />}
       <CommandPalette />
         </>
