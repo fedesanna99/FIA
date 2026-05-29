@@ -1,6 +1,13 @@
 /**
- * Button primitive — variants + sizes consistenti con i design tokens.
+ * Button primitive — variants + sizes Soft v2.1 (post FETTA E0-fix Commit 3).
  * Tutti i bottoni dell'app dovrebbero passare per qui.
+ *
+ * Spec §5.1 DESIGN_HANDOFF:
+ *   - Tutte le variant: border-radius = var(--r-md) = 8px (Soft)
+ *   - Sizes: sm=28px / md=32px / lg=40px
+ *   - shadow-hover su primary/secondary (§1.4 micro-elevation)
+ *   - Sharp mode opt-in via `data-radius="sharp"` su <html> (tokens.css
+ *     override --r-* a 0 → bottoni squadrati senza toccare il componente)
  */
 import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
 import { Slot } from "@radix-ui/react-slot";
@@ -21,11 +28,14 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const VARIANT: Record<ButtonVariant, string> = {
-  // v2.5.0 PR1 Precision: hairline-only borders, no shadow, sharp radius.
+  // FETTA E0-fix Commit 3 · Soft v2.1: primary senza `border border-accent`
+  // (era Precision PR1 hairline), aggiunta micro-elevation hover:shadow-hover.
   primary:
-    "bg-accent text-white hover:bg-accent-hover active:bg-accent border border-accent",
+    "bg-accent text-white hover:bg-accent-hover active:bg-accent hover:shadow-hover",
+  // Soft v2.1: secondary con hover:shadow-hover (§1.4 micro-elevation),
+  // hairline border preservato (utile per dichiararsi su bg chiari).
   secondary:
-    "bg-bg-elevated text-ink hover:bg-bg-hover border border-border-light hover:border-ink-3",
+    "bg-bg-elevated text-ink hover:bg-bg-hover border border-border-light hover:border-ink-3 hover:shadow-hover",
   ghost:
     "bg-transparent text-ink-2 hover:bg-bg-hover hover:text-ink border border-transparent",
   outline:
@@ -34,8 +44,8 @@ const VARIANT: Record<ButtonVariant, string> = {
     "bg-transparent text-danger hover:bg-danger hover:text-white border border-danger",
   success:
     "bg-success text-white hover:bg-success/90 border border-success",
-  // v2.5.0 PR1: Run button — Precision flat success (era gradient emerald
-  // v1.7 T3). Mantiene l'identità "Run verde" che gli utenti riconoscono.
+  // Soft v2.1: Run button — flat success (era gradient emerald v1.7 T3).
+  // Mantiene l'identita' "Run verde" che gli utenti riconoscono.
   run:
     "bg-success text-white font-semibold hover:brightness-110 border border-success",
 };
@@ -69,11 +79,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       ref={ref as never}
       disabled={disabled || loading}
       className={cn(
-        // v2.5.0 PR1 Precision: sharp (no rounded), no shadow, hairline borders.
-        "inline-flex items-center justify-center font-medium",
-        "transition-colors duration-fast outline-none",
+        // FETTA E0-fix Commit 3 · Soft v2.1: tutte le variant rounded-md
+        // (= var(--r-md) = 8px) per default. Sharp mode opt-in globale
+        // via `data-radius="sharp"` su <html> (tokens.css override --r-*).
+        // transition-shadow per supportare hover:shadow-hover delle variants.
+        "inline-flex items-center justify-center font-medium rounded-md",
+        "transition-[colors,box-shadow,border-color] duration-fast outline-none",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent focus-visible:outline-offset-1",
-        "disabled:opacity-40 disabled:cursor-not-allowed",
+        "disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none",
         "whitespace-nowrap select-none",
         VARIANT[variant],
         SIZE[size],
