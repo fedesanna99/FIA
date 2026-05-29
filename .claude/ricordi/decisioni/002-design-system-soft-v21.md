@@ -105,7 +105,6 @@ visivo. Cambiare il codice senza aggiornare prima il mockup è violazione.
   ogni nuova fetta riferisce un mockup specifico (es. `Nuovo Guscio.html`
   per ShellTopBar). Vincola Claude a verificare contro un riferimento
   prima di implementare libero.
-- **Sharp opt-in per Precision-lovers**: l'utente che ama Precision strict
-  può attivare `data-radius="sharp"` senza che dobbiamo mantenere due
-  design system in parallelo. Il toggle UI verrà esposto nella
+- **Sharp opt-in tramite `data-radius="sharp"`**: convive con Soft
+  senza bisogno di mantenere due design system. Toggle UI rimandato a
   mezza-fetta UI (vedi ROADMAP).
