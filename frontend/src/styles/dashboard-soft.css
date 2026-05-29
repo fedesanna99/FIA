@@ -386,3 +386,211 @@
 @media (max-width: 1100px) {
   .action-zone { grid-template-columns: 1fr; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+ * Section header (shared) — Fetta E3.4+
+ * ════════════════════════════════════════════════════════════════════════ */
+.dash-soft .block { margin-bottom: 44px; }
+.dash-soft .block-head {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 16px; margin-bottom: 16px;
+}
+.dash-soft .block-head .eyebrow { display: block; margin-bottom: 6px; }
+.dash-soft .block-head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: var(--ls-tight-1, -0.015em);
+  color: var(--ink);
+}
+.dash-soft .block-link {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 12px;
+  font-size: 12.5px; font-weight: 500; color: var(--ink-muted);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 8px);
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    border-color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-soft .block-link:hover {
+  background: var(--bg-hover);
+  border-color: var(--border-light);
+  color: var(--ink);
+}
+.dash-soft .block-link svg { width: 13px; height: 13px; }
+.dash-soft .block-head .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 600;
+  letter-spacing: var(--ls-wide-3, 0.16em);
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+ * RecentsBlock — Fetta E3.4 · carousel + "Riprendi" prima card
+ * Pattern recents-first (Linear/Notion). Decisione IA Dashboard #1.
+ * ════════════════════════════════════════════════════════════════════════ */
+.dash-soft .recents-wrap { position: relative; }
+.dash-soft .recents {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 1fr);
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding-bottom: 6px;
+  margin: 0 -4px;
+  padding-left: 4px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+}
+.dash-soft .recents::-webkit-scrollbar { height: 8px; }
+.dash-soft .recents::-webkit-scrollbar-thumb {
+  background: var(--border-light);
+  border-radius: var(--r-full, 9999px);
+}
+.dash-soft .recents::-webkit-scrollbar-track { background: transparent; }
+
+.dash-soft .recent-card {
+  position: relative;
+  scroll-snap-align: start;
+  display: flex; flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl, 12px);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition:
+    box-shadow var(--d-mid, 200ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    border-color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    transform var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-soft .recent-card:hover {
+  border-color: var(--border-light);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+.dash-soft .recent-card.is-resume {
+  border-color: rgba(var(--accent-rgb, 8, 145, 178), 0.4);
+}
+.dash-soft .recent-card-overlay {
+  position: absolute; inset: 0;
+  background: transparent; border: 0; padding: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.dash-soft .recent-thumb {
+  position: relative;
+  aspect-ratio: 320 / 150;
+  background: var(--bg-viewport);
+  border-bottom: 1px solid var(--border);
+}
+.dash-soft .recent-thumb svg { width: 100%; height: 100%; display: block; }
+.dash-soft .recent-trust {
+  position: absolute; top: 9px; right: 9px;
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 600;
+  letter-spacing: var(--ls-wide-2, 0.08em);
+  padding: 2px 6px;
+  border-radius: var(--r-sm, 6px);
+  z-index: 2;
+}
+.dash-soft .trust-prelim { color: var(--warn); background: var(--bg-warn); }
+.dash-soft .trust-draft  { color: var(--accent); background: var(--bg-info, var(--accent-subtle)); }
+.dash-soft .trust-valid  { color: var(--success); background: var(--bg-success); }
+
+.dash-soft .recent-body {
+  padding: 13px 14px 14px;
+  display: flex; flex-direction: column;
+  gap: 8px; flex: 1;
+  position: relative; z-index: 0;
+}
+.dash-soft .recent-head { display: flex; align-items: center; gap: 8px; }
+.dash-soft .recent-id {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 600;
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border: 1px solid rgba(var(--accent-rgb, 8, 145, 178), 0.25);
+  padding: 1px 6px;
+  border-radius: var(--r-sm, 6px);
+}
+.dash-soft .recent-head h3 {
+  margin: 0; flex: 1; min-width: 0;
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 14.5px;
+  letter-spacing: var(--ls-tight-1, -0.015em);
+  color: var(--ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.dash-soft .recent-desc {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px; line-height: 1.5;
+  color: var(--ink-muted);
+}
+.dash-soft .recent-meta {
+  display: flex; align-items: center;
+  gap: 7px; flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-dim);
+  margin-top: auto;
+}
+.dash-soft .recent-meta .mdot {
+  width: 2px; height: 2px;
+  border-radius: var(--r-full, 9999px);
+  background: var(--ink-faint);
+}
+
+/* Resume-bar (prima card / is-resume) */
+.dash-soft .resume-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--accent-subtle);
+  position: relative; z-index: 2;
+}
+.dash-soft .resume-meta { flex: 1; min-width: 0; }
+.dash-soft .resume-meta .resume-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 600;
+  letter-spacing: var(--ls-wide-2, 0.08em);
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.dash-soft .resume-meta .resume-when {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--ink-muted);
+  margin-top: 1px;
+}
+.dash-soft .resume-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 13px;
+  font-size: 12px; font-weight: 600;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--r-md, 8px);
+  cursor: pointer;
+  transition: background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-soft .resume-btn:hover { background: var(--accent-hover); }
+.dash-soft .resume-btn svg { width: 13px; height: 13px; }
+
+.dash-soft .recents-error {
+  padding: 20px 24px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg, 10px);
+  color: var(--ink-muted);
+  font-size: 13px;
+}

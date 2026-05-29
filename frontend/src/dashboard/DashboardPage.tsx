@@ -52,6 +52,7 @@ import "../styles/dashboard.css";
 import { DashTopBar } from "./DashTopBar";
 import { DashHero, type DashHeroState } from "./DashHero";
 import { NewModelTileSection } from "./NewModelTileSection";
+import { RecentsBlock } from "./RecentsBlock";
 
 
 // v2.7.2 Phase 4.3: hook condiviso per navigare a /templates da qualsiasi
@@ -137,7 +138,7 @@ export function DashboardPage({
   const projUsed = Math.min(userModels.length, projCap);
 
   return (
-    <div className="dash" data-testid="dashboard-page">
+    <div className="dash dash-soft" data-testid="dashboard-page">
       <DashTopBar tierLabel={tierLabel} />
       <main className="dash-main">
         <DashHero
@@ -163,17 +164,43 @@ export function DashboardPage({
             (eyebrow+h1+sub variant). La usage card embedded sara' spostata
             in QuotaBanner (E3.7) e pagina /settings/billing (E3.8). */}
         <NewModelTileSection />
-        <RecentSection
+        <RecentsBlockWired
           models={userModels}
           modelsUnavailable={modelsUnavailable}
           modelsRefreshing={modelsRefreshing}
-          onRetryModels={onRetryModels}
           onSelect={onSelect}
         />
         <DualRow />
       </main>
       <DashFoot />
     </div>
+  );
+}
+
+
+// ── RecentsBlockWired ───────────────────────────────────────────────────
+// Fetta E3.4: piccolo wrapper che collega RecentsBlock alle utility
+// interne di DashboardPage (useGoTemplates hook + detectVariant/
+// thumbForVariant SVG renderer). Mantiene RecentsBlock.tsx puro
+// (presentational) — questo wrapper conosce i route + thumbnails specifici
+// di FEA Pro.
+function RecentsBlockWired(props: {
+  models: FEAModel[];
+  modelsUnavailable?: boolean;
+  modelsRefreshing?: boolean;
+  onSelect: (id: string) => void;
+}) {
+  const goTemplates = useGoTemplates();
+  return (
+    <RecentsBlock
+      models={props.models}
+      modelsUnavailable={props.modelsUnavailable}
+      modelsRefreshing={props.modelsRefreshing}
+      onSelect={props.onSelect}
+      onViewAll={() => goTemplates()}
+      renderThumb={thumbForVariant}
+      inferVariant={detectVariant}
+    />
   );
 }
 
@@ -204,7 +231,18 @@ export function DashboardPage({
 // Il vecchio pattern "3 tile uguali" e' stato rifiutato in Round 1.
 
 
-// ── RecentSection ───────────────────────────────────────────────────────
+// ── RecentSection + Demo + RecentModelCard legacy v2.7.1 RIMOSSI (E3.4) ─
+// Sostituiti da `./RecentsBlock.tsx` + RecentsBlockWired sopra:
+// - carousel orizzontale snap-scroll (vs grid 4 col)
+// - prima card con resume-bar + bottone "Riprendi" (audacia a)
+// - trust badge 4 stati onesti PRELIM/DRAFT/VALID
+// - filtri segmented (Acciaio/CA/Sismica) RIMOSSI: non nel mockup CD R2,
+//   se servono in futuro li riproponiamo come fetta separata. Il vecchio
+//   filter heuristic vs `category` heuristic restera' qui sotto commentato
+//   come riferimento (function modelMatchesCategory) ma non e' chiamato.
+
+// vvvvvvvv blocco legacy v2.7.1 (mantenuto solo come backup commentato) vvvvv
+/*
 interface RecentSectionProps {
   models: FEAModel[];
   modelsUnavailable?: boolean;
@@ -491,6 +529,7 @@ function RecentModelCard({ model, active, onClick }: RecentModelCardProps) {
     </button>
   );
 }
+*/ // ^^^^^^^^^^^ fine blocco commentato legacy v2.7.1 ^^^^^^^^^^^^^^^^^^^^^^
 
 
 // ── DualRow (Percorsi + Changelog) ──────────────────────────────────────
