@@ -24,6 +24,9 @@ import { StudioIOPage } from "./studio/StudioIOPage";
 // v2.8.0 Phase 6.1-6.3 mockup-driven: Dialogs showcase + Settings + States + Mobile.
 import { DialogsShowcasePage } from "./dialogs/DialogsShowcasePage";
 import { SettingsPage } from "./settings/SettingsPage";
+// Fetta E3.8: pagina /settings/billing (mockup Claude Design Round 2,
+// Handoff 05 §R2.2). Mostra 3 stati derivati da quota.tier + userModels.
+import { SettingsBillingPage } from "./settings/SettingsBillingPage";
 import { StatesShowcasePage } from "./states/StatesShowcasePage";
 import { MobileShowcasePage } from "./mobile/MobileShowcasePage";
 // v2.8.1 Sprint A M3: legal pages per compliance (privacy/terms/about/preliminary)
@@ -170,6 +173,15 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 element={
                   <AuthGate>
                     <SettingsPage />
+                  </AuthGate>
+                }
+              />
+              {/* Fetta E3.8: Settings · Billing page (mockup Claude Design Round 2). */}
+              <Route
+                path="/settings/billing"
+                element={
+                  <AuthGate>
+                    <SettingsBillingPage />
                   </AuthGate>
                 }
               />

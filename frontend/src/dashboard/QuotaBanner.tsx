@@ -10,6 +10,7 @@
  * Sticky `top: 48px` (sotto la topbar). Dismissibile per-sessione.
  */
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { AlertTriangle, X } from "lucide-react";
 
 export interface QuotaBannerProps {
@@ -17,11 +18,9 @@ export interface QuotaBannerProps {
   limit: number;
   /** Soglia decimale per mostrare il banner. Default 0.8 (80%). */
   threshold?: number;
-  /** Callback CTA "Vedi fatturazione" — default dispatcha feapro:open-billing. */
-  onOpenBilling?: () => void;
 }
 
-export function QuotaBanner({ used, limit, threshold = 0.8, onOpenBilling }: QuotaBannerProps) {
+export function QuotaBanner({ used, limit, threshold = 0.8 }: QuotaBannerProps) {
   const [dismissed, setDismissed] = useState(false);
 
   // Hide se sotto soglia, se dismissed in questa sessione, o se quota
@@ -40,17 +39,13 @@ export function QuotaBanner({ used, limit, threshold = 0.8, onOpenBilling }: Quo
           <span className="numeric">{used} / {limit}</span> modelli usati. Passa a Pro per modelli illimitati e job prioritari.
         </span>
         <span className="quota-spacer" />
-        <button
-          type="button"
+        <Link
+          to="/settings/billing"
           className="quota-cta"
-          onClick={() => {
-            if (onOpenBilling) onOpenBilling();
-            else window.dispatchEvent(new Event("feapro:open-billing"));
-          }}
           data-testid="dash-quota-cta"
         >
           Vedi fatturazione
-        </button>
+        </Link>
         <button
           type="button"
           className="quota-dismiss"
