@@ -106,6 +106,32 @@ profilo = occasionale, resto = via search.
   Focus è cablato a `workspaceStore` (Fetta 0), Albero è placeholder
   fino a E2.4. La differenza è esplicita nei commenti TODO inline.
 
+### Revisione 29/05/2026 sera — regola spina cambiata + mockup recuperati
+
+Dopo il recupero dei 3 mockup HTML originali del prototipo v3 (vedi
+`socio/05-prototipi-workspace-v3/`), Federico ha rivisto due decisioni
+prese in fase Fetta 1 / Fetta E2.4:
+
+- **Spina · regola del wizard vs mappa**: in Fetta 1 era cristallizzato
+  *"Ogni passo è SEMPRE cliccabile (mai disabilitare). È una mappa,
+  non un wizard"*. **Revisione**: bloccare lo skip in avanti — non deve
+  essere possibile cliccare "Risultati" senza aver mai eseguito, e
+  "Esegui" senza modello completo. Costruisci resta sempre cliccabile.
+  Active escape: la fase attiva resta cliccabile anche se diventa
+  bloccata (l'utente può rimanere dov'è dopo reset). Vedi commit
+  `5776f05`.
+- **Albero E2.4 · ordine sezioni**: in E2.4 (`1415f03`) avevo
+  interpretato l'ordine come Nodi/Elementi/Materiali/Vincoli/Carichi
+  (5 sezioni, ordine inventato). Il mockup originale dice **6 sezioni**
+  in ordine canonico: Nodi → Elementi → **Sezioni · materiali**
+  (combinati) → Carichi → Vincoli → **Combinazioni**. Fix in commit
+  `5776f05` (E2.4-bis polish).
+
+Convention cristallizzata: **"il prototipo HTML è il riferimento per
+l'IA, il mockup CD è il riferimento per l'estetica"** vale come una
+regola di confronto — se i due divergono su una decisione di IA, il
+prototipo v3 vince.
+
 ## Cosa ha sbloccato
 
 - **Convention "additivo prima, sottrattivo dopo"**: in transizioni
