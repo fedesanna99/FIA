@@ -857,3 +857,64 @@
 @media (max-width: 1100px) {
   .dash-soft .empty-grid { grid-template-columns: 1fr; }
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+ * QuotaBanner — Fetta E3.7 · sticky ambra solo se quota > 80%
+ * Decisione IA Dashboard #4 (Vercel /usage pattern, no rumore se quota OK)
+ * ════════════════════════════════════════════════════════════════════════ */
+.dash-soft .quota-banner {
+  position: sticky;
+  top: 48px;
+  z-index: var(--z-panel, 30);
+  background: var(--bg-warn);
+  border-bottom: 1px solid rgba(180, 83, 9, 0.22);
+}
+.dash-soft .quota-inner {
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 9px 32px;
+  display: flex; align-items: center;
+  gap: 12px;
+}
+.dash-soft .quota-inner svg {
+  width: 16px; height: 16px;
+  color: var(--warn);
+  flex-shrink: 0;
+}
+.dash-soft .quota-msg {
+  font-size: 12.5px;
+  color: #7a4408;
+}
+.dash-soft .quota-msg .numeric {
+  color: var(--warn);
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+.dash-soft .quota-spacer { flex: 1; }
+.dash-soft .quota-cta {
+  display: inline-flex; align-items: center;
+  height: 28px; padding: 0 12px;
+  font-size: 12px; font-weight: 600;
+  color: #fff;
+  background: var(--warn);
+  border: none;
+  border-radius: var(--r-md, 8px);
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-soft .quota-cta:hover { filter: brightness(1.05); }
+.dash-soft .quota-dismiss {
+  display: grid; place-items: center;
+  width: 26px; height: 26px;
+  color: var(--warn);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--r-md, 8px);
+  cursor: pointer;
+  transition: background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-soft .quota-dismiss:hover {
+  background: rgba(180, 83, 9, 0.10);
+}

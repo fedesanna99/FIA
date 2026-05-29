@@ -55,6 +55,7 @@ import { NewModelTileSection } from "./NewModelTileSection";
 import { RecentsBlock } from "./RecentsBlock";
 import { TemplateGallery } from "./TemplateGallery";
 import { EmptyOnboarding } from "./EmptyOnboarding";
+import { QuotaBanner } from "./QuotaBanner";
 
 
 // v2.7.2 Phase 4.3: hook condiviso per navigare a /templates da qualsiasi
@@ -142,6 +143,7 @@ export function DashboardPage({
   return (
     <div className="dash dash-soft" data-testid="dashboard-page">
       <DashTopBar tierLabel={tierLabel} />
+      <QuotaBanner used={projUsed} limit={projCap} />
       <main className="dash-main">
         <DashHero
           greeting={greeting}
