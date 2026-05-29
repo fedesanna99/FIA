@@ -12,11 +12,85 @@
  *   E3.6 · EmptyOnboarding
  *   E3.7 · QuotaBanner (sticky condizionale)
  *   E3.8 · Avatar dropdown extended + Settings/Billing page
+ *   E2.5d · Placeholder pages (Modelli/Jobs/Cronologia/Docs full-page)
  *
  * Convention: tutte le classi del mockup CD (.dash-topbar, .tb-*, .cmd-pill
  * ecc.) sono scoped a `.dash-topbar > ...` per evitare conflitto con le
  * regole `.tb-*` esistenti in `shell.css` (ShellTopBar custom workspace).
  * ────────────────────────────────────────────────────────────────────── */
+
+/* ── v3.4 Fetta E2.5d (29/05 sera) · Placeholder pages chrome ──────────
+   Pagine placeholder onesti per le 4 route mancanti `/modelli` `/jobs`
+   `/cronologia` `/docs`. DashTopBar in alto + main centrato con icona
+   grande, titolo, descrizione onesta ("In arrivo" + razionale), CTA
+   opzionale verso pagina simile.
+   Pattern visivo coerente con EmptyOnboarding (E3.6) ma full-page. */
+.dash-soft .placeholder-main {
+  min-height: calc(100vh - 56px); /* viewport - DashTopBar height */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.dash-soft .placeholder-empty {
+  max-width: 520px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.dash-soft .placeholder-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 999px;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  display: grid;
+  place-items: center;
+  margin-bottom: 6px;
+}
+.dash-soft .placeholder-title {
+  font: 700 28px/1.15 var(--font-display, "Plus Jakarta Sans", system-ui, sans-serif);
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  margin: 0;
+}
+.dash-soft .placeholder-description {
+  font: 400 15px/1.55 var(--font-sans, "Inter", system-ui, sans-serif);
+  color: var(--ink-muted);
+  margin: 0;
+  max-width: 460px;
+}
+.dash-soft .placeholder-detail {
+  font: 400 13px/1.55 var(--font-sans, "Inter", system-ui, sans-serif);
+  color: var(--ink-dim);
+  margin: 0;
+  max-width: 460px;
+}
+.dash-soft .placeholder-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #ffffff;
+  font: 600 13.5px/1 var(--font-sans, "Inter", system-ui, sans-serif);
+  text-decoration: none;
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+.dash-soft .placeholder-cta:hover {
+  background: var(--accent-strong, var(--accent));
+  transform: translateY(-1px);
+}
+.dash-soft .placeholder-cta:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+body.shell-sharp .dash-soft .placeholder-icon { border-radius: 0; }
+body.shell-sharp .dash-soft .placeholder-cta { border-radius: 0; }
 
 /* ════════════════════════════════════════════════════════════════════════
  * DashTopBar — replica visiva di ShellTopBar E2.1 (IA prototipo v3)

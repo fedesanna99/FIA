@@ -27,6 +27,12 @@ import { SettingsPage } from "./settings/SettingsPage";
 // Fetta E3.8: pagina /settings/billing (mockup Claude Design Round 2,
 // Handoff 05 §R2.2). Mostra 3 stati derivati da quota.tier + userModels.
 import { SettingsBillingPage } from "./settings/SettingsBillingPage";
+// v3.4 Fetta E2.5d: 4 route mancanti `/modelli` `/jobs` `/cronologia`
+// `/docs` come pagine placeholder onesti. Cablate dalle 3 icone topbar
+// E2.1 (Modelli/Jobs) + voci AvatarMenu E2.1 (Cronologia/Docs).
+import {
+  ModelliPage, JobsPage, CronologiaPage, DocsPage,
+} from "./pages/PlaceholderPages";
 import { StatesShowcasePage } from "./states/StatesShowcasePage";
 import { MobileShowcasePage } from "./mobile/MobileShowcasePage";
 // v2.8.1 Sprint A M3: legal pages per compliance (privacy/terms/about/preliminary)
@@ -184,6 +190,25 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                     <SettingsBillingPage />
                   </AuthGate>
                 }
+              />
+              {/* v3.4 Fetta E2.5d: 4 route mancanti come pagine placeholder
+                  onesti (chiude i TODO inline di E2.1). Dentro AuthGate
+                  perche' sono pagine utente. */}
+              <Route
+                path="/modelli"
+                element={<AuthGate><ModelliPage /></AuthGate>}
+              />
+              <Route
+                path="/jobs"
+                element={<AuthGate><JobsPage /></AuthGate>}
+              />
+              <Route
+                path="/cronologia"
+                element={<AuthGate><CronologiaPage /></AuthGate>}
+              />
+              <Route
+                path="/docs"
+                element={<AuthGate><DocsPage /></AuthGate>}
               />
               {/* v2.8.0 Phase 6.2: States showcase (Empty/Solver/Error/404). */}
               <Route

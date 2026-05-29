@@ -242,13 +242,9 @@ export function AvatarMenu() {
 
           <div className="py-1">
             <DropdownMenu.Item
-              onSelect={(e) => {
-                e.preventDefault();
-                // TODO E2.5 (o backlog): route /cronologia mancante. Esiste
-                // già `useJobsStore.history`, ma una pagina dedicata vivrà
-                // nella fetta E2.5 "Rail SX eliminazione + accorpamento".
-                toast("info", "Cronologia · in arrivo (E2.5)");
-              }}
+              // v3.4 Fetta E2.5d (29/05 sera): cablato a /cronologia
+              // (PlaceholderPages). Era TODO E2.5 con toast "in arrivo".
+              onSelect={(e) => { e.preventDefault(); goTo("/cronologia"); }}
               className={ITEM_CLS}
               data-testid="avatar-menu-cronologia"
             >
@@ -264,12 +260,9 @@ export function AvatarMenu() {
               Template
             </DropdownMenu.Item>
             <DropdownMenu.Item
-              onSelect={(e) => {
-                e.preventDefault();
-                // TODO E2.5 (o backlog): route /docs mancante. Pagina
-                // documentazione utente arrivera' nella fetta E2.5 / backlog.
-                toast("info", "Docs · in arrivo (E2.5)");
-              }}
+              // v3.4 Fetta E2.5d (29/05 sera): cablato a /docs
+              // (PlaceholderPages). Era TODO E2.5 con toast "in arrivo".
+              onSelect={(e) => { e.preventDefault(); goTo("/docs"); }}
               className={ITEM_CLS}
               data-testid="avatar-menu-docs"
             >

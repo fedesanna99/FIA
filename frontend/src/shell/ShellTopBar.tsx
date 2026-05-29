@@ -25,6 +25,9 @@
 // I 2 toggle usano `data-state="on|off"` per varianti di stile (vedi shell.css).
 
 import { useState } from "react";
+// v3.4 Fetta E2.5d: useNavigate per cablaggio handler Modelli/Jobs alle
+// nuove route create in main.tsx. Era TODO E2.5 nei commenti di E2.1.
+import { useNavigate } from "react-router-dom";
 import {
   Play, Check, Undo2, Redo2, Bell, ChevronDown, HelpCircle,
   Home, LayoutGrid, Activity, PanelLeft, Maximize2,
@@ -112,6 +115,11 @@ export function ShellTopBar() {
   const handleRedo = () => useModelStore.getState().redo();
 
   // v3.4 Fetta E2-IA Commit E2.1: handler navigation 3 icone fisse.
+  // v3.4 Fetta E2.5d (29/05 sera): Modelli + Jobs cablati alle 4 nuove
+  // route placeholder onesti (`PlaceholderPages.tsx`). Le 3 icone sono
+  // ora navigation reali. Home resta su dispatch event per coesistenza
+  // con GlobalRoutingListeners + state reset App.tsx (pattern E2.1).
+  const navigate = useNavigate();
   const handleHome = () => {
     // ⌂ Home → torna alla Dashboard. Dispatch custom event raccolto da
     // GlobalRoutingListeners (cross-route) → navigate("/", { state:
@@ -119,15 +127,10 @@ export function ShellTopBar() {
     window.dispatchEvent(new Event("feapro:go-home"));
   };
   const handleModelli = () => {
-    // TODO E2.5 (o backlog): route /modelli mancante. Esiste solo
-    // ModelliBrowser come overlay full-screen lazy in App.tsx
-    // (alpha.31 Task 21). Una route dedicata vivrà nella fetta E2.5
-    // "Rail SX eliminazione + verifica accorpamento voci".
+    navigate("/modelli");
   };
   const handleJobs = () => {
-    // TODO E2.5 (o backlog): route /jobs mancante. Esiste useJobsStore
-    // + activeJob ma non c'è una pagina di coda processi. Stesso
-    // discorso del Modelli: arrivera' nella fetta E2.5 / backlog.
+    navigate("/jobs");
   };
 
   // v3.4 Fetta E2-IA Commit E2.1: handler toggle Focus.
@@ -174,7 +177,7 @@ export function ShellTopBar() {
           className="tb-iconbtn"
           onClick={handleModelli}
           aria-label="Modelli — browser modelli"
-          title="Modelli (in arrivo)"
+          title="Modelli"
           data-testid="topbar-nav-modelli"
         >
           <LayoutGrid size={16} strokeWidth={1.8} />
@@ -184,7 +187,7 @@ export function ShellTopBar() {
           className="tb-iconbtn"
           onClick={handleJobs}
           aria-label="Jobs — coda processi"
-          title="Jobs (in arrivo)"
+          title="Jobs"
           data-testid="topbar-nav-jobs"
         >
           <Activity size={16} strokeWidth={1.8} />
