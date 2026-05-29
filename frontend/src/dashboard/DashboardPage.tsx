@@ -53,6 +53,7 @@ import { DashTopBar } from "./DashTopBar";
 import { DashHero, type DashHeroState } from "./DashHero";
 import { NewModelTileSection } from "./NewModelTileSection";
 import { RecentsBlock } from "./RecentsBlock";
+import { TemplateGallery } from "./TemplateGallery";
 
 
 // v2.7.2 Phase 4.3: hook condiviso per navigare a /templates da qualsiasi
@@ -170,7 +171,23 @@ export function DashboardPage({
           modelsRefreshing={modelsRefreshing}
           onSelect={onSelect}
         />
-        <DualRow />
+        {/* Fetta E3.5: TemplateGallery prominente (decisione IA Dashboard #5,
+            leva engagement-per-token). Sostituisce DualRow v2.7.1 che
+            mostrava Percorsi+Changelog (commentato in fondo al file). */}
+        <TemplateGallery
+          onOpenTemplate={(backendId, label) => {
+            if (!backendId) {
+              window.dispatchEvent(new CustomEvent("feapro:open-template-gallery"));
+              return;
+            }
+            window.dispatchEvent(
+              new CustomEvent("feapro:load-template", { detail: { templateId: backendId, label } }),
+            );
+          }}
+          onOpenGallery={() => window.dispatchEvent(new CustomEvent("feapro:open-template-gallery"))}
+        />
+        {/* DualRow v2.7.1 (Percorsi + Changelog) rimosso dal render in E3.5.
+            Funzione e helper restano nel file commentati in fondo come backup. */}
       </main>
       <DashFoot />
     </div>
@@ -532,114 +549,12 @@ function RecentModelCard({ model, active, onClick }: RecentModelCardProps) {
 */ // ^^^^^^^^^^^ fine blocco commentato legacy v2.7.1 ^^^^^^^^^^^^^^^^^^^^^^
 
 
-// ── DualRow (Percorsi + Changelog) ──────────────────────────────────────
-function DualRow() {
-  // v3.1.1 audit-fix L2-8: "Vedi tutti i percorsi" navigava a niente.
-  // Ora apre /percorsi/uc1 come fallback (route concreta presente).
-  const goPercorsoUC1 = useGoPercorsoUC1();
-  return (
-    <section className="dual-row" data-testid="dash-dual-row">
-      <div className="block block-half">
-        <header className="block-head">
-          <div>
-            <span className="eyebrow">Percorsi guidati</span>
-            <h2>Continua un percorso</h2>
-          </div>
-          <button type="button" className="btn-secondary btn-sm" onClick={() => goPercorsoUC1()} data-testid="dash-percorsi-see-all">
-            Vedi tutti i percorsi
-          </button>
-        </header>
-        <div className="percorso-list">
-          <PercorsoRow id="UC1" title="Trave bi-appoggiata · Statica" step="Step 3/6 · Aggiungi i carichi distribuiti" pct={50} color="var(--accent)" />
-          <PercorsoRow id="UC3" title="Torre 8 piani · Sismica EC8" step="Step 1/8 · Definisci la zona sismica e suolo" pct={12} color="var(--purple)" />
-          <PercorsoRow id="SUGG." title="Telaio 2D · Verifica EC3 LTB" step="5 step · ~12 min · per chi ha già completato UC1" pct={null} suggested />
-        </div>
-      </div>
-
-      <div className="block block-half">
-        <header className="block-head">
-          <div>
-            <span className="eyebrow">Novità · {APP_TAG}</span>
-            <h2>Cosa è cambiato</h2>
-          </div>
-          {/* v3.1.1 audit-fix L2-8: changelog completo punta a GitHub releases. */}
-          <a
-            className="btn-secondary btn-sm"
-            href="https://github.com/fedesanna99/FIA/releases"
-            target="_blank"
-            rel="noreferrer"
-            data-testid="dash-changelog-link"
-          >
-            Changelog completo
-          </a>
-        </header>
-        <div className="changelog">
-          <ClRow pill="new" title="Dashboard mockup-driven v2.7.1" desc="Hub home replicato pixel-faithful da Dashboard new.html (Phase 4.2 chiusa)." when="oggi" />
-          <ClRow pill="new" title="Auth pages mockup-driven v2.7.0" desc="4 route (login/signup/forgot/verify) refactor completo + backend signup metadata." when="ieri" />
-          <ClRow pill="fix" title="Font Inter override .auth-shell" desc="Body text non eredita più Plus Jakarta Sans dall'app globale." when="ieri" />
-          <ClRow pill="imp" title="Visual audit tool permanente" desc="`frontend/scripts/visual-audit.mjs` confronto live↔mockup Playwright headless." when="ieri" />
-        </div>
-      </div>
-    </section>
-  );
-}
-
-interface PercorsoRowProps { id: string; title: string; step: string; pct: number | null; color?: string; suggested?: boolean; }
-function PercorsoRow({ id, title, step, pct, color = "var(--accent)", suggested }: PercorsoRowProps) {
-  const onClick = () => window.dispatchEvent(new Event("feapro:open-percorso-uc1"));
-  return (
-    <button type="button" className={`percorso-row${suggested ? " percorso-suggested" : ""}`} onClick={onClick}>
-      <div className="percorso-progress">
-        {pct != null ? (
-          <svg viewBox="0 0 36 36" width={40} height={40} aria-hidden="true">
-            <circle cx={18} cy={18} r={15} fill="none" stroke="var(--border)" strokeWidth={3} />
-            <circle
-              cx={18} cy={18} r={15}
-              fill="none" stroke={color} strokeWidth={3}
-              strokeDasharray={`${pct * 0.9425} 100`}
-              /* v3.1.1 audit-fix L2-15: rimossa expression dead `-47.13 + 47.13 = 0`. */
-              strokeDashoffset={100 - pct * 0.9425}
-              transform="rotate(-90 18 18)"
-              strokeLinecap="round"
-            />
-          </svg>
-        ) : (
-          <svg viewBox="0 0 36 36" width={40} height={40} aria-hidden="true">
-            <circle cx={18} cy={18} r={15} fill="none" stroke="var(--border)" strokeWidth={3} strokeDasharray="2 3" />
-            <circle cx={18} cy={18} r={6} fill="var(--bg-warn)" stroke="var(--warn)" strokeWidth={1.5} />
-            <text x={18} y={22} fontFamily="JetBrains Mono" fontSize={8} fontWeight={700} fill="var(--warn)" textAnchor="middle">★</text>
-          </svg>
-        )}
-        {pct != null && <span className="percorso-pct">{pct}%</span>}
-      </div>
-      <div className="percorso-body">
-        <div className="percorso-head">
-          <span className="recent-id" style={suggested ? { background: "var(--bg-warn)", color: "var(--warn)", borderColor: "rgba(180,83,9,0.30)" } : undefined}>{id}</span>
-          <h4>{title}</h4>
-        </div>
-        <p>{step}</p>
-      </div>
-      <span className="percorso-cta">
-        {suggested ? "Inizia" : "Continua"}
-        <ArrowRight width={12} height={12} aria-hidden="true" />
-      </span>
-    </button>
-  );
-}
-
-interface ClRowProps { pill: "new" | "fix" | "imp"; title: string; desc: string; when: string; }
-function ClRow({ pill, title, desc, when }: ClRowProps) {
-  return (
-    <div className="cl-row">
-      <span className={`cl-pill cl-pill-${pill}`}>{pill.toUpperCase()}</span>
-      <div className="cl-body">
-        <h5>{title}</h5>
-        <p>{desc}</p>
-      </div>
-      <span className="cl-when">{when}</span>
-    </div>
-  );
-}
+// ── DualRow + PercorsoRow + ClRow legacy v2.7.1 RIMOSSI (Fetta E3.5) ────
+// La sezione Percorsi+Changelog del fondo Dashboard e' stata sostituita
+// dalla TemplateGallery prominente (decisione IA Dashboard #5 di
+// Federico, leva engagement-per-token). Le funzioni sono state
+// cancellate (~115 righe). Cerca git log per ripristinare se serve.
+// (blocco DualRow+PercorsoRow+ClRow cancellato — ~115 righe)
 
 
 // ── DashFoot ────────────────────────────────────────────────────────────

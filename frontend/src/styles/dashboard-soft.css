@@ -594,3 +594,179 @@
   color: var(--ink-muted);
   font-size: 13px;
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+ * TemplateGallery — Fetta E3.5 · fondo dashboard prominente, 9 template
+ * Decisione IA Dashboard #5 (leva engagement-per-token).
+ * ════════════════════════════════════════════════════════════════════════ */
+.dash-soft .tpl-block { margin-bottom: 56px; }
+
+.dash-soft .tg-filters {
+  display: flex; align-items: center;
+  gap: 8px; margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.dash-soft .filter-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  height: 30px; padding: 0 12px;
+  font-size: 12.5px; font-weight: 500;
+  color: var(--ink-muted);
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-full, 9999px);
+  cursor: pointer;
+  transition:
+    background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    border-color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-soft .filter-chip:hover {
+  border-color: var(--border-light);
+  color: var(--ink);
+}
+.dash-soft .filter-chip.is-active {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--bg-panel);
+}
+.dash-soft .filter-chip .fc-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  opacity: 0.7;
+}
+
+.dash-soft .tg-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(248px, 1fr));
+  gap: 16px;
+}
+
+.dash-soft .tpl-card {
+  display: flex; flex-direction: column;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl, 12px);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  transition:
+    box-shadow var(--d-mid, 200ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    border-color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    transform var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-soft .tpl-card:hover {
+  border-color: var(--border-light);
+  box-shadow: var(--shadow-hover);
+  transform: translateY(-2px);
+}
+.dash-soft .tpl-card.is-featured {
+  border-color: rgba(var(--accent-rgb, 8, 145, 178), 0.4);
+}
+.dash-soft .tpl-thumb {
+  position: relative;
+  aspect-ratio: 280 / 150;
+  background: var(--bg-viewport);
+  border-bottom: 1px solid var(--border);
+}
+.dash-soft .tpl-thumb svg { width: 100%; height: 100%; display: block; }
+.dash-soft .tpl-pill {
+  position: absolute; top: 9px; left: 9px;
+  font-family: var(--font-mono);
+  font-size: 9px; font-weight: 600;
+  letter-spacing: var(--ls-wide-2, 0.08em);
+  padding: 2px 7px;
+  border-radius: var(--r-sm, 6px);
+}
+.dash-soft .pill-pop {
+  color: var(--accent);
+  background: var(--accent-subtle);
+  border: 1px solid rgba(var(--accent-rgb, 8, 145, 178), 0.3);
+}
+.dash-soft .pill-pro {
+  color: var(--purple);
+  background: var(--bg-purple);
+}
+.dash-soft .pill-new {
+  color: var(--success);
+  background: var(--bg-success);
+}
+
+.dash-soft .tpl-body { padding: 14px 16px 4px; flex: 1; }
+.dash-soft .tpl-id {
+  font-family: var(--font-mono);
+  font-size: 10px; font-weight: 600;
+  color: var(--ink-dim);
+}
+.dash-soft .tpl-body h3 {
+  margin: 4px 0 0;
+  font-family: var(--font-display);
+  font-weight: 700; font-size: 15px;
+  letter-spacing: var(--ls-tight-1, -0.015em);
+  color: var(--ink);
+}
+.dash-soft .tpl-body p {
+  margin: 6px 0 0;
+  font-size: 12px; line-height: 1.5;
+  color: var(--ink-muted);
+}
+.dash-soft .tpl-meta {
+  display: flex; align-items: center;
+  gap: 6px; flex-wrap: wrap;
+  margin: 12px 0 0;
+}
+.dash-soft .meta-pill {
+  font-family: var(--font-mono);
+  font-size: 9.5px; font-weight: 500;
+  text-transform: lowercase;
+  color: var(--ink-muted);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: var(--r-sm, 6px);
+}
+.dash-soft .mp-mat {
+  color: var(--coral);
+  background: var(--bg-coral);
+  border-color: rgba(194, 65, 12, 0.18);
+}
+.dash-soft .mp-mat-ca {
+  color: var(--purple);
+  background: var(--bg-purple);
+  border-color: rgba(83, 74, 183, 0.18);
+}
+.dash-soft .mp-mat-wood {
+  color: #8a6d3b;
+  background: rgba(138, 109, 59, 0.10);
+  border-color: rgba(138, 109, 59, 0.2);
+}
+.dash-soft .meta-dot {
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+}
+.dash-soft .meta-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--ink-dim);
+}
+
+.dash-soft .tpl-cta {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  margin: 14px 16px 16px;
+  padding: 0 13px; height: 34px;
+  font-size: 12.5px; font-weight: 600;
+  color: var(--ink);
+  background: var(--bg-hover);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md, 8px);
+  cursor: pointer;
+  transition:
+    background var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    border-color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1)),
+    color var(--d-fast, 120ms) var(--ease-standard, cubic-bezier(0.2, 0, 0, 1));
+}
+.dash-soft .tpl-cta svg { width: 13px; height: 13px; }
+.dash-soft .tpl-card:hover .tpl-cta {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
