@@ -9,7 +9,8 @@ import { useRightPanelStore } from "../store/rightPanelStore";
 describe("ShellPanel", () => {
   it("renders header with workspace title", () => {
     render(<ShellPanel workspace="risultati">content</ShellPanel>);
-    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Risultati");
+    // v3.4 Fetta E2.5b: workspace id "risultati" → titolo "Verifica" (label only).
+    expect(screen.getByRole("heading", { level: 2 })).toHaveTextContent("Verifica");
   });
 
   it("renders tabs for the workspace", () => {

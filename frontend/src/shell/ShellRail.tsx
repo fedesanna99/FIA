@@ -20,9 +20,11 @@
 //   io        → workspaceStore.workspace = "tools"
 
 import {
-  Box, Cog, Activity, CheckCircle, Shuffle, Bug, BookOpen, Settings,
-  ChevronRight, Eye,
+  Box, Cog, Activity, Bug, BookOpen, Settings,
+  ChevronRight,
 } from "lucide-react";
+// v3.4 Fetta E2.5a 29/05: CheckCircle, Shuffle, Eye rimossi (erano per
+// le voci verifiche/io/view eliminate dal rail collapsed).
 import { useWorkspaceStore } from "../store/workspaceStore";
 import { useAnalysisStore } from "../store/analysisStore";
 import { useRailExpansion } from "../lib/useRailExpansion";
@@ -39,15 +41,18 @@ interface RailEntry {
   Icon: typeof Box;
 }
 
+// v3.4 Fetta E2.5a 29/05 sera (ADR 003 mapping 6 → 3): le 3 voci
+// `verifiche` / `io` / `view` sono state rimosse dal rail collapsed.
+// Restano le 3 fasi della spina (modello/analisi/risultati). I 3
+// workspace orfani sono ancora montabili da ⌘K palette finche' non
+// confluiscono nei nuovi posti previsti (E2.5c per Verifiche → tab del
+// panel DX, fetta successiva per View → toolbar viewport, palette +
+// AvatarMenu per I/O).
 const WORKSPACES: RailEntry[] = [
   { id: "modello", label: "Modello", kbd: "1", Icon: Box },
   { id: "analisi", label: "Analisi", kbd: "2", Icon: Cog },
-  { id: "risultati", label: "Risultati", kbd: "3", Icon: Activity },
-  { id: "verifiche", label: "Verifiche", kbd: "4", Icon: CheckCircle },
-  { id: "io", label: "I/O & Collab", kbd: "5", Icon: Shuffle },
-  // v3.1 Fase 2c: View exposes overlay viewport toggles + 4 view preset
-  // (engineer/cad/review/perf). Prima accessibile solo da right-rail legacy.
-  { id: "view", label: "View", kbd: "6", Icon: Eye },
+  // v3.4 Fetta E2.5b: label "Risultati" → "Verifica" (id invariato).
+  { id: "risultati", label: "Verifica", kbd: "3", Icon: Activity },
 ];
 
 interface ShellRailProps {
@@ -66,10 +71,12 @@ function resolveActiveItemId(
   active: ShellWorkspaceId,
   analysisType: string,
 ): string | undefined {
-  if (active === "verifiche") return "checks";
+  // v3.4 Fetta E2.5a 29/05: rimossi mapping per `verifiche` (→ checks)
+  // e `view` (→ view) — quelle voci non esistono piu' nel railConfig.
+  // Se l'utente atterra in workspace=verifiche/io/view via palette,
+  // la rail non evidenzia nulla (e' OK — sono orfani in transizione).
   if (active === "risultati") return "results";
   if (active === "modello") return "home";
-  if (active === "view") return "view"; // v3.1 Fase 2c: View workspace
   if (active === "analisi") {
     if (analysisType === "dynamic") return "dynamic";
     if (analysisType === "modal") return "seismic"; // modal = sismica

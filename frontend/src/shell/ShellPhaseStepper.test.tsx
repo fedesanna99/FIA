@@ -94,7 +94,8 @@ describe("ShellPhaseStepper · redesign/workspace-fasi (FETTA 1)", () => {
     render(<ShellPhaseStepper active="modello" onChange={vi.fn()} />);
     expect(screen.getByText("Costruisci")).toBeInTheDocument();
     expect(screen.getByText("Esegui")).toBeInTheDocument();
-    expect(screen.getByText("Risultati")).toBeInTheDocument();
+    // v3.4 Fetta E2.5b: label "Risultati" → "Verifica" (id "risultati" interno invariato).
+    expect(screen.getByText("Verifica")).toBeInTheDocument();
   });
 
   // ── Navigation ──────────────────────────────────────────────────────────

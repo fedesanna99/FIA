@@ -24,8 +24,9 @@ describe("ShellRightReopenTab", () => {
   });
 
   it("mostra la label del workspace passato come prop", () => {
+    // v3.4 Fetta E2.5b: workspace "risultati" → label "Verifica".
     render(<ShellRightReopenTab workspace="risultati" />);
-    expect(screen.getByText("Risultati")).toBeInTheDocument();
+    expect(screen.getByText("Verifica")).toBeInTheDocument();
   });
 
   it("default workspace = 'modello' (label 'Modello')", () => {
@@ -51,7 +52,7 @@ describe("ShellRightReopenTab", () => {
     const workspaces: Array<{ id: "modello" | "analisi" | "risultati" | "verifiche" | "io" | "view"; label: string }> = [
       { id: "modello", label: "Modello" },
       { id: "analisi", label: "Analisi" },
-      { id: "risultati", label: "Risultati" },
+      { id: "risultati", label: "Verifica" }, // v3.4 Fetta E2.5b
       { id: "verifiche", label: "Verifiche" },
       { id: "io", label: "I/O & Collab" },
       { id: "view", label: "View" },

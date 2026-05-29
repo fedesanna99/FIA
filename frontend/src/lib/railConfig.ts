@@ -1,10 +1,12 @@
 /**
- * railConfig (v2.6.6 E.2) — single source of truth per le 12 voci della
- * rail expanded di FEA Pro (sia Shell custom v2.6.x che chrome legacy).
+ * railConfig (v2.6.6 E.2 + Fetta E2.5a 29/05 sera) — single source of
+ * truth per le 10 voci della rail expanded di FEA Pro (sia Shell custom
+ * v2.6.x che chrome legacy).
  *
  * Match composition mockup `FEA_Pro · Dashboard A1.pdf`:
  *   - 4 sezioni testuali: WORKSPACE / SOLVE / VERIFY / RISORSE
- *   - 12 voci totali con Lucide icons + label + action kind
+ *   - 10 voci totali con Lucide icons + label + action kind
+ *     (era 12 fino a v3.4 — vedi nota Fetta E2.5a sotto)
  *
  * Action dispatch: vedi `frontend/src/lib/railDispatch.ts` per la mappa
  * action kind → effetto (workspace switch, dialog open, toast prerequisite).
@@ -13,7 +15,14 @@
  *   - `frontend/src/shell/ShellRail.tsx` (Shell custom v2.6.x)
  *   - `frontend/src/components/shell/LeftRail.tsx` (chrome legacy, home dashboard)
  *
- * STOP: 12 voci LOCKED. Modifiche richiedono autorizzazione PM esplicita.
+ * v3.4 Fetta E2.5a 29/05 sera (autorizzazione esplicita Federico, ADR 003
+ * mapping 6 → 3 workspace): rimosse 2 voci VERIFY:
+ *   - `checks` (workspace=verifiche) → diventerà tab dentro panel DX di
+ *     Verifica (E2.5c). Per ora raggiungibile via ⌘K palette.
+ *   - `view` (workspace=view) → diventerà toolbar viewport (E2.5
+ *     successiva). Per ora raggiungibile via ⌘K palette.
+ *
+ * STOP: 10 voci LOCKED. Modifiche richiedono autorizzazione PM esplicita.
  */
 import {
   Home,
@@ -24,13 +33,13 @@ import {
   Waves,
   Triangle,
   BarChart3,
-  CheckSquare,
   FileText,
   BookOpen,
   HelpCircle,
-  Eye,
   type LucideIcon,
 } from "lucide-react";
+// v3.4 Fetta E2.5a 29/05: CheckSquare e Eye rimossi dagli import
+// dopo eliminazione voci VERIFY/checks e VERIFY/view dal rail.
 
 /**
  * Tipo workspace condiviso (ShellRail custom + LeftRail legacy).
@@ -139,18 +148,12 @@ export const RAIL_SECTIONS: Record<RailSectionId, RailItem[]> = {
   VERIFY: [
     {
       id: "results",
-      label: "Risultati",
+      // v3.4 Fetta E2.5b (29/05 sera): label "Risultati" → "Verifica"
+      // (id "results" invariato per compat railDispatch + test).
+      label: "Verifica",
       icon: BarChart3,
       action: "workspace",
       workspace: "risultati",
-      requiresModel: true,
-    },
-    {
-      id: "checks",
-      label: "Checks",
-      icon: CheckSquare,
-      action: "workspace",
-      workspace: "verifiche",
       requiresModel: true,
     },
     {
@@ -160,15 +163,10 @@ export const RAIL_SECTIONS: Record<RailSectionId, RailItem[]> = {
       action: "open-report-dialog",
       requiresModel: true,
     },
-    // v3.1 Fase 2c: voce View esposta (overlay viewport, view preset)
-    {
-      id: "view",
-      label: "View",
-      icon: Eye,
-      action: "workspace",
-      workspace: "view",
-      requiresModel: true,
-    },
+    // v3.4 Fetta E2.5a 29/05 sera: rimosse `checks` (workspace=verifiche
+    // → futuro tab dentro panel DX di Verifica, E2.5c) e `view`
+    // (workspace=view → futuro toolbar viewport). Raggiungibili oggi
+    // tramite ⌘K palette finche' non arriva la migrazione.
   ],
   RISORSE: [
     {

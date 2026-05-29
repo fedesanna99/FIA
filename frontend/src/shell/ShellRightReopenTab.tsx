@@ -25,10 +25,12 @@ type ShellWorkspaceId = "modello" | "analisi" | "risultati" | "verifiche" | "io"
 
 /** Label workspace per la tab verticale — italiano user-facing, allineato
  *  ai title dello `ShellPanel` CONFIG. */
+// v3.4 Fetta E2.5b (29/05 sera): label "Risultati" → "Verifica" per
+// allineamento con ShellPanel.tsx CONFIG e spina.
 const WORKSPACE_LABEL: Record<ShellWorkspaceId, string> = {
   modello: "Modello",
   analisi: "Analisi",
-  risultati: "Risultati",
+  risultati: "Verifica",
   verifiche: "Verifiche",
   io: "I/O & Collab",
   view: "View",

@@ -31,7 +31,9 @@ describe("ShellRail · expanded mode (default v2.6.5)", () => {
     expect(screen.getByText("RISORSE")).toBeInTheDocument();
   });
 
-  it("renders 12 rail-item per A1 mockup (Home/Modelli/Jobs/Cronologia + Lineare/Dinamica/Sismica + Risultati/Checks/Report + Template/Docs)", () => {
+  it("renders 11 rail-item per A1 mockup (v3.4 Fetta E2.5a: -checks)", () => {
+    // Era 12 (con checks). Fetta E2.5a rimuove checks (futuro tab dentro
+    // Verifica) e view (futuro toolbar viewport). View non era nei test.
     render(<ShellRail />);
     expect(screen.getByTestId("rail-item-home")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-models")).toBeInTheDocument();
@@ -41,17 +43,19 @@ describe("ShellRail · expanded mode (default v2.6.5)", () => {
     expect(screen.getByTestId("rail-item-dynamic")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-seismic")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-results")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-item-checks")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-report")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-templates")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-docs")).toBeInTheDocument();
+    // Verifica esplicita rimozioni Fetta E2.5a
+    expect(screen.queryByTestId("rail-item-checks")).toBeNull();
+    expect(screen.queryByTestId("rail-item-view")).toBeNull();
   });
 
   it("active workspace marks corresponding rail-item as data-active=true", () => {
-    render(<ShellRail active="verifiche" />);
-    // Checks è quello che fa setWorkspace verifiche
-    expect(screen.getByTestId("rail-item-checks").getAttribute("data-active")).toBe("true");
-    // Home (mapped a workspace modello) non è attivo se active=verifiche
+    render(<ShellRail active="risultati" />);
+    // v3.4 Fetta E2.5a: era active="verifiche" → "checks" (rimosso).
+    // Ora active="risultati" → rail-item-results.
+    expect(screen.getByTestId("rail-item-results").getAttribute("data-active")).toBe("true");
     expect(screen.getByTestId("rail-item-home").getAttribute("data-active")).toBeNull();
   });
 
@@ -60,13 +64,6 @@ describe("ShellRail · expanded mode (default v2.6.5)", () => {
     render(<ShellRail onChange={onChange} />);
     fireEvent.click(screen.getByTestId("rail-item-results"));
     expect(onChange).toHaveBeenCalledWith("risultati");
-  });
-
-  it("clicking rail-item-checks switches workspace to verifiche", () => {
-    const onChange = vi.fn();
-    render(<ShellRail onChange={onChange} />);
-    fireEvent.click(screen.getByTestId("rail-item-checks"));
-    expect(onChange).toHaveBeenCalledWith("verifiche");
   });
 
   it("clicking rail-item-jobs placeholder dispatches info toast (no onChange)", () => {
@@ -97,13 +94,18 @@ describe("ShellRail · collapsed fallback (post-Comprimi)", () => {
     window.localStorage.setItem(STORAGE_KEY, "false");
   });
 
-  it("renders 5 workspace buttons + auto-detect + docs + settings + expand toggle", () => {
+  it("renders 3 workspace buttons + auto-detect + docs + settings + expand toggle (v3.4 Fetta E2.5a: 6→3)", () => {
+    // Era 5 buttons (modello/analisi/risultati/verifiche/io). Fetta E2.5a
+    // rimuove verifiche/io/view → restano solo le 3 fasi della spina.
     render(<ShellRail />);
     expect(screen.getByTestId("rail-modello")).toBeInTheDocument();
     expect(screen.getByTestId("rail-analisi")).toBeInTheDocument();
     expect(screen.getByTestId("rail-risultati")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-verifiche")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-io")).toBeInTheDocument();
+    // Verifica esplicita rimozioni
+    expect(screen.queryByTestId("rail-verifiche")).toBeNull();
+    expect(screen.queryByTestId("rail-io")).toBeNull();
+    expect(screen.queryByTestId("rail-view")).toBeNull();
+    // Bottom actions restano invariati
     expect(screen.getByTestId("rail-autodetect")).toBeInTheDocument();
     expect(screen.getByTestId("rail-docs")).toBeInTheDocument();
     expect(screen.getByTestId("rail-settings")).toBeInTheDocument();

@@ -51,10 +51,14 @@ interface StepConfig {
   workspace: ShellWorkspaceId;
 }
 
+// v3.4 Fetta E2.5b (29/05 sera): label "Risultati" → "Verifica" come
+// deciso da Federico (ADR 003 revisione 29/05). Workspace id resta
+// "risultati" internamente per non rompere store/sessionStorage/route
+// legacy e i test pre-esistenti che asseriscono `onChange("risultati")`.
 const STEPS: StepConfig[] = [
   { index: 1, testid: "phase-step-build",   label: "Costruisci", workspace: "modello"   },
   { index: 2, testid: "phase-step-run",     label: "Esegui",     workspace: "analisi"   },
-  { index: 3, testid: "phase-step-results", label: "Risultati",  workspace: "risultati" },
+  { index: 3, testid: "phase-step-results", label: "Verifica",   workspace: "risultati" },
 ];
 
 export function ShellPhaseStepper({ active, onChange }: ShellPhaseStepperProps) {

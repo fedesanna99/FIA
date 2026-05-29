@@ -61,7 +61,9 @@ describe("LeftRail · expanded mode (v2.6.6 default)", () => {
     expect(screen.getByTestId("rail-section-RISORSE")).toBeInTheDocument();
   });
 
-  it("renders 12 rail-item (Home/Modelli/Jobs/Cronologia + Lineare/Dinamica/Sismica + Risultati/Checks/Report + Template/Docs)", () => {
+  it("renders 11 rail-item (v3.4 Fetta E2.5a: -checks, -view; chrome legacy)", () => {
+    // Era 12 (con checks). Fetta E2.5a rimuove checks e view dal railConfig
+    // → impatto anche su LeftRail legacy (single source of truth).
     renderRail();
     expect(screen.getByTestId("rail-item-home")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-models")).toBeInTheDocument();
@@ -71,10 +73,12 @@ describe("LeftRail · expanded mode (v2.6.6 default)", () => {
     expect(screen.getByTestId("rail-item-dynamic")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-seismic")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-results")).toBeInTheDocument();
-    expect(screen.getByTestId("rail-item-checks")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-report")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-templates")).toBeInTheDocument();
     expect(screen.getByTestId("rail-item-docs")).toBeInTheDocument();
+    // Verifica esplicita rimozioni
+    expect(screen.queryByTestId("rail-item-checks")).toBeNull();
+    expect(screen.queryByTestId("rail-item-view")).toBeNull();
   });
 
   it("renders rail-collapse-toggle Comprimi button", () => {
@@ -88,9 +92,9 @@ describe("LeftRail · expanded mode (v2.6.6 default)", () => {
     expect(window.localStorage.getItem(STORAGE_KEY)).toBe("false");
   });
 
-  it("rail-item-checks: click with active model dispatches workspace switch", () => {
+  it("rail-item-results: click with active model dispatches workspace switch (v3.4 Fetta E2.5a: era 'checks')", () => {
     renderRail();
-    fireEvent.click(screen.getByTestId("rail-item-checks"));
+    fireEvent.click(screen.getByTestId("rail-item-results"));
     expect(useWorkspaceStore.getState().workspace).toBe("verify");
   });
 
@@ -126,10 +130,10 @@ describe("LeftRail · expanded mode (v2.6.6 default)", () => {
       expect(toasts[0].action?.label).toMatch(/galleria template/i);
     });
 
-    it("rail-item-checks senza modello: NO workspace switch (toast prerequisite)", () => {
+    it("rail-item-results senza modello: NO workspace switch (toast prerequisite, v3.4 Fetta E2.5a: era 'checks')", () => {
       const wsBefore = useWorkspaceStore.getState().workspace;
       renderRail();
-      fireEvent.click(screen.getByTestId("rail-item-checks"));
+      fireEvent.click(screen.getByTestId("rail-item-results"));
       // Workspace non cambia
       expect(useWorkspaceStore.getState().workspace).toBe(wsBefore);
       // Toast emesso

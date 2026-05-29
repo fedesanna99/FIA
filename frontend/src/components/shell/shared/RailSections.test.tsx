@@ -16,10 +16,11 @@ describe("RailSections (v2.6.6 E.2 shared)", () => {
     expect(screen.getByTestId("rail-section-RISORSE")).toBeInTheDocument();
   });
 
-  it("renders all 13 items from railConfig (v3.1 Fase 2c: +view)", () => {
+  it("renders all 11 items from railConfig (v3.4 Fetta E2.5a: -checks, -view)", () => {
     render(<RailSections onItemClick={vi.fn()} onCollapse={vi.fn()} />);
     const items = getAllRailItems();
-    expect(items).toHaveLength(13);
+    // 4 (WORKSPACE) + 3 (SOLVE) + 2 (VERIFY: results+report) + 2 (RISORSE) = 11
+    expect(items).toHaveLength(11);
     for (const item of items) {
       expect(screen.getByTestId(`rail-item-${item.id}`)).toBeInTheDocument();
     }
@@ -36,12 +37,13 @@ describe("RailSections (v2.6.6 E.2 shared)", () => {
   it("active item highlight via data-active='true' (aria-current=page)", () => {
     render(
       <RailSections
-        activeItemId="checks"
+        activeItemId="results"
         onItemClick={vi.fn()}
         onCollapse={vi.fn()}
       />,
     );
-    const active = screen.getByTestId("rail-item-checks");
+    // v3.4 Fetta E2.5a: era "checks" → ora "results" (checks rimosso).
+    const active = screen.getByTestId("rail-item-results");
     expect(active.getAttribute("data-active")).toBe("true");
     expect(active.getAttribute("aria-current")).toBe("page");
 

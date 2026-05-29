@@ -56,7 +56,9 @@ const CONFIG: Record<ShellWorkspaceId, ShellPanelConfig> = {
   },
   risultati: {
     icon: Activity,
-    title: "Risultati",
+    // v3.4 Fetta E2.5b (29/05 sera): label "Risultati" → "Verifica".
+    // Workspace id `risultati` resta invariato (store/route legacy).
+    title: "Verifica",
     desc: "Visualizza e interpreta i risultati dell'ultima analisi.",
     tabs: [
       { id: "viewport", label: "Viewport" },

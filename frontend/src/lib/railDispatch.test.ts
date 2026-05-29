@@ -27,8 +27,10 @@ beforeEach(() => {
 
 describe("useRailDispatch · workspace switching", () => {
   it("dispatches 'workspace' action: setWorkspace called with legacy id", () => {
+    // v3.4 Fetta E2.5a: usato "results" al posto del rimosso "checks".
+    // `results` ha workspace=risultati → wsToLegacy → "verify".
     const { result } = renderHook(() => useRailDispatch());
-    const item = findRailItem("checks")!;
+    const item = findRailItem("results")!;
     act(() => result.current(item));
     expect(useWorkspaceStore.getState().workspace).toBe("verify");
   });
@@ -78,9 +80,10 @@ describe("useRailDispatch · click guard requiresModel", () => {
   });
 
   it("requiresModel: senza modello NON cambia workspace", () => {
+    // v3.4 Fetta E2.5a: usato "results" al posto del rimosso "checks".
     useWorkspaceStore.setState({ workspace: "model" } as never);
     const { result } = renderHook(() => useRailDispatch());
-    const item = findRailItem("checks")!;
+    const item = findRailItem("results")!;
     act(() => result.current(item));
     expect(useWorkspaceStore.getState().workspace).toBe("model");
   });

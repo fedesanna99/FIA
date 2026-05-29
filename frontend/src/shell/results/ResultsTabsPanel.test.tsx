@@ -75,7 +75,8 @@ describe("ResultsTabsPanel · FETTA 2a", () => {
     expect(screen.getByTestId("results-tab-sintesi")).toBeInTheDocument();
     expect(screen.getByTestId("results-tab-dati")).toBeInTheDocument();
     expect(screen.getByTestId("results-tab-verifiche")).toBeInTheDocument();
-    expect(screen.getByText("Risultati")).toBeInTheDocument();
+    // v3.4 Fetta E2.5b: header "Risultati" → "Verifica" (label only).
+    expect(screen.getByText("Verifica")).toBeInTheDocument();
   });
 
   it("default Sintesi: monta ResultsSintesi (FAM B, niente piu' InspectPanel)", () => {

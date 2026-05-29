@@ -76,7 +76,7 @@ export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
           <Activity size={16} />
         </span>
         <div className="results-panel-h-text">
-          <div className="results-panel-t">Risultati</div>
+          <div className="results-panel-t">Verifica</div>{/* v3.4 Fetta E2.5b */}
           <div className="results-panel-s">{subtitle}</div>
         </div>
       </header>
