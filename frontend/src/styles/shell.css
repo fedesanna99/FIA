@@ -2477,19 +2477,55 @@ body.shell-sharp .slt-head .slt-close { border-radius: 0; }
   scrollbar-width: thin;
   scrollbar-color: var(--border-light) transparent;
 }
+/* v3.4 Fetta E2.3 (30/05/2026): refactor `.slt-item` da grid container
+   a wrapper colonna per supportare l'espansione in foglie sotto. Il
+   layout grid si sposta su `.slt-item-head` (il button). */
 .slt-item {
+  display: flex;
+  flex-direction: column;
+}
+.slt-item-head {
   display: grid;
-  grid-template-columns: 24px 1fr auto;
+  grid-template-columns: 12px 24px 1fr auto;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   padding: 9px 16px;
   font: 500 12px/1 inherit;
   color: var(--ink);
-  cursor: default;
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
   transition: background-color 120ms ease;
+  width: 100%;
 }
-.slt-item:hover {
+.slt-item-head:hover {
   background: var(--bg-hover, var(--bg));
+}
+.slt-item-head:disabled {
+  cursor: default;
+}
+.slt-item-head:disabled:hover {
+  background: transparent;
+}
+.slt-item.expanded .slt-item-head {
+  background: var(--bg-hover, var(--bg));
+}
+.slt-item-chevron {
+  color: var(--ink-faint);
+  transition: transform 180ms ease;
+  flex-shrink: 0;
+}
+.slt-item-chevron[data-state="open"] {
+  transform: rotate(90deg);
+  color: var(--accent);
+}
+/* Spacer per sezioni non-expandable: occupa lo spazio del chevron
+   cosi' label/count restano allineati col resto. */
+.slt-item-chevron-spacer {
+  display: block;
+  width: 12px;
+  height: 12px;
 }
 .slt-item-icon {
   display: grid; place-items: center;
@@ -2511,6 +2547,73 @@ body.shell-sharp .slt-head .slt-close { border-radius: 0; }
   border-radius: 999px;
 }
 body.shell-sharp .slt-item-count { border-radius: 0; }
+
+/* v3.4 Fetta E2.3 · foglie cliccabili (Nodi/Elementi).
+   Lista renderizzata sotto `.slt-item-head` quando sezione espansa.
+   Click foglia → selectionStore + openInspector. */
+.slt-leaves {
+  list-style: none;
+  margin: 0;
+  padding: 0 0 6px 0;
+  border-bottom: 1px solid var(--border);
+}
+.slt-leaf {
+  display: grid;
+  grid-template-columns: 44px 1fr;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 16px 6px 44px; /* indent = 12 chevron + 24 icon + 8 gap */
+  background: transparent;
+  border: 0;
+  text-align: left;
+  font: 500 11px/1 inherit;
+  color: var(--ink-dim);
+  cursor: pointer;
+  transition: background-color 100ms ease, color 100ms ease;
+}
+.slt-leaf:hover {
+  background: var(--bg-hover, var(--bg));
+  color: var(--ink);
+}
+.slt-leaf.is-active {
+  background: var(--accent-subtle, rgba(8, 145, 178, 0.10));
+  color: var(--accent);
+  font-weight: 600;
+}
+.slt-leaf.is-active:hover {
+  background: var(--accent-subtle, rgba(8, 145, 178, 0.10));
+}
+.slt-leaf-id {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+.slt-leaf.is-active .slt-leaf-id {
+  color: var(--accent);
+}
+.slt-leaf-meta {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.slt-leaf.is-active .slt-leaf-meta {
+  color: var(--accent);
+  opacity: 0.85;
+}
+.slt-leaf-empty {
+  padding: 8px 16px 8px 44px;
+  font-size: 11px;
+  color: var(--ink-faint);
+  font-style: italic;
+}
 
 /* v3.4 Fetta E2.4-bis (29/05 sera) · tree-note del prototipo v3.
    Box ancorato in basso del panel SX (sotto .slt-list), spiega che il
@@ -3121,3 +3224,131 @@ body.shell-sharp .cmd-foot kbd { border-radius: 0; }
   }
 }
 
+
+
+/* ──────────────────────────────────────────────────────────────────────
+ * Fetta E2.3 · Inspector panel (selezione bidirezionale viewport↔Albero)
+ *  Renderizzato come terzo stato del rightPanelStore ("inspector").
+ *  Mostra NodeDetail/ElementDetail dell entità selezionata via selectionStore.
+ *  Vedi ShellInspectorPanel.tsx + ADR 003.
+ * ──────────────────────────────────────────────────────────────────── */
+
+.shell-inspector-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-panel);
+  border-left: 1px solid var(--border);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+.sip-head {
+  padding: 12px 14px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-hover, var(--bg));
+}
+.sip-head-row {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+.sip-icon {
+  display: grid; place-items: center;
+  color: var(--accent);
+  background: var(--accent-subtle, rgba(8, 145, 178, 0.10));
+  border-radius: 6px;
+  width: 24px; height: 24px;
+}
+body.shell-sharp .sip-icon { border-radius: 0; }
+.sip-head-text { min-width: 0; }
+.sip-title {
+  margin: 0;
+  font: 600 13px/1.2 inherit;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.sip-subtitle {
+  margin: 2px 0 0;
+  font: 500 11px/1.3 inherit;
+  color: var(--ink-dim);
+  font-family: "JetBrains Mono", monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sip-close {
+  display: grid; place-items: center;
+  width: 24px; height: 24px;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--ink-dim);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+body.shell-sharp .sip-close { border-radius: 0; }
+.sip-close:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.sip-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+}
+
+.sip-empty {
+  padding: 28px 18px;
+  text-align: center;
+  color: var(--ink-dim);
+}
+.sip-empty-title {
+  font: 600 13px/1.3 inherit;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+.sip-empty-hint {
+  font: 400 12px/1.5 inherit;
+  margin: 0;
+  color: var(--ink-muted);
+}
+
+.sip-placeholder {
+  padding: 14px 16px;
+}
+.sip-placeholder-note {
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+  font: 400 11px/1.5 inherit;
+  color: var(--ink-muted);
+  font-style: italic;
+}
+.sip-dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 14px;
+  margin: 0;
+}
+.sip-dl dt {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  align-self: center;
+}
+.sip-dl dd {
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink);
+}
+.sip-dl-mono {
+  font-family: "JetBrains Mono", monospace !important;
+  font-variant-numeric: tabular-nums;
+}

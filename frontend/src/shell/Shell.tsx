@@ -42,6 +42,11 @@ import { ShellPanel } from "./ShellPanel";
 // Pattern simmetrico al focus-exit pill (Fetta 0): affordance sempre
 // visibile per riaprire qualcosa che e' stato chiuso volontariamente.
 import { ShellRightReopenTab } from "./ShellRightReopenTab";
+// v3.4 Fetta E2.3 (30/05/2026): panel destro in stato "inspector"
+// (terzo stato del rightPanelStore oltre open/closed). Renderizzato
+// quando l'utente seleziona un nodo/elemento dall'Albero o dal viewport.
+// Vedi ADR 003 (panel DX 3 stati) + selectionStore.
+import { ShellInspectorPanel } from "./ShellInspectorPanel";
 // v3.4 Fetta E2-IA Commit E2.4: panel SX "Albero modello" con gerarchia
 // del modello caricato (5 sezioni read-only da modelStore). Default
 // closed → grid 3-col invariata. Aperto → grid 4-col con seconda
@@ -328,7 +333,13 @@ export function Shell({ children }: ShellProps) {
                 <ResultsVerdictStrip />
               )}
             </ShellViewport>
-            {!showFocusChrome && (panelState === "open" ? (
+            {/* v3.4 Fetta E2.3 (30/05/2026): render condizionale del panel
+                destro a 3 stati (rightPanelStore.panelState):
+                  - "open"       → ShellPanel con content fase (default)
+                  - "inspector"  → ShellInspectorPanel (NodeDetail/ElementDetail)
+                  - "closed"     → ShellRightReopenTab (32px sticky)
+                showFocusChrome guard: in focus mode niente panel. */}
+            {!showFocusChrome && panelState === "open" && (
               <ShellPanel workspace={activeWs}>
                 {/* redesign/workspace-fasi (FETTA 2b · FAM B): wira onIterate
                     su Risultati cosi' la Sintesi puo' tornare a "modello"
@@ -337,7 +348,11 @@ export function Shell({ children }: ShellProps) {
                   ? <ResultsTabsPanel onIterate={() => setActiveWs("modello")} />
                   : WORKSPACE_CONTENT_NORMAL[activeWs]}
               </ShellPanel>
-            ) : (
+            )}
+            {!showFocusChrome && panelState === "inspector" && (
+              <ShellInspectorPanel />
+            )}
+            {!showFocusChrome && panelState === "closed" && (
               /* v3.4 Fetta E2-IA Commit E2.2: panel destro chiuso →
                  ShellRightReopenTab prende il posto di ShellPanel nella
                  terza colonna grid `.shell-mid` (32px via override
@@ -345,7 +360,7 @@ export function Shell({ children }: ShellProps) {
                  sulla tab → rightPanelStore.open() → ShellPanel torna.
                  Workspace prop = label workspace corrente. */
               <ShellRightReopenTab workspace={activeWs} />
-            ))}
+            )}
           </>
         )}
       </div>

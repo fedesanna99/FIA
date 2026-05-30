@@ -32,14 +32,21 @@
 // albero (es. click su "Nodi" → seleziona tutti i nodi nel viewport).
 // Quello e' scope E2.3 / E3. Qui solo lettura + count.
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   X, Circle, Spline, Layers, Anchor, ArrowDownToLine,
-  GitBranch, ListTree,
+  GitBranch, ListTree, ChevronRight,
 } from "lucide-react";
 
 import { useLeftTreeStore } from "../store/leftTreeStore";
 import { useModelStore } from "../store/modelStore";
+// v3.4 Fetta E2.3 (30/05/2026 mattina): selezione bidirezionale.
+// L'Albero scrive al selectionStore al click foglia + legge per
+// highlight della foglia attiva (anche quando selezione viene dal
+// viewport). rightPanelStore.openInspector() apre il panel DX nel
+// terzo stato "inspector" che mostra NodeDetail/ElementDetail.
+import { useSelectionStore } from "../store/selectionStore";
+import { useRightPanelStore } from "../store/rightPanelStore";
 
 
 interface TreeSection {
@@ -51,6 +58,11 @@ interface TreeSection {
   label: string;
   /** Icona Lucide (stroke 1.8 come convention dei tb-iconbtn). */
   Icon: typeof Circle;
+  /** v3.4 Fetta E2.3 (30/05/2026): la sezione e' espandibile in foglie
+   *  cliccabili (Nodi/Elementi → click foglia apre Inspector). Le altre
+   *  sezioni (Materiali, Vincoli, Carichi, Combinazioni) mostrano solo
+   *  count finché non avranno ItemDetail dedicati — fetta futura. */
+  expandable: boolean;
 }
 
 
@@ -63,12 +75,12 @@ interface TreeSection {
 // `section_id`). Combinazioni e' attualmente "—" (non implementato
 // nel modello dominio) — vedi `counts` sotto.
 const SECTIONS: TreeSection[] = [
-  { key: "nodes",              label: "Nodi",                Icon: Circle           },
-  { key: "elements",           label: "Elementi",            Icon: Spline           },
-  { key: "sections-materials", label: "Sezioni · materiali", Icon: Layers           },
-  { key: "loads",              label: "Carichi",             Icon: ArrowDownToLine  },
-  { key: "constraints",        label: "Vincoli",             Icon: Anchor           },
-  { key: "combinations",       label: "Combinazioni",        Icon: GitBranch        },
+  { key: "nodes",              label: "Nodi",                Icon: Circle,           expandable: true  },
+  { key: "elements",           label: "Elementi",            Icon: Spline,           expandable: true  },
+  { key: "sections-materials", label: "Sezioni · materiali", Icon: Layers,           expandable: false },
+  { key: "loads",              label: "Carichi",             Icon: ArrowDownToLine,  expandable: false },
+  { key: "constraints",        label: "Vincoli",             Icon: Anchor,           expandable: false },
+  { key: "combinations",       label: "Combinazioni",        Icon: GitBranch,        expandable: false },
 ];
 
 
@@ -111,6 +123,66 @@ export function ShellLeftTreePanel() {
 
   const isEmpty = model === null;
   const modelName = model?.name ?? "—";
+
+  // ── v3.4 Fetta E2.3 (30/05/2026): selezione bidirezionale ────────
+  // L'Albero scrive a selectionStore + apre Inspector al click foglia.
+  // Subscribe a selectionStore per highlight foglia attiva + auto-expand
+  // della sezione corrispondente quando la selezione viene dal viewport
+  // (es. l'utente clicca un nodo 3D → si apre "Nodi" + N3 highlighted).
+  const selectedNodeId = useSelectionStore((s) => s.selectedNodeId);
+  const selectedElementId = useSelectionStore((s) => s.selectedElementId);
+  const selectNode = useSelectionStore((s) => s.selectNode);
+  const selectElement = useSelectionStore((s) => s.selectElement);
+  const openInspector = useRightPanelStore((s) => s.openInspector);
+
+  // Single-expansion locale (UI-only, non persisted): solo 1 sezione
+  // espansa alla volta per economia visuale (le foglie possono essere
+  // tante — vedere multiple sezioni aperte e' rumoroso).
+  const [expandedSection, setExpandedSection] = useState<
+    TreeSection["key"] | null
+  >(null);
+  const activeLeafRef = useRef<HTMLButtonElement | null>(null);
+
+  // Auto-expand sezione quando selezione cambia da fuori (viewport click
+  // o cambio modello). Se l'utente sta gia' navigando "Nodi" e clicca
+  // un Element nel viewport, la sezione passa a "Elementi".
+  useEffect(() => {
+    if (selectedNodeId !== null) {
+      setExpandedSection("nodes");
+    } else if (selectedElementId !== null) {
+      setExpandedSection("elements");
+    }
+  }, [selectedNodeId, selectedElementId]);
+
+  // Auto-scroll foglia attiva in vista quando selectionId / expansion
+  // cambiano. `block: "nearest"` evita scroll inutili se gia' visibile;
+  // `behavior: "smooth"` per UX polish.
+  useEffect(() => {
+    if (activeLeafRef.current) {
+      activeLeafRef.current.scrollIntoView({
+        block: "nearest",
+        behavior: "smooth",
+      });
+    }
+  }, [selectedNodeId, selectedElementId, expandedSection]);
+
+  const handleSectionClick = (
+    key: TreeSection["key"],
+    expandable: boolean,
+  ) => {
+    if (!expandable) return;
+    setExpandedSection((curr) => (curr === key ? null : key));
+  };
+
+  const handleNodeLeafClick = (id: number) => {
+    selectNode(id);
+    openInspector();
+  };
+
+  const handleElementLeafClick = (id: number) => {
+    selectElement(id);
+    openInspector();
+  };
 
   return (
     <aside
@@ -163,22 +235,121 @@ export function ShellLeftTreePanel() {
               const count = counts[sec.key];
               // 4 stati onesti: null → "—" (non implementato/non applicabile).
               const display = count === null ? "—" : count;
+              const isExpanded = expandedSection === sec.key;
+              // v3.4 Fetta E2.3: header e' clickable solo se expandable
+              // (Nodi/Elementi). Le altre sezioni restano informative
+              // (count read-only) — fetta futura per ItemDetail dedicati.
               return (
                 <li
                   key={sec.key}
-                  className="slt-item"
+                  className={`slt-item${isExpanded ? " expanded" : ""}${
+                    sec.expandable ? "" : " not-expandable"
+                  }`}
                   data-testid={`shell-left-tree-${sec.key}`}
+                  data-state={isExpanded ? "open" : "closed"}
                 >
-                  <span className="slt-item-icon">
-                    <SecIcon size={14} strokeWidth={1.8} aria-hidden />
-                  </span>
-                  <span className="slt-item-label">{sec.label}</span>
-                  <span
-                    className="slt-item-count"
-                    data-testid={`shell-left-tree-${sec.key}-count`}
+                  <button
+                    type="button"
+                    className="slt-item-head"
+                    onClick={() => handleSectionClick(sec.key, sec.expandable)}
+                    aria-expanded={sec.expandable ? isExpanded : undefined}
+                    disabled={!sec.expandable}
+                    data-testid={`shell-left-tree-${sec.key}-head`}
                   >
-                    {display}
-                  </span>
+                    {sec.expandable ? (
+                      <ChevronRight
+                        className="slt-item-chevron"
+                        size={12}
+                        strokeWidth={2}
+                        data-state={isExpanded ? "open" : "closed"}
+                        aria-hidden
+                      />
+                    ) : (
+                      <span className="slt-item-chevron-spacer" aria-hidden />
+                    )}
+                    <span className="slt-item-icon">
+                      <SecIcon size={14} strokeWidth={1.8} aria-hidden />
+                    </span>
+                    <span className="slt-item-label">{sec.label}</span>
+                    <span
+                      className="slt-item-count"
+                      data-testid={`shell-left-tree-${sec.key}-count`}
+                    >
+                      {display}
+                    </span>
+                  </button>
+
+                  {/* v3.4 Fetta E2.3 (30/05/2026): foglie cliccabili per
+                      Nodi/Elementi. Click foglia → selectionStore +
+                      openInspector. Auto-scroll alla foglia attiva via
+                      activeLeafRef + scrollIntoView nel useEffect. */}
+                  {isExpanded && sec.key === "nodes" && model && (
+                    <ul
+                      className="slt-leaves"
+                      data-testid="shell-left-tree-nodes-leaves"
+                      aria-label="Foglie Nodi"
+                    >
+                      {model.nodes.length === 0 ? (
+                        <li className="slt-leaf-empty">Nessun nodo.</li>
+                      ) : (
+                        model.nodes.map((node) => {
+                          const isActive = selectedNodeId === node.id;
+                          return (
+                            <li key={node.id}>
+                              <button
+                                type="button"
+                                ref={isActive ? activeLeafRef : null}
+                                className={`slt-leaf${isActive ? " is-active" : ""}`}
+                                onClick={() => handleNodeLeafClick(node.id)}
+                                aria-current={isActive ? "true" : undefined}
+                                data-testid={`shell-left-tree-leaf-node-${node.id}`}
+                              >
+                                <span className="slt-leaf-id">N{node.id}</span>
+                                <span className="slt-leaf-meta">
+                                  ({node.x.toFixed(1)}, {node.y.toFixed(1)}, {node.z.toFixed(1)})
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })
+                      )}
+                    </ul>
+                  )}
+
+                  {isExpanded && sec.key === "elements" && model && (
+                    <ul
+                      className="slt-leaves"
+                      data-testid="shell-left-tree-elements-leaves"
+                      aria-label="Foglie Elementi"
+                    >
+                      {model.elements.length === 0 ? (
+                        <li className="slt-leaf-empty">Nessun elemento.</li>
+                      ) : (
+                        model.elements.map((el) => {
+                          const isActive = selectedElementId === el.id;
+                          const i = el.nodes[0];
+                          const j = el.nodes[el.nodes.length - 1];
+                          return (
+                            <li key={el.id}>
+                              <button
+                                type="button"
+                                ref={isActive ? activeLeafRef : null}
+                                className={`slt-leaf${isActive ? " is-active" : ""}`}
+                                onClick={() => handleElementLeafClick(el.id)}
+                                aria-current={isActive ? "true" : undefined}
+                                data-testid={`shell-left-tree-leaf-element-${el.id}`}
+                              >
+                                <span className="slt-leaf-id">E{el.id}</span>
+                                <span className="slt-leaf-meta">
+                                  N{i} → N{j}
+                                </span>
+                              </button>
+                            </li>
+                          );
+                        })
+                      )}
+                    </ul>
+                  )}
                 </li>
               );
             })}

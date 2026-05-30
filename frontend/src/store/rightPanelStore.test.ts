@@ -50,4 +50,38 @@ describe("rightPanelStore", () => {
     s.toggle();
     expect(useRightPanelStore.getState().panelState).toBe("open");
   });
+
+  // ── v3.4 E2.3 (30/05/2026): inspector state ───────────────────────
+  describe("openInspector (E2.3 selezione bidirezionale)", () => {
+    it("openInspector() setta panelState a 'inspector'", () => {
+      useRightPanelStore.getState().openInspector();
+      expect(useRightPanelStore.getState().panelState).toBe("inspector");
+    });
+
+    it("openInspector() funziona anche partendo da 'closed'", () => {
+      useRightPanelStore.getState().close();
+      useRightPanelStore.getState().openInspector();
+      expect(useRightPanelStore.getState().panelState).toBe("inspector");
+    });
+
+    it("open() da 'inspector' torna a 'open' (chiude inspector)", () => {
+      useRightPanelStore.getState().openInspector();
+      useRightPanelStore.getState().open();
+      expect(useRightPanelStore.getState().panelState).toBe("open");
+    });
+
+    it("close() da 'inspector' chiude completamente", () => {
+      useRightPanelStore.getState().openInspector();
+      useRightPanelStore.getState().close();
+      expect(useRightPanelStore.getState().panelState).toBe("closed");
+    });
+
+    it("toggle() da 'inspector' va a 'open' (non binario inverte solo open↔closed)", () => {
+      // inspector → toggle → resta open (non e' binario, toggle inverte
+      // solo open ↔ closed; inspector e' un terzo stato fuori toggle)
+      useRightPanelStore.getState().openInspector();
+      useRightPanelStore.getState().toggle();
+      expect(useRightPanelStore.getState().panelState).toBe("open");
+    });
+  });
 });
