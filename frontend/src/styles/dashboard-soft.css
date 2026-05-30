@@ -1034,4 +1034,28 @@ body.shell-sharp .dash-soft .placeholder-cta { border-radius: 0; }
   .dash-soft .tg-grid { grid-template-columns: 1fr; }
   /* Quota-inner padding ridotto per dare respiro su 375 (extra vs §R5.2) */
   .dash-soft .quota-inner { padding: 9px 16px; }
+
+  /* ── DM2 · QuotaBanner stack verticale (30/05 sera) ───────────────────
+     Su <640 il banner ambra resta cramped anche col padding ridotto
+     (5 elementi su una riga di 343px utili: icon+msg+spacer+CTA+dismiss).
+     Il bottone "Vedi fatturazione" wrappa su 2 righe (visibile pre-DM2).
+     Stack verticale: riga 1 = icon + msg full width; riga 2 = CTA largo
+     centrato + dismiss compatto. Filosofia mobile pattern standard
+     (banner sticky a due righe, no truncation del contenuto). */
+  .dash-soft .quota-inner {
+    flex-wrap: wrap;
+    align-items: flex-start; /* icona al top del testo lungo, non centrata su 4 righe */
+    row-gap: 8px;
+  }
+  .dash-soft .quota-inner svg { margin-top: 2px; } /* lieve aggiustamento per allineamento ottico al testo */
+  .dash-soft .quota-msg {
+    flex: 1 1 calc(100% - 28px); /* 28 = svg 16 + gap 12, forza wrap dopo */
+  }
+  .dash-soft .quota-spacer { display: none; } /* lo spacer flex non serve in stack */
+  .dash-soft .quota-cta {
+    flex: 1 1 auto;
+    justify-content: center;
+    height: 32px; /* leggermente piu' alto su mobile per touch target */
+  }
+  .dash-soft .quota-dismiss { flex: 0 0 auto; }
 }
