@@ -205,6 +205,62 @@ Claude)**: include il gate-removal NELLO STESSO commit M1.
 **Fattorizzazione**: la patch è di 2 righe e atomica, single commit
 con M1 è la scelta giusta. Niente M1.5 separato.
 
+## Addendum M4-polish · single-open accordion su mobile (30/05/2026 notte)
+
+**Trigger**: feedback live di Federico testando il deploy LIVE su iPhone
+vero (`fea-pro.fly.dev`). Citazione testuale: *"se ad esempio sei su
+spostamenti e clicchi sollecitazioni, secondo me la cosa migliore è che
+si chiuda la scheda prima per avere più spazio"*.
+
+**Problema osservato**: nel bottom sheet M4 (`ShellPanelMobileSheet` su
+mobile in fase Verifica) l'accordion era multi-open (eredità del
+desktop `verifyAccordionStore` E2.5c). Aprendo sezione X mentre Y era
+gia' aperta, l'utente doveva scrollare verticalmente oltre Y per
+arrivare a X — perdita di vista del content "che ha appena tappato".
+
+**Decisione UX**: il bottom sheet su mobile usa **single-open
+exclusive**, il desktop ShellPanel resta multi-open invariato.
+
+Razionale:
+- Spazio desktop (380px alti accordion): multi-open serve a confrontare
+  2 sezioni fianco a fianco (es. Spostamenti + Reazioni per verifica
+  equilibrio).
+- Spazio mobile (80vh sheet ~650px): single-open garantisce che il
+  content della sezione attiva sia sempre primo nel viewport, niente
+  scroll lungo per arrivarci.
+- Stessa filosofia "junior fuori, senior dentro" — applicata allo
+  **spazio**: la sezione attiva sempre visibile, niente content
+  overflowing per chi sta cercando un'informazione specifica.
+
+**Implementazione**:
+1. `verifyAccordionStore`: nuovo metodo `openExclusive(key)` che fa
+   `set({ openSections: [key] })`. Altri metodi (toggle/open/close/closeAll)
+   invariati.
+2. `ResultsTabsPanel`: nuova prop `singleOpen?: boolean` (default `false`).
+3. `AccordionSection` interno: handler conditional sul click — se
+   `singleOpen && isOpen` → `close(key)`; se `singleOpen && !isOpen` →
+   `openExclusive(key)`; else → `toggle(key)`.
+4. `Shell.tsx`: passa `singleOpen={true}` solo al `ResultsTabsPanel`
+   embeddato nel `ShellPanelMobileSheet`. Il ResultsTabsPanel del
+   `ShellPanel` desktop resta `singleOpen={false}` (default).
+
+**Conseguenze**:
+- Sintesi sempre-open in cima NON e' toccata dal flag (resta sempre
+  visibile in entrambi i mode).
+- Stato `verifyAccordionStore.openSections` resta condiviso fra mobile
+  e desktop. Se l'utente apre una sezione su mobile, poi va su desktop,
+  vede quella sezione aperta (multi-open desktop). Coerente.
+- Test estesi: 3 nuovi al store (openExclusive idempotente, exclusive
+  chiude tutte le altre, da empty apre solo quella) + 4 nuovi al
+  ResultsTabsPanel (default invariato multi-open, singleOpen chiude
+  le altre, tap su aperta la chiude, Sintesi invariata).
+
+**Lesson pattern**: feedback live di un utente vero (Federico testando
+LIVE su iPhone) ha valore enorme — trova attriti UX invisibili dai
+test. Pattern di rispetto: tradurre il feedback informale ("scritto
+malissimo xD" parole sue) in decisione tecnica documentata + fix
+veloce + redeploy.
+
 ## Per il prossimo Claude
 
 Quando Federico dirà "Fetta M1", apri questo file + `socio/06-cose-belle-fetta-e2-ia.md`

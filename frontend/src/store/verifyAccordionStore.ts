@@ -35,12 +35,20 @@ interface VerifyAccordionStore {
   /** Sezioni attualmente aperte. Array per supportare la persist
    *  middleware (Set non serializza nativamente in JSON). */
   openSections: VerifySectionKey[];
-  /** Inverte lo stato di una sezione (open ↔ closed). */
+  /** Inverte lo stato di una sezione (open ↔ closed). Comportamento
+   *  multi-open di default (desktop): tap apre/chiude una sezione
+   *  senza toccare le altre. */
   toggle: (key: VerifySectionKey) => void;
   /** Apre la sezione (idempotente). */
   open: (key: VerifySectionKey) => void;
   /** Chiude la sezione (idempotente). */
   close: (key: VerifySectionKey) => void;
+  /** Apre la sezione chiudendo TUTTE le altre. Single-open exclusive
+   *  mode — usato dal bottom sheet mobile (Fetta M4-polish 30/05/2026):
+   *  su mobile lo spazio verticale e' prezioso e l'utente vuole vedere
+   *  sempre la sezione che ha tappato, senza scroll lunghi per arrivarci
+   *  oltre quelle gia' aperte. Vedi ADR 004 "Revisione 30/05 notte". */
+  openExclusive: (key: VerifySectionKey) => void;
   /** Chiude tutte le sezioni (reset). */
   closeAll: () => void;
 }
@@ -70,6 +78,7 @@ export const useVerifyAccordionStore = create<VerifyAccordionStore>()(
           set({ openSections: cur.filter((k) => k !== key) });
         }
       },
+      openExclusive: (key) => set({ openSections: [key] }),
       closeAll: () => set({ openSections: [] }),
     }),
     {

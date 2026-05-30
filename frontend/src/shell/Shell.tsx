@@ -355,9 +355,12 @@ export function Shell({ children }: ShellProps) {
           desktop display:none) come trade-off scope: refactor in
           M4-polish se servira'.
           NB: showFocusChrome guard evita render in focus mode. */}
+      {/* v3.4 Fetta M4-polish (30/05/2026): `singleOpen` rende l'accordion
+          single-open exclusive su mobile — tap su sezione X chiude le
+          altre. Su desktop ShellPanel (sopra) usa default multi-open. */}
       {!showFocusChrome && isMobile && activeWs === "risultati" && (
         <ShellPanelMobileSheet>
-          <ResultsTabsPanel onIterate={() => setActiveWs("modello")} />
+          <ResultsTabsPanel onIterate={() => setActiveWs("modello")} singleOpen />
         </ShellPanelMobileSheet>
       )}
 

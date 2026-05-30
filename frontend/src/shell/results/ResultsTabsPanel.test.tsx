@@ -220,4 +220,42 @@ describe("ResultsTabsPanel · v3.4 Fetta E2.5c (accordion verticale)", () => {
     fireEvent.click(screen.getByTestId("results-section-reactions-head"));
     expect(useVerifyAccordionStore.getState().openSections).toContain("reactions");
   });
+
+  // ── M4-polish (30/05/2026): singleOpen mode su mobile bottom sheet ──
+  describe("singleOpen prop (M4-polish · mobile bottom sheet)", () => {
+    it("default singleOpen=false (desktop): multi-open invariato — apre piu' sezioni", () => {
+      render(<ResultsTabsPanel />);
+      fireEvent.click(screen.getByTestId("results-section-displacements-head"));
+      fireEvent.click(screen.getByTestId("results-section-reactions-head"));
+      expect(useVerifyAccordionStore.getState().openSections).toEqual([
+        "displacements",
+        "reactions",
+      ]);
+    });
+
+    it("singleOpen=true: apre una sezione → chiude tutte le altre (exclusive)", () => {
+      // Pre-condizione: 2 sezioni gia' aperte (es. utente power persistito)
+      useVerifyAccordionStore.setState({
+        openSections: ["displacements", "reactions"],
+      });
+      render(<ResultsTabsPanel singleOpen />);
+      // Tap su Sollecitazioni → chiude le altre, apre solo questa
+      fireEvent.click(screen.getByTestId("results-section-forces-head"));
+      expect(useVerifyAccordionStore.getState().openSections).toEqual(["forces"]);
+    });
+
+    it("singleOpen=true: tap su sezione gia' aperta la chiude (no riapre niente)", () => {
+      useVerifyAccordionStore.setState({ openSections: ["ec3"] });
+      render(<ResultsTabsPanel singleOpen />);
+      fireEvent.click(screen.getByTestId("results-section-ec3-head"));
+      expect(useVerifyAccordionStore.getState().openSections).toEqual([]);
+    });
+
+    it("singleOpen=true: Sintesi sempre-open NON e' toccata dal flag (vive fuori store)", () => {
+      render(<ResultsTabsPanel singleOpen />);
+      // Sintesi e' sempre renderizzata in cima (results-section-sintesi)
+      expect(screen.getByTestId("results-section-sintesi")).toBeInTheDocument();
+      expect(screen.getByTestId("mock-results-sintesi")).toBeInTheDocument();
+    });
+  });
 });

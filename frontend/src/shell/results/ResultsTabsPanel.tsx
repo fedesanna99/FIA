@@ -55,6 +55,24 @@ import { ResultsVerifiche } from "./ResultsVerifiche";
 interface ResultsTabsPanelProps {
   /** Callback "Itera" → torna al workspace Costruisci (passato da Shell.tsx). */
   onIterate?: () => void;
+  /**
+   * v3.4 Fetta M4-polish (30/05/2026): comportamento accordion.
+   *
+   * - `false` (default, desktop): multi-open — l'utente puo' aprire piu'
+   *   sezioni contemporaneamente per confrontare (es. Spostamenti +
+   *   Reazioni per verifica equilibrio sui 380px del panel DX desktop).
+   * - `true` (mobile, passato da ShellPanelMobileSheet): single-open
+   *   exclusive — tap su sezione X chiude tutte le altre. Razionale:
+   *   sul bottom sheet 80vh (~650px) lo spazio verticale e' prezioso,
+   *   l'utente vuole vedere sempre la sezione che ha tappato senza
+   *   scroll lunghi per arrivarci oltre quelle gia' aperte.
+   *
+   * La Sintesi sempre-aperta in cima NON e' toccata da questo flag
+   * (resta sempre visibile in entrambi i mode).
+   *
+   * Vedi ADR 004 "Revisione 30/05 notte · M4-polish" per il razionale UX.
+   */
+  singleOpen?: boolean;
 }
 
 
@@ -66,7 +84,7 @@ const ANALYSIS_LABEL: Record<string, string> = {
 };
 
 
-export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
+export function ResultsTabsPanel({ onIterate, singleOpen = false }: ResultsTabsPanelProps = {}) {
   const hasStatic = useResultsStore((s) => !!s.staticResults);
   const hasModal = useResultsStore((s) => !!s.modalResults);
   const hasDynamic = useResultsStore((s) => !!s.dynamicResults);
@@ -107,6 +125,7 @@ export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
         sectionKey="displacements"
         label="Spostamenti"
         testid="results-section-displacements"
+        singleOpen={singleOpen}
       >
         {hasStatic ? (
           <DisplacementTable />
@@ -122,6 +141,7 @@ export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
         sectionKey="forces"
         label="Sollecitazioni"
         testid="results-section-forces"
+        singleOpen={singleOpen}
       >
         <ResultsDatiSollecitazioni />
       </AccordionSection>
@@ -130,6 +150,7 @@ export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
         sectionKey="reactions"
         label="Reazioni"
         testid="results-section-reactions"
+        singleOpen={singleOpen}
       >
         <ResultsDatiReazioni />
       </AccordionSection>
@@ -138,6 +159,7 @@ export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
         sectionKey="ec3"
         label="Verifica EC3"
         testid="results-section-ec3"
+        singleOpen={singleOpen}
       >
         <ResultsVerifiche />
       </AccordionSection>
@@ -148,12 +170,26 @@ export function ResultsTabsPanel({ onIterate }: ResultsTabsPanelProps = {}) {
 
 /** Sezione accordion del panel DX di Verifica. Cabla allo store per
  *  toggle e read-only state; il body viene renderizzato solo quando
- *  aperto (no display:none per evitare costo render dei tab pesanti). */
+ *  aperto (no display:none per evitare costo render dei tab pesanti).
+ *
+ *  v3.4 Fetta M4-polish (30/05/2026): prop `singleOpen` cambia il
+ *  comportamento del click:
+ *  - default (multi-open desktop): toggle classico, le altre sezioni
+ *    restano com'erano (puoi avere Spostamenti + Reazioni aperti
+ *    insieme per confrontare).
+ *  - singleOpen (mobile bottom sheet): tap su sezione chiusa →
+ *    openExclusive (chiude tutte le altre); tap su sezione aperta →
+ *    close (la chiude, niente apre). Garantisce che al massimo 1
+ *    sezione collassabile sia visibile insieme alla Sintesi sempre-open.
+ */
 interface AccordionSectionProps {
   sectionKey: VerifySectionKey;
   label: string;
   testid: string;
   children: ReactNode;
+  /** Comportamento del click: multi-open (false, desktop) o
+   *  exclusive single-open (true, mobile sheet). */
+  singleOpen?: boolean;
 }
 
 function AccordionSection({
@@ -161,6 +197,7 @@ function AccordionSection({
   label,
   testid,
   children,
+  singleOpen = false,
 }: AccordionSectionProps) {
   // useState locale non basta: lo stato e' persistito via Zustand store
   // cosi' sopravvive a refresh + e' condiviso fra istanze (Shell HMR-safe).
@@ -168,6 +205,17 @@ function AccordionSection({
     s.openSections.includes(sectionKey),
   );
   const toggle = useVerifyAccordionStore((s) => s.toggle);
+  const close = useVerifyAccordionStore((s) => s.close);
+  const openExclusive = useVerifyAccordionStore((s) => s.openExclusive);
+
+  const handleClick = () => {
+    if (singleOpen) {
+      if (isOpen) close(sectionKey);
+      else openExclusive(sectionKey);
+    } else {
+      toggle(sectionKey);
+    }
+  };
 
   return (
     <section
@@ -178,7 +226,7 @@ function AccordionSection({
       <button
         type="button"
         className="results-section-head"
-        onClick={() => toggle(sectionKey)}
+        onClick={handleClick}
         aria-expanded={isOpen}
         aria-controls={`${testid}-body`}
         data-testid={`${testid}-head`}

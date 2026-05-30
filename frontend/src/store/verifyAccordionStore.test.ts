@@ -86,4 +86,29 @@ describe("verifyAccordionStore", () => {
     expect(openReactions.current).toBe(true);
     expect(closedEc3.current).toBe(false);
   });
+
+  // ── M4-polish (30/05/2026): openExclusive per single-open mobile ──
+  describe("openExclusive (M4-polish · single-open mobile)", () => {
+    it("apre la sezione chiudendo TUTTE le altre", () => {
+      const s = useVerifyAccordionStore.getState();
+      s.open("displacements");
+      s.open("forces");
+      s.open("reactions");
+      expect(useVerifyAccordionStore.getState().openSections.length).toBe(3);
+      s.openExclusive("ec3");
+      expect(useVerifyAccordionStore.getState().openSections).toEqual(["ec3"]);
+    });
+
+    it("idempotente: openExclusive su sezione gia' attiva non duplica", () => {
+      const s = useVerifyAccordionStore.getState();
+      s.openExclusive("displacements");
+      s.openExclusive("displacements");
+      expect(useVerifyAccordionStore.getState().openSections).toEqual(["displacements"]);
+    });
+
+    it("openExclusive da empty apre solo quella sezione", () => {
+      useVerifyAccordionStore.getState().openExclusive("forces");
+      expect(useVerifyAccordionStore.getState().openSections).toEqual(["forces"]);
+    });
+  });
 });
