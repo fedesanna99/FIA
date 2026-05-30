@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 
 import type { FEAModel } from "../../types/model";
@@ -45,7 +46,14 @@ function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   });
-  return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+  // MOD-1 (31/05): RecentModelsGrid ora chiama useNavigate per "Vedi tutti →"
+  // → /modelli. Aggiungiamo MemoryRouter al wrapper per evitare
+  // "useNavigate() may be used only in the context of a <Router> component".
+  return (
+    <QueryClientProvider client={qc}>
+      <MemoryRouter>{children}</MemoryRouter>
+    </QueryClientProvider>
+  );
 }
 
 const model: FEAModel = {

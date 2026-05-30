@@ -7,6 +7,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router-dom";
 import type { ReactNode } from "react";
 import { RecentModelsGrid } from "./RecentModelsGrid";
 
@@ -18,15 +19,31 @@ vi.mock("../../api/client", () => ({
   },
 }));
 
+// MOD-1: mock useNavigate per testare il click su "Vedi tutti →"
+// (era dispatch event `feapro:open-models-list`, ora navigate("/modelli")).
+const navigateMock = vi.fn();
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual<typeof import("react-router-dom")>("react-router-dom");
+  return {
+    ...actual,
+    useNavigate: () => navigateMock,
+  };
+});
+
 function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   });
-  return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={qc}>
+      <MemoryRouter>{children}</MemoryRouter>
+    </QueryClientProvider>
+  );
 }
 
 beforeEach(() => {
   listMock.mockReset();
+  navigateMock.mockReset();
 });
 
 const makeModel = (id: string, name: string, is3d = false, nodes = 5) => ({
@@ -161,17 +178,15 @@ describe("RecentModelsGrid (v2.6.5 D.2 + v2.6.6 E.3)", () => {
     expect(cardM2.querySelector("[data-testid='badge-draft']")).not.toBeNull();
   });
 
-  it("'Vedi tutti →' dispatches feapro:open-models-list", async () => {
+  it("'Vedi tutti →' navigates to /modelli (MOD-1 refactor)", async () => {
     listMock.mockResolvedValue([makeModel("m1", "Trave", false, 5)]);
-    const listener = vi.fn();
-    window.addEventListener("feapro:open-models-list", listener);
     render(<RecentModelsGrid onSelect={vi.fn()} />, { wrapper });
     await waitFor(() => {
       expect(screen.getByTestId("recent-models-see-all")).toBeInTheDocument();
     });
     fireEvent.click(screen.getByTestId("recent-models-see-all"));
-    expect(listener).toHaveBeenCalledTimes(1);
-    window.removeEventListener("feapro:open-models-list", listener);
+    expect(navigateMock).toHaveBeenCalledTimes(1);
+    expect(navigateMock).toHaveBeenCalledWith("/modelli");
   });
 
   it("3D model shows 3D in metadata", async () => {

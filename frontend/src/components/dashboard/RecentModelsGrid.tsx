@@ -21,6 +21,7 @@
  * sono esclusi dal filtro `useRecentModels`).
  */
 import { FolderOpen } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useRecentModels } from "../../lib/recentModels";
 import { RecentModelCard } from "./RecentModelCard";
 
@@ -30,6 +31,7 @@ interface Props {
 }
 
 export function RecentModelsGrid({ onSelect }: Props) {
+  const navigate = useNavigate();
   const { data: models, isLoading, isError } = useRecentModels(4);
 
   // Loading state: skeleton placeholder (no flash bianco né null intermittente)
@@ -46,8 +48,12 @@ export function RecentModelsGrid({ onSelect }: Props) {
     return <RecentModelsEmpty />;
   }
 
+  // MOD-1 (31/05/2026): era emit `feapro:open-models-list` (apriva overlay
+  // ModelliBrowser). Ora naviga alla page route reale `/modelli` che mostra
+  // la stessa lista (riusa il componente puro `ModelsList`). URL
+  // condivisibile/bookmark-able + DashTopBar nav consistente.
   const handleSeeAll = () => {
-    window.dispatchEvent(new Event("feapro:open-models-list"));
+    navigate("/modelli");
   };
 
   return (

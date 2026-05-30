@@ -20,10 +20,11 @@
 import { Link } from "react-router-dom";
 import type { LucideIcon } from "lucide-react";
 import {
-  LayoutGrid, Activity, Clock, BookOpen, ArrowRight,
+  Activity, Clock, BookOpen, ArrowRight,
 } from "lucide-react";
 
 import { DashTopBar } from "../dashboard/DashTopBar";
+import { ModelsList } from "../components/shell/ModelsList";
 
 
 interface PlaceholderPageProps {
@@ -81,19 +82,19 @@ function PlaceholderPage({
 }
 
 
-/** /modelli — lista completa modelli utente (oggi raggiungibile via
- *  ModelliBrowser overlay full-screen lazy in App.tsx, vedi alpha.31). */
+/** /modelli — lista completa modelli utente (MOD-1, 31/05/2026).
+ *  Era placeholder "in arrivo" pre-MOD-1. Ora page route reale che riusa
+ *  il componente puro `<ModelsList />` (estratto da ModelliBrowser overlay
+ *  legacy nello stesso refactor). DashTopBar consistente con resto
+ *  dell'app + URL `/modelli` condivisibile/bookmark-able. */
 export function ModelliPage() {
   return (
-    <PlaceholderPage
-      icon={LayoutGrid}
-      title="Modelli"
-      description="La lista completa dei tuoi modelli — con filtri, ricerca, ordinamento e azioni rapide — è in arrivo."
-      detail="Per ora puoi vedere i 5 modelli recenti nella sezione Recenti della Dashboard, oppure aprire il browser modelli da ⌘K → 'Apri modello'."
-      testId="placeholder-modelli"
-      activePath="modelli"
-      primaryCta={{ label: "Torna alla Dashboard", to: "/" }}
-    />
+    <div className="dash dash-soft" data-testid="page-modelli">
+      <DashTopBar activePath="modelli" tierLabel="FREE" />
+      <main>
+        <ModelsList />
+      </main>
+    </div>
   );
 }
 
