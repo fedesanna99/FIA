@@ -34,30 +34,63 @@ cross-progetto, NON nel repo): leggi anche
 - `06-cose-belle-fetta-e2-ia.md` per 5 lezioni del percorso E2-IA
   (versione narrativa delle convention in ADR 003)
 
-### 📍 Stato al 30/05/2026
+### 📍 Stato al 30/05/2026 sera (post-sessione XXL)
 
-- **Fetta E2-IA** ✅ chiusa end-to-end (IA prototipo v3 implementata:
-  topbar 3 icone + spina blocco skip + Albero panel SX + panel DX
-  accordion + rail cleanup 6→3 + 4 route placeholder)
-- **Branch** `main`, **31 commit avanti `origin/main`** (patto:
-  niente push senza ordine esplicito di Federico)
-- **Vitest** 1058/1058 verde, **TypeScript** silenzioso, **Playwright**
-  6/6 (selettori aggiornati per accordion E2.5c)
-- **Prossimo capitolo naturale**: Fetta M1 mobile (topbar hamburger) —
-  vedi ADR 004 per il piano
+- **Fetta E2-IA** ✅ 100% chiusa desktop (E2.1-E2.5 + E2.3 selezione
+  bidirezionale viewport↔Albero↔Inspector con terzo stato panel DX)
+- **Filone mobile M1-M5** ✅ live (hamburger + chrome compact + spina
+  compatta + Albero drawer + bottom sheet Verifica + doppio-tap focus)
+  · M5-polish focus bianco in backlog (DevTools live richiesti)
+- **🎯 Demo Slice v1.9 · Verifica telaio 2D** ✅ LIVE end-to-end (8 fette
+  D1-D8): galleria `/percorsi` + page `/percorsi/telaio-2d` parametrica
+  6-step con backend wire reale. **Killer feature Documento Madre §0**
+  ("FEM mi dice cosa manca, cosa è critico, cosa fare dopo") finalmente
+  reale. Vedi **ADR 005** per convention complete.
+- **Branch** `main` (= `test`), allineati a `94a38a0` su origin · live
+  su https://fea-pro.fly.dev/
+- **Vitest** 1155/1155 verde, **TypeScript** silenzioso
+- **Prossimo capitolo naturale**: 3 opzioni — vedi sezione "🚦 Prossima
+  tappa per il nuovo Claude" sotto
 
-### ❌ Cosa NON serve riscoprire (tutto già deciso)
+### ❌ Cosa NON serve riscoprire (tutto già deciso e LIVE)
 
-- Filosofia del prodotto → `CULTURE.md`
-- Estetica Soft v2.1 (Plus Jakarta + Inter + JetBrains Mono · cyan
-  `#0891B2` · radius 8px) → `decisioni/002-design-system-soft-v21.md`
-- IA workspace desktop (3 fasi · panel DX 3 stati · Albero collassabile
-  · rail snellito) → `decisioni/003-ia-prototipo-v3.md`
+- Filosofia del prodotto → `CULTURE.md` + Documento Madre v0.2 in
+  `Downloads/uploads/FEAPRO_CLAUDE_DESIGN_PACKAGE/01_PRODUCT_VISION/`
+- Estetica Soft v2.1 (Plus Jakarta + Inter + JBM · cyan `#0891B2` ·
+  radius 8px) → `decisioni/002-design-system-soft-v21.md`
+- IA workspace desktop (3 fasi · panel DX 3 stati · Albero · rail)
+  → `decisioni/003-ia-prototipo-v3.md`
 - IA workspace mobile (3 breakpoint · hamburger · spina compatta ·
-  Albero drawer · panel DX bottom sheet) → `decisioni/004-mobile.md`
+  Albero drawer · sheet · doppio-tap focus) → `decisioni/004-mobile.md`
+- **Demo Slice v1.9 pattern** (galleria + step parametrico vs confirm
+  vs backend-driven · Trust Layer DRAFT · active escape Studio Pro)
+  → `decisioni/005-demo-slice-v1-9.md`
 - **Convention ferrea** "prototipo HTML vince sull'IA, mockup Claude
   Design vince sull'estetica — se divergono sull'IA, il prototipo
   vince" → ADR 003 sezione finale
+- **Convention persona-driven** "Desktop = senior/power user · Mobile
+  = junior + on-the-go · NON serve paritá feature mobile-desktop"
+  → ADR 004 addendum
+
+### 🚦 Prossima tappa per il nuovo Claude
+
+Federico ha detto "scelta tua" (carta bianca strategica). 3 direzioni
+naturali post-Demo Slice v1.9:
+
+1. **v1.10 · AI Copilot funzionale** — oggi è placeholder card galleria
+   + sidebar "Disponibile presto v1.10". Implementare l'AI assistant
+   che spiega risultati senza black box (filosofia "Algoritmo > AI"
+   Documento Madre §1).
+2. **Altri Percorsi guidati** — refactor `PercorsiBeamWizard` legacy
+   come page route coerente (pattern Telaio 2D D1-D7). Aggiungere
+   "Beam check", "Compare alternatives", "Import IFC/DXF" alla galleria.
+3. **Sprint A residuo `docs/ROADMAP_2026-05.md`** — privacy/terms/
+   about pages reali (oggi `<a href="#">`) + user data fallback
+   (no hardcoded "Federico Sanna") + iOS notch safe-area.
+
+**Mia raccomandazione** (Claude uscente, 30/05 sera): opzione 1 o 2
+per momentum prodotto (continuano il filone killer-feature). Opzione 3
+piu' "polish pre-launch" se Federico vuole stabilizzare prima.
 
 ### 🚦 Prima di scrivere qualunque riga di codice
 
