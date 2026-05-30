@@ -417,6 +417,150 @@ def example_laminate_plate() -> FEAModel:
     )
 
 
+def example_rc_building_4st() -> FEAModel:
+    """Edificio residenziale CA 4 piani regolare 12×8 m (TPL-1).
+
+    Pianta 3×2 baie (4 m ciascuna), h interpiano 3 m, 4 piani fuori terra.
+    Pilastri 30×50 cm e travi 30×50 cm in C25/30, solai shell 20 cm.
+    Maglia solaio 12×8 (mesh 1×1 m). ~585 nodi · ~500 elementi.
+
+    Scenario: rappresenta il modello FEM più tipico del primo anno di
+    studio in Italia (relazione di calcolo NTC per fabbricato ordinario
+    regolare). Pensato per ricezione visiva "ah qui modelliamo edifici
+    veri", non per validazione benchmark.
+
+    Norme: NTC 2018 §4.1/§7.4, EC2, EC8 §5 (regolarità in pianta+altezza).
+    """
+    # Geometria base
+    nx_bays, ny_bays = 3, 2          # baie strutturali X · Y
+    bay_size = 4.0                    # m
+    nz_floors = 4                     # piani fuori terra
+    h_floor = 3.0                     # m interpiano
+    # Maglia solaio (1×1 m): più fitta della maglia strutturale
+    n_div_x = 12                      # 12 div X = 13 nodi/riga
+    n_div_y = 8                       # 8 div Y  = 9 nodi/riga
+    n_floors_total = nz_floors + 1    # piano terra + 4 piani
+
+    # === NODI === (5 piani × 13×9 = 585 nodi totali)
+    nodes: list[Node] = []
+    nid_counter = 1
+    nodes_per_floor = (n_div_x + 1) * (n_div_y + 1)
+    Lx = bay_size * nx_bays           # 12 m
+    Ly = bay_size * ny_bays           # 8 m
+    for k in range(n_floors_total):
+        z = k * h_floor
+        for j in range(n_div_y + 1):
+            for i in range(n_div_x + 1):
+                x = i * Lx / n_div_x
+                y = j * Ly / n_div_y
+                nodes.append(Node(id=nid_counter, x=x, y=y, z=z))
+                nid_counter += 1
+
+    def node_id(level: int, ix: int, iy: int) -> int:
+        return level * nodes_per_floor + iy * (n_div_x + 1) + ix + 1
+
+    # === ELEMENTI ===
+    elements: list[Element] = []
+    eid = 1
+    # Pilastri sui nodi del reticolo strutturale (passo bay_size)
+    col_step_x = n_div_x // nx_bays   # 4 div solaio = 1 baia
+    col_step_y = n_div_y // ny_bays
+    col_positions = [
+        (ii * col_step_x, jj * col_step_y)
+        for jj in range(ny_bays + 1)
+        for ii in range(nx_bays + 1)
+    ]
+
+    # 1) Pilastri BEAM3D 30×50 cm (12 colonne × 4 livelli = 48)
+    for k in range(nz_floors):
+        for (ix, iy) in col_positions:
+            elements.append(Element(
+                id=eid, type=ElementType.BEAM3D,
+                nodes=[node_id(k, ix, iy), node_id(k + 1, ix, iy)],
+                material_id="concrete_c25", section_id="rect_300x500",
+                orientation=[0, 0, 1],
+            ))
+            eid += 1
+
+    # 2) Travi BEAM3D 30×50 cm sui solai (piani 1..4)
+    for k in range(1, n_floors_total):
+        # Travi direzione X (3 file × 3 segmenti × 4 piani = 36)
+        for jj in range(ny_bays + 1):
+            iy = jj * col_step_y
+            for ii in range(nx_bays):
+                elements.append(Element(
+                    id=eid, type=ElementType.BEAM3D,
+                    nodes=[node_id(k, ii * col_step_x, iy),
+                           node_id(k, (ii + 1) * col_step_x, iy)],
+                    material_id="concrete_c25", section_id="rect_300x500",
+                    orientation=[0, 0, 1],
+                ))
+                eid += 1
+        # Travi direzione Y (4 colonne × 2 segmenti × 4 piani = 32)
+        for ii in range(nx_bays + 1):
+            ix = ii * col_step_x
+            for jj in range(ny_bays):
+                elements.append(Element(
+                    id=eid, type=ElementType.BEAM3D,
+                    nodes=[node_id(k, ix, jj * col_step_y),
+                           node_id(k, ix, (jj + 1) * col_step_y)],
+                    material_id="concrete_c25", section_id="rect_300x500",
+                    orientation=[0, 0, 1],
+                ))
+                eid += 1
+
+    # 3) Solai SHELL_Q4 t=200 mm (12×8 × 4 piani = 384)
+    for k in range(1, n_floors_total):
+        for j in range(n_div_y):
+            for i in range(n_div_x):
+                n1 = node_id(k, i, j)
+                n2 = node_id(k, i + 1, j)
+                n3 = node_id(k, i + 1, j + 1)
+                n4 = node_id(k, i, j + 1)
+                elements.append(Element(
+                    id=eid, type=ElementType.SHELL_Q4,
+                    nodes=[n1, n2, n3, n4],
+                    material_id="concrete_c25", section_id="shell_t200",
+                ))
+                eid += 1
+
+    # === CONSTRAINTS === (12 pilastri incastrati alla base)
+    constraints = [
+        Constraint(id=k + 1, type=ConstraintType.FIXED,
+                   node_id=node_id(0, ix, iy),
+                   label=f"Incastro pilastro ({ix}, {iy})")
+        for k, (ix, iy) in enumerate(col_positions)
+    ]
+
+    # === CARICHI === carico solaio 5 kN/m² → nodal su mesh 1×1 m
+    # Area tributaria: interno = 1 m², bordo = 0.5 m², angolo = 0.25 m²
+    loads: list[Load] = []
+    lid = 1
+    q_floor = -5000.0  # N/m² (peso proprio + permanente + variabile abitativo)
+    for k in range(1, n_floors_total):
+        for j in range(n_div_y + 1):
+            for i in range(n_div_x + 1):
+                fx = 0.5 if (i == 0 or i == n_div_x) else 1.0
+                fy = 0.5 if (j == 0 or j == n_div_y) else 1.0
+                loads.append(Load(
+                    id=lid, type=LoadType.NODAL,
+                    target_id=node_id(k, i, j),
+                    fz=q_floor * fx * fy,
+                    label=f"Solaio P{k}",
+                ))
+                lid += 1
+
+    return FEAModel(
+        id="ex_rc_building_4st",
+        name="Edificio CA 4 piani regolare",
+        description="Edificio residenziale CA 4 piani, pianta 12×8 m (3×2 baie). "
+                    "Pilastri+travi 30×50 cm in C25/30, solai shell 20 cm. "
+                    "Carico solai 5 kN/m². Modello tipico relazione NTC §4.1/§7.4.",
+        is_3d=True,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
 def build_example_models() -> list[FEAModel]:
     return [
         example_simple_beam_2d(),
@@ -428,4 +572,5 @@ def build_example_models() -> list[FEAModel]:
         example_cube_solid_h8(),
         example_cable_bridge_2d(),
         example_laminate_plate(),
+        example_rc_building_4st(),  # TPL-1 (30/05/2026 sera)
     ]

@@ -12,6 +12,7 @@ from examples import (
     example_truss_3d,
     example_shell_plate,
     example_tower_3d,
+    example_rc_building_4st,  # TPL-1
 )
 from core.solver import StaticSolver, ModalSolver
 
@@ -22,6 +23,7 @@ ALL_EXAMPLES = [
     ("truss_3d", example_truss_3d),
     ("shell_plate", example_shell_plate),
     ("tower_3d", example_tower_3d),
+    ("rc_building_4st", example_rc_building_4st),  # TPL-1
 ]
 
 
@@ -108,4 +110,31 @@ def test_tower_first_mode_horizontal():
     m1 = r.modes[0]
     assert m1.effective_mass_x > 0 or m1.effective_mass_y > 0, (
         "Il primo modo della torre deve essere flessionale orizzontale"
+    )
+
+
+# === TPL-1 · Edificio CA 4 piani ===
+def test_rc_building_4st_geometry():
+    """Verifica geometria nominale: 585 nodi (5 piani × 13×9), 500 elementi."""
+    model = example_rc_building_4st()
+    assert len(model.nodes) == 585, f"Nodi attesi 585, trovati {len(model.nodes)}"
+    assert len(model.elements) == 500, f"Elementi attesi 500, trovati {len(model.elements)}"
+    assert len(model.constraints) == 12, f"12 pilastri incastrati alla base"
+    # Verifica mix tipologie: pilastri+travi BEAM3D + solai SHELL_Q4
+    n_beam = sum(1 for e in model.elements if str(e.type).endswith("BEAM3D"))
+    n_shell = sum(1 for e in model.elements if str(e.type).endswith("SHELL_Q4"))
+    assert n_beam == 116, f"Pilastri 48 + travi 68 = 116 BEAM3D, trovati {n_beam}"
+    assert n_shell == 384, f"Solai 12×8×4 = 384 SHELL_Q4, trovati {n_shell}"
+
+
+def test_rc_building_4st_reactions_balance_floor_loads():
+    """Σ Fz reazioni == -Σ carichi solaio (5 kN/m² × 96 m² × 4 piani = 1920 kN)."""
+    model = example_rc_building_4st()
+    r = StaticSolver(model).solve()
+    total_rz = sum(rx.fz for rx in r.reactions)
+    # Carichi totali: q × area solaio × n_piani = 5000 N/m² × 96 m² × 4 = 1.92 MN
+    expected = 5000.0 * 12.0 * 8.0 * 4
+    assert total_rz == pytest.approx(expected, rel=1e-2), (
+        f"Reazioni Fz {total_rz:.0f} N devono bilanciare carichi {expected:.0f} N "
+        f"(scarto >1%)"
     )

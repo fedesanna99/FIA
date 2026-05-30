@@ -25,7 +25,7 @@ interface TemplateEntry {
   pills: string[]; // es. ["statica", "EC3"]
   timeMin: number;
   badge?: "POPOLARE" | "PRO" | "NEW";
-  variant: "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss" | "membrane" | "solid" | "bridge" | "laminate";
+  variant: "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss" | "membrane" | "solid" | "bridge" | "laminate" | "building";
 }
 
 // v3.5 GAL-fix (30/05/2026 sera): allineato a backend reale (9 template
@@ -45,6 +45,9 @@ const TEMPLATES: TemplateEntry[] = [
   { id: "t7", backendId: "ex_cube_solid_h8", uc: "UC7", title: "Cubo solido H8", desc: "Cubo 1×1×1 m SOLID_H8, base incastrata, trazione assiale 400 kN. Iso 3D σ_VM.", category: "acciaio", pills: ["SOLID", "iso 3D"], timeMin: 3, badge: "NEW", variant: "solid" },
   { id: "t8", backendId: "ex_cable_bridge_2d", uc: "UC8", title: "Ponte strallato 2D", desc: "Impalcato L=12m sospeso da 4 cavi pre-tesi (50 kN), 2 pyloni H=8m. Non-lineare cavi.", category: "acciaio", pills: ["non-lin", "cavi"], timeMin: 7, badge: "PRO", variant: "bridge" },
   { id: "t9", backendId: "ex_laminate_plate", uc: "UC9", title: "Piastra laminata cross-ply", desc: "Piastra 1×1 m laminata 0/90/0 carbon (3mm). Bordo y=0 incastrato. Comportamento ortotropo.", category: "altro", pills: ["composito", "Q4"], timeMin: 5, badge: "NEW", variant: "laminate" },
+  // v3.6 TPL-1 (30/05/2026 sera): primo template "professional-grade" da
+  // 585 nodi · 500 elementi. Edificio CA 4 piani tipico relazione NTC.
+  { id: "t10", backendId: "ex_rc_building_4st", uc: "UC10", title: "Edificio CA 4 piani", desc: "Edificio residenziale CA, pianta 12×8 m, 3×2 baie, pilastri+travi 30×50 cm C25/30, solai shell 20 cm. ~585 nodi · 500 elementi.", category: "ca", pills: ["beam3D", "shell", "NTC"], timeMin: 12, badge: "NEW", variant: "building" },
 ];
 
 type Filter = "tutti" | "acciaio" | "ca" | "legno" | "sismica";
@@ -213,6 +216,45 @@ function GenericThumb({ variant }: { variant: TemplateEntry["variant"] }) {
           </g>
           <polygon points="14,122 28,122 21,134" fill="var(--ink-dim)" opacity="0.55" />
           <polygon points="252,122 266,122 259,134" fill="var(--ink-dim)" opacity="0.55" />
+        </svg>
+      );
+    case "building":
+      // Edificio CA multipiano stilizzato (4 piani + colonne + base)
+      return (
+        <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+          <g stroke={stroke} strokeWidth="2" fill="none">
+            {/* perimetro edificio */}
+            <rect x="70" y="30" width="140" height="100" />
+            {/* solai (3 linee orizzontali interne) */}
+            <line x1="70" y1="55" x2="210" y2="55" />
+            <line x1="70" y1="80" x2="210" y2="80" />
+            <line x1="70" y1="105" x2="210" y2="105" />
+            {/* pilastri interni (2 verticali interne) */}
+            <line x1="117" y1="30" x2="117" y2="130" />
+            <line x1="163" y1="30" x2="163" y2="130" />
+          </g>
+          {/* base/fondazione tratteggiata */}
+          <line x1="55" y1="130" x2="225" y2="130" stroke="var(--ink-dim)" strokeWidth="2" />
+          <g stroke="var(--ink-dim)" strokeWidth="1">
+            <line x1="60" y1="130" x2="55" y2="138" />
+            <line x1="80" y1="130" x2="75" y2="138" />
+            <line x1="100" y1="130" x2="95" y2="138" />
+            <line x1="120" y1="130" x2="115" y2="138" />
+            <line x1="140" y1="130" x2="135" y2="138" />
+            <line x1="160" y1="130" x2="155" y2="138" />
+            <line x1="180" y1="130" x2="175" y2="138" />
+            <line x1="200" y1="130" x2="195" y2="138" />
+            <line x1="220" y1="130" x2="215" y2="138" />
+          </g>
+          {/* indicatori carico (frecce sui solai) */}
+          <g stroke={accent} strokeWidth="1.2" opacity="0.7">
+            <line x1="95" y1="44" x2="95" y2="52" />
+            <polygon points="95,52 92,47 98,47" fill={accent} />
+            <line x1="140" y1="44" x2="140" y2="52" />
+            <polygon points="140,52 137,47 143,47" fill={accent} />
+            <line x1="185" y1="44" x2="185" y2="52" />
+            <polygon points="185,52 182,47 188,47" fill={accent} />
+          </g>
         </svg>
       );
     case "laminate":
