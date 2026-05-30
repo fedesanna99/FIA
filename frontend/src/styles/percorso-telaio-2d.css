@@ -472,6 +472,12 @@ body.shell-sharp .ptd-subheader-icon { border-radius: 0; }
   letter-spacing: -0.015em;
 }
 
+.ptd-subheader-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
 .ptd-subheader-save {
   display: inline-flex;
   align-items: center;
@@ -488,3 +494,30 @@ body.shell-sharp .ptd-subheader-icon { border-radius: 0; }
   text-transform: uppercase;
 }
 body.shell-sharp .ptd-subheader-save { border-radius: 0; }
+
+/* v3.5 D5: Credits chip persistente cross-step (oggi hardcoded 47/100,
+   cabla useBillingQuota in D7). Pattern visivo identico a QuotaBanner
+   E3.7 ma in versione mini-chip (inline nella subheader). */
+.ptd-subheader-credits {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  background: rgba(var(--accent-rgb), 0.06);
+  color: var(--accent);
+  border: 1px solid rgba(var(--accent-rgb), 0.20);
+  border-radius: 999px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+body.shell-sharp .ptd-subheader-credits { border-radius: 0; }
+.ptd-subheader-credits-num {
+  font-weight: 700;
+}
+.ptd-subheader-credits-tot {
+  font-weight: 500;
+  opacity: 0.72;
+}

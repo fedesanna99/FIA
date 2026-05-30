@@ -35,7 +35,7 @@
  */
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Settings, Check } from "lucide-react";
+import { ExternalLink, Settings, Check, Zap } from "lucide-react";
 
 import { PercorsoStep } from "../components/shell/PercorsoStep";
 import { PERCORSO_STEPS_6 } from "../components/shell/PercorsoStepper";
@@ -178,13 +178,23 @@ export function PercorsoTelaio2DPage(): JSX.Element {
             <h1 className="ptd-subheader-title">Verifica telaio 2D</h1>
           </div>
         </div>
-        <div
-          className="ptd-subheader-save"
-          data-testid="ptd-subheader-save"
-          aria-label="Salvataggio automatico attivo"
-        >
-          <Check size={12} strokeWidth={2.5} aria-hidden />
-          <span>Salvataggio automatico</span>
+        <div className="ptd-subheader-right">
+          {/* v3.5 D5: Credits chip persistente cross-step. Hardcoded
+              47/100 (D7 cabla useBillingQuota real). Cliccabile → /settings/billing
+              futura, oggi solo info display. */}
+          <div className="ptd-subheader-credits" data-testid="ptd-subheader-credits">
+            <Zap size={11} strokeWidth={2.5} aria-hidden />
+            <span className="ptd-subheader-credits-num">47</span>
+            <span className="ptd-subheader-credits-tot">/ 100</span>
+          </div>
+          <div
+            className="ptd-subheader-save"
+            data-testid="ptd-subheader-save"
+            aria-label="Salvataggio automatico attivo"
+          >
+            <Check size={12} strokeWidth={2.5} aria-hidden />
+            <span>Salvataggio automatico</span>
+          </div>
         </div>
       </div>
 
