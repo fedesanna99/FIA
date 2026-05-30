@@ -856,7 +856,6 @@ export default function App() {
         <TemplateGalleryDialog
           open={templateGalleryOpen}
           onClose={() => setTemplateGalleryOpen(false)}
-          models={models ?? []}
           onSelect={(id) => setActiveId(id)}
         />
         {/* v1.9.0 T1 + v2.2.0 B7: PercorsiBeamWizard 6-step end-to-end. */}

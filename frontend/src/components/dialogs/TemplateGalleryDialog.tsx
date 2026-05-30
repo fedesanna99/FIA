@@ -1,52 +1,73 @@
 /**
- * TemplateGalleryDialog (Precision v2.0 PR17 T3) — galleria template Precision.
+ * TemplateGalleryDialog · v3.6 SYNC (30/05/2026 sera)
  *
- * 9 modelli didattici precaricati con thumbnail + meta + descrizione.
- * Linguaggio Precision: hairline borders, mono labels, sharp radius.
+ * Modale "Apri da template" — adesso single source of truth via
+ * `templates/catalog.ts`. Pre-SYNC: cards dinamiche da
+ * `models.filter(ex_*)` + dict `TEMPLATE_DESCRIPTIONS` statico (9
+ * chiavi) → bug "10 in home vs 9 nel modale" segnalato da Federico.
+ *
+ * Inoltre fix bug P0 audit-2026-05-28 L2-1 che non era risolto qui:
+ * il vecchio onSelect carica direttamente il template `ex_*` →
+ * modifiche utente mutano il template CONDIVISO. Adesso usa
+ * `cloneMutation` (POST /api/models/from-template) come TemplatesPage
+ * → utente lavora su un clone con `owner_id` proprio.
  */
+import { useState } from "react";
 import { Boxes, ArrowRight } from "lucide-react";
-import type { FEAModel } from "../../types/model";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { useModalBackButton } from "../../hooks/useModalBackButton";
+import { modelsApi } from "../../api/client";
+import { toast } from "../../store/toastStore";
 
-
-/** Descrizioni umane per i 9 template (chiave: id backend "ex_*"). */
-const TEMPLATE_DESCRIPTIONS: Record<string, string> = {
-  ex_simple_beam_2d:
-    "Beam2D IPE 300 su 6 m con carico distribuito. Caso scolastico per validare statica.",
-  ex_portal_frame_2d:
-    "Telaio 4×6 m con incastri a base + carico tetto. Test convergenza modale.",
-  ex_truss_3d:
-    "Reticolo spaziale 3D con cavi e aste. Esempio truss/cable.",
-  ex_shell_plate:
-    "Piastra Q4 2×2 m vincolata sui 4 lati con pressione. Test shell.",
-  ex_tower_3d:
-    "Torre 3D con sezioni HEA + IPE. Esempio frame3D + dinamica.",
-  ex_tri3_seismic:
-    "Membrana T3 sismica. Test elementi triangolari + ground accel.",
-  ex_cube_solid_h8:
-    "Cubo solido H8 in trazione. Test elemento solido 3D.",
-  ex_cable_bridge_2d:
-    "Ponte strallato 2D con cavi pre-tesati. Test non-lineare arc-length.",
-  ex_laminate_plate:
-    "Piastra laminata 1×1 m cross-ply. Test shell laminato composito.",
-};
+import {
+  TEMPLATES_CATALOG,
+  VARIANT_THUMBS,
+  type TemplateEntry,
+} from "../../templates/catalog";
 
 
 interface Props {
   open: boolean;
   onClose: () => void;
-  /** Tutti i modelli del backend (lo store interno filtra gli "ex_*"). */
-  models: FEAModel[];
-  /** Chiamato quando l'utente sceglie un template. */
+  /** Chiamato con il MODEL.id del clone creato (NON con il template id originale). */
   onSelect: (modelId: string) => void;
 }
 
 
-export function TemplateGalleryDialog({ open, onClose, models, onSelect }: Props) {
+export function TemplateGalleryDialog({ open, onClose, onSelect }: Props) {
   useModalBackButton(open, onClose);
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const qc = useQueryClient();
+
+  // v3.1.1 audit-fix L2-1 anche qui: clone template via backend (owner_id user)
+  const cloneMutation = useMutation({
+    mutationFn: (backendId: string) => modelsApi.fromTemplate(backendId),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["models"] });
+    },
+  });
+
   if (!open) return null;
 
-  const templates = models.filter((m) => m.id.startsWith("ex_"));
+  const handleOpen = async (t: TemplateEntry) => {
+    if (cloneMutation.isPending) return;
+    setPendingId(t.id);
+    toast("info", `Caricamento template ${t.uc} · ${t.title}…`, 2_500);
+    try {
+      const cloned = await cloneMutation.mutateAsync(t.backendId);
+      onSelect(cloned.id);
+      onClose();
+    } catch {
+      toast(
+        "error",
+        `Impossibile aprire ${t.uc}. Riprova fra qualche secondo o scegli un altro template.`,
+        5_000,
+      );
+    } finally {
+      setPendingId(null);
+    }
+  };
 
   return (
     <div
@@ -69,11 +90,14 @@ export function TemplateGalleryDialog({ open, onClose, models, onSelect }: Props
               <Boxes className="w-4 h-4" />
             </div>
             <div className="min-w-0">
-              <h2 id="template-gallery-title" className="font-display text-lg font-semibold tracking-tight-1 text-ink">
+              <h2
+                id="template-gallery-title"
+                className="font-display text-lg font-semibold tracking-tight-1 text-ink"
+              >
                 Galleria template
               </h2>
               <p className="font-mono text-[10px] uppercase tracking-wide-1 text-ink-3 mt-0.5">
-                {templates.length} modelli didattici precaricati
+                {TEMPLATES_CATALOG.length} modelli pronti all&apos;uso
               </p>
             </div>
           </div>
@@ -81,32 +105,16 @@ export function TemplateGalleryDialog({ open, onClose, models, onSelect }: Props
 
         {/* Body grid */}
         <div className="p-4 overflow-y-auto flex-1 bg-bg-panel">
-          {templates.length === 0 ? (
-            <div className="text-center py-16">
-              <div className="font-mono text-[10px] uppercase tracking-wide-2 text-ink-3 font-semibold mb-2">
-                Nessun template
-              </div>
-              <p className="text-sm text-ink-2 max-w-[44ch] mx-auto leading-relaxed">
-                Riavvia il backend per il seed degli esempi (
-                <code className="font-mono bg-bg-hover px-1.5 py-0.5 text-ink">seed_examples()</code>
-                ).
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-              {templates.map((t) => (
-                <TemplateCard
-                  key={t.id}
-                  model={t}
-                  description={TEMPLATE_DESCRIPTIONS[t.id]}
-                  onOpen={() => {
-                    onSelect(t.id);
-                    onClose();
-                  }}
-                />
-              ))}
-            </div>
-          )}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+            {TEMPLATES_CATALOG.map((t) => (
+              <TemplateCard
+                key={t.id}
+                template={t}
+                pending={pendingId === t.id}
+                onOpen={() => handleOpen(t)}
+              />
+            ))}
+          </div>
         </div>
 
         {/* Footer */}
@@ -129,47 +137,64 @@ export function TemplateGalleryDialog({ open, onClose, models, onSelect }: Props
 
 
 function TemplateCard({
-  model,
-  description,
+  template,
+  pending,
   onOpen,
 }: {
-  model: FEAModel;
-  description?: string;
+  template: TemplateEntry;
+  pending: boolean;
   onOpen: () => void;
 }) {
-  const nNodes = model.nodes?.length ?? 0;
-  const nElem = model.elements?.length ?? 0;
-  const nLoads = model.loads?.length ?? 0;
-  const nConstr = model.constraints?.length ?? 0;
-
+  const Thumb = VARIANT_THUMBS[template.variant];
   return (
     <button
       type="button"
       onClick={onOpen}
-      data-testid={`template-card-${model.id}`}
-      className="group text-left bg-bg-elevated border border-border hover:border-accent/50 p-3.5 transition-colors flex flex-col gap-2 focus-visible:outline-none focus-visible:border-accent"
+      disabled={pending}
+      data-testid={`template-card-${template.backendId}`}
+      className="group text-left bg-bg-elevated border border-border hover:border-accent/50 p-3.5 transition-colors flex flex-col gap-2 focus-visible:outline-none focus-visible:border-accent disabled:opacity-60 disabled:cursor-progress"
     >
       <div className="flex items-start justify-between gap-2">
-        <h3 className="font-display text-[15px] font-semibold tracking-tight-1 text-ink leading-snug">
-          {model.name}
-        </h3>
+        <div className="flex items-center gap-2 min-w-0">
+          <span className="font-mono text-[10px] text-ink-3 uppercase tracking-wide-1 flex-shrink-0">
+            {template.uc}
+          </span>
+          <h3 className="font-display text-[14px] font-semibold tracking-tight-1 text-ink leading-snug truncate">
+            {template.title}
+          </h3>
+        </div>
+        {template.badge && (
+          <span
+            className={`font-mono text-[9px] font-semibold uppercase tracking-wide-1 px-1.5 py-0.5 border ${
+              template.badge === "POPOLARE"
+                ? "text-accent border-accent/40 bg-bg-info"
+                : template.badge === "PRO"
+                  ? "text-purple border-purple/40 bg-bg-purple"
+                  : "text-success border-success/40 bg-bg-success"
+            }`}
+          >
+            {template.badge}
+          </span>
+        )}
       </div>
-      {description && (
-        <p className="text-[12px] text-ink-2 leading-snug">{description}</p>
-      )}
+      <div className="aspect-[280/120] bg-bg-viewport border border-border-light overflow-hidden flex items-center justify-center">
+        <Thumb />
+      </div>
+      <p className="text-[12px] text-ink-2 leading-snug line-clamp-2">{template.desc}</p>
       <div className="flex flex-wrap items-center gap-1 font-mono text-[10px] text-ink-3 mt-1">
-        <span className="bg-bg-panel border border-border px-1.5 py-0.5">{nNodes} N</span>
-        <span className="bg-bg-panel border border-border px-1.5 py-0.5">{nElem} E</span>
-        {nLoads > 0 && (
-          <span className="bg-bg-panel border border-border px-1.5 py-0.5">{nLoads} L</span>
-        )}
-        {nConstr > 0 && (
-          <span className="bg-bg-panel border border-border px-1.5 py-0.5">{nConstr} V</span>
-        )}
+        <span className="bg-bg-panel border border-border px-1.5 py-0.5">{template.category}</span>
+        {template.pills.map((p) => (
+          <span key={p} className="bg-bg-panel border border-border px-1.5 py-0.5">{p}</span>
+        ))}
+        <span className="ml-auto text-ink-dim">{template.timeMin} min</span>
       </div>
       <div className="mt-1 inline-flex items-center gap-1 text-[12px] text-accent font-medium group-hover:gap-2 transition-all">
-        Apri template
-        <ArrowRight className="w-3 h-3" />
+        {pending ? "Caricamento…" : (
+          <>
+            Apri template
+            <ArrowRight className="w-3 h-3" />
+          </>
+        )}
       </div>
     </button>
   );
