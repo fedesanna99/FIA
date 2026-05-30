@@ -992,3 +992,46 @@ body.shell-sharp .dash-soft .placeholder-cta { border-radius: 0; }
 .dash-soft .quota-dismiss:hover {
   background: rgba(180, 83, 9, 0.10);
 }
+
+/* ════════════════════════════════════════════════════════════════════════
+ * Fetta DM1 (30/05 sera) · Dashboard mobile breakpoint <640
+ * Da HANDOFF Round 5 di Claude Design (§R5.2), porting del blocco
+ * "Smartphone responsive" che mancava sotto i 768. Le regole `.tb-*`
+ * restano utili anche se la Shell legacy gestisce MobileTabbar altrove,
+ * perché su Dashboard la DashTopBar viene comunque renderizzata su
+ * mobile (è la chrome standard della /).
+ *
+ * ⚠️ `align-items: stretch` su `.block-head` — NON `flex-start`. Con
+ * flex-start il titolo si restringe alla larghezza iniziale e collide
+ * col link quando il webfont Plus Jakarta riflowa (warning esplicito
+ * di Claude Design §R5.1).
+ *
+ * Extra rispetto a §R5.2 puro: `.quota-inner` padding ridotto da 32 → 16
+ * su mobile. Senza questo, su 375px il banner quota e' cramped (CTA
+ * "Vedi fatturazione" wrappa). NB: `.dash-wrap` esiste nel mockup HTML
+ * di Claude Design ma NON nel JSX React (il main centra il contenuto
+ * via altre regole), quindi il padding wrap dei contenuti generali NON
+ * va toccato qui.
+ * ════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  /* Topbar essenziale — nav globale fuori, brand padding ridotto,
+     tier badge e Aiuto nascosti per dare aria al brand+search+avatar */
+  .dash-soft .tb-nav { display: none; }
+  .dash-soft .tb-brand { padding: 0 12px; }
+  .dash-soft .tb-tier { display: none; }
+  .dash-soft .tb-iconbtn[aria-label="Aiuto"] { display: none; }
+  /* Section header impilato (stretch, NON flex-start — vedi sopra) */
+  .dash-soft .block-head { flex-direction: column; align-items: stretch; gap: 12px; }
+  .dash-soft .block-head .block-link { align-self: flex-start; }
+  /* Tile primaria "Nuovo modello" compatta */
+  .dash-soft .nmt-kbd { display: none; }
+  .dash-soft .new-model-tile { padding: 20px; gap: 14px; }
+  .dash-soft .nmt-icon { width: 48px; height: 48px; }
+  .dash-soft .nmt-icon svg { width: 24px; height: 24px; }
+  /* Hero h1 da 30px (desktop) a 23px (mobile) — meno dominante */
+  .dash-soft .dash-hero h1 { font-size: 23px; }
+  /* Gallery template a colonna singola */
+  .dash-soft .tg-grid { grid-template-columns: 1fr; }
+  /* Quota-inner padding ridotto per dare respiro su 375 (extra vs §R5.2) */
+  .dash-soft .quota-inner { padding: 9px 16px; }
+}
