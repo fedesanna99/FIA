@@ -521,3 +521,171 @@ body.shell-sharp .ptd-subheader-credits { border-radius: 0; }
   font-weight: 500;
   opacity: 0.72;
 }
+
+
+/* ──────────────────────────────────────────────────────────────────────
+ * v3.5 Fetta D6 · StepConfirm (step 2 vincoli/carichi · step 3 materiali)
+ * ──────────────────────────────────────────────────────────────────── */
+
+.ptd-confirm-body {
+  display: grid;
+  grid-template-columns: 1fr 280px;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 960px) {
+  .ptd-confirm-body { grid-template-columns: 1fr; }
+}
+
+.ptd-confirm-main {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ptd-confirm-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.ptd-confirm-item {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+body.shell-sharp .ptd-confirm-item { border-radius: 0; }
+
+.ptd-confirm-item-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(var(--accent-rgb), 0.08);
+  color: var(--accent);
+  border-radius: 7px;
+}
+body.shell-sharp .ptd-confirm-item-icon { border-radius: 0; }
+
+.ptd-confirm-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ptd-confirm-item-label {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.10em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.ptd-confirm-item-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.ptd-confirm-item-hint {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-family: "JetBrains Mono", monospace;
+}
+
+.ptd-confirm-tip {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 8px;
+  padding: 10px 14px;
+  background: rgba(var(--accent-rgb), 0.05);
+  border-left: 2px solid var(--accent);
+  border-radius: 6px;
+}
+body.shell-sharp .ptd-confirm-tip { border-radius: 0; }
+.ptd-confirm-tip svg {
+  color: var(--accent);
+  margin-top: 2px;
+}
+.ptd-confirm-tip p {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.ptd-confirm-cta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 4px;
+}
+
+.ptd-confirm-cta-hint {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.ptd-confirm-cta {
+  padding: 10px 18px;
+  background: rgb(16, 185, 129);
+  color: #ffffff;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 120ms ease, transform 120ms ease;
+}
+body.shell-sharp .ptd-confirm-cta { border-radius: 0; }
+.ptd-confirm-cta:hover {
+  background: rgb(5, 150, 105);
+  transform: translateY(-1px);
+}
+
+/* Aside dx · about step */
+.ptd-confirm-aside {
+  padding: 18px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+body.shell-sharp .ptd-confirm-aside { border-radius: 0; }
+
+.ptd-confirm-aside-eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 10px;
+}
+
+.ptd-confirm-aside-body p {
+  margin: 0 0 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.ptd-confirm-aside-hint {
+  margin-top: 8px !important;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-style: italic;
+}

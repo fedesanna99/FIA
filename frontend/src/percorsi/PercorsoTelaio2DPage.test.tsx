@@ -78,8 +78,8 @@ describe("PercorsoTelaio2DPage · D1 skeleton", () => {
     renderPage();
     // Click "Done with Geometry" → handleStep1Submit → setStep(2)
     fireEvent.click(screen.getByTestId("step-geometry-submit"));
-    // Step 2 placeholder ora visibile (StepGeometry NON e' piu' renderizzato)
-    expect(screen.getByTestId("ptd-step-2-placeholder")).toBeInTheDocument();
+    // v3.5 D6: step 2 ora renderizza StepConfirm (vincoli/carichi) — non piu' placeholder
+    expect(screen.getByTestId("step-confirm-body")).toBeInTheDocument();
     expect(screen.queryByTestId("step-geometry-body")).toBeNull();
   });
 

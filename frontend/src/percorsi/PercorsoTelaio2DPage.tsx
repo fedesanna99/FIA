@@ -35,7 +35,7 @@
  */
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink, Settings, Check, Zap } from "lucide-react";
+import { ExternalLink, Settings, Check, Zap, Anchor, ArrowDownToLine, Layers, Cog } from "lucide-react";
 
 import { PercorsoStep } from "../components/shell/PercorsoStep";
 import { PERCORSO_STEPS_6 } from "../components/shell/PercorsoStepper";
@@ -44,6 +44,7 @@ import { PERCORSO_STEPS_6 } from "../components/shell/PercorsoStepper";
 // modelStore.setModel al submit (poi avanza step). Tutto self-contained
 // (form + preview + aside preset) — nessuna prop preset esterna.
 import { StepGeometry } from "./steps/StepGeometry";
+import { StepConfirm } from "./steps/StepConfirm";
 import "../styles/percorso-telaio-2d.css";
 
 
@@ -213,19 +214,91 @@ export function PercorsoTelaio2DPage(): JSX.Element {
           forwardLabel={step === 6 ? "Completa percorso" : `Vai a ${PERCORSO_STEPS_6[step]?.label ?? "next"}`}
           forwardDisabled={validation.status === "pending"}
         >
-          {/* v3.5 D3: step 1 cablato a StepGeometry (form parametrico +
-              preview SVG + preset aside). Step 2-6 ancora placeholder
-              finche' D6/D7 li popolano. */}
-          {step === 1 ? (
-            <StepGeometry onSubmit={handleStep1Submit} />
-          ) : (
+          {/* v3.5 D3+D6: render condizionale del body per step.
+              Step 1 → StepGeometry (form parametrico + preview SVG).
+              Step 2 → StepConfirm Vincoli/Carichi (D6).
+              Step 3 → StepConfirm Materiali/Sezioni (D6).
+              Step 4-6 → placeholder (D7 li verifica + polish).
+          */}
+          {step === 1 && <StepGeometry onSubmit={handleStep1Submit} />}
+          {step === 2 && (
+            <StepConfirm
+              ctaLabel="Conferma vincoli e carichi"
+              items={[
+                {
+                  icon: Anchor,
+                  label: "Vincoli base",
+                  value: "Incastri alle colonne base",
+                  hint: "Pattern standard per telai 2D · 6 DOF bloccati per nodo base",
+                },
+                {
+                  icon: ArrowDownToLine,
+                  label: "Carico verticale",
+                  value: "10 kN/m distribuito uniforme",
+                  hint: "Peso proprio + carico permanente didattico (NTC 2018 §4.2)",
+                },
+              ]}
+              tip="Il template ti dà vincoli + carichi standard per partire. Puoi personalizzarli dopo nel pannello Make di Studio Pro."
+              aboutBody={
+                <>
+                  <p>
+                    <strong>Vincoli</strong> = come la struttura è ancorata al terreno.
+                  </p>
+                  <p>
+                    <strong>Carichi</strong> = forze esterne (peso, neve, vento, sisma).
+                  </p>
+                  <p className="ptd-confirm-aside-hint">
+                    Il percorso preset entrambi su valori didattici NTC 2018 §4.2
+                    cosi' puoi concentrarti sul flow end-to-end.
+                  </p>
+                </>
+              }
+              ctaHint="Default sicuro"
+              onConfirm={handleForward}
+            />
+          )}
+          {step === 3 && (
+            <StepConfirm
+              ctaLabel="Conferma materiali e sezioni"
+              items={[
+                {
+                  icon: Layers,
+                  label: "Materiale",
+                  value: "S275 — Acciaio strutturale",
+                  hint: "fyd = 275 N/mm² · E = 210 GPa · ρ = 7850 kg/m³",
+                },
+                {
+                  icon: Cog,
+                  label: "Sezione",
+                  value: "IPE 300",
+                  hint: "Profilo standard EC3 · Wel = 557 cm³ · A = 53.8 cm²",
+                },
+              ]}
+              tip="S275 + IPE 300 sono valori standard per telai industriali fino a 8 m luce. Modificabili dopo nel pannello Sezioni di Studio Pro."
+              aboutBody={
+                <>
+                  <p>
+                    <strong>Materiale + sezione</strong> determinano la
+                    rigidezza (EI, EA, GJ) di ogni elemento.
+                  </p>
+                  <p className="ptd-confirm-aside-hint">
+                    Cambiare materiale richiede rifare l'analisi e le verifiche
+                    (lo step Esegui ricalcola tutto).
+                  </p>
+                </>
+              }
+              ctaHint="Acciaio standard"
+              onConfirm={handleForward}
+            />
+          )}
+          {step >= 4 && (
             <div className="ptd-step-placeholder" data-testid={`ptd-step-${step}-placeholder`}>
               <p className="ptd-placeholder-eyebrow">SCAFFOLD D1</p>
               <p className="ptd-placeholder-title">Step {step} · {PERCORSO_STEPS_6[step - 1].label}</p>
               <p className="ptd-placeholder-hint">
-                Il body di questo step sarà popolato in una fetta successiva
-                del Demo Slice (D{step <= 3 ? "6" : "7"}). Per ora puoi
-                navigare avanti/indietro per testare lo stepper.
+                Il body di questo step sarà popolato in D7 (Esegui/Critical/Report
+                verify). Per ora puoi navigare avanti/indietro per testare lo
+                stepper.
               </p>
             </div>
           )}
