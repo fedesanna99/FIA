@@ -895,12 +895,14 @@ def example_rc_frame_2d_pushover() -> FEAModel:
     n_levels = n_floors + 1   # 4 livelli (base + 3 piani)
 
     # === NODI === 6 × 4 = 24
+    # Convention BEAM2D = piano x-y (y = asse verticale, gravita' in -y).
+    # Vedi pattern in example_portal_frame_2d / example_simple_beam_2d.
     nodes: list[Node] = []
     nid = 1
     for k in range(n_levels):
-        z = k * h_floor
+        y = k * h_floor
         for i in range(n_cols):
-            nodes.append(Node(id=nid, x=i * bay, y=0.0, z=z))
+            nodes.append(Node(id=nid, x=i * bay, y=y, z=0.0))
             nid += 1
 
     def nodeid(col: int, lvl: int) -> int:
@@ -971,6 +973,118 @@ def example_rc_frame_2d_pushover() -> FEAModel:
     )
 
 
+def example_rc_floor_with_beams() -> FEAModel:
+    """Solaio CA gettato in opera con travi (TPL-5).
+
+    Solaio 8×12 m, shell t=20cm in C25/30, mesh fitta 0.5×0.5 m
+    (17×25 = 425 nodi). 1 trave principale HEB-stile (rect 30×50 cm)
+    in CA al centro lungo l'asse maggiore (x=4) + 2 nervature
+    trasversali a y=4 e y=8. Interazione piastra-trave classica per
+    solaio gettato in opera.
+
+    Vincoli: bordo continuo sui 2 lati corti (x=0 e x=8) — appoggio
+    su muri portanti.
+
+    Scenario: solaio tipo del professionista (CA gettato in opera con
+    nervature) — verifica iso-momenti, freccia centro campata, taglio.
+
+    Norme: NTC 2018 §4.1, EC2.
+    """
+    Lx, Ly = 8.0, 12.0
+    mesh = 0.5
+    nx = int(Lx / mesh)  # 16
+    ny = int(Ly / mesh)  # 24
+    nnx, nny = nx + 1, ny + 1  # 17 × 25 = 425
+
+    # === NODI === mesh 0.5m, layout shell piano z=0
+    nodes: list[Node] = []
+    for j in range(nny):
+        for i in range(nnx):
+            nid = j * nnx + i + 1
+            nodes.append(Node(id=nid, x=i * mesh, y=j * mesh, z=0.0))
+
+    def node_id(i: int, j: int) -> int:
+        return j * nnx + i + 1
+
+    # === ELEMENTI ===
+    elements: list[Element] = []
+    eid = 1
+    # 1) Shell solaio (16×24 = 384 SHELL_Q4)
+    for j in range(ny):
+        for i in range(nx):
+            n1 = node_id(i, j)
+            n2 = node_id(i + 1, j)
+            n3 = node_id(i + 1, j + 1)
+            n4 = node_id(i, j + 1)
+            elements.append(Element(
+                id=eid, type=ElementType.SHELL_Q4,
+                nodes=[n1, n2, n3, n4],
+                material_id="concrete_c25", section_id="shell_t200",
+            ))
+            eid += 1
+    # 2) Trave principale longitudinale a x=4m (i=8), 24 segmenti BEAM3D
+    i_central = nx // 2  # 8
+    for j in range(ny):
+        elements.append(Element(
+            id=eid, type=ElementType.BEAM3D,
+            nodes=[node_id(i_central, j), node_id(i_central, j + 1)],
+            material_id="concrete_c25", section_id="rect_300x500",
+            orientation=[0, 0, 1],
+        ))
+        eid += 1
+    # 3) Nervature trasversali a y=4 (j=8) e y=8 (j=16), 16 segmenti × 2 = 32
+    for j_nerv in (ny // 3, 2 * ny // 3):
+        for i in range(nx):
+            elements.append(Element(
+                id=eid, type=ElementType.BEAM3D,
+                nodes=[node_id(i, j_nerv), node_id(i + 1, j_nerv)],
+                material_id="concrete_c25", section_id="rect_300x500",
+                orientation=[0, 0, 1],
+            ))
+            eid += 1
+
+    # === CONSTRAINTS === bordo continuo su lati corti (x=0 e x=Lx)
+    constraints: list[Constraint] = []
+    cid = 1
+    for j in range(nny):
+        for i in (0, nx):  # x=0 e x=Lx
+            constraints.append(Constraint(
+                id=cid, type=ConstraintType.PINNED,
+                node_id=node_id(i, j),
+                label=f"Appoggio bordo {'sx' if i == 0 else 'dx'} y={j*mesh:.1f}m",
+            ))
+            cid += 1
+
+    # === CARICHI === -3 kN/m² distribuiti su shell → NODAL fz su tutti i nodi
+    # Area tributaria per nodo: interno = mesh², bordo = mesh²/2, angolo = mesh²/4
+    loads: list[Load] = []
+    lid = 1
+    q = -3000.0  # N/m²
+    for j in range(nny):
+        for i in range(nnx):
+            fx_factor = 0.5 if (i == 0 or i == nx) else 1.0
+            fy_factor = 0.5 if (j == 0 or j == ny) else 1.0
+            area = mesh * mesh * fx_factor * fy_factor
+            loads.append(Load(
+                id=lid, type=LoadType.NODAL,
+                target_id=node_id(i, j),
+                fz=q * area,
+                label="Carico solaio",
+            ))
+            lid += 1
+
+    return FEAModel(
+        id="ex_rc_floor_with_beams",
+        name="Solaio CA gettato + travi",
+        description="Solaio CA 8×12 m, shell t=20cm in C25/30, mesh 0.5m. "
+                    "1 trave principale longitudinale 30×50 + 2 nervature trasversali "
+                    "30×50, C25/30. Appoggio continuo lati corti. Carico -3 kN/m². "
+                    "Interazione piastra-trave NTC §4.1 + EC2.",
+        is_3d=True,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
 def build_example_models() -> list[FEAModel]:
     return [
         example_simple_beam_2d(),
@@ -986,4 +1100,5 @@ def build_example_models() -> list[FEAModel]:
         example_steel_portal_hall(),       # TPL-2
         example_steel_truss_pratt_24m(),   # TPL-3
         example_rc_frame_2d_pushover(),    # TPL-4
+        example_rc_floor_with_beams(),     # TPL-5
     ]

@@ -21,7 +21,7 @@ import type { JSX } from "react";
 export type TemplateVariant =
   | "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss"
   | "membrane" | "solid" | "bridge" | "laminate" | "building" | "warehouse"
-  | "prattTruss" | "frame2d";
+  | "prattTruss" | "frame2d" | "floor";
 
 export type TemplateCategory = "acciaio" | "ca" | "legno" | "sismica" | "altro";
 export type TemplateBadge = "POPOLARE" | "PRO" | "NEW";
@@ -67,6 +67,7 @@ export const TEMPLATES_CATALOG: TemplateEntry[] = [
   { id: "t11", backendId: "ex_steel_portal_hall", uc: "UC11", title: "Capannone acciaio 1 campata", desc: "Capannone industriale S355, 20×40 m, 9 telai interasse 5 m. Pilastri HEB300 h=7m, falde IPE300 inclinate 15°, arcarecci IPE200 + controventi facciate. ~81 nodi · 100 elem.", category: "acciaio", pills: ["beam3D", "truss", "EC3"], timeMin: 8, badge: "NEW", variant: "warehouse" },
   { id: "t12", backendId: "ex_steel_truss_pratt_24m", uc: "UC12", title: "Capriata Pratt L=24m", desc: "Capriata reticolare Pratt 12 pannelli, luce 24m, altezza 2.4m (L/10). Correnti IPE200 + montanti/diag Ø100 in S355. Solo aste TRUSS (forza assiale pura). 24 nodi · 45 elem.", category: "acciaio", pills: ["truss", "EC3"], timeMin: 3, badge: "NEW", variant: "prattTruss" },
   { id: "t13", backendId: "ex_rc_frame_2d_pushover", uc: "UC13", title: "Telaio CA 2D pushover EC8", desc: "Telaio piano CA 5×3 piani, pilastri+travi 30×50 cm C25/30. Carichi gravità + pattern triangolare laterale 10/20/30 kN. Pronto per pushover EC8 §4.3.3.3.", category: "ca", pills: ["beam2D", "pushover", "EC8"], timeMin: 5, badge: "PRO", variant: "frame2d" },
+  { id: "t14", backendId: "ex_rc_floor_with_beams", uc: "UC14", title: "Solaio CA gettato + travi", desc: "Solaio 8×12 m, shell t=20cm in C25/30, mesh 0.5m. 1 trave principale 30×50 + 2 nervature trasversali, appoggio continuo lati corti. ~425 nodi · 440 elem. NTC §4.1 + EC2.", category: "ca", pills: ["shell", "beam3D", "EC2"], timeMin: 10, badge: "NEW", variant: "floor" },
 ];
 
 
@@ -419,7 +420,45 @@ export const VARIANT_THUMBS: Record<TemplateVariant, () => JSX.Element> = {
   warehouse: WarehouseThumb,
   prattTruss: PrattTrussThumb,
   frame2d: Frame2dThumb,
+  floor: FloorThumb,
 };
+
+function FloorThumb(): JSX.Element {
+  // Solaio CA visto dall'alto: rettangolo + griglia mesh + 1 trave longitudinale
+  // accent + 2 nervature trasversali + 2 appoggi continui lati corti
+  return (
+    <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+      {/* Perimetro solaio + griglia mesh */}
+      <rect x="50" y="35" width="180" height="90" stroke={stroke} strokeWidth="2" fill="none" />
+      <g stroke="var(--border-light)" strokeWidth="0.6">
+        {[80, 110, 140, 170, 200].map((x) => (
+          <line key={x} x1={x} y1="35" x2={x} y2="125" />
+        ))}
+        {[57.5, 80, 102.5].map((y) => (
+          <line key={y} x1="50" y1={y} x2="230" y2={y} />
+        ))}
+      </g>
+      {/* 1 trave principale longitudinale accent (al centro x) */}
+      <line x1="140" y1="35" x2="140" y2="125" stroke={accent} strokeWidth="2.2" />
+      {/* 2 nervature trasversali accent */}
+      <line x1="50" y1="65" x2="230" y2="65" stroke={accent} strokeWidth="1.8" />
+      <line x1="50" y1="95" x2="230" y2="95" stroke={accent} strokeWidth="1.8" />
+      {/* Appoggi continui lati corti (hatch tratteggio) */}
+      <g stroke="var(--ink-dim)" strokeWidth="1.5">
+        <line x1="40" y1="35" x2="40" y2="125" />
+        <line x1="240" y1="35" x2="240" y2="125" />
+      </g>
+      <g stroke="var(--ink-dim)" strokeWidth="0.8">
+        {[40, 55, 70, 85, 100, 115].map((y) => (
+          <line key={y} x1="40" y1={y} x2="33" y2={y + 6} />
+        ))}
+        {[40, 55, 70, 85, 100, 115].map((y) => (
+          <line key={y} x1="240" y1={y} x2="247" y2={y + 6} />
+        ))}
+      </g>
+    </svg>
+  );
+}
 
 function Frame2dThumb(): JSX.Element {
   // Telaio CA 2D 5×3: griglia pilastri+travi + frecce pushover laterali

@@ -16,6 +16,7 @@ from examples import (
     example_steel_portal_hall,      # TPL-2
     example_steel_truss_pratt_24m,  # TPL-3
     example_rc_frame_2d_pushover,   # TPL-4
+    example_rc_floor_with_beams,    # TPL-5
 )
 from core.solver import StaticSolver, ModalSolver
 
@@ -30,6 +31,7 @@ ALL_EXAMPLES = [
     ("steel_portal_hall", example_steel_portal_hall),           # TPL-2
     ("steel_truss_pratt_24m", example_steel_truss_pratt_24m),   # TPL-3
     ("rc_frame_2d_pushover", example_rc_frame_2d_pushover),     # TPL-4
+    ("rc_floor_with_beams", example_rc_floor_with_beams),       # TPL-5
 ]
 
 
@@ -165,6 +167,28 @@ def test_steel_portal_hall_geometry():
     assert min(xs) == 0.0 and max(xs) == 20.0, "luce 20m"
     assert min(ys) == 0.0 and max(ys) == 40.0, "lunghezza 40m (9 telai × 5m interasse)"
     assert min(zs) == 0.0 and max(zs) == pytest.approx(9.68, abs=0.01), "colmo ~9.68m"
+
+
+# === TPL-5 · Solaio CA gettato + travi ===
+def test_rc_floor_with_beams_geometry():
+    """425 nodi (17×25), 440 elem (384 SHELL_Q4 + 56 BEAM3D), 50 vincoli bordo."""
+    model = example_rc_floor_with_beams()
+    assert len(model.nodes) == 425
+    assert len(model.elements) == 440
+    assert len(model.constraints) == 50
+    n_shell = sum(1 for e in model.elements if str(e.type).endswith("SHELL_Q4"))
+    n_beam = sum(1 for e in model.elements if str(e.type).endswith("BEAM3D"))
+    assert n_shell == 384, "16×24 = 384 shell"
+    assert n_beam == 56, "24 trave principale + 32 nervature = 56"
+
+
+def test_rc_floor_with_beams_balance():
+    """Σ Fz reazioni == -Σ carichi solaio (8×12 m × 3 kN/m² = 288 kN)."""
+    model = example_rc_floor_with_beams()
+    r = StaticSolver(model).solve()
+    total_rz = sum(rx.fz for rx in r.reactions)
+    expected = 3000.0 * 8.0 * 12.0  # 288 kN
+    assert total_rz == pytest.approx(expected, rel=1e-2)
 
 
 # === TPL-4 · Telaio CA 2D 5×3 pushover EC8 ===
