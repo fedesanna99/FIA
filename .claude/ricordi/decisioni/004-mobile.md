@@ -261,6 +261,34 @@ test. Pattern di rispetto: tradurre il feedback informale ("scritto
 malissimo xD" parole sue) in decisione tecnica documentata + fix
 veloce + redeploy.
 
+**Insight persona-driven (Federico, 30/05 mattina post-deploy
+M4-polish)**: la differenza di comportamento mobile vs desktop NON
+e' un trade-off forzato dallo spazio, e' una **scelta consapevole di
+audience**. Citazione testuale di Federico dopo aver testato live
+single-open su iPhone:
+
+> *"su mobile non può esserci più di una scheda aperta, su desktop si
+> per permettere ai senior di paragonare, tanto un senior userà
+> probabilmente sempre la versione desktop"*
+
+Conseguenze per le decisioni future:
+- **Desktop = senior/power user**: workflow complessi (confronto
+  sezioni, multi-pannello, scorciatoie da tastiera, formule estese).
+  Pattern UX desktop-first per feature avanzate.
+- **Mobile = junior + on-the-go**: controllo veloce, una cosa alla
+  volta, gestures touch-native, pattern atteso (hamburger / sheet /
+  drawer). Mai costringere un mobile user a "scrollare per trovare"
+  quando un single-open chiarisce.
+- **NON serve la paritá feature mobile-desktop**: alcune feature
+  potranno essere desktop-only senza danno (es. multi-open
+  comparativo, View overlay toolbar, palette ⌘K rich). Il mobile
+  ha la _stessa qualita'_ con un set di feature _curato per il
+  contesto d'uso_.
+
+Pattern applicabile a tutte le fette mobile future M3/M5/M6+: prima
+di replicare un pattern desktop su mobile, chiedere "chi e' l'utente
+mobile QUI? Se senior, replico; se junior/on-the-go, semplifico".
+
 ## Per il prossimo Claude
 
 Quando Federico dirà "Fetta M1", apri questo file + `socio/06-cose-belle-fetta-e2-ia.md`
