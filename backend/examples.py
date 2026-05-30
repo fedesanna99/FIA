@@ -866,6 +866,111 @@ def example_steel_truss_pratt_24m() -> FEAModel:
     )
 
 
+def example_rc_frame_2d_pushover() -> FEAModel:
+    """Telaio CA 2D 5×3 piani EC8 pushover-ready (TPL-4).
+
+    Telaio piano regolare 5 campate × 3 piani, span 5m, h interpiano 3m.
+    Pilastri+travi 30×50 cm C25/30. BEAM2D. Pronto per analisi pushover
+    EC8 §4.3.3.3 con pattern triangolare (forze laterali crescenti con
+    l'altezza). Replica esempio JRC EC8 Worked Example.
+
+    Geometria:
+      - 24 nodi (6 colonne × 4 livelli)
+      - 33 elementi (18 pilastri + 15 travi BEAM2D)
+      - 6 incastri alla base
+      - Carichi gravita' nodali + pattern triangolare laterale
+        (10/20/30 kN sui 3 piani: F = i × Fbase, base 10 kN)
+
+    Scenario: il modello "puramente didattico" per imparare pushover
+    EC8 — formato 5x3 piccolo che converge in <1s ma riproduce le
+    forze laterali di un edificio multipiano.
+
+    Norme: NTC §7.4/§7.8.1, EC8 §4.3.3, JRC EC8 Worked Examples.
+    """
+    n_bays = 5
+    n_floors = 3
+    bay = 5.0       # m span campata
+    h_floor = 3.0   # m interpiano
+    n_cols = n_bays + 1       # 6 colonne
+    n_levels = n_floors + 1   # 4 livelli (base + 3 piani)
+
+    # === NODI === 6 × 4 = 24
+    nodes: list[Node] = []
+    nid = 1
+    for k in range(n_levels):
+        z = k * h_floor
+        for i in range(n_cols):
+            nodes.append(Node(id=nid, x=i * bay, y=0.0, z=z))
+            nid += 1
+
+    def nodeid(col: int, lvl: int) -> int:
+        """col 0..5, lvl 0..3 (lvl 0 = base, lvl 3 = top)."""
+        return lvl * n_cols + col + 1
+
+    # === ELEMENTI ===
+    elements: list[Element] = []
+    eid = 1
+    # Pilastri (BEAM2D, 6 colonne × 3 segmenti tra livelli consecutivi = 18)
+    for col in range(n_cols):
+        for lvl in range(n_floors):
+            elements.append(Element(
+                id=eid, type=ElementType.BEAM2D,
+                nodes=[nodeid(col, lvl), nodeid(col, lvl + 1)],
+                material_id="concrete_c25", section_id="rect_300x500",
+            ))
+            eid += 1
+    # Travi orizzontali (BEAM2D, 5 campate × 3 piani fuori terra = 15)
+    for lvl in range(1, n_levels):
+        for i in range(n_bays):
+            elements.append(Element(
+                id=eid, type=ElementType.BEAM2D,
+                nodes=[nodeid(i, lvl), nodeid(i + 1, lvl)],
+                material_id="concrete_c25", section_id="rect_300x500",
+            ))
+            eid += 1
+
+    # === CONSTRAINTS === 6 pilastri base incastrati
+    constraints = [
+        Constraint(id=col + 1, type=ConstraintType.FIXED,
+                   node_id=nodeid(col, 0), label=f"Incastro col {col + 1}")
+        for col in range(n_cols)
+    ]
+
+    # === CARICHI ===
+    # Gravita' nodali: 8 kN/nodo verticale sui 18 nodi dei 3 piani fuori terra
+    # Pushover lateral: pattern triangolare 10/20/30 kN su nodo sx ogni piano
+    loads: list[Load] = []
+    lid = 1
+    # Gravita'
+    for lvl in range(1, n_levels):
+        for col in range(n_cols):
+            loads.append(Load(
+                id=lid, type=LoadType.NODAL,
+                target_id=nodeid(col, lvl), fy=-8000.0,
+                label=f"Gravita' piano {lvl}",
+            ))
+            lid += 1
+    # Pushover lateral (pattern triangolare EC8)
+    for lvl in range(1, n_levels):
+        f_lateral = 10000.0 * lvl  # 10, 20, 30 kN
+        loads.append(Load(
+            id=lid, type=LoadType.NODAL,
+            target_id=nodeid(0, lvl), fx=f_lateral,
+            label=f"Pushover piano {lvl}",
+        ))
+        lid += 1
+
+    return FEAModel(
+        id="ex_rc_frame_2d_pushover",
+        name="Telaio CA 2D 5×3 pushover EC8",
+        description="Telaio piano CA 5 campate × 3 piani regolare, pilastri+travi "
+                    "30×50 cm C25/30. Carichi gravita' + pattern triangolare laterale "
+                    "10/20/30 kN. Pronto per pushover EC8 §4.3.3.3.",
+        is_3d=False,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
 def build_example_models() -> list[FEAModel]:
     return [
         example_simple_beam_2d(),
@@ -877,7 +982,8 @@ def build_example_models() -> list[FEAModel]:
         example_cube_solid_h8(),
         example_cable_bridge_2d(),
         example_laminate_plate(),
-        example_rc_building_4st(),         # TPL-1 (30/05/2026 sera)
-        example_steel_portal_hall(),       # TPL-2 (30/05/2026 sera)
-        example_steel_truss_pratt_24m(),   # TPL-3 (30/05/2026 sera)
+        example_rc_building_4st(),         # TPL-1
+        example_steel_portal_hall(),       # TPL-2
+        example_steel_truss_pratt_24m(),   # TPL-3
+        example_rc_frame_2d_pushover(),    # TPL-4
     ]

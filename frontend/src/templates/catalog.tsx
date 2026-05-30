@@ -21,7 +21,7 @@ import type { JSX } from "react";
 export type TemplateVariant =
   | "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss"
   | "membrane" | "solid" | "bridge" | "laminate" | "building" | "warehouse"
-  | "prattTruss";
+  | "prattTruss" | "frame2d";
 
 export type TemplateCategory = "acciaio" | "ca" | "legno" | "sismica" | "altro";
 export type TemplateBadge = "POPOLARE" | "PRO" | "NEW";
@@ -66,6 +66,7 @@ export const TEMPLATES_CATALOG: TemplateEntry[] = [
   { id: "t10", backendId: "ex_rc_building_4st", uc: "UC10", title: "Edificio CA 4 piani", desc: "Edificio residenziale CA, pianta 12×8 m, 3×2 baie, pilastri+travi 30×50 cm C25/30, solai shell 20 cm. ~585 nodi · 500 elementi.", category: "ca", pills: ["beam3D", "shell", "NTC"], timeMin: 12, badge: "NEW", variant: "building" },
   { id: "t11", backendId: "ex_steel_portal_hall", uc: "UC11", title: "Capannone acciaio 1 campata", desc: "Capannone industriale S355, 20×40 m, 9 telai interasse 5 m. Pilastri HEB300 h=7m, falde IPE300 inclinate 15°, arcarecci IPE200 + controventi facciate. ~81 nodi · 100 elem.", category: "acciaio", pills: ["beam3D", "truss", "EC3"], timeMin: 8, badge: "NEW", variant: "warehouse" },
   { id: "t12", backendId: "ex_steel_truss_pratt_24m", uc: "UC12", title: "Capriata Pratt L=24m", desc: "Capriata reticolare Pratt 12 pannelli, luce 24m, altezza 2.4m (L/10). Correnti IPE200 + montanti/diag Ø100 in S355. Solo aste TRUSS (forza assiale pura). 24 nodi · 45 elem.", category: "acciaio", pills: ["truss", "EC3"], timeMin: 3, badge: "NEW", variant: "prattTruss" },
+  { id: "t13", backendId: "ex_rc_frame_2d_pushover", uc: "UC13", title: "Telaio CA 2D pushover EC8", desc: "Telaio piano CA 5×3 piani, pilastri+travi 30×50 cm C25/30. Carichi gravità + pattern triangolare laterale 10/20/30 kN. Pronto per pushover EC8 §4.3.3.3.", category: "ca", pills: ["beam2D", "pushover", "EC8"], timeMin: 5, badge: "PRO", variant: "frame2d" },
 ];
 
 
@@ -417,7 +418,45 @@ export const VARIANT_THUMBS: Record<TemplateVariant, () => JSX.Element> = {
   building: BuildingThumb,
   warehouse: WarehouseThumb,
   prattTruss: PrattTrussThumb,
+  frame2d: Frame2dThumb,
 };
+
+function Frame2dThumb(): JSX.Element {
+  // Telaio CA 2D 5×3: griglia pilastri+travi + frecce pushover laterali
+  return (
+    <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+      <g stroke={stroke} strokeWidth="2" fill="none">
+        {/* 6 pilastri verticali */}
+        <line x1="60" y1="30" x2="60" y2="130" />
+        <line x1="92" y1="30" x2="92" y2="130" />
+        <line x1="124" y1="30" x2="124" y2="130" />
+        <line x1="156" y1="30" x2="156" y2="130" />
+        <line x1="188" y1="30" x2="188" y2="130" />
+        <line x1="220" y1="30" x2="220" y2="130" />
+        {/* 3 travi orizzontali (piani fuori terra) */}
+        <line x1="60" y1="55" x2="220" y2="55" />
+        <line x1="60" y1="85" x2="220" y2="85" />
+        <line x1="60" y1="115" x2="220" y2="115" />
+      </g>
+      {/* Base/fondazione */}
+      <line x1="50" y1="130" x2="230" y2="130" stroke="var(--ink-dim)" strokeWidth="1.5" />
+      <g stroke="var(--ink-dim)" strokeWidth="0.8">
+        {[55, 75, 95, 115, 135, 155, 175, 195, 215, 225].map((x) => (
+          <line key={x} x1={x} y1="130" x2={x - 4} y2="138" />
+        ))}
+      </g>
+      {/* Frecce pushover laterali triangolari (10/20/30 kN crescenti verso il top) */}
+      <g stroke={accent} strokeWidth="1.4">
+        <line x1="32" y1="115" x2="56" y2="115" />
+        <polygon points="56,115 50,111 50,119" fill={accent} />
+        <line x1="24" y1="85" x2="56" y2="85" />
+        <polygon points="56,85 50,81 50,89" fill={accent} />
+        <line x1="16" y1="55" x2="56" y2="55" />
+        <polygon points="56,55 50,51 50,59" fill={accent} />
+      </g>
+    </svg>
+  );
+}
 
 
 // ── Helpers per i consumer ──────────────────────────────────────────────

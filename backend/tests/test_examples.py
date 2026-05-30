@@ -15,6 +15,7 @@ from examples import (
     example_rc_building_4st,        # TPL-1
     example_steel_portal_hall,      # TPL-2
     example_steel_truss_pratt_24m,  # TPL-3
+    example_rc_frame_2d_pushover,   # TPL-4
 )
 from core.solver import StaticSolver, ModalSolver
 
@@ -28,6 +29,7 @@ ALL_EXAMPLES = [
     ("rc_building_4st", example_rc_building_4st),               # TPL-1
     ("steel_portal_hall", example_steel_portal_hall),           # TPL-2
     ("steel_truss_pratt_24m", example_steel_truss_pratt_24m),   # TPL-3
+    ("rc_frame_2d_pushover", example_rc_frame_2d_pushover),     # TPL-4
 ]
 
 
@@ -163,6 +165,26 @@ def test_steel_portal_hall_geometry():
     assert min(xs) == 0.0 and max(xs) == 20.0, "luce 20m"
     assert min(ys) == 0.0 and max(ys) == 40.0, "lunghezza 40m (9 telai × 5m interasse)"
     assert min(zs) == 0.0 and max(zs) == pytest.approx(9.68, abs=0.01), "colmo ~9.68m"
+
+
+# === TPL-4 · Telaio CA 2D 5×3 pushover EC8 ===
+def test_rc_frame_2d_pushover_geometry():
+    """24 nodi (6×4), 33 BEAM2D (18 pilastri + 15 travi), 6 incastri base."""
+    model = example_rc_frame_2d_pushover()
+    assert len(model.nodes) == 24
+    assert len(model.elements) == 33
+    assert len(model.constraints) == 6
+    n_beam2d = sum(1 for e in model.elements if str(e.type).endswith("BEAM2D"))
+    assert n_beam2d == 33, "tutti BEAM2D"
+
+
+def test_rc_frame_2d_pushover_balance():
+    """Σ Fy reazioni == Σ carichi gravita' (18 nodi × 8 kN = 144 kN)."""
+    model = example_rc_frame_2d_pushover()
+    r = StaticSolver(model).solve()
+    total_ry = sum(rx.fy for rx in r.reactions)
+    expected = 8000.0 * 18  # 144 kN
+    assert total_ry == pytest.approx(expected, rel=1e-3)
 
 
 # === TPL-3 · Capriata Pratt 24m ===
