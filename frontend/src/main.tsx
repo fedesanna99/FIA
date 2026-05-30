@@ -13,6 +13,10 @@ import { EmailVerifyPage } from "./auth/EmailVerifyPage";
 import { TemplatesPage } from "./templates/TemplatesPage";
 // v2.7.3 Phase 4.3b mockup-driven: Percorso UC1 stepper full-page route.
 import { PercorsoUC1Page } from "./percorsi/PercorsoUC1Page";
+// v3.5 Fetta D1 (30/05/2026): Demo Slice v1.9 — nuovo percorso parametrico
+// "Verifica telaio 2D". Page route distinta da UC1 (trave bi-appoggiata)
+// per supportare 2 scenari diversi. Vedi ADR 005 (in arrivo D8).
+import { PercorsoTelaio2DPage } from "./percorsi/PercorsoTelaio2DPage";
 // v2.7.4 Phase 5.1 mockup-driven: Studio Modello workspace full-page route.
 import { StudioModelloPage } from "./studio/StudioModelloPage";
 // v2.7.5 Phase 5.2 mockup-driven: Studio Analisi workspace full-page route.
@@ -121,6 +125,18 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 element={
                   <AuthGate>
                     <PercorsoUC1Page />
+                  </AuthGate>
+                }
+              />
+              {/* v3.5 Fetta D1 (30/05/2026): Demo Slice v1.9 — Percorso
+                  Verifica telaio 2D parametrico. Skeleton page route con
+                  PercorsoStep template + PERCORSO_STEPS_6 stepper. Body
+                  reali degli step popolati in fette D3-D7. */}
+              <Route
+                path="/percorsi/telaio-2d"
+                element={
+                  <AuthGate>
+                    <PercorsoTelaio2DPage />
                   </AuthGate>
                 }
               />

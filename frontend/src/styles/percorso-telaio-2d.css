@@ -1,0 +1,158 @@
+/**
+ * percorso-telaio-2d.css · v3.5 Fetta D1 (30/05/2026)
+ *
+ * Stili minimal per la page route /percorsi/telaio-2d (Demo Slice v1.9).
+ * Pattern allineato a percorso-uc1.css ma piu' leggero: solo topbar
+ * minima + body wrapper. Lo stepper + body + footer sono delegati a
+ * PercorsoStep template (gia' stylato dal design system Precision v2.0).
+ *
+ * D3-D7 popoleranno questo file con stili specifici per ogni step
+ * (form parametrico, preview SVG, sidebar dx AI Copilot, ecc.).
+ */
+
+.percorso-telaio-2d {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+  font-family: var(--font-sans);
+}
+
+/* ── Topbar minima (brand + breadcrumb + Apri Studio Pro switch) ── */
+.ptd-topbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  height: 56px;
+  padding: 0 20px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.ptd-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--ink);
+}
+.ptd-brand-square {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background: rgba(var(--accent-rgb), 0.12);
+  border: 1px solid rgba(var(--accent-rgb), 0.40);
+  border-radius: 7px;
+  color: var(--accent);
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+  font-weight: 700;
+  font-size: 13px;
+}
+body.shell-sharp .ptd-brand-square { border-radius: 0; }
+.ptd-brand-name {
+  font-weight: 700;
+  font-size: 15px;
+  letter-spacing: -0.015em;
+}
+
+.ptd-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  font-family: "JetBrains Mono", monospace;
+}
+.ptd-breadcrumb a {
+  color: var(--ink-dim);
+  text-decoration: none;
+  transition: color 120ms ease;
+}
+.ptd-breadcrumb a:hover {
+  color: var(--accent);
+}
+.ptd-bc-sep {
+  color: var(--ink-faint);
+  user-select: none;
+}
+.ptd-bc-now {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* v3.5 D1: active escape "Apri Studio Pro" top-right. D4 polish puo'
+   trasformare in pill prominente con accent border. */
+.ptd-open-studio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink-dim);
+  font-size: 12px;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 120ms ease, border-color 120ms ease, background-color 120ms ease;
+}
+body.shell-sharp .ptd-open-studio { border-radius: 0; }
+.ptd-open-studio:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.05);
+}
+
+/* ── Body wrapper: contiene PercorsoStep (header + body grid + footer) ── */
+.ptd-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+  background: var(--bg);
+}
+
+/* ── Placeholder per step body (D1 only — D3-D7 sostituiscono) ── */
+.ptd-step-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 320px;
+  padding: 48px 24px;
+  text-align: center;
+  background: var(--bg-panel);
+  border: 1px dashed var(--border-strong, var(--border));
+  border-radius: 8px;
+}
+body.shell-sharp .ptd-step-placeholder { border-radius: 0; }
+.ptd-placeholder-eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin: 0 0 8px;
+}
+.ptd-placeholder-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink);
+  margin: 0 0 10px;
+  letter-spacing: -0.01em;
+}
+.ptd-placeholder-hint {
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-dim);
+  margin: 0;
+  max-width: 520px;
+}
