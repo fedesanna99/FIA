@@ -17,6 +17,9 @@ import { PercorsoUC1Page } from "./percorsi/PercorsoUC1Page";
 // "Verifica telaio 2D". Page route distinta da UC1 (trave bi-appoggiata)
 // per supportare 2 scenari diversi. Vedi ADR 005 (in arrivo D8).
 import { PercorsoTelaio2DPage } from "./percorsi/PercorsoTelaio2DPage";
+// v3.5 Fetta D2 (30/05/2026): galleria "Choose a path" sopra le route
+// individuali dei percorsi. Hub di selezione del percorso giusto.
+import { PercorsiGalleryPage } from "./percorsi/PercorsiGalleryPage";
 // v2.7.4 Phase 5.1 mockup-driven: Studio Modello workspace full-page route.
 import { StudioModelloPage } from "./studio/StudioModelloPage";
 // v2.7.5 Phase 5.2 mockup-driven: Studio Analisi workspace full-page route.
@@ -115,6 +118,16 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
                 element={
                   <AuthGate>
                     <TemplatesPage />
+                  </AuthGate>
+                }
+              />
+              {/* v3.5 D2 (30/05/2026): galleria "Choose a path" — hub di
+                  selezione percorso. Sopra le route individuali (/uc1, /telaio-2d). */}
+              <Route
+                path="/percorsi"
+                element={
+                  <AuthGate>
+                    <PercorsiGalleryPage />
                   </AuthGate>
                 }
               />
