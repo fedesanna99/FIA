@@ -21,7 +21,7 @@ import type { JSX } from "react";
 export type TemplateVariant =
   | "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss"
   | "membrane" | "solid" | "bridge" | "laminate" | "building" | "warehouse"
-  | "prattTruss" | "frame2d" | "floor";
+  | "prattTruss" | "frame2d" | "floor" | "wall";
 
 export type TemplateCategory = "acciaio" | "ca" | "legno" | "sismica" | "altro";
 export type TemplateBadge = "POPOLARE" | "PRO" | "NEW";
@@ -68,6 +68,7 @@ export const TEMPLATES_CATALOG: TemplateEntry[] = [
   { id: "t12", backendId: "ex_steel_truss_pratt_24m", uc: "UC12", title: "Capriata Pratt L=24m", desc: "Capriata reticolare Pratt 12 pannelli, luce 24m, altezza 2.4m (L/10). Correnti IPE200 + montanti/diag Ø100 in S355. Solo aste TRUSS (forza assiale pura). 24 nodi · 45 elem.", category: "acciaio", pills: ["truss", "EC3"], timeMin: 3, badge: "NEW", variant: "prattTruss" },
   { id: "t13", backendId: "ex_rc_frame_2d_pushover", uc: "UC13", title: "Telaio CA 2D pushover EC8", desc: "Telaio piano CA 5×3 piani, pilastri+travi 30×50 cm C25/30. Carichi gravità + pattern triangolare laterale 10/20/30 kN. Pronto per pushover EC8 §4.3.3.3.", category: "ca", pills: ["beam2D", "pushover", "EC8"], timeMin: 5, badge: "PRO", variant: "frame2d" },
   { id: "t14", backendId: "ex_rc_floor_with_beams", uc: "UC14", title: "Solaio CA gettato + travi", desc: "Solaio 8×12 m, shell t=20cm in C25/30, mesh 0.5m. 1 trave principale 30×50 + 2 nervature trasversali, appoggio continuo lati corti. ~425 nodi · 440 elem. NTC §4.1 + EC2.", category: "ca", pills: ["shell", "beam3D", "EC2"], timeMin: 10, badge: "NEW", variant: "floor" },
+  { id: "t15", backendId: "ex_retaining_wall_2d", uc: "UC15", title: "Muro sostegno CA plane-strain", desc: "Muro contenimento H=6m sp 0.5m in C25/30, shell mesh 0.1×0.2m. Bordo base incastrato. Spinta attiva Rankine triangolare (Ka=0.33, γ=18 kN/m³). 186 nodi · 150 elem. Geotecnica leggera NTC §6.5 + EC7.", category: "altro", pills: ["shell", "geotecnica", "EC7"], timeMin: 6, badge: "NEW", variant: "wall" },
 ];
 
 
@@ -421,7 +422,43 @@ export const VARIANT_THUMBS: Record<TemplateVariant, () => JSX.Element> = {
   prattTruss: PrattTrussThumb,
   frame2d: Frame2dThumb,
   floor: FloorThumb,
+  wall: WallThumb,
 };
+
+function WallThumb(): JSX.Element {
+  // Muro sostegno CA visto in sezione: rettangolo verticale + suola tratteggiata
+  // + spinta terreno triangolare frecce orizzontali decrescenti verso l'alto
+  return (
+    <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+      {/* Muro rectangolare verticale (più scuro) */}
+      <rect x="130" y="20" width="30" height="110" fill="var(--ink-dim)" opacity="0.18" stroke={stroke} strokeWidth="2" />
+      {/* Suola/fondazione tratteggio */}
+      <line x1="80" y1="130" x2="210" y2="130" stroke="var(--ink-dim)" strokeWidth="2" />
+      <g stroke="var(--ink-dim)" strokeWidth="0.8">
+        {[85, 100, 115, 130, 145, 160, 175, 190, 205].map((x) => (
+          <line key={x} x1={x} y1="130" x2={x - 5} y2="140" />
+        ))}
+      </g>
+      {/* Terreno trattenuto (zigzag a destra) */}
+      <g stroke="var(--ink-dim)" strokeWidth="0.6">
+        {[40, 55, 70, 85, 100, 115].map((y) => (
+          <line key={y} x1="160" y1={y} x2="220" y2={y} opacity="0.4" />
+        ))}
+      </g>
+      {/* Spinta terreno: frecce orizzontali triangolari (più lunghe verso il basso) */}
+      <g stroke={accent} strokeWidth="1.4">
+        <line x1="210" y1="40" x2="165" y2="40" />
+        <polygon points="165,40 170,37 170,43" fill={accent} />
+        <line x1="225" y1="65" x2="165" y2="65" />
+        <polygon points="165,65 170,62 170,68" fill={accent} />
+        <line x1="240" y1="90" x2="165" y2="90" />
+        <polygon points="165,90 170,87 170,93" fill={accent} />
+        <line x1="255" y1="115" x2="165" y2="115" />
+        <polygon points="165,115 170,112 170,118" fill={accent} />
+      </g>
+    </svg>
+  );
+}
 
 function FloorThumb(): JSX.Element {
   // Solaio CA visto dall'alto: rettangolo + griglia mesh + 1 trave longitudinale

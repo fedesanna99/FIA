@@ -17,6 +17,7 @@ from examples import (
     example_steel_truss_pratt_24m,  # TPL-3
     example_rc_frame_2d_pushover,   # TPL-4
     example_rc_floor_with_beams,    # TPL-5
+    example_retaining_wall_2d,      # TPL-6
 )
 from core.solver import StaticSolver, ModalSolver
 
@@ -32,6 +33,7 @@ ALL_EXAMPLES = [
     ("steel_truss_pratt_24m", example_steel_truss_pratt_24m),   # TPL-3
     ("rc_frame_2d_pushover", example_rc_frame_2d_pushover),     # TPL-4
     ("rc_floor_with_beams", example_rc_floor_with_beams),       # TPL-5
+    ("retaining_wall_2d", example_retaining_wall_2d),           # TPL-6
 ]
 
 
@@ -167,6 +169,28 @@ def test_steel_portal_hall_geometry():
     assert min(xs) == 0.0 and max(xs) == 20.0, "luce 20m"
     assert min(ys) == 0.0 and max(ys) == 40.0, "lunghezza 40m (9 telai × 5m interasse)"
     assert min(zs) == 0.0 and max(zs) == pytest.approx(9.68, abs=0.01), "colmo ~9.68m"
+
+
+# === TPL-6 · Muro sostegno plane-strain ===
+def test_retaining_wall_2d_geometry():
+    """186 nodi (6×31), 150 SHELL_Q4 (5×30), 6 vincoli base."""
+    model = example_retaining_wall_2d()
+    assert len(model.nodes) == 186
+    assert len(model.elements) == 150
+    assert len(model.constraints) == 6
+    n_shell = sum(1 for e in model.elements if str(e.type).endswith("SHELL_Q4"))
+    assert n_shell == 150, "tutti SHELL_Q4"
+
+
+def test_retaining_wall_2d_balance():
+    """Σ Fx reazioni base == -Σ spinta terreno (Rankine, ~108 kN nominali)."""
+    model = example_retaining_wall_2d()
+    r = StaticSolver(model).solve()
+    total_rx = sum(rx.fx for rx in r.reactions)
+    # Σ carichi: 0.5 × γ × Ka × H² = 0.5 × 18000 × 0.33 × 36 = 106.92 kN
+    # (approssimazione discreta su 31 nodi → leggermente sotto i 108 nominali)
+    expected = 18000.0 * 0.33 * 6.0 * 6.0 / 2.0  # 106920 N
+    assert total_rx == pytest.approx(expected, rel=1e-2)
 
 
 # === TPL-5 · Solaio CA gettato + travi ===

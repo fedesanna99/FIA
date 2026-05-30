@@ -1085,6 +1085,103 @@ def example_rc_floor_with_beams() -> FEAModel:
     )
 
 
+def example_retaining_wall_2d() -> FEAModel:
+    """Muro di sostegno CA plane-strain (TPL-6).
+
+    Sezione trasversale di un muro CA H=6m, spessore 0.5m, modellato
+    via SHELL_Q4 in approssimazione plane-strain (1 m di larghezza
+    convenzionale, mesh 0.1m × 0.2m). Bordo base incastrato (collegamento
+    a suola/terreno fondazione). Lato terreno (x=0.5) caricato con
+    spinta attiva triangolare crescente con profondita' (Rankine
+    K_a ≈ 0.33, γ_terreno = 18 kN/m³, p_max alla base ≈ 36 kPa).
+
+    Scenario: dimensionamento opera contenimento per scavi residenziali
+    o muri di taglio in versante. Modello tipico geotecnica leggera.
+
+    Norme: NTC 2018 §6.5, EC7-1 (azioni sismiche e statiche).
+
+    NB onesto: shell_t200 (20cm) approssima 1m di larghezza
+    plane-strain. Risultati sono qualitativi/didattici, non sostituiscono
+    analisi plane-strain dedicata.
+    """
+    Lx = 0.5  # spessore base muro [m]
+    Ly = 6.0  # altezza muro [m]
+    nx = 5    # 5 div x = 6 nodi/riga
+    ny = 30   # 30 div y = 31 righe
+    nnx, nny = nx + 1, ny + 1  # 6 × 31 = 186 nodi
+
+    # === NODI === plane x-y (y=verticale)
+    nodes: list[Node] = []
+    for j in range(nny):
+        for i in range(nnx):
+            nid = j * nnx + i + 1
+            nodes.append(Node(id=nid, x=i * Lx / nx, y=j * Ly / ny, z=0.0))
+
+    def node_id(i: int, j: int) -> int:
+        return j * nnx + i + 1
+
+    # === ELEMENTI === SHELL_Q4 in approssimazione plane-strain
+    elements: list[Element] = []
+    eid = 1
+    for j in range(ny):
+        for i in range(nx):
+            n1 = node_id(i, j)
+            n2 = node_id(i + 1, j)
+            n3 = node_id(i + 1, j + 1)
+            n4 = node_id(i, j + 1)
+            elements.append(Element(
+                id=eid, type=ElementType.SHELL_Q4,
+                nodes=[n1, n2, n3, n4],
+                material_id="concrete_c25", section_id="shell_t200",
+            ))
+            eid += 1
+
+    # === CONSTRAINTS === bordo base (y=0) incastrato (collegamento suola/terreno)
+    constraints = [
+        Constraint(id=i + 1, type=ConstraintType.FIXED,
+                   node_id=node_id(i, 0),
+                   label=f"Incastro base muro nodo {i + 1}")
+        for i in range(nnx)
+    ]
+
+    # === CARICHI === spinta terreno triangolare lato x=Lx (i=nx)
+    # p(y) = γ × (H - y) × K_a, γ=18 kN/m³, K_a=0.33 (Rankine attiva)
+    # p_max alla base = 18 × 6 × 0.33 = 35.64 kPa ≈ 36 kPa
+    # Force nodale fx = -p(y) × area_trib × 1m (plane-strain unit)
+    loads: list[Load] = []
+    lid = 1
+    gamma = 18000.0    # N/m³ peso specifico terreno
+    Ka = 0.33          # coefficiente spinta attiva Rankine
+    dy = Ly / ny       # 0.2 m spaziatura verticale
+    for j in range(nny):
+        y = j * dy
+        depth = Ly - y  # profondita' dalla cresta del muro
+        p = gamma * depth * Ka  # pressione laterale [Pa]
+        # Area trib verticale: bordo y=0 o y=Ly = dy/2, interno = dy
+        area_y = (dy / 2) if (j == 0 or j == ny) else dy
+        fx = -p * area_y * 1.0  # plane-strain unit (1m larghezza)
+        if fx == 0:
+            continue
+        loads.append(Load(
+            id=lid, type=LoadType.NODAL,
+            target_id=node_id(nx, j),  # lato terreno (x=Lx)
+            fx=fx,
+            label=f"Spinta terreno y={y:.1f}m",
+        ))
+        lid += 1
+
+    return FEAModel(
+        id="ex_retaining_wall_2d",
+        name="Muro sostegno CA plane-strain",
+        description="Muro contenimento CA H=6m spessore 0.5m, shell_t200 mesh "
+                    "0.1×0.2m (186 nodi). Bordo base incastrato. Spinta attiva "
+                    "Rankine triangolare (γ=18 kN/m³, Ka=0.33, p_max≈36 kPa). "
+                    "Plane-strain approssimato. NTC §6.5 + EC7.",
+        is_3d=False,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
 def build_example_models() -> list[FEAModel]:
     return [
         example_simple_beam_2d(),
@@ -1101,4 +1198,5 @@ def build_example_models() -> list[FEAModel]:
         example_steel_truss_pratt_24m(),   # TPL-3
         example_rc_frame_2d_pushover(),    # TPL-4
         example_rc_floor_with_beams(),     # TPL-5
+        example_retaining_wall_2d(),       # TPL-6
     ]
