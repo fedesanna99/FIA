@@ -55,7 +55,7 @@ describe("PercorsiBeamWizard (v2.6.3.1 full-page workspace)", () => {
     expect(screen.getByText(/Scegli un percorso guidato/i)).toBeInTheDocument();
     expect(screen.getByTestId("percorsi-card-trave-bi-appoggiata-uc1")).toBeInTheDocument();
     expect(screen.getByTestId("percorsi-card-telaio-portale-2d")).toBeInTheDocument();
-    expect(screen.getByTestId("percorsi-card-mensola-3d")).toBeInTheDocument();
+    expect(screen.getByTestId("percorsi-card-reticolare-3d")).toBeInTheDocument();
   });
 
   it("click su card → avanza a step 2 con PercorsoStep template + riepilogo", () => {
@@ -112,7 +112,7 @@ describe("PercorsiBeamWizard (v2.6.3.1 full-page workspace)", () => {
     const onClose = vi.fn();
     const onLoadTemplate = vi.fn();
     render(<PercorsiBeamWizard open={true} onClose={onClose} onLoadTemplate={onLoadTemplate} />);
-    fireEvent.click(screen.getByTestId("percorsi-card-mensola-3d"));
+    fireEvent.click(screen.getByTestId("percorsi-card-reticolare-3d"));
     clickForward(); // step 2 → 3
     clickBack();    // step 3 → 2
     expect(screen.getByTestId("percorsi-step-2")).toBeInTheDocument();
@@ -135,7 +135,7 @@ describe("PercorsiBeamWizard (v2.6.3.1 full-page workspace)", () => {
 
     expect(flowThrough("percorsi-card-trave-bi-appoggiata-uc1")).toBe("ex_simple_beam_2d");
     expect(flowThrough("percorsi-card-telaio-portale-2d")).toBe("ex_portal_frame_2d");
-    expect(flowThrough("percorsi-card-mensola-3d")).toBe("ex_3d_grid");
+    expect(flowThrough("percorsi-card-reticolare-3d")).toBe("ex_truss_3d");
   });
 
   it("v2.6.3.1: step 2 renderizza PercorsoStep aside help (visible solo lg+)", () => {

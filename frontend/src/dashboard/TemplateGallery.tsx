@@ -25,19 +25,26 @@ interface TemplateEntry {
   pills: string[]; // es. ["statica", "EC3"]
   timeMin: number;
   badge?: "POPOLARE" | "PRO" | "NEW";
-  variant: "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss";
+  variant: "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss" | "membrane" | "solid" | "bridge" | "laminate";
 }
 
+// v3.5 GAL-fix (30/05/2026 sera): allineato a backend reale (9 template
+// in backend/examples.py + data/models/ex_*.json). Rimossi 6 ID
+// fantasma (ex_cantilever_steel / ex_plate_thick / ex_wood_beam /
+// ex_seismic_th / ex_concrete_column) che davano 404 al click.
+// Aggiunti 5 template che esistevano nel backend ma non erano in UI:
+// shell_plate / tri3_seismic / cube_solid_h8 / cable_bridge_2d /
+// laminate_plate. UC4-9 ri-mappati per coerenza con i nuovi contenuti.
 const TEMPLATES: TemplateEntry[] = [
   { id: "t1", backendId: "ex_simple_beam_2d", uc: "UC1", title: "Trave bi-appoggiata", desc: "Trave isostatica con carico distribuito. Statica lineare + verifica EC3 LTB.", category: "acciaio", pills: ["statica", "EC3"], timeMin: 2, badge: "POPOLARE", variant: "beam" },
   { id: "t2", backendId: "ex_portal_frame_2d", uc: "UC2", title: "Portale 2D · vento", desc: "Telaio rigido isolato. Carico vento orizzontale + permanenti.", category: "acciaio", pills: ["telaio", "EC3"], timeMin: 3, variant: "portal" },
   { id: "t3", backendId: "ex_tower_3d", uc: "UC3", title: "Torre 8 piani · sismica", desc: "Edificio multi-piano. Modale + sismica EC8 spettro elastico.", category: "ca", pills: ["sismica", "EC8"], timeMin: 8, badge: "PRO", variant: "tower" },
-  { id: "t4", backendId: "ex_cantilever_steel", uc: "UC4", title: "Mensola in acciaio", desc: "Mensola incastrata. Statica lineare + verifica EC3 flessione.", category: "acciaio", pills: ["statica", "EC3"], timeMin: 2, variant: "cantilever" },
-  { id: "t5", backendId: "ex_plate_thick", uc: "UC5", title: "Piastra spessa CA", desc: "Solaio piano CA. Modello shell + verifica EC2 punzonamento.", category: "ca", pills: ["shell", "EC2"], timeMin: 5, variant: "plate" },
-  { id: "t6", backendId: "ex_truss_3d", uc: "UC6", title: "Reticolare 3D · capannone", desc: "Capriata reticolare. Statica + buckling EC3 instabilita'.", category: "acciaio", pills: ["statica", "buckling", "EC3"], timeMin: 4, variant: "truss" },
-  { id: "t7", backendId: "ex_wood_beam", uc: "UC7", title: "Trave in legno lamellare", desc: "Trave in GL24h. Statica + verifica EC5 stato limite ultimo.", category: "legno", pills: ["statica", "EC5"], timeMin: 3, badge: "NEW", variant: "beam" },
-  { id: "t8", backendId: "ex_seismic_th", uc: "UC8", title: "Time-history sismica", desc: "Edificio CA con storia temporale Newmark. EC8 SLD/SLV.", category: "sismica", pills: ["TH", "EC8"], timeMin: 12, badge: "PRO", variant: "tower" },
-  { id: "t9", backendId: "ex_concrete_column", uc: "UC9", title: "Pilastro CA · M-N", desc: "Verifica EC2 pressoflessione + dominio M-N + LTB.", category: "ca", pills: ["EC2", "M-N"], timeMin: 4, variant: "cantilever" },
+  { id: "t4", backendId: "ex_shell_plate", uc: "UC4", title: "Piastra quadrata 2×2 m", desc: "Piastra acciaio t=100mm incastrata, carichi nodali. SHELL_Q4 a maglia 5×5.", category: "acciaio", pills: ["shell", "Q4"], timeMin: 4, variant: "plate" },
+  { id: "t5", backendId: "ex_tri3_seismic", uc: "UC5", title: "Membrana T3 sismica", desc: "Piastra 4×1.5 m T3 plane-stress, incastrata sx, accelerogramma X sinusoidale.", category: "sismica", pills: ["TH", "T3"], timeMin: 6, badge: "PRO", variant: "membrane" },
+  { id: "t6", backendId: "ex_truss_3d", uc: "UC6", title: "Reticolare 3D · torre", desc: "Torre reticolare 4 livelli, ø100mm, carichi nodali al top.", category: "acciaio", pills: ["statica", "EC3"], timeMin: 4, variant: "truss" },
+  { id: "t7", backendId: "ex_cube_solid_h8", uc: "UC7", title: "Cubo solido H8", desc: "Cubo 1×1×1 m SOLID_H8, base incastrata, trazione assiale 400 kN. Iso 3D σ_VM.", category: "acciaio", pills: ["SOLID", "iso 3D"], timeMin: 3, badge: "NEW", variant: "solid" },
+  { id: "t8", backendId: "ex_cable_bridge_2d", uc: "UC8", title: "Ponte strallato 2D", desc: "Impalcato L=12m sospeso da 4 cavi pre-tesi (50 kN), 2 pyloni H=8m. Non-lineare cavi.", category: "acciaio", pills: ["non-lin", "cavi"], timeMin: 7, badge: "PRO", variant: "bridge" },
+  { id: "t9", backendId: "ex_laminate_plate", uc: "UC9", title: "Piastra laminata cross-ply", desc: "Piastra 1×1 m laminata 0/90/0 carbon (3mm). Bordo y=0 incastrato. Comportamento ortotropo.", category: "altro", pills: ["composito", "Q4"], timeMin: 5, badge: "NEW", variant: "laminate" },
 ];
 
 type Filter = "tutti" | "acciaio" | "ca" | "legno" | "sismica";
@@ -148,6 +155,96 @@ function GenericThumb({ variant }: { variant: TemplateEntry["variant"] }) {
             <line x1="200" y1="60" x2="250" y2="120" />
             <line x1="80" y1="60" x2="200" y2="60" />
           </g>
+        </svg>
+      );
+    case "membrane":
+      // Membrana T3 sismica: incastro sx + mesh triangoli + freccia accelerogramma orizzontale
+      return (
+        <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+          <rect x="36" y="40" width="14" height="80" fill="var(--ink-dim)" opacity="0.22" />
+          <g stroke={stroke} strokeWidth="1.4" fill="none">
+            <rect x="50" y="50" width="180" height="60" />
+            <line x1="95" y1="50" x2="95" y2="110" />
+            <line x1="140" y1="50" x2="140" y2="110" />
+            <line x1="185" y1="50" x2="185" y2="110" />
+            <line x1="50" y1="50" x2="95" y2="110" />
+            <line x1="95" y1="50" x2="140" y2="110" />
+            <line x1="140" y1="50" x2="185" y2="110" />
+            <line x1="185" y1="50" x2="230" y2="110" />
+          </g>
+          <g stroke={accent} strokeWidth="1.8">
+            <line x1="195" y1="80" x2="248" y2="80" />
+            <polygon points="248,80 240,75 240,85" fill={accent} />
+          </g>
+        </svg>
+      );
+    case "solid":
+      // Cubo H8 isometrico: base evidenziata (incastro), trazione assiale up
+      return (
+        <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+          <g stroke={stroke} strokeWidth="2" fill="none">
+            <polygon points="100,110 180,110 220,90 140,90" />
+            <polygon points="100,110 100,50 140,30 140,90" />
+            <polygon points="140,90 220,90 220,30 140,30" />
+            <line x1="100" y1="50" x2="180" y2="50" strokeDasharray="2 2" opacity="0.4" />
+            <line x1="180" y1="50" x2="180" y2="110" strokeDasharray="2 2" opacity="0.4" />
+          </g>
+          <g stroke={accent} strokeWidth="1.6">
+            <line x1="160" y1="20" x2="160" y2="60" />
+            <polygon points="160,20 156,30 164,30" fill={accent} />
+          </g>
+          <rect x="100" y="110" width="120" height="6" fill="var(--ink-dim)" opacity="0.32" />
+        </svg>
+      );
+    case "bridge":
+      // Ponte strallato 2D: deck orizzontale + 2 pyloni alti + 4 cavi inclinati
+      return (
+        <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+          <line x1="20" y1="110" x2="260" y2="110" stroke={stroke} strokeWidth="3" />
+          <g stroke={stroke} strokeWidth="2.2" fill="none">
+            <line x1="80" y1="110" x2="80" y2="30" />
+            <line x1="200" y1="110" x2="200" y2="30" />
+          </g>
+          <g stroke={accent} strokeWidth="1.4">
+            <line x1="80" y1="30" x2="50" y2="110" />
+            <line x1="80" y1="30" x2="130" y2="110" />
+            <line x1="200" y1="30" x2="150" y2="110" />
+            <line x1="200" y1="30" x2="230" y2="110" />
+          </g>
+          <polygon points="14,122 28,122 21,134" fill="var(--ink-dim)" opacity="0.55" />
+          <polygon points="252,122 266,122 259,134" fill="var(--ink-dim)" opacity="0.55" />
+        </svg>
+      );
+    case "laminate":
+      // Piastra laminata 0/90/0: 3 strati impilati con angoli fibra ortotropi
+      return (
+        <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+          <g stroke={stroke} strokeWidth="1.6" fill="none">
+            <rect x="50" y="50" width="180" height="18" />
+            <rect x="50" y="71" width="180" height="18" />
+            <rect x="50" y="92" width="180" height="18" />
+          </g>
+          <g stroke={accent} strokeWidth="0.9" opacity="0.85">
+            <line x1="55" y1="59" x2="225" y2="59" />
+            <line x1="85" y1="59" x2="85" y2="59" />
+            <line x1="115" y1="59" x2="115" y2="59" />
+            <line x1="145" y1="59" x2="145" y2="59" />
+            <line x1="175" y1="59" x2="175" y2="59" />
+          </g>
+          <g stroke={accent} strokeWidth="0.9" opacity="0.85">
+            <line x1="65" y1="73" x2="65" y2="87" />
+            <line x1="95" y1="73" x2="95" y2="87" />
+            <line x1="125" y1="73" x2="125" y2="87" />
+            <line x1="155" y1="73" x2="155" y2="87" />
+            <line x1="185" y1="73" x2="185" y2="87" />
+            <line x1="215" y1="73" x2="215" y2="87" />
+          </g>
+          <g stroke={accent} strokeWidth="0.9" opacity="0.85">
+            <line x1="55" y1="101" x2="225" y2="101" />
+          </g>
+          <text x="240" y="62" fontFamily="monospace" fontSize="9" fill="var(--ink-dim)">0°</text>
+          <text x="238" y="83" fontFamily="monospace" fontSize="9" fill="var(--ink-dim)">90°</text>
+          <text x="240" y="104" fontFamily="monospace" fontSize="9" fill="var(--ink-dim)">0°</text>
         </svg>
       );
     default:

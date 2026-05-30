@@ -79,15 +79,17 @@ const PERCORSI: BeamPercorso[] = [
     loads: "H = 5 kN orizzontale top · 2 incastri alla base",
     expectedOutcome: "Max u ≈ 12 mm orizzontale · taglio max 8 kN",
   },
+  // v3.5 GAL-fix (30/05/2026): id "mensola-3d" + templateId "ex_3d_grid"
+  // erano fantasma (404 backend). Sostituito con ex_truss_3d reale.
   {
-    id: "mensola-3d",
-    templateId: "ex_3d_grid",
+    id: "reticolare-3d",
+    templateId: "ex_truss_3d",
     Icon: ShieldCheck,
-    title: "Reticolo 3D · griglia",
-    description: "Struttura spaziale a griglia con carichi verticali distribuiti.",
-    geometry: "16 nodi · 36 elementi · griglia 3×3 m",
-    loads: "F = 20 kN verticale sui nodi top · vincoli al perimetro base",
-    expectedOutcome: "Modello demo · iterativo per esplorare 3D",
+    title: "Reticolare spaziale · 3D",
+    description: "Torre reticolare a 4 livelli, ø100mm, carichi nodali al top.",
+    geometry: "Torre 4 livelli · ø100mm · ~16 nodi",
+    loads: "F nodale verticale al top · base incastrata",
+    expectedOutcome: "Aste in compressione e trazione · primo modello 3D",
   },
 ];
 

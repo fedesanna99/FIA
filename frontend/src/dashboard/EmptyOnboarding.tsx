@@ -17,9 +17,14 @@ interface OnboardStep {
   title: string;
   desc: string;
   backendId: string;
-  variant: "beam" | "cantilever" | "portal";
+  variant: "beam" | "cantilever" | "portal" | "truss";
 }
 
+// v3.5 GAL-fix (30/05/2026 sera): rimosso step 2 fantasma
+// ex_cantilever_steel (404 backend). Riordinata progressione pedagogica
+// 1D → 2D → 3D usando solo template realmente disponibili nel backend
+// (vedi backend/examples.py + data/models/ex_*.json).
+// Passo 2 ora = telaio portale (era passo 3), passo 3 nuovo = reticolare 3D.
 const STEPS: OnboardStep[] = [
   {
     step: "Passo 1 · il più semplice",
@@ -30,20 +35,20 @@ const STEPS: OnboardStep[] = [
     variant: "beam",
   },
   {
-    step: "Passo 2 · classico",
-    uc: "UC4",
-    title: "Mensola incastrata",
-    desc: "Trave a sbalzo con carico in punta. Calcolo della freccia e della tensione.",
-    backendId: "ex_cantilever_steel",
-    variant: "cantilever",
-  },
-  {
-    step: "Passo 3 · un grado in più",
+    step: "Passo 2 · un grado in 2D",
     uc: "UC2",
     title: "Telaio portale 2D",
-    desc: "Telaio rigido con carico di vento. Introduce nodi, vincoli e combinazioni.",
+    desc: "Telaio rigido con carico di vento. Introduce nodi, vincoli combinati e azione orizzontale.",
     backendId: "ex_portal_frame_2d",
     variant: "portal",
+  },
+  {
+    step: "Passo 3 · esplora il 3D",
+    uc: "UC6",
+    title: "Reticolare spaziale 3D",
+    desc: "Torre reticolare a 4 livelli, carichi nodali al top. Aste in compressione e trazione.",
+    backendId: "ex_truss_3d",
+    variant: "truss",
   },
 ];
 
@@ -90,6 +95,30 @@ function StepThumb({ variant }: { variant: OnboardStep["variant"] }) {
             <line x1="50" y1="58" x2="78" y2="58" />
             <line x1="50" y1="78" x2="78" y2="78" />
           </g>
+        </svg>
+      );
+    case "truss":
+      // Reticolare 3D · torre a 4 livelli (semplificata: 2 montanti + diagonali + base)
+      return (
+        <svg viewBox="0 0 280 150" preserveAspectRatio="xMidYMid meet">
+          <g stroke={stroke} strokeWidth="2" fill="none">
+            <line x1="100" y1="120" x2="100" y2="30" />
+            <line x1="180" y1="120" x2="180" y2="30" />
+            <line x1="100" y1="30" x2="180" y2="30" />
+            <line x1="100" y1="52" x2="180" y2="52" />
+            <line x1="100" y1="74" x2="180" y2="74" />
+            <line x1="100" y1="96" x2="180" y2="96" />
+            <line x1="100" y1="118" x2="180" y2="118" />
+            <line x1="100" y1="52" x2="180" y2="30" />
+            <line x1="100" y1="74" x2="180" y2="52" />
+            <line x1="100" y1="96" x2="180" y2="74" />
+            <line x1="100" y1="118" x2="180" y2="96" />
+          </g>
+          <g stroke={accent} strokeWidth="1.5">
+            <line x1="140" y1="14" x2="140" y2="30" />
+            <polygon points="140,30 135,22 145,22" fill={accent} />
+          </g>
+          <line x1="86" y1="128" x2="194" y2="128" stroke="var(--ink-dim)" strokeWidth="1" />
         </svg>
       );
     default:
