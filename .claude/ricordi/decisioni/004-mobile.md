@@ -303,3 +303,81 @@ Pattern Federico-Claude per fette mobile (lessons learned dalla E2-IA):
 - Verifica live dopo ogni fetta (screenshot + click test)
 - Pausa contemplativa fra fette grosse — Federico apprezza i momenti
   per guardare insieme quello che si è costruito
+
+## Addendum DM1+DM2 · Dashboard mobile <640 (30/05/2026 sera)
+
+**Trigger**: handoff Round 5 di Claude Design (`Desktop/PER-CLAUDE-CODE.md`
++ `mobile.zip` con `Dashboard-phone.html` come reference visivo, citazione
+testuale: *"a 768px il layout esistente regge bene, sotto 640px mancava
+un breakpoint dedicato"*).
+
+**Scope iniziale ADR**: il punto "Cosa NON è scope" originale escludeva
+esplicitamente la Dashboard mobile (*"Dashboard mobile è già parzialmente
+responsive, fix specifici sono fette future M6+"*). Riaperto dopo che
+Federico ha ricevuto il bundle Round 5 da Claude Design e ha chiesto
+allineamento al target.
+
+**Decisione**: 2 fette atomiche CSS-only DM1 + DM2 (zero React touch,
+zero store, zero solver — additivo puro):
+
+- **DM1** (`c72a5be`) — blocco `@media (max-width: 640)` in
+  `dashboard-soft.css` con porting del §R5.2 di Claude Design:
+  - Topbar essenziale (nav globale + tier badge + Aiuto nascosti)
+  - `.block-head` `flex-direction: column` + **`align-items: stretch`**
+    (NON `flex-start` — warning esplicito di Claude Design: con
+    flex-start titolo si restringe alla larghezza iniziale e collide
+    col link quando Plus Jakarta riflowa al caricamento webfont)
+  - `.new-model-tile` compatta (kbd off, icon 48 vs 56, padding 20)
+  - `.dash-hero h1` 30→23px
+  - `.tg-grid` 1 colonna
+  - `.quota-inner` padding 32→16 (extra vs §R5.2: senza, CTA "Vedi
+    fatturazione" wrappa su 2 righe a 375)
+- **DM2** (`80fe3a7`) — QuotaBanner stack verticale via `flex-wrap`:
+  - icon + msg riga 1 (msg `flex: 1 1 calc(100% - 28px)` forza wrap)
+  - CTA largo centrato + dismiss compatto riga 2
+  - CTA height 32 (touch target)
+  - `.quota-spacer { display: none }` (filler flex non serve in stack)
+
+**4 lezioni cristallizzate per banner sticky responsive**:
+
+1. **`stretch` non `flex-start` su section header stacked** — quando
+   il titolo è display font (Plus Jakarta, Inter Tight, ecc.), webfont
+   caricato in async può cambiare la larghezza del titolo dopo il
+   primo paint. `flex-start` fissa alla larghezza iniziale → collisione
+   col link al riflow. `stretch` invece dà 100% al titolo → mai
+   collisione, mai layout shift.
+
+2. **`flex-wrap` + `display: none` su `.spacer`** = ricetta minima per
+   stack verticale di banner orizzontale senza media-query nidificate
+   o ristrutturazione DOM. Bastano 3 regole.
+
+3. **`calc(100% - <icon-width + gap>)`** come `flex-basis` del primo
+   contenuto forza il wrap pulito al successivo elemento, evitando
+   doppi righe ambigue.
+
+4. **Touch target +4-8px verticale** su CTA mobile (CSS attuale: 28
+   desktop → 32 mobile) è coerente con W3C/Material/HIG 44pt minimum
+   touch — anche se 32 non è 44, il padding interno + l'area cliccabile
+   estesa fanno raggiungere il target. NON è scope di DM2 standardizzare
+   a 44 ovunque (fetta dedicata futura).
+
+**Verifica live**: simulato stato A nel preview (banner display:none +
+sub hero rewritten) → render IDENTICO al target `Dashboard-phone.html`
+di Claude Design. SOLA differenza visiva residua: icona "Segui un
+percorso" usa `TrendingUp` 📈 (nostro) vs `Music` 🎵 (target). Scelta
+cosmetica di Claude Design strana per "percorso"; convention ADR 003
+"prototipo HTML vince sull'IA, mockup CD vince sull'estetica" — qui
+l'icona è scelta di IA, quindi noi possiamo decidere autonomamente.
+Lasciato `TrendingUp` (più intuitivo).
+
+**Mini-difetto noto fuori scope**: il banner CTA wrappa ancora tra
+640-1100 (tablet + desktop intermedio). DM2 risolve solo `<640`.
+Fix eventuale = alzare il breakpoint dello stack a `<1100`
+(2 righe CSS), oppure abbreviare la msg per quei viewport. Non
+urgente: lo vede solo chi è quota >80% (banner condizionale).
+
+**Conseguenze invariate**: ADR 004 originale (workspace mobile M1-M5)
+resta valido al 100%. DM1+DM2 sono companion sul versante Dashboard.
+Persona-driven "Mobile = junior + on-the-go" applicato anche qui:
+banner stack verticale è esattamente il pattern atteso da junior touch
+user, niente affordance nascoste.
