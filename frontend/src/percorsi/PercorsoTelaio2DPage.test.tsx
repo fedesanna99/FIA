@@ -28,7 +28,9 @@ describe("PercorsoTelaio2DPage · D1 skeleton", () => {
     renderPage();
     expect(screen.getByTestId("percorso-telaio-2d-page")).toBeInTheDocument();
     expect(screen.getByTestId("ptd-brand-home")).toBeInTheDocument();
-    expect(screen.getByText(/verifica telaio 2d/i)).toBeInTheDocument();
+    // v3.5 D4: "Verifica telaio 2D" appare sia in breadcrumb sia in
+    // sub-header h1. Scope-limit al breadcrumb tramite selector class.
+    expect(screen.getByText("Verifica telaio 2D", { selector: ".ptd-bc-now" })).toBeInTheDocument();
     expect(screen.getByTestId("ptd-open-studio-pro")).toBeInTheDocument();
   });
 
@@ -79,5 +81,27 @@ describe("PercorsoTelaio2DPage · D1 skeleton", () => {
     // Step 2 placeholder ora visibile (StepGeometry NON e' piu' renderizzato)
     expect(screen.getByTestId("ptd-step-2-placeholder")).toBeInTheDocument();
     expect(screen.queryByTestId("step-geometry-body")).toBeNull();
+  });
+
+  // ── v3.5 D4: sub-header eyebrow visivo + Studio Pro switch polish ──
+  it("sub-header eyebrow 'PERCORSO GUIDATO' + titolo 'Verifica telaio 2D'", () => {
+    renderPage();
+    const subheader = screen.getByTestId("ptd-subheader");
+    expect(subheader).toBeInTheDocument();
+    expect(subheader.textContent).toContain("PERCORSO GUIDATO");
+    expect(subheader.textContent).toContain("Verifica telaio 2D");
+  });
+
+  it("auto-save status visibile nel sub-header (verde, sempre on)", () => {
+    renderPage();
+    const save = screen.getByTestId("ptd-subheader-save");
+    expect(save).toBeInTheDocument();
+    expect(save.textContent).toContain("Salvataggio automatico");
+    expect(save.getAttribute("aria-label")).toMatch(/salvataggio automatico/i);
+  });
+
+  it("Apri in Studio Pro pill ha label v3.5 D4 ('Apri in' invece di 'Apri')", () => {
+    renderPage();
+    expect(screen.getByTestId("ptd-open-studio-pro").textContent).toContain("Apri in Studio Pro");
   });
 });

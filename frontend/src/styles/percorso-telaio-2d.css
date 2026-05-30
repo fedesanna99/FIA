@@ -396,3 +396,95 @@ body.shell-sharp .ptd-geom-preset { border-radius: 0; }
 .ptd-geom-about-hint {
   font-style: italic;
 }
+
+
+/* ──────────────────────────────────────────────────────────────────────
+ * v3.5 Fetta D4 · Eyebrow visivo + Studio Pro switch polish
+ * ──────────────────────────────────────────────────────────────────── */
+
+/* Studio Pro pill polish · accent border permanent + hover fill */
+.ptd-open-studio {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.ptd-open-studio:hover {
+  background: var(--accent);
+  color: #ffffff;
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(var(--accent-rgb), 0.20);
+}
+
+/* Sub-header eyebrow visivo Percorso (sopra lo stepper) · icona emerald
+   bg + titolo grande + auto-save status. Cristallizza la modalità
+   Percorsi (vs Studio Pro topbar minimal). */
+.ptd-subheader {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 24px 12px;
+  background: var(--bg-panel);
+  border-bottom: 1px solid var(--border);
+}
+
+.ptd-subheader-left {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ptd-subheader-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  background: rgba(16, 185, 129, 0.12);
+  border: 1px solid rgba(16, 185, 129, 0.30);
+  color: rgb(16, 185, 129);
+  border-radius: 8px;
+}
+body.shell-sharp .ptd-subheader-icon { border-radius: 0; }
+
+.ptd-subheader-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.ptd-subheader-eyebrow {
+  margin: 0;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(16, 185, 129);
+}
+
+.ptd-subheader-title {
+  margin: 0;
+  font-family: var(--font-display, "Plus Jakarta Sans", sans-serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.015em;
+}
+
+.ptd-subheader-save {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(16, 185, 129, 0.08);
+  color: rgb(5, 150, 105);
+  border: 1px solid rgba(16, 185, 129, 0.20);
+  border-radius: 999px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+body.shell-sharp .ptd-subheader-save { border-radius: 0; }

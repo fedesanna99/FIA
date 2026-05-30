@@ -35,7 +35,7 @@
  */
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Settings, Check } from "lucide-react";
 
 import { PercorsoStep } from "../components/shell/PercorsoStep";
 import { PERCORSO_STEPS_6 } from "../components/shell/PercorsoStepper";
@@ -150,18 +150,43 @@ export function PercorsoTelaio2DPage(): JSX.Element {
           <span className="ptd-bc-now">Verifica telaio 2D</span>
         </div>
 
-        {/* v3.5 D1: active escape sempre visibile — pattern E2-IA "Studio
-            Pro è sempre raggiungibile dal Percorso". D4 polish lo perfeziona. */}
+        {/* v3.5 D1+D4: active escape sempre visibile — pattern E2-IA
+            "Studio Pro è sempre raggiungibile dal Percorso". D4 polish:
+            pill con bordo accent + label "Apri in Studio Pro" + hover lift.
+            Identifica chiaramente la VIA D'USCITA verso modalità esperto. */}
         <Link
           className="ptd-open-studio"
           to="/"
           data-testid="ptd-open-studio-pro"
-          aria-label="Apri Studio Pro — modalità esperto"
+          aria-label="Apri in Studio Pro — modalità esperto"
         >
-          Apri Studio Pro
+          <span>Apri in Studio Pro</span>
           <ExternalLink size={12} strokeWidth={2} aria-hidden />
         </Link>
       </header>
+
+      {/* ── v3.5 D4: sub-header con eyebrow visivo "⚙ Percorso — Verifica telaio 2D"
+            + icona emerald bg + auto-save status. Cristallizza identità
+            modalità Percorsi (vs Studio Pro topbar minimal). ── */}
+      <div className="ptd-subheader" data-testid="ptd-subheader">
+        <div className="ptd-subheader-left">
+          <div className="ptd-subheader-icon" aria-hidden>
+            <Settings size={18} strokeWidth={1.8} />
+          </div>
+          <div className="ptd-subheader-text">
+            <p className="ptd-subheader-eyebrow">PERCORSO GUIDATO</p>
+            <h1 className="ptd-subheader-title">Verifica telaio 2D</h1>
+          </div>
+        </div>
+        <div
+          className="ptd-subheader-save"
+          data-testid="ptd-subheader-save"
+          aria-label="Salvataggio automatico attivo"
+        >
+          <Check size={12} strokeWidth={2.5} aria-hidden />
+          <span>Salvataggio automatico</span>
+        </div>
+      </div>
 
       {/* ── Body: PercorsoStep template (stepper + header + body grid + footer) ── */}
       <main className="ptd-body">
