@@ -17,7 +17,8 @@ from examples import (
     example_steel_truss_pratt_24m,  # TPL-3
     example_rc_frame_2d_pushover,   # TPL-4
     example_rc_floor_with_beams,    # TPL-5
-    example_retaining_wall_2d,      # TPL-6
+    example_retaining_wall_2d,        # TPL-6
+    example_bridge_simple_span_20m,   # TPL-7
 )
 from core.solver import StaticSolver, ModalSolver
 
@@ -34,6 +35,7 @@ ALL_EXAMPLES = [
     ("rc_frame_2d_pushover", example_rc_frame_2d_pushover),     # TPL-4
     ("rc_floor_with_beams", example_rc_floor_with_beams),       # TPL-5
     ("retaining_wall_2d", example_retaining_wall_2d),           # TPL-6
+    ("bridge_simple_span_20m", example_bridge_simple_span_20m), # TPL-7
 ]
 
 
@@ -169,6 +171,27 @@ def test_steel_portal_hall_geometry():
     assert min(xs) == 0.0 and max(xs) == 20.0, "luce 20m"
     assert min(ys) == 0.0 and max(ys) == 40.0, "lunghezza 40m (9 telai × 5m interasse)"
     assert min(zs) == 0.0 and max(zs) == pytest.approx(9.68, abs=0.01), "colmo ~9.68m"
+
+
+# === TPL-7 · Ponte trave isostatica L=20m ===
+def test_bridge_simple_span_20m_geometry():
+    """189 nodi (21×9), 276 elem (160 SHELL_Q4 + 116 BEAM3D), 18 vincoli."""
+    model = example_bridge_simple_span_20m()
+    assert len(model.nodes) == 189
+    assert len(model.elements) == 276
+    assert len(model.constraints) == 18
+    n_shell = sum(1 for e in model.elements if str(e.type).endswith("SHELL_Q4"))
+    n_beam = sum(1 for e in model.elements if str(e.type).endswith("BEAM3D"))
+    assert n_shell == 160 and n_beam == 116
+
+
+def test_bridge_simple_span_20m_balance():
+    """Σ Fz reazioni == carichi (peso proprio 20×8×3 + TS 2×300 = 1080 kN)."""
+    model = example_bridge_simple_span_20m()
+    r = StaticSolver(model).solve()
+    total_rz = sum(rx.fz for rx in r.reactions)
+    expected = 3000.0 * 20.0 * 8.0 + 2 * 300000.0  # 480k + 600k = 1080 kN
+    assert total_rz == pytest.approx(expected, rel=1e-2)
 
 
 # === TPL-6 · Muro sostegno plane-strain ===

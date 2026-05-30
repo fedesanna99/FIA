@@ -1182,6 +1182,129 @@ def example_retaining_wall_2d() -> FEAModel:
     )
 
 
+def example_bridge_simple_span_20m() -> FEAModel:
+    """Ponte trave isostatica CA L=20m (TPL-7).
+
+    1 campata isostatica luce 20m, larghezza 8m. Impalcato shell t=20cm
+    in C25/30 con mesh 1×1m + 5 travi principali longitudinali rect 30×50
+    + 2 traverse di testata. Vincoli: appoggi cerniera ai 2 lati corti.
+
+    Carichi: peso proprio impalcato + LM1 EC1-2 semplificato (TS Tandem
+    System: 2 assi da 300 kN su corsia centrale a metà luce, come carichi
+    nodali centrali equivalenti).
+
+    Scenario: ponte stradale di piccola luce (cavalcavia residenziale,
+    accesso podere). Apre filone "ponti minori" che il professionista
+    italiano usa in opere comunali / consortili.
+
+    Norme: NTC 2018 §5, EC1-2 (carichi mobili), EC2-2 (ponti CA).
+    """
+    Lx, Ly = 20.0, 8.0
+    mesh = 1.0
+    nx = int(Lx / mesh)  # 20
+    ny = int(Ly / mesh)  # 8
+    nnx, nny = nx + 1, ny + 1  # 21 × 9 = 189
+
+    # === NODI ===
+    nodes: list[Node] = []
+    for j in range(nny):
+        for i in range(nnx):
+            nid = j * nnx + i + 1
+            nodes.append(Node(id=nid, x=i * mesh, y=j * mesh, z=0.0))
+
+    def node_id(i: int, j: int) -> int:
+        return j * nnx + i + 1
+
+    # === ELEMENTI ===
+    elements: list[Element] = []
+    eid = 1
+    # 1) Impalcato shell (20×8 = 160 SHELL_Q4)
+    for j in range(ny):
+        for i in range(nx):
+            n1 = node_id(i, j)
+            n2 = node_id(i + 1, j)
+            n3 = node_id(i + 1, j + 1)
+            n4 = node_id(i, j + 1)
+            elements.append(Element(
+                id=eid, type=ElementType.SHELL_Q4,
+                nodes=[n1, n2, n3, n4],
+                material_id="concrete_c25", section_id="shell_t200",
+            ))
+            eid += 1
+    # 2) 5 travi principali longitudinali (y=0, 2, 4, 6, 8): 5 × 20 = 100 BEAM3D
+    for j_beam in (0, 2, 4, 6, 8):
+        for i in range(nx):
+            elements.append(Element(
+                id=eid, type=ElementType.BEAM3D,
+                nodes=[node_id(i, j_beam), node_id(i + 1, j_beam)],
+                material_id="concrete_c25", section_id="rect_300x500",
+                orientation=[0, 0, 1],
+            ))
+            eid += 1
+    # 3) 2 traverse di testata (x=0 e x=20): 2 × 8 = 16 BEAM3D
+    for i_traverse in (0, nx):
+        for j in range(ny):
+            elements.append(Element(
+                id=eid, type=ElementType.BEAM3D,
+                nodes=[node_id(i_traverse, j), node_id(i_traverse, j + 1)],
+                material_id="concrete_c25", section_id="rect_300x500",
+                orientation=[0, 0, 1],
+            ))
+            eid += 1
+
+    # === CONSTRAINTS === 2 file di appoggi su lati corti (x=0 e x=Lx)
+    # 9 nodi PINNED + 9 nodi PINNED = 18 vincoli (lieve iperstaticità OK per demo)
+    constraints: list[Constraint] = []
+    cid = 1
+    for j in range(nny):
+        for i in (0, nx):
+            constraints.append(Constraint(
+                id=cid, type=ConstraintType.PINNED,
+                node_id=node_id(i, j),
+                label=f"Appoggio {'sx' if i == 0 else 'dx'} y={j}m",
+            ))
+            cid += 1
+
+    # === CARICHI ===
+    # 1. Peso proprio impalcato + permanente: -3 kN/m² su shell → NODAL fz
+    loads: list[Load] = []
+    lid = 1
+    q = -3000.0
+    for j in range(nny):
+        for i in range(nnx):
+            fx_factor = 0.5 if (i == 0 or i == nx) else 1.0
+            fy_factor = 0.5 if (j == 0 or j == ny) else 1.0
+            area = mesh * mesh * fx_factor * fy_factor
+            loads.append(Load(
+                id=lid, type=LoadType.NODAL,
+                target_id=node_id(i, j),
+                fz=q * area,
+                label="Peso proprio + permanente",
+            ))
+            lid += 1
+    # 2. LM1 TS EC1-2: 2 assi 300 kN sull'asse centrale (y=4), x=9 e x=11
+    #    (metà ponte ± 1m, distanza tipica tandem 2m)
+    for i_axle in (9, 11):
+        loads.append(Load(
+            id=lid, type=LoadType.NODAL,
+            target_id=node_id(i_axle, ny // 2),
+            fz=-300000.0,
+            label=f"TS asse {i_axle}m",
+        ))
+        lid += 1
+
+    return FEAModel(
+        id="ex_bridge_simple_span_20m",
+        name="Ponte trave isostatica L=20m",
+        description="Ponte CA 1 campata 20×8 m, impalcato shell t=20cm C25/30 mesh 1m "
+                    "+ 5 travi principali 30×50 + 2 traverse testata. Appoggi cerniere "
+                    "lati corti. Peso proprio -3 kN/m² + LM1 TS 2×300 kN centrali. "
+                    "NTC §5 + EC1-2 + EC2-2.",
+        is_3d=True,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
 def build_example_models() -> list[FEAModel]:
     return [
         example_simple_beam_2d(),
@@ -1193,10 +1316,11 @@ def build_example_models() -> list[FEAModel]:
         example_cube_solid_h8(),
         example_cable_bridge_2d(),
         example_laminate_plate(),
-        example_rc_building_4st(),         # TPL-1
-        example_steel_portal_hall(),       # TPL-2
-        example_steel_truss_pratt_24m(),   # TPL-3
-        example_rc_frame_2d_pushover(),    # TPL-4
-        example_rc_floor_with_beams(),     # TPL-5
-        example_retaining_wall_2d(),       # TPL-6
+        example_rc_building_4st(),           # TPL-1
+        example_steel_portal_hall(),         # TPL-2
+        example_steel_truss_pratt_24m(),     # TPL-3
+        example_rc_frame_2d_pushover(),      # TPL-4
+        example_rc_floor_with_beams(),       # TPL-5
+        example_retaining_wall_2d(),         # TPL-6
+        example_bridge_simple_span_20m(),    # TPL-7
     ]

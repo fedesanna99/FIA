@@ -21,7 +21,7 @@ import type { JSX } from "react";
 export type TemplateVariant =
   | "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss"
   | "membrane" | "solid" | "bridge" | "laminate" | "building" | "warehouse"
-  | "prattTruss" | "frame2d" | "floor" | "wall";
+  | "prattTruss" | "frame2d" | "floor" | "wall" | "bridgeBeam";
 
 export type TemplateCategory = "acciaio" | "ca" | "legno" | "sismica" | "altro";
 export type TemplateBadge = "POPOLARE" | "PRO" | "NEW";
@@ -69,6 +69,7 @@ export const TEMPLATES_CATALOG: TemplateEntry[] = [
   { id: "t13", backendId: "ex_rc_frame_2d_pushover", uc: "UC13", title: "Telaio CA 2D pushover EC8", desc: "Telaio piano CA 5×3 piani, pilastri+travi 30×50 cm C25/30. Carichi gravità + pattern triangolare laterale 10/20/30 kN. Pronto per pushover EC8 §4.3.3.3.", category: "ca", pills: ["beam2D", "pushover", "EC8"], timeMin: 5, badge: "PRO", variant: "frame2d" },
   { id: "t14", backendId: "ex_rc_floor_with_beams", uc: "UC14", title: "Solaio CA gettato + travi", desc: "Solaio 8×12 m, shell t=20cm in C25/30, mesh 0.5m. 1 trave principale 30×50 + 2 nervature trasversali, appoggio continuo lati corti. ~425 nodi · 440 elem. NTC §4.1 + EC2.", category: "ca", pills: ["shell", "beam3D", "EC2"], timeMin: 10, badge: "NEW", variant: "floor" },
   { id: "t15", backendId: "ex_retaining_wall_2d", uc: "UC15", title: "Muro sostegno CA plane-strain", desc: "Muro contenimento H=6m sp 0.5m in C25/30, shell mesh 0.1×0.2m. Bordo base incastrato. Spinta attiva Rankine triangolare (Ka=0.33, γ=18 kN/m³). 186 nodi · 150 elem. Geotecnica leggera NTC §6.5 + EC7.", category: "altro", pills: ["shell", "geotecnica", "EC7"], timeMin: 6, badge: "NEW", variant: "wall" },
+  { id: "t16", backendId: "ex_bridge_simple_span_20m", uc: "UC16", title: "Ponte trave isostatica L=20m", desc: "Ponte CA 1 campata 20×8 m, impalcato shell t=20cm + 5 travi principali 30×50 + 2 traverse testata. Appoggi cerniere lati corti. Peso proprio + LM1 TS 2×300 kN. 189 nodi · 276 elem. NTC §5 + EC1-2 + EC2-2.", category: "ca", pills: ["shell", "beam3D", "EC1-2"], timeMin: 8, badge: "PRO", variant: "bridgeBeam" },
 ];
 
 
@@ -423,7 +424,46 @@ export const VARIANT_THUMBS: Record<TemplateVariant, () => JSX.Element> = {
   frame2d: Frame2dThumb,
   floor: FloorThumb,
   wall: WallThumb,
+  bridgeBeam: BridgeBeamThumb,
 };
+
+function BridgeBeamThumb(): JSX.Element {
+  // Ponte trave isostatica vista laterale: impalcato + 2 appoggi triangolari +
+  // travi visibili sotto + carico TS centrale (2 frecce verticali)
+  return (
+    <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+      {/* Impalcato (rettangolo sottile orizzontale) */}
+      <rect x="40" y="70" width="200" height="14" stroke={stroke} strokeWidth="2" fill="var(--ink-dim)" opacity="0.18" />
+      {/* 5 travi sotto visibili */}
+      <g stroke={stroke} strokeWidth="1.2">
+        <line x1="40" y1="86" x2="240" y2="86" />
+        <line x1="40" y1="90" x2="240" y2="90" />
+        <line x1="40" y1="94" x2="240" y2="94" />
+        <line x1="40" y1="98" x2="240" y2="98" />
+      </g>
+      {/* Appoggi: cerniera sx + carrello dx (triangoli) */}
+      <polygon points="40,84 28,114 52,114" fill="none" stroke={stroke} strokeWidth="1.4" />
+      <polygon points="240,84 228,114 252,114" fill="none" stroke={stroke} strokeWidth="1.4" />
+      <circle cx="234" cy="118" r="2.5" fill="none" stroke="var(--ink-muted)" strokeWidth="1" />
+      <circle cx="246" cy="118" r="2.5" fill="none" stroke="var(--ink-muted)" strokeWidth="1" />
+      {/* Base/terreno */}
+      <line x1="20" y1="118" x2="260" y2="118" stroke="var(--ink-dim)" strokeWidth="1" />
+      <g stroke="var(--ink-dim)" strokeWidth="0.7">
+        {[25, 50, 75, 100, 125, 150, 175, 200, 225, 250].map((x) => (
+          <line key={x} x1={x} y1="118" x2={x - 4} y2="125" />
+        ))}
+      </g>
+      {/* TS Tandem 2 assi al centro (frecce verticali) */}
+      <g stroke={accent} strokeWidth="1.6">
+        <line x1="130" y1="40" x2="130" y2="66" />
+        <polygon points="130,66 126,60 134,60" fill={accent} />
+        <line x1="150" y1="40" x2="150" y2="66" />
+        <polygon points="150,66 146,60 154,60" fill={accent} />
+      </g>
+      <text x="140" y="32" fontFamily="monospace" fontSize="9" fill="var(--ink-dim)" textAnchor="middle">TS 2×300 kN</text>
+    </svg>
+  );
+}
 
 function WallThumb(): JSX.Element {
   // Muro sostegno CA visto in sezione: rettangolo verticale + suola tratteggiata
