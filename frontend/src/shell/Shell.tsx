@@ -47,6 +47,11 @@ import { ShellRightReopenTab } from "./ShellRightReopenTab";
 // closed → grid 3-col invariata. Aperto → grid 4-col con seconda
 // colonna `--left-tree-w` (240px).
 import { ShellLeftTreePanel } from "./ShellLeftTreePanel";
+// v3.4 Fetta M3 mobile (30/05/2026): drawer overlay wrap del
+// ShellLeftTreePanel su mobile. Su desktop il panel resta nella grid
+// (4a colonna `.shell-mid` quando isLeftTreeVisible). Su mobile diventa
+// overlay position:fixed con backdrop. Vedi ADR 004 D4.
+import { ShellLeftTreeDrawer } from "./ShellLeftTreeDrawer";
 // v3.4 Fetta M4 mobile (30/05/2026 notte): bottom sheet "Verifica" su
 // mobile. Renderizzato solo quando isMobile && activeWs === "risultati"
 // (su desktop il ShellPanel desktop 380px prende il suo posto). Wrappa
@@ -280,7 +285,7 @@ export function Shell({ children }: ShellProps) {
       // "closed"). Usiamo `isLeftTreeVisible` (NON `treeState` diretto)
       // cosi' in focus/takeover l'attributo e' "closed" e la grid resta
       // 3-col anche se l'utente aveva treeState="open" come preferenza.
-      data-left-tree-state={isLeftTreeVisible ? "open" : "closed"}
+      data-left-tree-state={isLeftTreeVisible && !isMobile ? "open" : "closed"}
       className={`shell shell-soft shell-density-comfy shell-panel-w-380 shell-vp-neutral theme-${theme}${
         isTakeover ? " shell-takeover-on" : ""
       }${isFocusMode ? " shell-focus-on" : ""}${railExpanded ? " shell-rail-expanded" : ""}`}
@@ -301,8 +306,12 @@ export function Shell({ children }: ShellProps) {
             inserito tra Rail e Viewport quando isLeftTreeVisible.
             Stesso boolean usato dal data-attribute sul root → grid
             CSS e DOM restano coerenti senza override speciali per
-            takeover/focus. */}
-        {isLeftTreeVisible && <ShellLeftTreePanel />}
+            takeover/focus.
+            v3.4 Fetta M3 mobile (30/05/2026): gate aggiuntivo `!isMobile`.
+            Su mobile il panel non viene renderizzato in-grid (zero mount
+            qui) — il rendering avviene dentro `ShellLeftTreeDrawer` come
+            overlay position:fixed (vedi sotto la grid mid). */}
+        {isLeftTreeVisible && !isMobile && <ShellLeftTreePanel />}
         {!showFocusChrome && isTakeover && takeoverContent ? (
           <main className="shell-takeover-content" data-testid="shell-takeover-content">
             {takeoverContent}
@@ -342,6 +351,19 @@ export function Shell({ children }: ShellProps) {
       </div>
 
       {!showFocusChrome && <ShellStatusBar />}
+
+      {/* v3.4 Fetta M3 mobile (30/05/2026): drawer overlay del panel SX
+          "Albero modello" su mobile (ADR 004 D4). Sempre montato quando
+          isMobile + !focus + !takeover — il drawer interno gestisce
+          show/hide via leftTreeStore.treeState (transform CSS, niente
+          unmount). Quando treeState=open: backdrop scuro + drawer
+          slide-in da sinistra (80% width, max 280px). Body scroll lock
+          attivo solo a drawer aperto. */}
+      {!showFocusChrome && !isTakeover && isMobile && (
+        <ShellLeftTreeDrawer>
+          <ShellLeftTreePanel />
+        </ShellLeftTreeDrawer>
+      )}
 
       <ShellCommandPalette />
 
