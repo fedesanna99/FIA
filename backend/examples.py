@@ -738,6 +738,134 @@ def example_steel_portal_hall() -> FEAModel:
     )
 
 
+def example_steel_truss_pratt_24m() -> FEAModel:
+    """Capriata Pratt acciaio luce 24 m (TPL-3).
+
+    Geometria classica reticolare 12 pannelli (luce L=24m, altezza
+    H=2.4m, rapporto L/10 standard). Correnti IPE200 inferiore/superiore
+    + montanti verticali e diagonali Ø100. Materiale S355. Pratt: le
+    diagonali vanno dal corrente superiore verso il centro (in trazione
+    sotto carico verticale verso il basso) — opposta a Howe.
+
+    Solo elementi TRUSS3D (no flessione, comportamento puro a forza
+    assiale). Cerniere ai due appoggi (lievemente iperstatica con 2
+    PINNED ma OK per statica + comodo per il junior che non deve
+    pensare al carrello).
+
+    Scenario: capriata per copertura industriale / palestra / capannone
+    secondario. Apre il filone "modelli reticolari" che gli ing italiani
+    usano nei capannoni di piccola-media taglia (NTC + EC3 §6.3 stabilità
+    aste a buckling).
+    """
+    L = 24.0
+    H = 2.4
+    n_panels = 12
+    panel = L / n_panels  # 2.0 m
+
+    # === NODI ===
+    # Corrente inferiore (id 1..13): z=0, x = 0, 2, ..., 24
+    # Corrente superiore (id 14..24): z=H, x = 2, 4, ..., 22
+    nodes: list[Node] = []
+    for i in range(n_panels + 1):
+        nodes.append(Node(id=i + 1, x=i * panel, y=0.0, z=0.0))
+    n_sup_start = n_panels + 2  # 14
+    for i in range(1, n_panels):
+        nodes.append(Node(id=n_sup_start + i - 1, x=i * panel, y=0.0, z=H))
+
+    def n_inf(i: int) -> int:
+        """i = 0..12 → nodo corrente inferiore (id 1..13)."""
+        return i + 1
+
+    def n_sup(i: int) -> int:
+        """i = 1..11 → nodo corrente superiore (id 14..24)."""
+        return n_sup_start + i - 1
+
+    # === ELEMENTI ===
+    elements: list[Element] = []
+    eid = 1
+    # 1) Corrente inferiore (12 segmenti IPE200)
+    for i in range(n_panels):
+        elements.append(Element(
+            id=eid, type=ElementType.TRUSS3D,
+            nodes=[n_inf(i), n_inf(i + 1)],
+            material_id="steel_s355", section_id="ipe_200",
+        ))
+        eid += 1
+    # 2) Corrente superiore (10 segmenti IPE200, tra nodi sup x=2 e x=22)
+    for i in range(1, n_panels - 1):
+        elements.append(Element(
+            id=eid, type=ElementType.TRUSS3D,
+            nodes=[n_sup(i), n_sup(i + 1)],
+            material_id="steel_s355", section_id="ipe_200",
+        ))
+        eid += 1
+    # 3) Montanti verticali (11 montanti Ø100, uno per ogni nodo sup)
+    for i in range(1, n_panels):
+        elements.append(Element(
+            id=eid, type=ElementType.TRUSS3D,
+            nodes=[n_inf(i), n_sup(i)],
+            material_id="steel_s355", section_id="circ_100",
+        ))
+        eid += 1
+    # 4) Puntoni terminali (2 inclinati Ø100 dai nodi inf estremi)
+    elements.append(Element(
+        id=eid, type=ElementType.TRUSS3D,
+        nodes=[n_inf(0), n_sup(1)],
+        material_id="steel_s355", section_id="circ_100",
+    ))
+    eid += 1
+    elements.append(Element(
+        id=eid, type=ElementType.TRUSS3D,
+        nodes=[n_inf(n_panels), n_sup(n_panels - 1)],
+        material_id="steel_s355", section_id="circ_100",
+    ))
+    eid += 1
+    # 5) Diagonali Pratt (10 Ø100 inclinate verso il centro)
+    # Half sx (pannelli 2..6): sup x=i → inf x=i+1 (giù-destra)
+    for i in range(1, n_panels // 2):
+        elements.append(Element(
+            id=eid, type=ElementType.TRUSS3D,
+            nodes=[n_sup(i), n_inf(i + 1)],
+            material_id="steel_s355", section_id="circ_100",
+        ))
+        eid += 1
+    # Half dx (pannelli 7..11): sup x=i+1 → inf x=i (giù-sinistra)
+    for i in range(n_panels // 2, n_panels - 1):
+        elements.append(Element(
+            id=eid, type=ElementType.TRUSS3D,
+            nodes=[n_sup(i + 1), n_inf(i)],
+            material_id="steel_s355", section_id="circ_100",
+        ))
+        eid += 1
+
+    # === CONSTRAINTS === 2 cerniere ai 2 nodi inf estremi
+    constraints = [
+        Constraint(id=1, type=ConstraintType.PINNED,
+                   node_id=n_inf(0), label="Cerniera sx"),
+        Constraint(id=2, type=ConstraintType.PINNED,
+                   node_id=n_inf(n_panels), label="Cerniera dx"),
+    ]
+
+    # === CARICHI === -10 kN/nodo sup (11 nodi, totale 110 kN)
+    loads = [
+        Load(id=i, type=LoadType.NODAL,
+             target_id=n_sup(i), fz=-10000.0,
+             label=f"Copertura nodo sup {i}")
+        for i in range(1, n_panels)
+    ]
+
+    return FEAModel(
+        id="ex_steel_truss_pratt_24m",
+        name="Capriata Pratt acciaio L=24m",
+        description="Capriata reticolare Pratt classica 12 pannelli, luce 24m, "
+                    "altezza 2.4m (L/10). Correnti IPE200, montanti+diagonali Ø100, "
+                    "acciaio S355. Carico copertura -10 kN/nodo sup (110 kN totali). "
+                    "Solo aste TRUSS3D (forza assiale pura).",
+        is_3d=False,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
 def build_example_models() -> list[FEAModel]:
     return [
         example_simple_beam_2d(),
@@ -749,6 +877,7 @@ def build_example_models() -> list[FEAModel]:
         example_cube_solid_h8(),
         example_cable_bridge_2d(),
         example_laminate_plate(),
-        example_rc_building_4st(),       # TPL-1 (30/05/2026 sera)
-        example_steel_portal_hall(),     # TPL-2 (30/05/2026 sera)
+        example_rc_building_4st(),         # TPL-1 (30/05/2026 sera)
+        example_steel_portal_hall(),       # TPL-2 (30/05/2026 sera)
+        example_steel_truss_pratt_24m(),   # TPL-3 (30/05/2026 sera)
     ]

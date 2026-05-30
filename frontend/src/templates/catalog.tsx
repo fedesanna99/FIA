@@ -20,7 +20,8 @@ import type { JSX } from "react";
 
 export type TemplateVariant =
   | "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss"
-  | "membrane" | "solid" | "bridge" | "laminate" | "building" | "warehouse";
+  | "membrane" | "solid" | "bridge" | "laminate" | "building" | "warehouse"
+  | "prattTruss";
 
 export type TemplateCategory = "acciaio" | "ca" | "legno" | "sismica" | "altro";
 export type TemplateBadge = "POPOLARE" | "PRO" | "NEW";
@@ -64,6 +65,7 @@ export const TEMPLATES_CATALOG: TemplateEntry[] = [
   { id: "t9", backendId: "ex_laminate_plate", uc: "UC9", title: "Piastra laminata cross-ply", desc: "Piastra 1×1 m laminata 0/90/0 carbon (3mm). Bordo y=0 incastrato. Comportamento ortotropo.", category: "altro", pills: ["composito", "Q4"], timeMin: 5, badge: "NEW", variant: "laminate" },
   { id: "t10", backendId: "ex_rc_building_4st", uc: "UC10", title: "Edificio CA 4 piani", desc: "Edificio residenziale CA, pianta 12×8 m, 3×2 baie, pilastri+travi 30×50 cm C25/30, solai shell 20 cm. ~585 nodi · 500 elementi.", category: "ca", pills: ["beam3D", "shell", "NTC"], timeMin: 12, badge: "NEW", variant: "building" },
   { id: "t11", backendId: "ex_steel_portal_hall", uc: "UC11", title: "Capannone acciaio 1 campata", desc: "Capannone industriale S355, 20×40 m, 9 telai interasse 5 m. Pilastri HEB300 h=7m, falde IPE300 inclinate 15°, arcarecci IPE200 + controventi facciate. ~81 nodi · 100 elem.", category: "acciaio", pills: ["beam3D", "truss", "EC3"], timeMin: 8, badge: "NEW", variant: "warehouse" },
+  { id: "t12", backendId: "ex_steel_truss_pratt_24m", uc: "UC12", title: "Capriata Pratt L=24m", desc: "Capriata reticolare Pratt 12 pannelli, luce 24m, altezza 2.4m (L/10). Correnti IPE200 + montanti/diag Ø100 in S355. Solo aste TRUSS (forza assiale pura). 24 nodi · 45 elem.", category: "acciaio", pills: ["truss", "EC3"], timeMin: 3, badge: "NEW", variant: "prattTruss" },
 ];
 
 
@@ -349,6 +351,57 @@ function WarehouseThumb(): JSX.Element {
   );
 }
 
+function PrattTrussThumb(): JSX.Element {
+  // Capriata Pratt classica vista laterale: corrente inf + sup + montanti +
+  // diagonali in zig-zag verso il centro + 2 puntoni terminali + appoggi
+  return (
+    <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+      {/* Corrente superiore (più alto, linea continua) */}
+      <line x1="55" y1="50" x2="225" y2="50" stroke={stroke} strokeWidth="2.5" />
+      {/* Corrente inferiore */}
+      <line x1="35" y1="110" x2="245" y2="110" stroke={stroke} strokeWidth="2.5" />
+      {/* Montanti verticali (5 per side, simmetrici) */}
+      <g stroke={stroke} strokeWidth="1.4">
+        <line x1="55" y1="50" x2="55" y2="110" />
+        <line x1="85" y1="50" x2="85" y2="110" />
+        <line x1="115" y1="50" x2="115" y2="110" />
+        <line x1="140" y1="50" x2="140" y2="110" />
+        <line x1="165" y1="50" x2="165" y2="110" />
+        <line x1="195" y1="50" x2="195" y2="110" />
+        <line x1="225" y1="50" x2="225" y2="110" />
+      </g>
+      {/* Diagonali Pratt verso il centro */}
+      <g stroke={accent} strokeWidth="1.4">
+        {/* Half sx: sup x → inf x+1 (giù-destra) */}
+        <line x1="55" y1="50" x2="85" y2="110" />
+        <line x1="85" y1="50" x2="115" y2="110" />
+        <line x1="115" y1="50" x2="140" y2="110" />
+        {/* Half dx: sup x → inf x-1 (giù-sinistra) */}
+        <line x1="225" y1="50" x2="195" y2="110" />
+        <line x1="195" y1="50" x2="165" y2="110" />
+        <line x1="165" y1="50" x2="140" y2="110" />
+      </g>
+      {/* Puntoni terminali (triangoli ai 2 lati) */}
+      <line x1="35" y1="110" x2="55" y2="50" stroke={stroke} strokeWidth="2" />
+      <line x1="245" y1="110" x2="225" y2="50" stroke={stroke} strokeWidth="2" />
+      {/* Appoggi: cerniera sx + carrello dx */}
+      <circle cx="35" cy="110" r="3" fill="var(--accent)" />
+      <circle cx="245" cy="110" r="3" fill="var(--accent)" />
+      <polygon points="35,114 28,128 42,128" fill="none" stroke="var(--ink-muted)" strokeWidth="1" />
+      <polygon points="245,114 238,128 252,128" fill="none" stroke="var(--ink-muted)" strokeWidth="1" />
+      {/* Carichi verticali sui nodi sup (3 frecce indicative) */}
+      <g stroke="var(--ink-dim)" strokeWidth="1" opacity="0.55">
+        <line x1="85" y1="38" x2="85" y2="46" />
+        <polygon points="85,46 82,41 88,41" fill="var(--ink-dim)" />
+        <line x1="140" y1="32" x2="140" y2="46" />
+        <polygon points="140,46 137,41 143,41" fill="var(--ink-dim)" />
+        <line x1="195" y1="38" x2="195" y2="46" />
+        <polygon points="195,46 192,41 198,41" fill="var(--ink-dim)" />
+      </g>
+    </svg>
+  );
+}
+
 /** Registry SVG: per ogni variant → component function da renderizzare. */
 export const VARIANT_THUMBS: Record<TemplateVariant, () => JSX.Element> = {
   beam: BeamThumb,
@@ -363,6 +416,7 @@ export const VARIANT_THUMBS: Record<TemplateVariant, () => JSX.Element> = {
   laminate: LaminateThumb,
   building: BuildingThumb,
   warehouse: WarehouseThumb,
+  prattTruss: PrattTrussThumb,
 };
 
 

@@ -12,8 +12,9 @@ from examples import (
     example_truss_3d,
     example_shell_plate,
     example_tower_3d,
-    example_rc_building_4st,    # TPL-1
-    example_steel_portal_hall,  # TPL-2
+    example_rc_building_4st,        # TPL-1
+    example_steel_portal_hall,      # TPL-2
+    example_steel_truss_pratt_24m,  # TPL-3
 )
 from core.solver import StaticSolver, ModalSolver
 
@@ -24,8 +25,9 @@ ALL_EXAMPLES = [
     ("truss_3d", example_truss_3d),
     ("shell_plate", example_shell_plate),
     ("tower_3d", example_tower_3d),
-    ("rc_building_4st", example_rc_building_4st),       # TPL-1
-    ("steel_portal_hall", example_steel_portal_hall),   # TPL-2
+    ("rc_building_4st", example_rc_building_4st),               # TPL-1
+    ("steel_portal_hall", example_steel_portal_hall),           # TPL-2
+    ("steel_truss_pratt_24m", example_steel_truss_pratt_24m),   # TPL-3
 ]
 
 
@@ -161,6 +163,45 @@ def test_steel_portal_hall_geometry():
     assert min(xs) == 0.0 and max(xs) == 20.0, "luce 20m"
     assert min(ys) == 0.0 and max(ys) == 40.0, "lunghezza 40m (9 telai × 5m interasse)"
     assert min(zs) == 0.0 and max(zs) == pytest.approx(9.68, abs=0.01), "colmo ~9.68m"
+
+
+# === TPL-3 · Capriata Pratt 24m ===
+def test_steel_truss_pratt_geometry():
+    """Verifica geometria: 24 nodi (13 inf + 11 sup), 45 elem (tutti TRUSS3D)."""
+    model = example_steel_truss_pratt_24m()
+    assert len(model.nodes) == 24, f"Nodi attesi 24, trovati {len(model.nodes)}"
+    assert len(model.elements) == 45, f"Elementi attesi 45, trovati {len(model.elements)}"
+    assert len(model.constraints) == 2, "2 cerniere ai 2 nodi inf estremi"
+    n_truss = sum(1 for e in model.elements if str(e.type).endswith("TRUSS3D"))
+    assert n_truss == 45, f"Tutti TRUSS3D (puro reticolare), trovati {n_truss}"
+    # Bounding box: x=[0,24] z=[0,2.4]
+    xs = [n.x for n in model.nodes]
+    zs = [n.z for n in model.nodes]
+    assert min(xs) == 0.0 and max(xs) == 24.0, "luce 24m"
+    assert min(zs) == 0.0 and max(zs) == pytest.approx(2.4, abs=0.01), "altezza H=2.4m"
+
+
+def test_steel_truss_pratt_only_axial():
+    """Capriata reticolare: ogni elemento ha solo N (no momenti, no taglio)."""
+    model = example_steel_truss_pratt_24m()
+    r = StaticSolver(model).solve()
+    for f in r.element_forces:
+        assert f.My_i == 0 and f.Mz_i == 0, f"elemento {f.element_id}: momento non zero"
+        assert f.Vy_i == 0 and f.Vz_i == 0, f"elemento {f.element_id}: taglio non zero"
+    n_total = sum(abs(f.N_j) for f in r.element_forces)
+    assert n_total > 0, "almeno alcune aste devono lavorare"
+
+
+def test_steel_truss_pratt_reactions_balance_loads():
+    """Σ Fz reazioni == -Σ carichi copertura (11 nodi × -10 kN = +110 kN)."""
+    model = example_steel_truss_pratt_24m()
+    r = StaticSolver(model).solve()
+    total_rz = sum(rx.fz for rx in r.reactions)
+    expected = 10000.0 * 11  # 110 kN totali
+    assert total_rz == pytest.approx(expected, rel=1e-3), (
+        f"Reazioni Fz {total_rz:.0f} N devono bilanciare {expected:.0f} N "
+        f"(scarto >0.1%)"
+    )
 
 
 def test_steel_portal_hall_reactions_balance_roof_loads():
