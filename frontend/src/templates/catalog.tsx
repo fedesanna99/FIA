@@ -21,7 +21,7 @@ import type { JSX } from "react";
 export type TemplateVariant =
   | "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss"
   | "membrane" | "solid" | "bridge" | "laminate" | "building" | "warehouse"
-  | "prattTruss" | "frame2d" | "floor" | "wall" | "bridgeBeam";
+  | "prattTruss" | "frame2d" | "floor" | "wall" | "bridgeBeam" | "raft";
 
 export type TemplateCategory = "acciaio" | "ca" | "legno" | "sismica" | "altro";
 export type TemplateBadge = "POPOLARE" | "PRO" | "NEW";
@@ -70,6 +70,7 @@ export const TEMPLATES_CATALOG: TemplateEntry[] = [
   { id: "t14", backendId: "ex_rc_floor_with_beams", uc: "UC14", title: "Solaio CA gettato + travi", desc: "Solaio 8×12 m, shell t=20cm in C25/30, mesh 0.5m. 1 trave principale 30×50 + 2 nervature trasversali, appoggio continuo lati corti. ~425 nodi · 440 elem. NTC §4.1 + EC2.", category: "ca", pills: ["shell", "beam3D", "EC2"], timeMin: 10, badge: "NEW", variant: "floor" },
   { id: "t15", backendId: "ex_retaining_wall_2d", uc: "UC15", title: "Muro sostegno CA plane-strain", desc: "Muro contenimento H=6m sp 0.5m in C25/30, shell mesh 0.1×0.2m. Bordo base incastrato. Spinta attiva Rankine triangolare (Ka=0.33, γ=18 kN/m³). 186 nodi · 150 elem. Geotecnica leggera NTC §6.5 + EC7.", category: "altro", pills: ["shell", "geotecnica", "EC7"], timeMin: 6, badge: "NEW", variant: "wall" },
   { id: "t16", backendId: "ex_bridge_simple_span_20m", uc: "UC16", title: "Ponte trave isostatica L=20m", desc: "Ponte CA 1 campata 20×8 m, impalcato shell t=20cm + 5 travi principali 30×50 + 2 traverse testata. Appoggi cerniere lati corti. Peso proprio + LM1 TS 2×300 kN. 189 nodi · 276 elem. NTC §5 + EC1-2 + EC2-2.", category: "ca", pills: ["shell", "beam3D", "EC1-2"], timeMin: 8, badge: "PRO", variant: "bridgeBeam" },
+  { id: "t17", backendId: "ex_raft_winkler", uc: "UC17", title: "Platea fondazione Winkler", desc: "Platea CA 10×12 m sp 60cm in C30/37, shell mesh 0.5m (525 nodi). Suolo Winkler k_w=20 MN/m³ via 525 SPRING/nodo. 9 pilastri 200 kN griglia 3×3. Preliminare fondazione edificio medio. NTC §6.4 + EC7.", category: "altro", pills: ["shell", "Winkler", "geotecnica"], timeMin: 10, badge: "PRO", variant: "raft" },
 ];
 
 
@@ -425,7 +426,47 @@ export const VARIANT_THUMBS: Record<TemplateVariant, () => JSX.Element> = {
   floor: FloorThumb,
   wall: WallThumb,
   bridgeBeam: BridgeBeamThumb,
+  raft: RaftThumb,
 };
+
+function RaftThumb(): JSX.Element {
+  // Platea fondazione vista in sezione: rettangolo orizzontale + griglia molle
+  // sotto (Winkler) + 3 pilastri verticali sopra con carichi
+  return (
+    <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+      {/* Platea (rettangolo orizzontale spesso, marrone-ish) */}
+      <rect x="30" y="80" width="220" height="14" fill="var(--ink-dim)" opacity="0.22" stroke={stroke} strokeWidth="2" />
+      {/* 3 pilastri sovrastanti */}
+      <g stroke={stroke} strokeWidth="3" fill="none">
+        <line x1="70" y1="80" x2="70" y2="35" />
+        <line x1="140" y1="80" x2="140" y2="35" />
+        <line x1="210" y1="80" x2="210" y2="35" />
+      </g>
+      {/* Carichi verticali sopra i pilastri (frecce in giù) */}
+      <g stroke={accent} strokeWidth="1.6">
+        <line x1="70" y1="20" x2="70" y2="32" />
+        <polygon points="70,32 66,26 74,26" fill={accent} />
+        <line x1="140" y1="20" x2="140" y2="32" />
+        <polygon points="140,32 136,26 144,26" fill={accent} />
+        <line x1="210" y1="20" x2="210" y2="32" />
+        <polygon points="210,32 206,26 214,26" fill={accent} />
+      </g>
+      {/* Molle Winkler sotto la platea (zigzag verticali) */}
+      <g stroke="var(--purple)" strokeWidth="1.2" fill="none">
+        {[40, 65, 90, 115, 140, 165, 190, 215, 240].map((x) => (
+          <path key={x} d={`M${x} 94 l-5 4 l10 5 l-10 5 l10 5 l-5 4 z`} />
+        ))}
+      </g>
+      {/* Terreno base tratteggiata */}
+      <line x1="20" y1="135" x2="260" y2="135" stroke="var(--ink-dim)" strokeWidth="1.5" />
+      <g stroke="var(--ink-dim)" strokeWidth="0.7">
+        {[25, 50, 75, 100, 125, 150, 175, 200, 225, 250].map((x) => (
+          <line key={x} x1={x} y1="135" x2={x - 4} y2="142" />
+        ))}
+      </g>
+    </svg>
+  );
+}
 
 function BridgeBeamThumb(): JSX.Element {
   // Ponte trave isostatica vista laterale: impalcato + 2 appoggi triangolari +

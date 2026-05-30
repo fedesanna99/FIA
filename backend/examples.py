@@ -1305,6 +1305,115 @@ def example_bridge_simple_span_20m() -> FEAModel:
     )
 
 
+def example_raft_winkler() -> FEAModel:
+    """Platea di fondazione CA su suolo Winkler (TPL-8 · finale).
+
+    Platea 10×12 m sp 60cm in C30/37 (fondazione di edificio CA
+    multipiano), modellata via SHELL_Q4 t=600mm con mesh 0.5×0.5m
+    (21×25 = 525 nodi). Suolo Winkler: ogni nodo ha un vincolo
+    SPRING con rigidezza verticale k_z = k_w × area_trib, dove
+    k_w = 20 MN/m³ (costante Winkler tipica per terreno medio-
+    coesivo). Piccola rigidezza orizzontale k_xy = 0.1 MN/m per
+    nodo evita moti rigidi nel piano (attrito laterale terreno).
+
+    Carichi: 9 pilastri sovrastanti (griglia 3×3, baia 5m × 6m)
+    da 200 kN ciascuno = 1800 kN totali, modellati come NODAL fz.
+
+    Scenario: preliminare di fondazione per edificio CA 3-5 piani
+    medio. Pattern standard per dimensionare platea prima del
+    modello complessivo terreno+sovrastruttura.
+
+    Norme: NTC 2018 §6.4, EC7-1 (geotecnica fondazioni).
+
+    NB: usa Constraint(type=SPRING, spring_k=[kx, ky, kz, 0, 0, 0])
+    per ogni nodo. Solver supporta nativamente (vedi benchmark
+    tests/benchmarks/test_winkler_beam.py per validazione Hetenyi).
+    """
+    Lx, Ly = 10.0, 12.0
+    mesh = 0.5
+    nx = int(Lx / mesh)  # 20
+    ny = int(Ly / mesh)  # 24
+    nnx, nny = nx + 1, ny + 1  # 21 × 25 = 525
+
+    # === NODI ===
+    nodes: list[Node] = []
+    for j in range(nny):
+        for i in range(nnx):
+            nid = j * nnx + i + 1
+            nodes.append(Node(id=nid, x=i * mesh, y=j * mesh, z=0.0))
+
+    def node_id(i: int, j: int) -> int:
+        return j * nnx + i + 1
+
+    # === ELEMENTI === platea SHELL_Q4 t=600mm in C30/37
+    elements: list[Element] = []
+    eid = 1
+    for j in range(ny):
+        for i in range(nx):
+            n1 = node_id(i, j)
+            n2 = node_id(i + 1, j)
+            n3 = node_id(i + 1, j + 1)
+            n4 = node_id(i, j + 1)
+            elements.append(Element(
+                id=eid, type=ElementType.SHELL_Q4,
+                nodes=[n1, n2, n3, n4],
+                material_id="concrete_c30", section_id="shell_t600",
+            ))
+            eid += 1
+    # 480 SHELL_Q4 (20×24)
+
+    # === CONSTRAINTS === 525 SPRING Winkler per ogni nodo
+    # k_w = 20 MN/m³, k_z_nodo = k_w × area_trib
+    # area trib interna = mesh² = 0.25 m² → k_z = 5 MN/m
+    # bordo = mesh²/2 = 0.125 m² → k_z = 2.5 MN/m
+    # angolo = mesh²/4 = 0.0625 m² → k_z = 1.25 MN/m
+    # Piccola rigidezza orizzontale k_xy=0.1 MN/m per evitare moto rigido xy.
+    constraints: list[Constraint] = []
+    cid = 1
+    k_w = 20e6  # N/m³ (Winkler constant, terreno medio-coesivo)
+    k_xy = 1e5  # N/m piccola rigidezza orizzontale per evitare moto rigido
+    for j in range(nny):
+        for i in range(nnx):
+            fx_factor = 0.5 if (i == 0 or i == nx) else 1.0
+            fy_factor = 0.5 if (j == 0 or j == ny) else 1.0
+            area_trib = mesh * mesh * fx_factor * fy_factor
+            k_z = k_w * area_trib
+            constraints.append(Constraint(
+                id=cid, type=ConstraintType.SPRING,
+                node_id=node_id(i, j),
+                spring_k=[k_xy, k_xy, k_z, 0.0, 0.0, 0.0],
+                label=f"Winkler nodo ({i},{j})",
+            ))
+            cid += 1
+
+    # === CARICHI === 9 pilastri sovrastanti (griglia 3×3)
+    # Posizioni: x = 0, 5, 10 m (i = 0, 10, 20) · y = 0, 6, 12 m (j = 0, 12, 24)
+    loads: list[Load] = []
+    lid = 1
+    pillar_grid_i = (0, nx // 2, nx)   # 0, 10, 20
+    pillar_grid_j = (0, ny // 2, ny)   # 0, 12, 24
+    for pi in pillar_grid_i:
+        for pj in pillar_grid_j:
+            loads.append(Load(
+                id=lid, type=LoadType.NODAL,
+                target_id=node_id(pi, pj),
+                fz=-200000.0,  # 200 kN/pilastro
+                label=f"Pilastro x={pi*mesh:.0f}m y={pj*mesh:.0f}m",
+            ))
+            lid += 1
+
+    return FEAModel(
+        id="ex_raft_winkler",
+        name="Platea fondazione su Winkler",
+        description="Platea CA 10×12 m sp 60cm in C30/37, shell mesh 0.5m (525 nodi). "
+                    "Suolo Winkler k_w=20 MN/m³ via SPRING per nodo. 9 pilastri "
+                    "sovrastanti 200 kN ciascuno (3×3 griglia). Preliminare fondazione "
+                    "edificio medio. NTC §6.4 + EC7.",
+        is_3d=True,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
 def build_example_models() -> list[FEAModel]:
     return [
         example_simple_beam_2d(),
@@ -1323,4 +1432,5 @@ def build_example_models() -> list[FEAModel]:
         example_rc_floor_with_beams(),       # TPL-5
         example_retaining_wall_2d(),         # TPL-6
         example_bridge_simple_span_20m(),    # TPL-7
+        example_raft_winkler(),              # TPL-8 (finale)
     ]

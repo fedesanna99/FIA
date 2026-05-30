@@ -19,6 +19,7 @@ from examples import (
     example_rc_floor_with_beams,    # TPL-5
     example_retaining_wall_2d,        # TPL-6
     example_bridge_simple_span_20m,   # TPL-7
+    example_raft_winkler,             # TPL-8 (finale)
 )
 from core.solver import StaticSolver, ModalSolver
 
@@ -36,6 +37,7 @@ ALL_EXAMPLES = [
     ("rc_floor_with_beams", example_rc_floor_with_beams),       # TPL-5
     ("retaining_wall_2d", example_retaining_wall_2d),           # TPL-6
     ("bridge_simple_span_20m", example_bridge_simple_span_20m), # TPL-7
+    ("raft_winkler", example_raft_winkler),                     # TPL-8 (finale)
 ]
 
 
@@ -171,6 +173,33 @@ def test_steel_portal_hall_geometry():
     assert min(xs) == 0.0 and max(xs) == 20.0, "luce 20m"
     assert min(ys) == 0.0 and max(ys) == 40.0, "lunghezza 40m (9 telai × 5m interasse)"
     assert min(zs) == 0.0 and max(zs) == pytest.approx(9.68, abs=0.01), "colmo ~9.68m"
+
+
+# === TPL-8 · Platea Winkler ===
+def test_raft_winkler_geometry():
+    """525 nodi (21×25), 480 SHELL_Q4, 525 SPRING constraints + 9 carichi pilastri."""
+    model = example_raft_winkler()
+    assert len(model.nodes) == 525
+    assert len(model.elements) == 480
+    assert len(model.constraints) == 525
+    assert len(model.loads) == 9
+    # Tutti i constraints sono SPRING
+    n_spring = sum(1 for c in model.constraints if str(c.type).endswith("SPRING"))
+    assert n_spring == 525
+
+
+def test_raft_winkler_solves_with_winkler_displacement():
+    """Solver gira sui 525 nodi + 525 SPRING. Spostamento finito e sensato.
+    NB: Σ Fz reactions = 0 con SPRING (k×u è force, non reaction nel solver).
+    Validazione tramite spostamento max ragionevole per 1800 kN su 120 m² Winkler."""
+    import math
+    model = example_raft_winkler()
+    r = StaticSolver(model).solve()
+    # Spostamento max finito e ragionevole (1-10 mm per terreno medio)
+    assert math.isfinite(r.max_displacement)
+    assert 0.0005 < r.max_displacement < 0.05, (
+        f"max_disp {r.max_displacement*1000:.2f} mm fuori range fisico atteso 0.5-50 mm"
+    )
 
 
 # === TPL-7 · Ponte trave isostatica L=20m ===

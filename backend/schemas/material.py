@@ -335,6 +335,8 @@ SECTIONS_DB: dict[str, Section] = {
                           type="custom", A=0.1, Iy=0, Iz=0, J=0, thickness=0.10),
     "shell_t200": Section(id="shell_t200", name="Shell t=200mm",
                           type="custom", A=0.2, Iy=0, Iz=0, J=0, thickness=0.20),
+    "shell_t600": Section(id="shell_t600", name="Shell t=600mm",
+                          type="custom", A=0.6, Iy=0, Iz=0, J=0, thickness=0.60),
     # Cavi per BL-1: solo area assiale, niente inerzia (tension-only)
     "cable_d20": Section(
         id="cable_d20", name="Cavo Ø20 mm (tension-only)",
