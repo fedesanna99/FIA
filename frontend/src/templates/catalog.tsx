@@ -20,7 +20,7 @@ import type { JSX } from "react";
 
 export type TemplateVariant =
   | "beam" | "portal" | "tower" | "cantilever" | "plate" | "truss"
-  | "membrane" | "solid" | "bridge" | "laminate" | "building";
+  | "membrane" | "solid" | "bridge" | "laminate" | "building" | "warehouse";
 
 export type TemplateCategory = "acciaio" | "ca" | "legno" | "sismica" | "altro";
 export type TemplateBadge = "POPOLARE" | "PRO" | "NEW";
@@ -63,6 +63,7 @@ export const TEMPLATES_CATALOG: TemplateEntry[] = [
   { id: "t8", backendId: "ex_cable_bridge_2d", uc: "UC8", title: "Ponte strallato 2D", desc: "Impalcato L=12m sospeso da 4 cavi pre-tesi (50 kN), 2 pyloni H=8m. Non-lineare cavi.", category: "acciaio", pills: ["non-lin", "cavi"], timeMin: 7, badge: "PRO", variant: "bridge" },
   { id: "t9", backendId: "ex_laminate_plate", uc: "UC9", title: "Piastra laminata cross-ply", desc: "Piastra 1×1 m laminata 0/90/0 carbon (3mm). Bordo y=0 incastrato. Comportamento ortotropo.", category: "altro", pills: ["composito", "Q4"], timeMin: 5, badge: "NEW", variant: "laminate" },
   { id: "t10", backendId: "ex_rc_building_4st", uc: "UC10", title: "Edificio CA 4 piani", desc: "Edificio residenziale CA, pianta 12×8 m, 3×2 baie, pilastri+travi 30×50 cm C25/30, solai shell 20 cm. ~585 nodi · 500 elementi.", category: "ca", pills: ["beam3D", "shell", "NTC"], timeMin: 12, badge: "NEW", variant: "building" },
+  { id: "t11", backendId: "ex_steel_portal_hall", uc: "UC11", title: "Capannone acciaio 1 campata", desc: "Capannone industriale S355, 20×40 m, 9 telai interasse 5 m. Pilastri HEB300 h=7m, falde IPE300 inclinate 15°, arcarecci IPE200 + controventi facciate. ~81 nodi · 100 elem.", category: "acciaio", pills: ["beam3D", "truss", "EC3"], timeMin: 8, badge: "NEW", variant: "warehouse" },
 ];
 
 
@@ -297,6 +298,57 @@ function BuildingThumb(): JSX.Element {
   );
 }
 
+function WarehouseThumb(): JSX.Element {
+  // Capannone industriale vista trasversale: 2 pilastri + tetto a 2 falde
+  // + colmo + freccia vento + frecce copertura
+  return (
+    <svg viewBox="0 0 280 160" preserveAspectRatio="xMidYMid meet">
+      {/* Pilastri sx + dx (con mid-node tick) */}
+      <g stroke={stroke} strokeWidth="2.5" fill="none">
+        <line x1="55" y1="130" x2="55" y2="60" />
+        <line x1="225" y1="130" x2="225" y2="60" />
+      </g>
+      <g stroke={stroke} strokeWidth="1" fill="none" opacity="0.55">
+        <line x1="51" y1="95" x2="59" y2="95" />
+        <line x1="221" y1="95" x2="229" y2="95" />
+      </g>
+      {/* Tetto a 2 falde con colmo + mid-node tick */}
+      <g stroke={stroke} strokeWidth="2.5" fill="none">
+        <line x1="55" y1="60" x2="140" y2="38" />
+        <line x1="140" y1="38" x2="225" y2="60" />
+      </g>
+      <g stroke={stroke} strokeWidth="1" fill="none" opacity="0.55">
+        <line x1="97" y1="46" x2="100" y2="52" />
+        <line x1="183" y1="46" x2="180" y2="52" />
+      </g>
+      {/* Base/fondazione tratteggiata */}
+      <line x1="40" y1="130" x2="240" y2="130" stroke="var(--ink-dim)" strokeWidth="1.5" />
+      <g stroke="var(--ink-dim)" strokeWidth="0.8">
+        <line x1="45" y1="130" x2="40" y2="138" />
+        <line x1="55" y1="130" x2="50" y2="138" />
+        <line x1="65" y1="130" x2="60" y2="138" />
+        <line x1="215" y1="130" x2="210" y2="138" />
+        <line x1="225" y1="130" x2="220" y2="138" />
+        <line x1="235" y1="130" x2="230" y2="138" />
+      </g>
+      {/* Freccia vento orizzontale lato sx */}
+      <g stroke={accent} strokeWidth="1.5">
+        <line x1="22" y1="80" x2="50" y2="80" />
+        <polygon points="50,80 44,76 44,84" fill={accent} />
+      </g>
+      {/* Frecce copertura verticali sulle falde */}
+      <g stroke={accent} strokeWidth="1.2" opacity="0.65">
+        <line x1="97" y1="30" x2="97" y2="42" />
+        <polygon points="97,42 94,37 100,37" fill={accent} />
+        <line x1="140" y1="22" x2="140" y2="32" />
+        <polygon points="140,32 137,27 143,27" fill={accent} />
+        <line x1="183" y1="30" x2="183" y2="42" />
+        <polygon points="183,42 180,37 186,37" fill={accent} />
+      </g>
+    </svg>
+  );
+}
+
 /** Registry SVG: per ogni variant → component function da renderizzare. */
 export const VARIANT_THUMBS: Record<TemplateVariant, () => JSX.Element> = {
   beam: BeamThumb,
@@ -310,6 +362,7 @@ export const VARIANT_THUMBS: Record<TemplateVariant, () => JSX.Element> = {
   bridge: BridgeThumb,
   laminate: LaminateThumb,
   building: BuildingThumb,
+  warehouse: WarehouseThumb,
 };
 
 

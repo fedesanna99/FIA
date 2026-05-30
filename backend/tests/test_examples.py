@@ -12,7 +12,8 @@ from examples import (
     example_truss_3d,
     example_shell_plate,
     example_tower_3d,
-    example_rc_building_4st,  # TPL-1
+    example_rc_building_4st,    # TPL-1
+    example_steel_portal_hall,  # TPL-2
 )
 from core.solver import StaticSolver, ModalSolver
 
@@ -23,7 +24,8 @@ ALL_EXAMPLES = [
     ("truss_3d", example_truss_3d),
     ("shell_plate", example_shell_plate),
     ("tower_3d", example_tower_3d),
-    ("rc_building_4st", example_rc_building_4st),  # TPL-1
+    ("rc_building_4st", example_rc_building_4st),       # TPL-1
+    ("steel_portal_hall", example_steel_portal_hall),   # TPL-2
 ]
 
 
@@ -137,4 +139,42 @@ def test_rc_building_4st_reactions_balance_floor_loads():
     assert total_rz == pytest.approx(expected, rel=1e-2), (
         f"Reazioni Fz {total_rz:.0f} N devono bilanciare carichi {expected:.0f} N "
         f"(scarto >1%)"
+    )
+
+
+# === TPL-2 · Capannone acciaio 1 campata ===
+def test_steel_portal_hall_geometry():
+    """Verifica geometria: 81 nodi (9 telai × 9 slot), 100 elem (96 BEAM3D + 4 TRUSS3D)."""
+    model = example_steel_portal_hall()
+    assert len(model.nodes) == 81, f"Nodi attesi 81, trovati {len(model.nodes)}"
+    assert len(model.elements) == 100, f"Elementi attesi 100, trovati {len(model.elements)}"
+    assert len(model.constraints) == 18, f"18 pilastri base incastrati (9 telai × 2)"
+    # Verifica mix tipologie
+    n_beam = sum(1 for e in model.elements if str(e.type).endswith("BEAM3D"))
+    n_truss = sum(1 for e in model.elements if str(e.type).endswith("TRUSS3D"))
+    assert n_beam == 96, f"72 telai + 24 arcarecci = 96 BEAM3D, trovati {n_beam}"
+    assert n_truss == 4, f"4 controventi facciate, trovati {n_truss}"
+    # Bounding box: x=[0, 20], y=[0, 40], z=[0, 9.68]
+    xs = [n.x for n in model.nodes]
+    ys = [n.y for n in model.nodes]
+    zs = [n.z for n in model.nodes]
+    assert min(xs) == 0.0 and max(xs) == 20.0, "luce 20m"
+    assert min(ys) == 0.0 and max(ys) == 40.0, "lunghezza 40m (9 telai × 5m interasse)"
+    assert min(zs) == 0.0 and max(zs) == pytest.approx(9.68, abs=0.01), "colmo ~9.68m"
+
+
+def test_steel_portal_hall_reactions_balance_roof_loads():
+    """Σ Fz reazioni == -Σ carichi copertura.
+    Carico copertura: -3 kN/m² su 20×40 = 800 m² → 2400 kN totali.
+    """
+    model = example_steel_portal_hall()
+    r = StaticSolver(model).solve()
+    total_rz = sum(rx.fz for rx in r.reactions)
+    expected = 3000.0 * 20.0 * 40.0  # 3 kN/m² × area capannone
+    # Tolleranza leggermente più alta: i nodi laterali (bordo telai) hanno area
+    # dimezzata, e l'inclinazione delle falde può introdurre lieve discrepanza
+    # con la proiezione semplice in pianta.
+    assert total_rz == pytest.approx(expected, rel=2e-2), (
+        f"Reazioni Fz {total_rz:.0f} N devono bilanciare carichi {expected:.0f} N "
+        f"(scarto >2%)"
     )

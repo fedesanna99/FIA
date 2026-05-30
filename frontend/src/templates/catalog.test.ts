@@ -35,13 +35,14 @@ const BACKEND_TEMPLATE_IDS_GROUND_TRUTH: readonly string[] = [
   "ex_cube_solid_h8",
   "ex_cable_bridge_2d",
   "ex_laminate_plate",
-  "ex_rc_building_4st", // TPL-1 (30/05/2026 sera)
+  "ex_rc_building_4st",    // TPL-1 (30/05/2026 sera)
+  "ex_steel_portal_hall",  // TPL-2 (30/05/2026 sera)
 ];
 
 
 describe("Template catalog consistency", () => {
-  it("ha esattamente 10 voci", () => {
-    expect(TEMPLATES_CATALOG).toHaveLength(10);
+  it("ha esattamente 11 voci", () => {
+    expect(TEMPLATES_CATALOG).toHaveLength(11);
   });
 
   it("ogni TemplateEntry ha tutti i campi richiesti non vuoti", () => {

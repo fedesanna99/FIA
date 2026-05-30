@@ -561,6 +561,183 @@ def example_rc_building_4st() -> FEAModel:
     )
 
 
+def example_steel_portal_hall() -> FEAModel:
+    """Capannone industriale acciaio 1 campata NTC + EC3 (TPL-2).
+
+    Pianta 20×40 m, 9 telai 2D ad interasse 5 m connessi
+    longitudinalmente da arcarecci. Pilastri HEB300 h=7m, falde
+    IPE300 inclinate 15° con colmo a quota 9.68m. Arcarecci IPE200
+    su top-sx/colmo/top-dx. Controventi facciata Ø100 sulle 2 testate.
+
+    Discretizzazione: pilastri+falde in 2 segmenti per analisi
+    modale ricca → 9 nodi/telaio × 9 telai = 81 nodi totali.
+
+    Scenario: il "modello tipo" del professionista italiano in
+    industria/PMI/agricoltura (~70-80% degli ing strutturali).
+    Apre la stagione "modelli professional-grade" insieme a TPL-1.
+
+    Norme: NTC 2018 §4.2 (acciaio), EC3 §6 (resistenza+stabilità),
+    EC1-1-4 (vento), eventuali EC8 §6 (sisma capannoni).
+    """
+    # Geometria globale
+    n_telai = 9            # 40m / 5m + 1 = 9 telai
+    interasse = 5.0        # m
+    span = 20.0            # m luce capannone
+    h_pilastro = 7.0       # m altezza pilastri
+    pendenza_deg = 15.0
+    import math
+    h_colmo = h_pilastro + (span / 2) * math.tan(math.radians(pendenza_deg))
+
+    # === NODI === 9 nodi/telaio × 9 telai = 81
+    # Layout x-z per ogni telaio (y = i × interasse):
+    #   0: base sx (0, y, 0)
+    #   1: mid pilastro sx (0, y, 3.5)
+    #   2: top sx (0, y, 7)
+    #   3: mid falda sx (5, y, 8.34)
+    #   4: colmo (10, y, 9.68)
+    #   5: mid falda dx (15, y, 8.34)
+    #   6: top dx (20, y, 7)
+    #   7: mid pilastro dx (20, y, 3.5)
+    #   8: base dx (20, y, 0)
+    NODES_PER_TELAIO = 9
+    z_top = h_pilastro
+    z_mid_pil = h_pilastro / 2
+    z_mid_falda = h_pilastro + (h_colmo - h_pilastro) / 2
+
+    nodes: list[Node] = []
+    for i in range(n_telai):
+        y = i * interasse
+        base_nid = i * NODES_PER_TELAIO + 1
+        nodes.extend([
+            Node(id=base_nid + 0, x=0.0,         y=y, z=0.0),
+            Node(id=base_nid + 1, x=0.0,         y=y, z=z_mid_pil),
+            Node(id=base_nid + 2, x=0.0,         y=y, z=z_top),
+            Node(id=base_nid + 3, x=span / 4,    y=y, z=z_mid_falda),
+            Node(id=base_nid + 4, x=span / 2,    y=y, z=h_colmo),
+            Node(id=base_nid + 5, x=3 * span / 4, y=y, z=z_mid_falda),
+            Node(id=base_nid + 6, x=span,        y=y, z=z_top),
+            Node(id=base_nid + 7, x=span,        y=y, z=z_mid_pil),
+            Node(id=base_nid + 8, x=span,        y=y, z=0.0),
+        ])
+
+    def nid(telaio: int, slot: int) -> int:
+        """telaio: 0..8, slot: 0..8 (vedi schema sopra)."""
+        return telaio * NODES_PER_TELAIO + slot + 1
+
+    # === ELEMENTI ===
+    elements: list[Element] = []
+    eid = 1
+
+    # 1) Telai 2D (8 elementi BEAM3D/telaio × 9 = 72)
+    #    - 2 segmenti pilastro sx (base→mid, mid→top)
+    #    - 2 segmenti falda sx (top sx→mid falda, mid falda→colmo)
+    #    - 2 segmenti falda dx (colmo→mid falda, mid falda→top dx)
+    #    - 2 segmenti pilastro dx (top→mid, mid→base)
+    for i in range(n_telai):
+        chain = [
+            (nid(i, 0), nid(i, 1), "heb_300"),  # pilastro sx base→mid
+            (nid(i, 1), nid(i, 2), "heb_300"),  # pilastro sx mid→top
+            (nid(i, 2), nid(i, 3), "ipe_300"),  # falda sx top→mid
+            (nid(i, 3), nid(i, 4), "ipe_300"),  # falda sx mid→colmo
+            (nid(i, 4), nid(i, 5), "ipe_300"),  # falda dx colmo→mid
+            (nid(i, 5), nid(i, 6), "ipe_300"),  # falda dx mid→top
+            (nid(i, 6), nid(i, 7), "heb_300"),  # pilastro dx top→mid
+            (nid(i, 7), nid(i, 8), "heb_300"),  # pilastro dx mid→base
+        ]
+        for n_a, n_b, sect in chain:
+            elements.append(Element(
+                id=eid, type=ElementType.BEAM3D,
+                nodes=[n_a, n_b],
+                material_id="steel_s355", section_id=sect,
+                orientation=[0, 1, 0],
+            ))
+            eid += 1
+
+    # 2) Arcarecci longitudinali IPE200 (3 linee × 8 segmenti = 24)
+    #    sui top sx (slot 2), colmo (slot 4), top dx (slot 6)
+    for slot in (2, 4, 6):
+        for i in range(n_telai - 1):
+            elements.append(Element(
+                id=eid, type=ElementType.BEAM3D,
+                nodes=[nid(i, slot), nid(i + 1, slot)],
+                material_id="steel_s355", section_id="ipe_200",
+                orientation=[1, 0, 0],
+            ))
+            eid += 1
+
+    # 3) Controventi diagonali Ø100 sulle 2 facciate di testata (4 elem)
+    #    Telaio 0 e telaio 8: croce sui pilastri base-base/top-top
+    for i in (0, n_telai - 1):
+        # Diagonale 1: base sx (i) → top dx (i)
+        elements.append(Element(
+            id=eid, type=ElementType.TRUSS3D,
+            nodes=[nid(i, 0), nid(i, 6)],
+            material_id="steel_s355", section_id="circ_100",
+        ))
+        eid += 1
+        # Diagonale 2: base dx (i) → top sx (i)
+        elements.append(Element(
+            id=eid, type=ElementType.TRUSS3D,
+            nodes=[nid(i, 8), nid(i, 2)],
+            material_id="steel_s355", section_id="circ_100",
+        ))
+        eid += 1
+
+    # === CONSTRAINTS === (18 pilastri incastrati alla base)
+    constraints = []
+    cid = 1
+    for i in range(n_telai):
+        for slot in (0, 8):  # base sx + base dx
+            constraints.append(Constraint(
+                id=cid, type=ConstraintType.FIXED, node_id=nid(i, slot),
+                label=f"Incastro telaio {i + 1} {'sx' if slot == 0 else 'dx'}",
+            ))
+            cid += 1
+
+    # === CARICHI ===
+    # Copertura (permanente + neve) ≈ -3 kN/m² × area trib nodale
+    # Vento orizzontale lato sx ≈ +5 kN/nodo su top pilastri sx
+    loads: list[Load] = []
+    lid = 1
+    # Carico copertura: NODAL fz negativo su tutti i nodi falda+colmo.
+    # Area tributaria per nodo interno: interasse 5m × (span/4) = 25 m² → 75 kN
+    # Nodo bordo (telaio 0 o 8): metà area = 37.5 kN
+    for i in range(n_telai):
+        is_bordo = (i == 0 or i == n_telai - 1)
+        factor_y = 0.5 if is_bordo else 1.0
+        for slot in (2, 3, 4, 5, 6):  # top sx, mid sx, colmo, mid dx, top dx
+            # Area trib in x per slot: top=2.5, mid=5, colmo=5, mid=5, top=2.5
+            area_x = 2.5 if slot in (2, 6) else 5.0
+            area = area_x * interasse * factor_y
+            fz = -3000.0 * area  # 3 kN/m² verso il basso
+            loads.append(Load(
+                id=lid, type=LoadType.NODAL,
+                target_id=nid(i, slot), fz=fz,
+                label=f"Copertura telaio {i + 1}",
+            ))
+            lid += 1
+    # Vento orizzontale lato sx → +x sui top pilastri sx (slot 2)
+    for i in range(n_telai):
+        is_bordo = (i == 0 or i == n_telai - 1)
+        f_vento = 2500.0 if is_bordo else 5000.0
+        loads.append(Load(
+            id=lid, type=LoadType.NODAL,
+            target_id=nid(i, 2), fx=f_vento,
+            label=f"Vento telaio {i + 1}",
+        ))
+        lid += 1
+
+    return FEAModel(
+        id="ex_steel_portal_hall",
+        name="Capannone acciaio 1 campata",
+        description="Capannone industriale acciaio S355, 20×40 m, 9 telai interasse 5 m. "
+                    "Pilastri HEB300 h=7m, falde IPE300 inclinate 15° colmo 9.68m, "
+                    "arcarecci IPE200, controventi facciate Ø100. NTC §4.2 + EC3.",
+        is_3d=True,
+        nodes=nodes, elements=elements, constraints=constraints, loads=loads,
+    )
+
+
 def build_example_models() -> list[FEAModel]:
     return [
         example_simple_beam_2d(),
@@ -572,5 +749,6 @@ def build_example_models() -> list[FEAModel]:
         example_cube_solid_h8(),
         example_cable_bridge_2d(),
         example_laminate_plate(),
-        example_rc_building_4st(),  # TPL-1 (30/05/2026 sera)
+        example_rc_building_4st(),       # TPL-1 (30/05/2026 sera)
+        example_steel_portal_hall(),     # TPL-2 (30/05/2026 sera)
     ]
