@@ -49,9 +49,12 @@ export function DashTopBar({ activePath = "home", tierLabel = "FREE" }: DashTopB
   const navigate = useNavigate();
 
   const handleHome = () => {
-    // Già in home — comportamento idle (no navigation). Confronto con
-    // ShellTopBar (Fetta E2.1) che fa dispatch `feapro:go-home`: in
-    // DashTopBar non serve perché siamo gia in `/`.
+    // v3.6 MOD-1 fix (31/05/2026): pre-MOD-1 era no-op perché DashTopBar
+    // viveva solo in `/` (idle se già lì). Adesso DashTopBar è usata
+    // anche da /modelli, /jobs, /cronologia, /docs — il bottone Home
+    // DEVE navigare a `/`. react-router gestisce naturalmente il no-op
+    // quando sei già su `/` (nessun re-render inutile).
+    navigate("/");
   };
 
   const handleModelli = () => {
@@ -92,7 +95,7 @@ export function DashTopBar({ activePath = "home", tierLabel = "FREE" }: DashTopB
           type="button"
           className={`tb-navlink${activePath === "modelli" ? " is-active" : ""}`}
           onClick={handleModelli}
-          title="Modelli (in arrivo)"
+          aria-current={activePath === "modelli" ? "page" : undefined}
           data-testid="dash-nav-modelli"
         >
           <Box size={16} strokeWidth={1.8} aria-hidden />
@@ -102,7 +105,8 @@ export function DashTopBar({ activePath = "home", tierLabel = "FREE" }: DashTopB
           type="button"
           className={`tb-navlink${activePath === "jobs" ? " is-active" : ""}`}
           onClick={handleJobs}
-          title="Jobs (in arrivo)"
+          aria-current={activePath === "jobs" ? "page" : undefined}
+          title="Coda jobs server-side (in arrivo)"
           data-testid="dash-nav-jobs"
         >
           <Activity size={16} strokeWidth={1.8} aria-hidden />
