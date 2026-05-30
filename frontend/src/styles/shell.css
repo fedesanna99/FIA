@@ -1804,6 +1804,40 @@ body.shell-sharp .tb-avatar { border-radius: 0; }
     min-width: 0;
   }
 
+  /* ── M5-polish · fix focus mode bianco mobile (30/05/2026 mattina) ──
+     Feedback live di Federico: doppio-tap entra in focus mode ma il
+     viewport e' tutto bianco. Causa: quando focus mode collassa le
+     grid rows (phase 0 + statusbar 0), il `.shell-mid` cambia altezza
+     ma `.shell-viewport` non aveva regole explicit di height/min-height
+     in focus → il Canvas R3F renderizzato dentro `<div absolute inset-0>`
+     non sapeva quanto era grande il container e mostrava il background
+     bianco del root `.shell` invece della scena 3D.
+     Fix: forza dimensioni esplicite + canvas !important per battere
+     lo style inline che R3F applica al `<canvas>`. */
+  .shell.shell-focus-on .shell-viewport {
+    width: 100%;
+    height: 100%;
+    min-width: 0;
+    min-height: 0;
+    background: var(--bg-viewport);
+  }
+  /* R3F applica `width: 100%; height: 100%` inline al canvas all'init,
+     ma se il container parent cambia dimensione dopo (focus mode toggle),
+     il ResizeObserver di R3F dovrebbe ri-misurare. Su mobile il timing
+     a volte non scatta → forziamo dimensioni 100% via CSS. !important
+     necessario per battere lo style inline. */
+  .shell.shell-focus-on .shell-viewport canvas {
+    width: 100% !important;
+    height: 100% !important;
+    display: block;
+  }
+  /* Anche il wrapper absolute inset-0 di App.tsx (che ospita Viewport3D)
+     deve rispettare il parent in focus mode. */
+  .shell.shell-focus-on .shell-viewport > div {
+    width: 100%;
+    height: 100%;
+  }
+
   /* ── M2 · Spina compatta mobile (30/05/2026 · ADR 004 D3) ─────────
      Riduce la spina 3 fasi su mobile: le pillole inattive diventano
      solo cerchietto numerato (1 · 2 · 3 senza label né icona stato),
