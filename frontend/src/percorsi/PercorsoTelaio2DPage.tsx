@@ -39,6 +39,11 @@ import { ExternalLink } from "lucide-react";
 
 import { PercorsoStep } from "../components/shell/PercorsoStep";
 import { PERCORSO_STEPS_6 } from "../components/shell/PercorsoStepper";
+// v3.5 Fetta D3 (30/05/2026): Step Geometry parametrico + preview SVG live
+// + 3 preset visivi. Genera il FEAModel via buildFrameModel + scrive a
+// modelStore.setModel al submit (poi avanza step). Tutto self-contained
+// (form + preview + aside preset) — nessuna prop preset esterna.
+import { StepGeometry } from "./steps/StepGeometry";
 import "../styles/percorso-telaio-2d.css";
 
 
@@ -86,16 +91,39 @@ export function PercorsoTelaio2DPage(): JSX.Element {
   // v3.5 D1: default step 1 (Geometry). UC1Page invece partiva da step 3
   // perché era mockup-driven (Carichi). Qui flusso completo dall'inizio.
   const [step, setStep] = useState<Step>(1);
+  // v3.5 D3: track quando step 1 (Geometry) e' stato submitted con success
+  // (modello scritto a modelStore). Solo allora il forward CTA dello
+  // step 1 e' valido per il PercorsoStep template — gli step 2-7 hanno
+  // poi le loro validation interne.
+  const [step1Done, setStep1Done] = useState(false);
 
   const meta = STEP_META[step];
 
-  // v3.5 D1: validation placeholder. D3-D7 sostituiranno con check reali
-  // (es. Geometry: bays > 0 && span > 0 && height > 0).
-  const validation = { status: "pending" as const, message: "Compila i campi per continuare" };
+  // v3.5 D3: validation contestuale per ogni step.
+  // - Step 1 (Geometry): "pending" finche' StepGeometry non chiama
+  //   onSubmit, poi "ok" (e step1Done=true permette il forward globale
+  //   tramite il bottone interno StepGeometry — quindi la validation
+  //   esterna serve solo per il chip footer).
+  // - Step 2-6: ancora pending (popolati in D6/D7).
+  const validation = step === 1 && step1Done
+    ? { status: "ok" as const, message: "Geometria definita · modello generato" }
+    : { status: "pending" as const, message: "Compila i campi per continuare" };
 
   const handleForward = () => {
     if (step < 6) setStep((step + 1) as Step);
   };
+
+  // v3.5 D3: callback chiamato da StepGeometry quando l'utente clicca
+  // "Done with Geometry" dentro il body dello step 1. Marca step1Done
+  // (validation diventa ok) + avanza automaticamente allo step 2.
+  const handleStep1Submit = () => {
+    setStep1Done(true);
+    if (step === 1) setStep(2 as Step);
+  };
+
+  // v3.5 D3: StepGeometry contiene preset card aside internamente
+  // (3-col layout: form / preview / aside). Niente callback preset
+  // esterno qui — il componente è autosufficiente.
   const handleBack = () => {
     if (step > 1) setStep((step - 1) as Step);
   };
@@ -150,17 +178,22 @@ export function PercorsoTelaio2DPage(): JSX.Element {
           forwardLabel={step === 6 ? "Completa percorso" : `Vai a ${PERCORSO_STEPS_6[step]?.label ?? "next"}`}
           forwardDisabled={validation.status === "pending"}
         >
-          {/* v3.5 D1: body placeholder per ogni step. D3-D7 lo sostituiranno
-              col content reale (form parametrico, vincoli, carichi, ecc.) */}
-          <div className="ptd-step-placeholder" data-testid={`ptd-step-${step}-placeholder`}>
-            <p className="ptd-placeholder-eyebrow">SCAFFOLD D1</p>
-            <p className="ptd-placeholder-title">Step {step} · {PERCORSO_STEPS_6[step - 1].label}</p>
-            <p className="ptd-placeholder-hint">
-              Il body di questo step sarà popolato in una fetta successiva
-              del Demo Slice (D{step === 1 ? "3" : step <= 3 ? "6" : "7"}).
-              Per ora puoi navigare avanti/indietro per testare lo stepper.
-            </p>
-          </div>
+          {/* v3.5 D3: step 1 cablato a StepGeometry (form parametrico +
+              preview SVG + preset aside). Step 2-6 ancora placeholder
+              finche' D6/D7 li popolano. */}
+          {step === 1 ? (
+            <StepGeometry onSubmit={handleStep1Submit} />
+          ) : (
+            <div className="ptd-step-placeholder" data-testid={`ptd-step-${step}-placeholder`}>
+              <p className="ptd-placeholder-eyebrow">SCAFFOLD D1</p>
+              <p className="ptd-placeholder-title">Step {step} · {PERCORSO_STEPS_6[step - 1].label}</p>
+              <p className="ptd-placeholder-hint">
+                Il body di questo step sarà popolato in una fetta successiva
+                del Demo Slice (D{step <= 3 ? "6" : "7"}). Per ora puoi
+                navigare avanti/indietro per testare lo stepper.
+              </p>
+            </div>
+          )}
         </PercorsoStep>
       </main>
     </div>

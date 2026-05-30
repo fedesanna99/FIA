@@ -32,16 +32,17 @@ describe("PercorsoTelaio2DPage · D1 skeleton", () => {
     expect(screen.getByTestId("ptd-open-studio-pro")).toBeInTheDocument();
   });
 
-  it("default step = 1 (Geometry), body placeholder visibile", () => {
+  it("default step = 1 (Geometry), StepGeometry body montato", () => {
     renderPage();
-    const placeholder = screen.getByTestId("ptd-step-1-placeholder");
-    expect(placeholder).toBeInTheDocument();
-    // SCAFFOLD eyebrow + step title dentro il placeholder (scope-limited
-    // per evitare false-match con lo stepper persistente in alto che
-    // contiene anche "Geometria" come label).
-    expect(placeholder.textContent).toContain("SCAFFOLD D1");
-    expect(placeholder.textContent).toContain("Step 1");
-    expect(placeholder.textContent).toContain("Geometria");
+    // v3.5 D3: step 1 NON e' piu' un placeholder ma StepGeometry vero
+    // (form parametrico + preview SVG + aside preset). I test dedicati
+    // di StepGeometry coprono la sua logica — qui basta verificare
+    // l'integrazione (StepGeometry presente quando step=1).
+    expect(screen.getByTestId("step-geometry-body")).toBeInTheDocument();
+    expect(screen.getByTestId("step-geometry-preview")).toBeInTheDocument();
+    expect(screen.getByTestId("step-geometry-aside")).toBeInTheDocument();
+    // Placeholder NON deve essere visibile per step 1
+    expect(screen.queryByTestId("ptd-step-1-placeholder")).toBeNull();
   });
 
   it("active escape 'Apri Studio Pro' ha aria-label corretto", () => {
@@ -60,14 +61,23 @@ describe("PercorsoTelaio2DPage · D1 skeleton", () => {
     expect(screen.getByRole("link", { name: /^percorsi$/i })).toBeInTheDocument();
   });
 
-  it("navigazione forward: step 1 → 2 cambia body placeholder", () => {
+  it("navigazione forward: il bottone footer 'Vai a Vincoli' esiste (disabled fino a Done with Geometry)", () => {
     renderPage();
-    // Body step 1 placeholder visibile
-    expect(screen.getByTestId("ptd-step-1-placeholder")).toBeInTheDocument();
-    // Forward CTA → step 2 (validation pending ma per il test sblocchiamo
-    // forzando click via testid del bottone "Vai a Vincoli")
+    // v3.5 D3: per step 1, esiste sia il bottone footer "Vai a Vincoli"
+    // (PercorsoStep CTA, disabled in pending) sia il bottone interno
+    // "Done with Geometry" (StepGeometry submit, sblocca step1Done).
     const forwardBtn = screen.getByRole("button", { name: /vai a vincoli/i });
-    // Forward è disabled in pending — verifico almeno che esista
     expect(forwardBtn).toBeInTheDocument();
+    // Submit interno presente
+    expect(screen.getByTestId("step-geometry-submit")).toBeInTheDocument();
+  });
+
+  it("submit interno step 1 (Done with Geometry) avanza automaticamente a step 2", () => {
+    renderPage();
+    // Click "Done with Geometry" → handleStep1Submit → setStep(2)
+    fireEvent.click(screen.getByTestId("step-geometry-submit"));
+    // Step 2 placeholder ora visibile (StepGeometry NON e' piu' renderizzato)
+    expect(screen.getByTestId("ptd-step-2-placeholder")).toBeInTheDocument();
+    expect(screen.queryByTestId("step-geometry-body")).toBeNull();
   });
 });

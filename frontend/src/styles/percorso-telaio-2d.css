@@ -156,3 +156,243 @@ body.shell-sharp .ptd-step-placeholder { border-radius: 0; }
   margin: 0;
   max-width: 520px;
 }
+
+
+/* ──────────────────────────────────────────────────────────────────────
+ * v3.5 Fetta D3 · Step Geometry parametrico + preview SVG + aside preset
+ * ──────────────────────────────────────────────────────────────────── */
+
+.ptd-geom-body {
+  display: grid;
+  grid-template-columns: 280px 1fr 240px;
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 1080px) {
+  .ptd-geom-body {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── LEFT · form parametrico ── */
+.ptd-geom-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+body.shell-sharp .ptd-geom-form { border-radius: 0; }
+
+.ptd-geom-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.ptd-geom-field-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+.ptd-geom-field-unit {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--ink-dim);
+}
+.ptd-geom-field-input {
+  height: 36px;
+  padding: 0 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--ink);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  transition: border-color 120ms ease;
+}
+body.shell-sharp .ptd-geom-field-input { border-radius: 0; }
+.ptd-geom-field-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(var(--accent-rgb), 0.18);
+}
+
+.ptd-geom-tip {
+  display: grid;
+  grid-template-columns: 14px 1fr;
+  gap: 8px;
+  padding: 10px 12px;
+  background: rgba(var(--accent-rgb), 0.05);
+  border-left: 2px solid var(--accent);
+  border-radius: 6px;
+}
+body.shell-sharp .ptd-geom-tip { border-radius: 0; }
+.ptd-geom-tip svg {
+  color: var(--accent);
+  margin-top: 1px;
+}
+.ptd-geom-tip p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+
+.ptd-geom-submit {
+  margin-top: 4px;
+  padding: 10px 16px;
+  background: var(--accent);
+  color: #fff;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+body.shell-sharp .ptd-geom-submit { border-radius: 0; }
+.ptd-geom-submit:hover:not(:disabled) {
+  background: var(--accent-hover, var(--accent));
+}
+.ptd-geom-submit:disabled {
+  background: var(--bg-hover);
+  color: var(--ink-faint);
+  cursor: not-allowed;
+}
+
+.ptd-geom-error {
+  margin: 0;
+  font-size: 11px;
+  color: var(--warn, #b45309);
+}
+
+/* ── CENTER · preview SVG live ── */
+.ptd-geom-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  min-height: 360px;
+}
+body.shell-sharp .ptd-geom-preview { border-radius: 0; }
+
+.ptd-geom-preview-title {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+}
+
+.ptd-geom-svg {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  min-height: 280px;
+  color: var(--ink-faint);
+}
+
+.ptd-geom-preview-error {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--warn, #b45309);
+  font-style: italic;
+}
+
+.ptd-geom-preview-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--ink-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── RIGHT · aside preset + about ── */
+.ptd-geom-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+body.shell-sharp .ptd-geom-aside { border-radius: 0; }
+
+.ptd-geom-aside-eyebrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  margin-bottom: 8px;
+}
+
+.ptd-geom-presets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ptd-geom-preset {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 120ms ease, background-color 120ms ease;
+}
+body.shell-sharp .ptd-geom-preset { border-radius: 0; }
+.ptd-geom-preset:hover {
+  border-color: var(--accent);
+  background: rgba(var(--accent-rgb), 0.05);
+}
+
+.ptd-geom-preset-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.ptd-geom-preset-desc {
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--ink-dim);
+}
+
+.ptd-geom-about {
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+.ptd-geom-about p {
+  margin: 0 0 6px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-dim);
+}
+.ptd-geom-about-hint {
+  font-style: italic;
+}
